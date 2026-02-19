@@ -8,6 +8,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
+# Convert MSYS /c/... paths to C:/... so Python can resolve them on Windows
+if [[ "$REPO_DIR" =~ ^/[a-zA-Z]/ ]]; then
+    REPO_DIR="$(echo "$REPO_DIR" | sed 's|^/\([a-zA-Z]\)/|\1:/|')"
+fi
 PROGRESS_FILE="$REPO_DIR/.lab-progress.json"
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -54,7 +58,7 @@ print_help() {
 }
 
 init_progress() {
-    if [[ ! -f "$PROGRESS_FILE" ]]; then
+    if [[ ! -f "$PROGRESS_FILE" ]] || ! python3 -c "import json; json.load(open('$PROGRESS_FILE'))" 2>/dev/null; then
         echo '{"labs":{}}' > "$PROGRESS_FILE"
     fi
 }
