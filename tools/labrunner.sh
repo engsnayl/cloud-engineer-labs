@@ -35,7 +35,7 @@ print_help() {
     echo -e "${BOLD}Commands:${NC}"
     echo "  list                    List all available labs"
     echo "  start <lab-path>        Start a specific lab"
-    echo "  random [linux|k8s|cloud|cicd|monitoring] Start a random lab (optionally filter by type)"
+    echo "  random [linux|k8s|cloud|cicd|monitoring|projects] Start a random lab/project (optionally filter by type)"
     echo "  validate <lab-path>     Run validation for a lab"
     echo "  reset <lab-path>        Reset/restart a lab"
     echo "  progress                Show your progress and completion times"
@@ -48,6 +48,8 @@ print_help() {
     echo "  ./tools/labrunner.sh random k8s"
     echo "  ./tools/labrunner.sh random cicd"
     echo "  ./tools/labrunner.sh random monitoring"
+    echo "  ./tools/labrunner.sh random projects"
+    echo "  ./tools/labrunner.sh start projects/project-001-build-multi-tier-app"
     echo "  ./tools/labrunner.sh validate linux-labs/lab-001-nginx-down"
 }
 
@@ -264,6 +266,35 @@ print(data.get('labs',{}).get('$lab_path',{}).get('completed', False))
             echo -e "     Difficulty: ${difficulty:-?} | Est: ${time_est:-?}"
         fi
     done
+
+    echo ""
+    echo -e "${BOLD}${BLUE}Capstone Projects${NC}"
+    echo -e "${BLUE}─────────────────${NC}"
+    for lab_dir in "$REPO_DIR"/projects/project-*/; do
+        if [[ -d "$lab_dir" ]]; then
+            local lab_name=$(basename "$lab_dir")
+            local lab_path="projects/$lab_name"
+            local title=$(get_lab_metadata "$lab_path" "Title")
+            local difficulty=$(get_lab_metadata "$lab_path" "Difficulty")
+            local time_est=$(get_lab_metadata "$lab_path" "Time")
+
+            local status="⬡"
+            if command -v python3 &>/dev/null && [[ -f "$PROGRESS_FILE" ]]; then
+                local completed=$(python3 -c "
+import json
+with open('$PROGRESS_FILE') as f:
+    data = json.load(f)
+print(data.get('labs',{}).get('$lab_path',{}).get('completed', False))
+" 2>/dev/null || echo "False")
+                if [[ "$completed" == "True" ]]; then
+                    status="${GREEN}✔${NC}"
+                fi
+            fi
+
+            echo -e "  $status  ${BOLD}$lab_name${NC} — ${title:-Untitled}"
+            echo -e "     Difficulty: ${difficulty:-?} | Est: ${time_est:-?}"
+        fi
+    done
     echo ""
 }
 
@@ -387,6 +418,17 @@ cmd_start() {
         echo ""
         echo -e "${BOLD}Need a hint?${NC}"
         echo -e "  ./tools/labrunner.sh hint $lab_path"
+    elif [[ "$lab_path" == projects/* ]]; then
+        echo -e "${CYAN}This is a capstone project — a build-from-scratch exercise.${NC}"
+        echo -e "${CYAN}There is no broken environment to fix. Read the full brief below:${NC}"
+        echo ""
+        cat "$challenge_file"
+        echo ""
+        echo -e "${BOLD}When you think you've completed it:${NC}"
+        echo -e "  ./tools/labrunner.sh validate $lab_path"
+        echo ""
+        echo -e "${BOLD}Need a hint?${NC}"
+        echo -e "  ./tools/labrunner.sh hint $lab_path"
     fi
 
     record_start "$lab_path"
@@ -485,6 +527,11 @@ cmd_reset() {
         docker compose build --quiet --no-cache
         docker compose up -d
         echo -e "${GREEN}Lab reset complete. Environment is fresh.${NC}"
+    elif [[ "$lab_path" == projects/* ]]; then
+        echo -e "${CYAN}Resetting project...${NC}"
+        cd "$full_path"
+        git checkout -- . 2>/dev/null || true
+        echo -e "${GREEN}Project files restored to original state.${NC}"
     fi
 }
 
@@ -536,6 +583,11 @@ cmd_random() {
     if [[ "$filter" == "monitoring" || "$filter" == "all" ]]; then
         for d in "$REPO_DIR"/monitoring-labs/lab-*/; do
             [[ -d "$d" ]] && labs+=("monitoring-labs/$(basename "$d")")
+        done
+    fi
+    if [[ "$filter" == "projects" || "$filter" == "all" ]]; then
+        for d in "$REPO_DIR"/projects/project-*/; do
+            [[ -d "$d" ]] && labs+=("projects/$(basename "$d")")
         done
     fi
 

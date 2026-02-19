@@ -1,0 +1,31 @@
+# Production overrides
+# BUG 1: Still has staging replica count
+replicaCount: 1
+
+config:
+  # BUG 2: Log level should be 'info' or 'warn' for production
+  logLevel: debug
+  # BUG 3: Still pointing at staging database!
+  databaseHost: staging-db.internal
+  databasePort: 5432
+  databaseName: api_staging
+  # BUG 4: Cache should be enabled in production
+  cacheEnabled: false
+  # BUG 5: Connection pool too small for production traffic
+  maxConnections: 10
+
+resources:
+  limits:
+    # BUG 6: Production needs more resources
+    cpu: 250m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  # BUG 7: Autoscaling should be enabled for production
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPU: 80

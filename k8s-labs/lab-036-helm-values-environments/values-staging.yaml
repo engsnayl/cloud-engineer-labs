@@ -1,0 +1,21 @@
+# Staging overrides — these are mostly correct
+replicaCount: 1
+
+config:
+  logLevel: debug
+  databaseHost: staging-db.internal
+  databasePort: 5432
+  databaseName: api_staging
+  cacheEnabled: false
+  maxConnections: 10
+
+resources:
+  limits:
+    cpu: 250m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false

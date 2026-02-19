@@ -1,0 +1,25 @@
+# Default values for webapp
+
+replicaCount: 2
+
+image:
+  repository: nginx
+  tag: "1.25-alpine"
+  # BUG 4: pullPolicy misspelled in template reference
+  pullPolicy: IfNotPresent
+
+service:
+  # BUG 5: type is valid but port is a string (should be int)
+  type: ClusterIP
+  port: "80"
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+# BUG 6: Label value has a space (K8s labels can't have spaces)
+appLabel: "web app"

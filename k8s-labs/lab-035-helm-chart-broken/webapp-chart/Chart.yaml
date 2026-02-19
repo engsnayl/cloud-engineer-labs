@@ -1,0 +1,8 @@
+# BUG 1: apiVersion should be v2 for Helm 3
+apiVersion: v1
+# BUG 2: Missing required 'name' field
+description: A web application chart
+version: 1.0.0
+# BUG 3: appVersion should be a string
+appVersion: 1.0
+type: application

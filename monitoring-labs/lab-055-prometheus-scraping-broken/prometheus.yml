@@ -1,0 +1,26 @@
+# Prometheus configuration — BROKEN
+global:
+  # BUG 1: Scrape interval way too long
+  scrape_interval: 600s
+  evaluation_interval: 600s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'app'
+    # BUG 2: Wrong port for app targets
+    static_configs:
+      - targets: ['app1:9090', 'app2:9090']
+    # Apps expose metrics on port 8080, not 9090
+
+    # BUG 3: Wrong metrics path
+    metrics_path: '/api/metrics'
+    # Apps expose metrics at /metrics, not /api/metrics
+
+  - job_name: 'node'
+    static_configs:
+      # BUG 4: Wrong hostname
+      - targets: ['node_exporter:9100']
+      # Docker Compose service name uses hyphen: node-exporter

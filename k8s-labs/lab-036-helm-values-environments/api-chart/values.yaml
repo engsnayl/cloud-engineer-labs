@@ -1,0 +1,33 @@
+# Base defaults — staging-like by default (safe)
+replicaCount: 1
+
+image:
+  repository: api-service
+  tag: "2.1.0"
+  pullPolicy: IfNotPresent
+
+config:
+  logLevel: debug
+  databaseHost: staging-db.internal
+  databasePort: 5432
+  databaseName: api_staging
+  cacheEnabled: false
+  maxConnections: 10
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources:
+  limits:
+    cpu: 250m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPU: 80

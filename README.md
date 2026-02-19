@@ -2,7 +2,7 @@
 
 A self-directed lab framework for practising real-world cloud engineering and Linux troubleshooting skills. Each lab simulates a realistic broken or incomplete environment that you must diagnose and fix — just like you would on the job.
 
-**69 labs** across six categories: Linux, Docker, Kubernetes, Terraform/AWS, CI/CD, and Monitoring.
+**74 labs + 1 capstone project** across seven categories: Linux, Docker, Kubernetes, Terraform/AWS, CI/CD, Monitoring, and Projects.
 
 ## Structure
 
@@ -11,14 +11,16 @@ cloud-engineer-labs/
 ├── linux-labs/          # Linux + Docker troubleshooting labs (27 labs)
 │   ├── lab-001 … lab-018   (Linux)
 │   └── lab-019 … lab-024, lab-035 … lab-037   (Docker)
-├── k8s-labs/            # Kubernetes troubleshooting labs (10 labs)
-│   └── lab-025 … lab-034
+├── k8s-labs/            # Kubernetes troubleshooting labs (12 labs)
+│   └── lab-025 … lab-036
 ├── cloud-labs/          # Terraform / AWS infrastructure labs (22 labs)
 │   └── lab-001 … lab-022
 ├── cicd-labs/           # CI/CD pipeline labs (5 labs)
 │   └── lab-040 … lab-044
-├── monitoring-labs/     # Monitoring & incident response labs (5 labs)
-│   └── lab-050 … lab-054
+├── monitoring-labs/     # Monitoring & incident response labs (7 labs)
+│   └── lab-050 … lab-056
+├── projects/            # Capstone projects (1 project)
+│   └── project-001
 ├── tools/
 │   └── labrunner.sh     # CLI runner
 ├── CREATING_LABS.md
@@ -64,7 +66,7 @@ cloud-engineer-labs/
 | 036 | Where Are The Logs — Container Logging Debugging | Intermediate | 10-15 min |
 | 037 | Can't Pull Image — Registry Authentication Issues | Intermediate | 10-15 min |
 
-### Kubernetes (10 labs)
+### Kubernetes (12 labs)
 
 | # | Lab | Difficulty | Time |
 |---|-----|-----------|------|
@@ -78,6 +80,8 @@ cloud-engineer-labs/
 | 032 | HPA Not Scaling | Advanced | 15-20 min |
 | 033 | Network Policy Too Restrictive | Advanced | 15-20 min |
 | 034 | Pod Unschedulable — Node Affinity and Taints | Advanced | 15-20 min |
+| 035 | Helm Chart Won't Install — Debug a Broken Chart | Advanced | 20-25 min |
+| 036 | Wrong Config in Production — Helm Values and Overrides | Advanced | 20-25 min |
 
 ### Terraform / AWS (22 labs)
 
@@ -116,7 +120,7 @@ cloud-engineer-labs/
 | 043 | Zero-Downtime Deploy — Blue/Green Switch | Advanced | 20-25 min |
 | 044 | IaC Pipeline — Terraform in CI/CD | Advanced | 20-25 min |
 
-### Monitoring & Incident Response (5 labs)
+### Monitoring & Incident Response (7 labs)
 
 | # | Lab | Difficulty | Time |
 |---|-----|-----------|------|
@@ -125,6 +129,14 @@ cloud-engineer-labs/
 | 052 | Logs Missing — Log Aggregation Pipeline Broken | Intermediate | 12-15 min |
 | 053 | Too Many Alerts — Alert Fatigue Triage | Intermediate | 15-20 min |
 | 054 | What Happened? — Post-Incident Timeline Reconstruction | Advanced | 20-25 min |
+| 055 | No Metrics — Prometheus Scraping Broken | Intermediate | 15-20 min |
+| 056 | Empty Dashboards — Grafana Data Source and Panel Debugging | Intermediate | 15-20 min |
+
+### Capstone Projects (1 project)
+
+| # | Project | Difficulty | Time |
+|---|---------|-----------|------|
+| 001 | Build From Scratch — Multi-Tier Application on Kubernetes | Expert | 60-90 min |
 
 ## How It Works
 
@@ -186,10 +198,20 @@ Each lab simulates a broken or misbehaving application in Docker. Your job is to
 
 **No internet required. No AWS costs. Fully local.**
 
+### Capstone Projects
+
+Projects are build-from-scratch exercises that combine skills across multiple categories. Unlike labs, there is no broken environment — you build the entire solution yourself.
+
+1. Read the `CHALLENGE.md` for the full brief
+2. Build the solution from scratch using the requirements provided
+3. Run `validate.sh` to confirm your solution meets the acceptance criteria
+
+**These are longer, open-ended exercises designed to test end-to-end skills.**
+
 ## Quick Start
 
 ```bash
-# List all 69 labs
+# List all 74 labs + 1 project
 ./tools/labrunner.sh list
 
 # Start a random lab
@@ -201,12 +223,14 @@ Each lab simulates a broken or misbehaving application in Docker. Your job is to
 ./tools/labrunner.sh random cloud
 ./tools/labrunner.sh random cicd
 ./tools/labrunner.sh random monitoring
+./tools/labrunner.sh random projects
 
 # Start a specific lab
 ./tools/labrunner.sh start linux-labs/lab-001-nginx-down
 ./tools/labrunner.sh start k8s-labs/lab-025-pod-crash-loop
 ./tools/labrunner.sh start cicd-labs/lab-040-github-actions-broken
 ./tools/labrunner.sh start monitoring-labs/lab-050-app-500-errors
+./tools/labrunner.sh start projects/project-001-build-multi-tier-app
 
 # Validate your fix
 ./tools/labrunner.sh validate linux-labs/lab-001-nginx-down
@@ -219,6 +243,7 @@ Each lab simulates a broken or misbehaving application in Docker. Your job is to
 
 - Docker and Docker Compose (Linux, Docker & Monitoring labs)
 - A Kubernetes cluster — kind, minikube, or remote (K8s labs)
+- Helm 3 (Helm labs 035-036)
 - Terraform + AWS CLI configured (Cloud labs)
 - Bash 4+
 

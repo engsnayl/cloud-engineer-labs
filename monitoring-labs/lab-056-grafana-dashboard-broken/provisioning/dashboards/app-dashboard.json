@@ -1,0 +1,86 @@
+{
+  "dashboard": {
+    "title": "Application Dashboard",
+    "panels": [
+      {
+        "title": "Request Rate",
+        "type": "timeseries",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "rates(http_requests_total[5m])",
+            "legendFormat": "{{method}} {{status}}"
+          }
+        ],
+        "id": 1,
+        "_comment": "BUG 2: 'rates' is not a function \u2014 should be 'rate'"
+      },
+      {
+        "title": "Error Rate (%)",
+        "type": "stat",
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 12,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total{status='500'}[5m])) / sum(rate(http_requests_total[5m])) * 100",
+            "legendFormat": "Error %"
+          }
+        ],
+        "id": 2,
+        "_comment": "BUG 3: Label matcher uses single quotes \u2014 PromQL uses double quotes: status=\"500\""
+      },
+      {
+        "title": "Request Duration (p95)",
+        "type": "timeseries",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(95, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "p95"
+          }
+        ],
+        "id": 3,
+        "_comment": "BUG 4: histogram_quantile takes 0-1 not percentage \u2014 should be 0.95, not 95"
+      },
+      {
+        "title": "Active Connections",
+        "type": "gauge",
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 12,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "active_connection",
+            "legendFormat": "connections"
+          }
+        ],
+        "id": 4,
+        "_comment": "BUG 5: Metric name wrong \u2014 should be 'active_connections' (plural)"
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "10s",
+    "schemaVersion": 38,
+    "version": 1
+  }
+}

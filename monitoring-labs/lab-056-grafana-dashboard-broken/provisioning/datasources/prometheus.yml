@@ -1,0 +1,10 @@
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    # BUG 1: Wrong URL — should be http://prometheus:9090
+    url: http://localhost:9090
+    isDefault: true
+    editable: true
