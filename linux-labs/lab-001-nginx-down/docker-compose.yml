@@ -1,0 +1,8 @@
+services:
+  webserver:
+    build: .
+    container_name: lab001-nginx-down
+    ports:
+      - "8080:80"
+    stdin_open: true
+    tty: true

@@ -1,0 +1,6 @@
+services:
+  appserver:
+    build: .
+    container_name: lab002-dns-broken
+    stdin_open: true
+    tty: true

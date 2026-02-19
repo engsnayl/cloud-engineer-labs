@@ -1,0 +1,19 @@
+# Terraform
+*.tfstate*
+.terraform/
+.terraform.lock.hcl
+
+# Lab runner progress
+.lab-progress.json
+
+# Docker
+docker-buildx-cache/
+*.tar
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
