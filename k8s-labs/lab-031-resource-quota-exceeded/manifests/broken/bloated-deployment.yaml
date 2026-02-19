@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: legacy-service
+  namespace: production
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: legacy-service
+  template:
+    metadata:
+      labels:
+        app: legacy-service
+    spec:
+      containers:
+      - name: legacy
+        image: nginx:1.25-alpine
+        resources:
+          # These are way too high for what the service needs
+          requests:
+            cpu: "500m"
+            memory: 512Mi
+          limits:
+            cpu: "1"
+            memory: 1Gi

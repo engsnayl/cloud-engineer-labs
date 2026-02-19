@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: database
+  labels:
+    app: database
+spec:
+  containers:
+  - name: postgres
+    image: postgres:15-alpine
+    env:
+    - name: POSTGRES_PASSWORD
+      value: "secretpassword"
+    volumeMounts:
+    - mountPath: /var/lib/postgresql/data
+      name: db-storage
+  volumes:
+  - name: db-storage
+    persistentVolumeClaim:
+      claimName: db-pvc

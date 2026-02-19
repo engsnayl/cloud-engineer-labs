@@ -1,0 +1,7 @@
+services:
+  server:
+    build: .
+    container_name: lab013-tcp-connection-timeout
+
+    stdin_open: true
+    tty: true

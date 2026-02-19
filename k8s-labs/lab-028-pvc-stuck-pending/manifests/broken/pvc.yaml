@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-pvc
+spec:
+  accessModes:
+    # Fault 1: Wrong access mode
+    - ReadWriteMany
+  resources:
+    requests:
+      # Fault 2: Requesting more than PV has
+      storage: 20Gi
+  # Fault 3: Wrong storage class
+  storageClassName: standard

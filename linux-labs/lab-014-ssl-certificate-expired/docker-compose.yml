@@ -1,0 +1,7 @@
+services:
+  server:
+    build: .
+    container_name: lab014-ssl-certificate-expired
+
+    stdin_open: true
+    tty: true

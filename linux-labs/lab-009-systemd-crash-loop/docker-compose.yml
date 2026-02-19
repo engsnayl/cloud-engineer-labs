@@ -1,0 +1,8 @@
+services:
+  server:
+    build: .
+    container_name: lab009-systemd-crash-loop
+    privileged: true
+    command: ["/sbin/init"]
+    stdin_open: true
+    tty: true

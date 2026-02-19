@@ -1,0 +1,7 @@
+services:
+  server:
+    build: .
+    container_name: lab006-cron-not-running
+
+    stdin_open: true
+    tty: true

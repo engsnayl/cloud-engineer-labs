@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: critical-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: critical-service
+  template:
+    metadata:
+      labels:
+        app: critical-service
+    spec:
+      tolerations:
+      - key: "dedicated"
+        operator: "Equal"
+        value: "critical"
+        effect: "NoSchedule"
+      containers:
+      - name: app
+        image: nginx:1.25-alpine
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"

@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+      role: api
+  template:
+    metadata:
+      labels:
+        app: api
+        role: api
+    spec:
+      containers:
+      - name: api
+        image: nginx:1.25-alpine

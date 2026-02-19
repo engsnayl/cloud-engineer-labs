@@ -1,0 +1,8 @@
+services:
+  server:
+    build: .
+    container_name: lab007-firewall-blocking
+    cap_add:
+      - NET_ADMIN
+    stdin_open: true
+    tty: true

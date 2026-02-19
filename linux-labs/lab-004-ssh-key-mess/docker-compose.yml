@@ -1,0 +1,7 @@
+services:
+  server:
+    build: .
+    container_name: lab004-ssh-key-mess
+
+    stdin_open: true
+    tty: true

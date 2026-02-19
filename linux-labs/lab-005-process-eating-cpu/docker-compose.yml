@@ -1,0 +1,7 @@
+services:
+  server:
+    build: .
+    container_name: lab005-process-eating-cpu
+
+    stdin_open: true
+    tty: true

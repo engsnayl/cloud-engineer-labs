@@ -35,7 +35,7 @@ print_help() {
     echo -e "${BOLD}Commands:${NC}"
     echo "  list                    List all available labs"
     echo "  start <lab-path>        Start a specific lab"
-    echo "  random [linux|cloud]    Start a random lab (optionally filter by type)"
+    echo "  random [linux|k8s|cloud] Start a random lab (optionally filter by type)"
     echo "  validate <lab-path>     Run validation for a lab"
     echo "  reset <lab-path>        Reset/restart a lab"
     echo "  progress                Show your progress and completion times"
@@ -45,6 +45,7 @@ print_help() {
     echo "  ./tools/labrunner.sh list"
     echo "  ./tools/labrunner.sh start linux-labs/lab-001-nginx-down"
     echo "  ./tools/labrunner.sh random linux"
+    echo "  ./tools/labrunner.sh random k8s"
     echo "  ./tools/labrunner.sh validate linux-labs/lab-001-nginx-down"
 }
 
@@ -128,6 +129,35 @@ cmd_list() {
             local time_est=$(get_lab_metadata "$lab_path" "Time")
 
             # Check completion status
+            local status="⬡"
+            if command -v python3 &>/dev/null && [[ -f "$PROGRESS_FILE" ]]; then
+                local completed=$(python3 -c "
+import json
+with open('$PROGRESS_FILE') as f:
+    data = json.load(f)
+print(data.get('labs',{}).get('$lab_path',{}).get('completed', False))
+" 2>/dev/null || echo "False")
+                if [[ "$completed" == "True" ]]; then
+                    status="${GREEN}✔${NC}"
+                fi
+            fi
+
+            echo -e "  $status  ${BOLD}$lab_name${NC} — ${title:-Untitled}"
+            echo -e "     Difficulty: ${difficulty:-?} | Est: ${time_est:-?}"
+        fi
+    done
+
+    echo ""
+    echo -e "${BOLD}${BLUE}Kubernetes Labs${NC}"
+    echo -e "${BLUE}───────────────${NC}"
+    for lab_dir in "$REPO_DIR"/k8s-labs/lab-*/; do
+        if [[ -d "$lab_dir" ]]; then
+            local lab_name=$(basename "$lab_dir")
+            local lab_path="k8s-labs/$lab_name"
+            local title=$(get_lab_metadata "$lab_path" "Title")
+            local difficulty=$(get_lab_metadata "$lab_path" "Difficulty")
+            local time_est=$(get_lab_metadata "$lab_path" "Time")
+
             local status="⬡"
             if command -v python3 &>/dev/null && [[ -f "$PROGRESS_FILE" ]]; then
                 local completed=$(python3 -c "
@@ -233,6 +263,21 @@ cmd_start() {
         echo ""
         echo -e "${BOLD}Need a hint?${NC}"
         echo -e "  ./tools/labrunner.sh hint $lab_path"
+    elif [[ "$lab_path" == k8s-labs/* ]]; then
+        echo -e "${CYAN}This is a Kubernetes lab. Apply the broken manifests then diagnose:${NC}"
+        echo ""
+        echo -e "  kubectl apply -f $lab_path/manifests/broken/"
+        echo ""
+        echo -e "${BOLD}Useful commands:${NC}"
+        echo -e "  kubectl get pods"
+        echo -e "  kubectl describe pod <name>"
+        echo -e "  kubectl logs <name>"
+        echo ""
+        echo -e "${BOLD}When you think you've fixed it:${NC}"
+        echo -e "  ./tools/labrunner.sh validate $lab_path"
+        echo ""
+        echo -e "${BOLD}Need a hint?${NC}"
+        echo -e "  ./tools/labrunner.sh hint $lab_path"
     elif [[ "$lab_path" == cloud-labs/* ]]; then
         echo -e "${CYAN}This is a cloud lab. Review the CHALLENGE.md then:${NC}"
         echo ""
@@ -317,6 +362,11 @@ cmd_reset() {
         docker compose build --quiet --no-cache
         docker compose up -d
         echo -e "${GREEN}Lab reset complete. Environment is fresh.${NC}"
+    elif [[ "$lab_path" == k8s-labs/* ]]; then
+        echo -e "${CYAN}Resetting Kubernetes lab...${NC}"
+        kubectl delete -f "$full_path/manifests/broken/" 2>/dev/null || true
+        kubectl apply -f "$full_path/manifests/broken/"
+        echo -e "${GREEN}Lab reset. Broken manifests re-applied.${NC}"
     elif [[ "$lab_path" == cloud-labs/* ]]; then
         echo -e "${CYAN}Destroying cloud resources...${NC}"
         cd "$full_path"
@@ -353,6 +403,11 @@ cmd_random() {
     if [[ "$filter" == "linux" || "$filter" == "all" ]]; then
         for d in "$REPO_DIR"/linux-labs/lab-*/; do
             [[ -d "$d" ]] && labs+=("linux-labs/$(basename "$d")")
+        done
+    fi
+    if [[ "$filter" == "k8s" || "$filter" == "all" ]]; then
+        for d in "$REPO_DIR"/k8s-labs/lab-*/; do
+            [[ -d "$d" ]] && labs+=("k8s-labs/$(basename "$d")")
         done
     fi
     if [[ "$filter" == "cloud" || "$filter" == "all" ]]; then

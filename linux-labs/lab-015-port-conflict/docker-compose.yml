@@ -1,0 +1,7 @@
+services:
+  server:
+    build: .
+    container_name: lab015-port-conflict
+
+    stdin_open: true
+    tty: true

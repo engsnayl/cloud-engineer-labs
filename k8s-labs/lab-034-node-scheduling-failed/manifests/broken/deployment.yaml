@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: critical-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: critical-service
+  template:
+    metadata:
+      labels:
+        app: critical-service
+    spec:
+      # Fault 1: nodeSelector requires a label no node has
+      nodeSelector:
+        disk-type: nvme
+      # Fault 2: Missing toleration for node taint
+      containers:
+      - name: app
+        image: nginx:1.25-alpine
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"

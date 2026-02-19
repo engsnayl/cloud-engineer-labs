@@ -1,0 +1,7 @@
+services:
+  server:
+    build: .
+    container_name: lab011-filesystem-mount-failed
+    privileged: true
+    stdin_open: true
+    tty: true

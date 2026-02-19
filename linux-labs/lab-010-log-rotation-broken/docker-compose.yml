@@ -1,0 +1,7 @@
+services:
+  server:
+    build: .
+    container_name: lab010-log-rotation-broken
+
+    stdin_open: true
+    tty: true

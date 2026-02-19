@@ -1,0 +1,7 @@
+services:
+  server:
+    build: .
+    container_name: lab008-user-permissions-broken
+
+    stdin_open: true
+    tty: true
