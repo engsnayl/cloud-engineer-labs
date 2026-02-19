@@ -1,0 +1,6 @@
+services:
+  server:
+    build: .
+    container_name: lab051-memory-leak-detection
+    stdin_open: true
+    tty: true

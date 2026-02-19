@@ -2,19 +2,23 @@
 
 A self-directed lab framework for practising real-world cloud engineering and Linux troubleshooting skills. Each lab simulates a realistic broken or incomplete environment that you must diagnose and fix — just like you would on the job.
 
-**41 labs** across four categories: Linux, Docker, Kubernetes, and Terraform/AWS.
+**69 labs** across six categories: Linux, Docker, Kubernetes, Terraform/AWS, CI/CD, and Monitoring.
 
 ## Structure
 
 ```
 cloud-engineer-labs/
-├── linux-labs/          # Linux + Docker troubleshooting labs (21 labs)
-│   ├── lab-001 … lab-015   (Linux)
-│   └── lab-019 … lab-024   (Docker)
+├── linux-labs/          # Linux + Docker troubleshooting labs (27 labs)
+│   ├── lab-001 … lab-018   (Linux)
+│   └── lab-019 … lab-024, lab-035 … lab-037   (Docker)
 ├── k8s-labs/            # Kubernetes troubleshooting labs (10 labs)
 │   └── lab-025 … lab-034
-├── cloud-labs/          # Terraform / AWS infrastructure labs (10 labs)
-│   └── lab-001 … lab-010
+├── cloud-labs/          # Terraform / AWS infrastructure labs (22 labs)
+│   └── lab-001 … lab-022
+├── cicd-labs/           # CI/CD pipeline labs (5 labs)
+│   └── lab-040 … lab-044
+├── monitoring-labs/     # Monitoring & incident response labs (5 labs)
+│   └── lab-050 … lab-054
 ├── tools/
 │   └── labrunner.sh     # CLI runner
 ├── CREATING_LABS.md
@@ -23,7 +27,7 @@ cloud-engineer-labs/
 
 ## Lab Catalogue
 
-### Linux Troubleshooting (15 labs)
+### Linux Troubleshooting (18 labs)
 
 | # | Lab | Difficulty | Time |
 |---|-----|-----------|------|
@@ -42,8 +46,11 @@ cloud-engineer-labs/
 | 013 | TCP Connection Timeout Debugging | Intermediate | 10-15 min |
 | 014 | HTTPS Broken — SSL Certificate Issues | Advanced | 15-20 min |
 | 015 | Service Won't Start — Port Conflict | Beginner | 8-10 min |
+| 016 | Load Balancer Not Distributing — Reverse Proxy Misconfigured | Advanced | 15-20 min |
+| 017 | API Requests Failing — Proxy Headers and CORS Issues | Advanced | 15-20 min |
+| 018 | Mystery Traffic — Packet Capture Analysis | Advanced | 15-20 min |
 
-### Docker Troubleshooting (6 labs)
+### Docker Troubleshooting (9 labs)
 
 | # | Lab | Difficulty | Time |
 |---|-----|-----------|------|
@@ -53,6 +60,9 @@ cloud-engineer-labs/
 | 022 | Build Broken — Dockerfile Debugging | Intermediate | 10-15 min |
 | 023 | Compose Chaos — Multi-Container App Broken | Advanced | 15-20 min |
 | 024 | Container Keeps Dying — OOM Kills | Advanced | 12-15 min |
+| 035 | Image Too Large — Multi-Stage Build Optimisation | Intermediate | 12-15 min |
+| 036 | Where Are The Logs — Container Logging Debugging | Intermediate | 10-15 min |
+| 037 | Can't Pull Image — Registry Authentication Issues | Intermediate | 10-15 min |
 
 ### Kubernetes (10 labs)
 
@@ -69,7 +79,7 @@ cloud-engineer-labs/
 | 033 | Network Policy Too Restrictive | Advanced | 15-20 min |
 | 034 | Pod Unschedulable — Node Affinity and Taints | Advanced | 15-20 min |
 
-### Terraform / AWS (10 labs)
+### Terraform / AWS (22 labs)
 
 | # | Lab | Difficulty | Time |
 |---|-----|-----------|------|
@@ -83,6 +93,38 @@ cloud-engineer-labs/
 | 008 | Lambda Can't Execute — Missing Permissions | Intermediate | 15-20 min |
 | 009 | CloudFront Serving Stale Content — Caching | Advanced | 20-25 min |
 | 010 | ASG Not Scaling — Auto Scaling Group Issues | Advanced | 20-25 min |
+| 011 | Terraform Can't Authenticate — Provider Configuration | Intermediate | 10-15 min |
+| 012 | Existing Resources — Terraform Import and Adoption | Advanced | 20-25 min |
+| 013 | Wrong Environment — Terraform Workspace Confusion | Intermediate | 15-20 min |
+| 014 | State File Lost — Remote Backend Configuration | Advanced | 20-25 min |
+| 015 | Terraform Logic Errors — Conditionals and Loops | Intermediate | 15-20 min |
+| 016 | Can't Reference Resources — Outputs and Data Sources | Intermediate | 15-20 min |
+| 017 | DNS Failover Not Working — Route 53 Configuration | Advanced | 20-25 min |
+| 018 | ECS Service Won't Start — Task Definition Errors | Advanced | 20-25 min |
+| 019 | EKS Nodes Not Joining — Node Group Configuration | Advanced | 25-30 min |
+| 020 | No Alerts Firing — CloudWatch Alarms Misconfigured | Intermediate | 15-20 min |
+| 021 | Secrets Not Rotating — Secrets Manager Configuration | Advanced | 20-25 min |
+| 022 | Cross-VPC Traffic Blocked — VPC Peering Issues | Advanced | 20-25 min |
+
+### CI/CD Pipelines (5 labs)
+
+| # | Lab | Difficulty | Time |
+|---|-----|-----------|------|
+| 040 | Pipeline Failing — GitHub Actions Debugging | Intermediate | 15-20 min |
+| 041 | Secrets Not Available — Pipeline Credential Issues | Intermediate | 12-15 min |
+| 042 | Bad Deploy — Rollback Strategy | Advanced | 20-25 min |
+| 043 | Zero-Downtime Deploy — Blue/Green Switch | Advanced | 20-25 min |
+| 044 | IaC Pipeline — Terraform in CI/CD | Advanced | 20-25 min |
+
+### Monitoring & Incident Response (5 labs)
+
+| # | Lab | Difficulty | Time |
+|---|-----|-----------|------|
+| 050 | Application Throwing 500s — Root Cause Analysis | Intermediate | 15-20 min |
+| 051 | Memory Growing — Detect and Diagnose a Memory Leak | Advanced | 15-20 min |
+| 052 | Logs Missing — Log Aggregation Pipeline Broken | Intermediate | 12-15 min |
+| 053 | Too Many Alerts — Alert Fatigue Triage | Intermediate | 15-20 min |
+| 054 | What Happened? — Post-Incident Timeline Reconstruction | Advanced | 20-25 min |
 
 ## How It Works
 
@@ -121,10 +163,33 @@ Each lab uses Terraform to provision a deliberately broken or incomplete AWS env
 
 **Requires an AWS account or KodeKloud Playground session.**
 
+### CI/CD Pipeline Labs (File-based)
+
+Each lab contains broken pipeline configs, deployment scripts, or workflow files. Your job is to:
+
+1. Read the `CHALLENGE.md` for the scenario
+2. Examine the pipeline configs and scripts in the lab directory
+3. Identify and fix the issues
+4. Run `validate.sh` to confirm
+
+**No containers or cloud accounts needed — analyse and fix the files directly.**
+
+### Monitoring & Incident Response Labs (Docker-based)
+
+Each lab simulates a broken or misbehaving application in Docker. Your job is to:
+
+1. Read the `CHALLENGE.md` for the scenario
+2. Start the lab with the runner tool or `docker compose up -d`
+3. Use logs, metrics, and debugging tools to diagnose the problem
+4. Fix the root cause
+5. Run the validation to confirm
+
+**No internet required. No AWS costs. Fully local.**
+
 ## Quick Start
 
 ```bash
-# List all 41 labs
+# List all 69 labs
 ./tools/labrunner.sh list
 
 # Start a random lab
@@ -134,10 +199,14 @@ Each lab uses Terraform to provision a deliberately broken or incomplete AWS env
 ./tools/labrunner.sh random linux
 ./tools/labrunner.sh random k8s
 ./tools/labrunner.sh random cloud
+./tools/labrunner.sh random cicd
+./tools/labrunner.sh random monitoring
 
 # Start a specific lab
 ./tools/labrunner.sh start linux-labs/lab-001-nginx-down
 ./tools/labrunner.sh start k8s-labs/lab-025-pod-crash-loop
+./tools/labrunner.sh start cicd-labs/lab-040-github-actions-broken
+./tools/labrunner.sh start monitoring-labs/lab-050-app-500-errors
 
 # Validate your fix
 ./tools/labrunner.sh validate linux-labs/lab-001-nginx-down
@@ -148,9 +217,9 @@ Each lab uses Terraform to provision a deliberately broken or incomplete AWS env
 
 ## Prerequisites
 
-- Docker and Docker Compose (Linux & Docker labs)
+- Docker and Docker Compose (Linux, Docker & Monitoring labs)
 - A Kubernetes cluster — kind, minikube, or remote (K8s labs)
-- Terraform + AWS CLI configured (cloud labs)
+- Terraform + AWS CLI configured (Cloud labs)
 - Bash 4+
 
 ## Building Your Own Labs

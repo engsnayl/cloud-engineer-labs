@@ -35,7 +35,7 @@ print_help() {
     echo -e "${BOLD}Commands:${NC}"
     echo "  list                    List all available labs"
     echo "  start <lab-path>        Start a specific lab"
-    echo "  random [linux|k8s|cloud] Start a random lab (optionally filter by type)"
+    echo "  random [linux|k8s|cloud|cicd|monitoring] Start a random lab (optionally filter by type)"
     echo "  validate <lab-path>     Run validation for a lab"
     echo "  reset <lab-path>        Reset/restart a lab"
     echo "  progress                Show your progress and completion times"
@@ -46,6 +46,8 @@ print_help() {
     echo "  ./tools/labrunner.sh start linux-labs/lab-001-nginx-down"
     echo "  ./tools/labrunner.sh random linux"
     echo "  ./tools/labrunner.sh random k8s"
+    echo "  ./tools/labrunner.sh random cicd"
+    echo "  ./tools/labrunner.sh random monitoring"
     echo "  ./tools/labrunner.sh validate linux-labs/lab-001-nginx-down"
 }
 
@@ -204,6 +206,64 @@ print(data.get('labs',{}).get('$lab_path',{}).get('completed', False))
             echo -e "     Difficulty: ${difficulty:-?} | Est: ${time_est:-?}"
         fi
     done
+
+    echo ""
+    echo -e "${BOLD}${BLUE}CI/CD Pipeline Labs${NC}"
+    echo -e "${BLUE}───────────────────${NC}"
+    for lab_dir in "$REPO_DIR"/cicd-labs/lab-*/; do
+        if [[ -d "$lab_dir" ]]; then
+            local lab_name=$(basename "$lab_dir")
+            local lab_path="cicd-labs/$lab_name"
+            local title=$(get_lab_metadata "$lab_path" "Title")
+            local difficulty=$(get_lab_metadata "$lab_path" "Difficulty")
+            local time_est=$(get_lab_metadata "$lab_path" "Time")
+
+            local status="⬡"
+            if command -v python3 &>/dev/null && [[ -f "$PROGRESS_FILE" ]]; then
+                local completed=$(python3 -c "
+import json
+with open('$PROGRESS_FILE') as f:
+    data = json.load(f)
+print(data.get('labs',{}).get('$lab_path',{}).get('completed', False))
+" 2>/dev/null || echo "False")
+                if [[ "$completed" == "True" ]]; then
+                    status="${GREEN}✔${NC}"
+                fi
+            fi
+
+            echo -e "  $status  ${BOLD}$lab_name${NC} — ${title:-Untitled}"
+            echo -e "     Difficulty: ${difficulty:-?} | Est: ${time_est:-?}"
+        fi
+    done
+
+    echo ""
+    echo -e "${BOLD}${BLUE}Monitoring & Incident Response Labs${NC}"
+    echo -e "${BLUE}────────────────────────────────────${NC}"
+    for lab_dir in "$REPO_DIR"/monitoring-labs/lab-*/; do
+        if [[ -d "$lab_dir" ]]; then
+            local lab_name=$(basename "$lab_dir")
+            local lab_path="monitoring-labs/$lab_name"
+            local title=$(get_lab_metadata "$lab_path" "Title")
+            local difficulty=$(get_lab_metadata "$lab_path" "Difficulty")
+            local time_est=$(get_lab_metadata "$lab_path" "Time")
+
+            local status="⬡"
+            if command -v python3 &>/dev/null && [[ -f "$PROGRESS_FILE" ]]; then
+                local completed=$(python3 -c "
+import json
+with open('$PROGRESS_FILE') as f:
+    data = json.load(f)
+print(data.get('labs',{}).get('$lab_path',{}).get('completed', False))
+" 2>/dev/null || echo "False")
+                if [[ "$completed" == "True" ]]; then
+                    status="${GREEN}✔${NC}"
+                fi
+            fi
+
+            echo -e "  $status  ${BOLD}$lab_name${NC} — ${title:-Untitled}"
+            echo -e "     Difficulty: ${difficulty:-?} | Est: ${time_est:-?}"
+        fi
+    done
     echo ""
 }
 
@@ -286,6 +346,47 @@ cmd_start() {
         echo -e "  terraform apply"
         echo ""
         echo -e "Then diagnose and fix the infrastructure."
+        echo ""
+        echo -e "${BOLD}When you think you've fixed it:${NC}"
+        echo -e "  ./tools/labrunner.sh validate $lab_path"
+        echo ""
+        echo -e "${BOLD}Need a hint?${NC}"
+        echo -e "  ./tools/labrunner.sh hint $lab_path"
+    elif [[ "$lab_path" == cicd-labs/* ]]; then
+        echo -e "${CYAN}This is a CI/CD lab. It is file-based — no containers to start.${NC}"
+        echo ""
+        echo -e "${BOLD}Instructions:${NC}"
+        echo -e "  1. Read the CHALLENGE.md carefully"
+        echo -e "  2. Examine the pipeline configs and scripts in the lab directory"
+        echo -e "  3. Identify and fix the issues"
+        echo -e "  4. Run validation when ready"
+        echo ""
+        echo -e "${BOLD}Lab directory:${NC}"
+        echo -e "  $lab_path/"
+        echo ""
+        echo -e "${BOLD}When you think you've fixed it:${NC}"
+        echo -e "  ./tools/labrunner.sh validate $lab_path"
+        echo ""
+        echo -e "${BOLD}Need a hint?${NC}"
+        echo -e "  ./tools/labrunner.sh hint $lab_path"
+    elif [[ "$lab_path" == monitoring-labs/* ]]; then
+        echo -e "${CYAN}Building and starting Docker environment...${NC}"
+        cd "$full_path"
+        docker compose down 2>/dev/null || true
+        docker compose build --quiet
+        docker compose up -d
+        echo ""
+        echo -e "${GREEN}Lab environment is running.${NC}"
+        echo ""
+        echo -e "${BOLD}To enter the environment:${NC}"
+        local container_name=$(docker compose ps --format '{{.Names}}' | head -1)
+        echo -e "  docker exec -it $container_name bash"
+        echo ""
+        echo -e "${BOLD}When you think you've fixed it:${NC}"
+        echo -e "  ./tools/labrunner.sh validate $lab_path"
+        echo ""
+        echo -e "${BOLD}Need a hint?${NC}"
+        echo -e "  ./tools/labrunner.sh hint $lab_path"
     fi
 
     record_start "$lab_path"
@@ -372,6 +473,18 @@ cmd_reset() {
         cd "$full_path"
         terraform destroy -auto-approve
         echo -e "${GREEN}Cloud resources destroyed. Run 'terraform apply' to start again.${NC}"
+    elif [[ "$lab_path" == cicd-labs/* ]]; then
+        echo -e "${CYAN}Resetting CI/CD lab...${NC}"
+        cd "$full_path"
+        git checkout -- . 2>/dev/null || true
+        echo -e "${GREEN}Lab files restored to original state.${NC}"
+    elif [[ "$lab_path" == monitoring-labs/* ]]; then
+        echo -e "${CYAN}Resetting lab environment...${NC}"
+        cd "$full_path"
+        docker compose down 2>/dev/null || true
+        docker compose build --quiet --no-cache
+        docker compose up -d
+        echo -e "${GREEN}Lab reset complete. Environment is fresh.${NC}"
     fi
 }
 
@@ -413,6 +526,16 @@ cmd_random() {
     if [[ "$filter" == "cloud" || "$filter" == "all" ]]; then
         for d in "$REPO_DIR"/cloud-labs/lab-*/; do
             [[ -d "$d" ]] && labs+=("cloud-labs/$(basename "$d")")
+        done
+    fi
+    if [[ "$filter" == "cicd" || "$filter" == "all" ]]; then
+        for d in "$REPO_DIR"/cicd-labs/lab-*/; do
+            [[ -d "$d" ]] && labs+=("cicd-labs/$(basename "$d")")
+        done
+    fi
+    if [[ "$filter" == "monitoring" || "$filter" == "all" ]]; then
+        for d in "$REPO_DIR"/monitoring-labs/lab-*/; do
+            [[ -d "$d" ]] && labs+=("monitoring-labs/$(basename "$d")")
         done
     fi
 

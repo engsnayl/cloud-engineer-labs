@@ -1,0 +1,31 @@
+name: Deploy
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        # BUG 3: Referencing wrong secret names
+        aws-access-key-id: ${{ secrets.ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.SECRET_KEY }}
+        aws-region: eu-west-2
+    
+    - name: Login to ECR
+      uses: aws-actions/amazon-ecr-login@v2
+    
+    - name: Build and push
+      run: |
+        # BUG 4: Passing secrets as build args (visible in image layers!)
+        docker build \
+          --build-arg AWS_ACCESS_KEY_ID=${{ secrets.ACCESS_KEY }} \
+          --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.SECRET_KEY }} \
+          --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} \
+          -t $ECR_REGISTRY/app:${{ github.sha }} .
+        docker push $ECR_REGISTRY/app:${{ github.sha }}

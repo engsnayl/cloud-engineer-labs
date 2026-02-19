@@ -1,0 +1,6 @@
+services:
+  server:
+    build: .
+    container_name: lab053-alert-fatigue-triage
+    stdin_open: true
+    tty: true

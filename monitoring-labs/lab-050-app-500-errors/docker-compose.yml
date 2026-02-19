@@ -1,0 +1,6 @@
+services:
+  server:
+    build: .
+    container_name: lab050-app-500-errors
+    stdin_open: true
+    tty: true

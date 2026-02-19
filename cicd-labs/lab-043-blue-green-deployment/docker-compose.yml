@@ -1,0 +1,26 @@
+# Blue/Green Deployment Setup
+# TASK: Implement blue/green switching
+
+services:
+  # Blue environment (current production)
+  app-blue:
+    image: myapp:v1
+    ports:
+      - "8001:8080"
+
+  # Green environment (new version — deploy here first)
+  app-green:
+    image: myapp:v2
+    ports:
+      - "8002:8080"
+
+  # Nginx router — switches between blue and green
+  router:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app-blue
+      - app-green

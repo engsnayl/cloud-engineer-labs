@@ -1,0 +1,43 @@
+# Broken CI Pipeline
+name: CI Pipeline
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # BUG 1: Job name has spaces (invalid)
+  build and test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    # BUG 2: Wrong syntax for setting env vars
+    - name: Set environment
+      run: echo "NODE_ENV=test"
+      # Should use: echo "NODE_ENV=test" >> $GITHUB_ENV
+    
+    - name: Install dependencies
+      run: npm install
+    
+    - name: Run tests
+      run: npm test
+      # BUG 3: Missing env section for secrets
+      # env:
+      #   DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    
+    - name: Build
+      run: npm run build
+    
+    # BUG 4: Deploy step runs on PRs too (should only run on main push)
+    - name: Deploy
+      run: ./deploy.sh
+  
+  # BUG 5: This job depends on wrong job name
+  notify:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+    - run: echo "Deployment complete"

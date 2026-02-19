@@ -1,0 +1,28 @@
+# BUG-FILLED Terraform CI/CD Pipeline
+name: Terraform
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: hashicorp/setup-terraform@v3
+    
+    # BUG 1: No terraform init
+    
+    # BUG 2: Runs apply on EVERY trigger (including PRs!)
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
+    
+    # BUG 3: No plan output on PRs for review
+    
+    # BUG 4: No state locking configuration
+    
+    # BUG 5: No formatting/validation check

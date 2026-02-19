@@ -1,0 +1,6 @@
+services:
+  server:
+    build: .
+    container_name: lab016-load-balancer-routing
+    stdin_open: true
+    tty: true

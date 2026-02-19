@@ -1,0 +1,6 @@
+services:
+  server:
+    build: .
+    container_name: lab054-post-incident-timeline
+    stdin_open: true
+    tty: true

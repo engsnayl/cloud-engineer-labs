@@ -1,0 +1,6 @@
+services:
+  server:
+    build: .
+    container_name: lab017-proxy-headers-cors
+    stdin_open: true
+    tty: true

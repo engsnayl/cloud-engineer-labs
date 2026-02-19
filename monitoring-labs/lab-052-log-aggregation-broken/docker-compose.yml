@@ -1,0 +1,6 @@
+services:
+  server:
+    build: .
+    container_name: lab052-log-aggregation-broken
+    stdin_open: true
+    tty: true

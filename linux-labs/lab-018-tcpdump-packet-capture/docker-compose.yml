@@ -1,0 +1,8 @@
+services:
+  server:
+    build: .
+    container_name: lab018-tcpdump-packet-capture
+    cap_add:
+      - NET_ADMIN
+    stdin_open: true
+    tty: true

@@ -1,0 +1,28 @@
+#!/bin/bash
+# TASK: Implement a deployment script with:
+# 1. Version tagging (not just 'latest')
+# 2. Health check after deploy
+# 3. Automatic rollback on health check failure
+# 4. Keep previous version available for quick rollback
+
+# Example structure:
+# VERSION=$1
+# PREVIOUS=$(docker inspect app --format '{{.Config.Image}}' 2>/dev/null)
+# 
+# docker pull myapp:$VERSION
+# docker stop app && docker rm app
+# docker run -d --name app -p 80:8080 myapp:$VERSION
+#
+# # Health check
+# for i in $(seq 1 10); do
+#   if curl -sf http://localhost/health; then
+#     echo "Deploy successful"
+#     exit 0
+#   fi
+#   sleep 3
+# done
+#
+# # Rollback
+# echo "Health check failed! Rolling back to $PREVIOUS"
+# docker stop app && docker rm app
+# docker run -d --name app -p 80:8080 $PREVIOUS

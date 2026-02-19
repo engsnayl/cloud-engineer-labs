@@ -1,0 +1,8 @@
+services:
+  server:
+    build: .
+    container_name: lab037-registry-push-pull
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    stdin_open: true
+    tty: true
