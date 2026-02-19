@@ -2,8 +2,5 @@ services:
   appserver:
     build: .
     container_name: lab003-disk-full
-    # Limit the container's storage to make the disk full realistic
-    storage_opt:
-      size: '500M'
     stdin_open: true
     tty: true
