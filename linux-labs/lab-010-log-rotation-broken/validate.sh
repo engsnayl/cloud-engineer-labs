@@ -1,5 +1,12 @@
 #!/bin/bash
 # =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - No log file in /var/log/app/ is larger than 10MB
+#   - Logrotate config for the app exists and is valid
+#   - `logrotate -d /etc/logrotate.d/app` runs without errors
+#   - At least one rotated log file exists (e.g., app.log.1)
+# =============================================================================
+# =============================================================================
 # Validation: Lab 010 - Log Rotation Broken
 # =============================================================================
 

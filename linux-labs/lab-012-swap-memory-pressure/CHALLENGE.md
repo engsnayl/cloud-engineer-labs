@@ -20,13 +20,6 @@ Fix the swap configuration and deal with the memory leak so the application stay
 4. Kill or constrain the memory-leaking process
 5. Verify the application process is running stably
 
-## Validation Criteria
-
-- Swap is enabled and active (>0 swap total in `free`)
-- The memory-leaking process is not running
-- The legitimate application process is running
-- Total memory usage is below 80%
-
 ## What You're Practising
 
 Understanding Linux memory management, swap, and the OOM killer is critical for right-sizing cloud instances and debugging memory-related outages. These skills directly apply to configuring Kubernetes resource limits and requests.

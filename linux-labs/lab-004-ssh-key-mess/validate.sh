@@ -1,5 +1,13 @@
 #!/bin/bash
 # =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - SSH daemon is running
+#   - `/home/deploy/.ssh/authorized_keys` exists with correct permissions
+#   - `/home/deploy/.ssh` directory has 700 permissions
+#   - `authorized_keys` file has 600 permissions
+#   - sshd_config allows pubkey authentication
+# =============================================================================
+# =============================================================================
 # Validation: Lab 004 - SSH Key Mess
 # =============================================================================
 

@@ -20,13 +20,6 @@ Fix the Docker networking so the containers can communicate.
 4. Connect both containers to the same network
 5. Verify they can communicate by hostname
 
-## Validation Criteria
-
-- Both containers are on the same Docker network
-- Frontend can resolve backend-api by hostname
-- Frontend can curl backend-api on port 3000
-- A custom bridge network (not default) is being used
-
 ## What You're Practising
 
 Docker networking is fundamental to running microservices. Understanding bridge networks, DNS resolution between containers, and network isolation is critical for container orchestration.

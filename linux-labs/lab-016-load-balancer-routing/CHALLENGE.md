@@ -18,13 +18,6 @@ The Nginx load balancer in front of the application tier isn't distributing traf
 4. Verify all three backends receive traffic
 5. Ensure health checks are configured
 
-## Validation Criteria
-
-- Nginx is running as a reverse proxy
-- Upstream config has all three backends
-- `curl localhost` returns responses from different backends
-- Nginx config passes syntax check
-
 ## What You're Practising
 
 Load balancing configuration is central to high availability. Whether it's Nginx, HAProxy, or an ALB, understanding upstream health checks and distribution algorithms is essential.

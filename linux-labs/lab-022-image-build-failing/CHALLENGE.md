@@ -20,13 +20,6 @@ Fix the Dockerfile so the image builds successfully and the app runs.
 4. Run the container and verify the app works
 5. Ensure the image is reasonably sized (multi-stage build if appropriate)
 
-## Validation Criteria
-
-- `docker build` completes without errors
-- Container runs and app responds on port 8080
-- Image name is 'webapp' with tag 'fixed'
-- Container stays running for >5 seconds
-
 ## What You're Practising
 
 Debugging Docker builds is a daily task. Understanding Dockerfile syntax, layer ordering, and build context is essential for maintaining CI/CD pipelines.

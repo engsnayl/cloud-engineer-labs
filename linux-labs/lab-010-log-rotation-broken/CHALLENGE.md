@@ -20,13 +20,6 @@ Fix the log rotation configuration and clean up the oversized logs.
 4. Clean up the oversized log files
 5. Ensure log rotation is properly scheduled
 
-## Validation Criteria
-
-- No log file in /var/log/app/ is larger than 10MB
-- Logrotate config for the app exists and is valid
-- `logrotate -d /etc/logrotate.d/app` runs without errors
-- At least one rotated log file exists (e.g., app.log.1)
-
 ## What You're Practising
 
 Unmanaged log files are the #1 cause of disk-full incidents in production. Setting up proper log rotation is one of those unsexy but critical tasks every cloud engineer needs to master.

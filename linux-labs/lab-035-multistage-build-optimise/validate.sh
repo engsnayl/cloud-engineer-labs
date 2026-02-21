@@ -1,4 +1,11 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - Image 'webapp:optimised' exists
+#   - Image size is under 100MB
+#   - Container runs and responds on port 8080
+#   - Application returns correct response
+# =============================================================================
 PASS=0
 FAIL=0
 check() {

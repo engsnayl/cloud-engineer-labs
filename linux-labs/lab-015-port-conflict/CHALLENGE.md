@@ -20,13 +20,6 @@ Find what's using port 8080 and resolve the conflict.
 4. Start the actual API service
 5. Verify it's responding
 
-## Validation Criteria
-
-- The stale process is no longer running
-- The API service (python3 api.py) is running on port 8080
-- `curl localhost:8080` returns HTTP 200
-- No port conflicts exist
-
 ## What You're Practising
 
 Port conflicts are one of the most common deployment issues. Knowing how to quickly find what's using a port and resolve the conflict is a basic but essential skill.

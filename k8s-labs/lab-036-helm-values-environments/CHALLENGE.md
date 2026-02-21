@@ -18,13 +18,6 @@ The same Helm chart deploys to staging and production, but production is running
 4. Ensure the chart templates correctly reference all values
 5. Verify each environment gets the right configuration
 
-## Validation Criteria
-
-- `helm template -f values-production.yaml` shows 4 replicas, production DB, info logging
-- `helm template -f values-staging.yaml` shows 1 replica, staging DB, debug logging
-- ConfigMap renders correct environment variables
-- Resource limits are appropriate per environment
-
 ## How to Use This Lab
 
 1. Run `helm template webapp ./api-chart` to see defaults

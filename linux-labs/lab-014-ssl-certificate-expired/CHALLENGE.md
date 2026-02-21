@@ -20,13 +20,6 @@ Restore HTTPS access to the dashboard.
 4. Configure Nginx to use the new certificate
 5. Verify HTTPS is working
 
-## Validation Criteria
-
-- Nginx is running
-- HTTPS on port 443 returns a response (curl -k)
-- SSL certificate is valid (not expired)
-- Nginx config passes syntax check
-
 ## What You're Practising
 
 SSL/TLS certificate management is a critical cloud engineering skill. Certificate expiry is one of the most common causes of outages — even major companies have been brought down by expired certs.

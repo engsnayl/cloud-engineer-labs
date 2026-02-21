@@ -1,4 +1,11 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - Redis process is running and listening on port 6379
+#   - `nc -zv redis-server 6379` connects successfully from the app container
+#   - /etc/hosts correctly resolves redis-server
+#   - Application can reach Redis
+# =============================================================================
 CONTAINER="lab013-tcp-connection-timeout"
 PASS=0
 FAIL=0

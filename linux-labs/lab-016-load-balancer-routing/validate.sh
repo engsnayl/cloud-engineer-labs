@@ -1,4 +1,11 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - Nginx is running as a reverse proxy
+#   - Upstream config has all three backends
+#   - `curl localhost` returns responses from different backends
+#   - Nginx config passes syntax check
+# =============================================================================
 CONTAINER="lab016-load-balancer-routing"
 PASS=0
 FAIL=0

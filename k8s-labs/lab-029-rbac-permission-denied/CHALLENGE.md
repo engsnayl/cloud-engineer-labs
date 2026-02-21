@@ -20,7 +20,3 @@ Fix the RBAC configuration so the monitoring service account has the correct per
 4. Run `validate.sh` when you think you've fixed it
 
 **Requires:** A running Kubernetes cluster (kind, minikube, or KodeKloud Playground)
-
-## Validation Criteria
-
-See validate.sh for specific checks.

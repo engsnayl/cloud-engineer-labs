@@ -20,14 +20,6 @@ You need to fix the firewall rules to allow legitimate traffic while keeping the
 4. Fix the rules to allow traffic on ports 8080 and 8081
 5. Ensure a default DROP policy remains on INPUT (maintain security)
 
-## Validation Criteria
-
-- Application process is listening on port 8080
-- Health check process is listening on port 8081
-- `curl localhost:8080` returns HTTP 200
-- `curl localhost:8081` returns HTTP 200
-- iptables INPUT chain default policy is DROP (security maintained)
-
 ## What You're Practising
 
 Firewall misconfigurations are one of the most common causes of 'it worked before the change' incidents. Understanding iptables rules, chain ordering, and how to debug connectivity with the firewall in place is critical for any cloud engineer.

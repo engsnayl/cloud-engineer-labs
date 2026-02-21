@@ -20,13 +20,6 @@ The application team says they didn't change anything — this just gradually go
 4. Identify if any deleted files are still being held open by processes
 5. Create a basic log rotation config to prevent this recurring
 
-## Validation Criteria
-
-- Disk usage is below 70%
-- No single log file is larger than 10MB
-- A logrotate configuration exists for the application logs
-- The application log directory exists and is writable
-
 ## What You're Practising
 
 Disk full is one of the most common production incidents. The twist is that it's not always obvious — sometimes deleted files are still held by processes, sometimes logs are in unexpected places, sometimes temp files accumulate. Systematic investigation with du and find is the skill here.

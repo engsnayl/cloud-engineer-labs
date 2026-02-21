@@ -1,5 +1,12 @@
 #!/bin/bash
 # =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - Disk usage is below 70%
+#   - No single log file is larger than 10MB
+#   - A logrotate configuration exists for the application logs
+#   - The application log directory exists and is writable
+# =============================================================================
+# =============================================================================
 # Validation: Lab 003 - Disk Full
 # =============================================================================
 

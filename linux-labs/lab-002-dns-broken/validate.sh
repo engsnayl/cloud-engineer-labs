@@ -1,5 +1,12 @@
 #!/bin/bash
 # =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - `dig google.com` returns a valid A record
+#   - `curl -s ifconfig.me` returns successfully (proves external connectivity + DNS)
+#   - `getent hosts payments-api.internal` resolves to `10.0.1.50`
+#   - `/etc/resolv.conf` contains at least one valid nameserver
+# =============================================================================
+# =============================================================================
 # Validation: Lab 002 - DNS Broken
 # =============================================================================
 

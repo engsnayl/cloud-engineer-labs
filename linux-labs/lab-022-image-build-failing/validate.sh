@@ -1,4 +1,11 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - `docker build` completes without errors
+#   - Container runs and app responds on port 8080
+#   - Image name is 'webapp' with tag 'fixed'
+#   - Container stays running for >5 seconds
+# =============================================================================
 PASS=0
 FAIL=0
 

@@ -1,4 +1,14 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - All Docker images build successfully
+#   - All K8s resources create without errors
+#   - Frontend serves static content
+#   - Backend responds to /api/health and /api/data
+#   - Database is persistent (survives pod restart)
+#   - Network policy restricts database access
+#   - README documents your architecture
+# =============================================================================
 PASS=0
 FAIL=0
 check() {

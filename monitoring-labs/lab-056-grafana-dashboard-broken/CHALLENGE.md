@@ -18,13 +18,6 @@ Grafana is running and dashboards are provisioned, but all panels show "No data"
 4. Fix the PromQL queries in the dashboard panels
 5. Verify all panels show data
 
-## Validation Criteria
-
-- Grafana is accessible on port 3000
-- Prometheus data source shows "Data source is working"
-- Dashboard panels show metrics data
-- PromQL queries are valid
-
 ## What You're Practising
 
 Grafana is the standard dashboarding tool paired with Prometheus. Setting up data sources, writing PromQL queries, and debugging empty panels are everyday cloud engineering tasks.

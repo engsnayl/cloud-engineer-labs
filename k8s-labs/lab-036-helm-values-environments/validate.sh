@@ -1,4 +1,11 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - `helm template -f values-production.yaml` shows 4 replicas, production DB, info logging
+#   - `helm template -f values-staging.yaml` shows 1 replica, staging DB, debug logging
+#   - ConfigMap renders correct environment variables
+#   - Resource limits are appropriate per environment
+# =============================================================================
 PASS=0
 FAIL=0
 check() {

@@ -1,5 +1,13 @@
 #!/bin/bash
 # =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - Application process is listening on port 8080
+#   - Health check process is listening on port 8081
+#   - `curl localhost:8080` returns HTTP 200
+#   - `curl localhost:8081` returns HTTP 200
+#   - iptables INPUT chain default policy is DROP (security maintained)
+# =============================================================================
+# =============================================================================
 # Validation: Lab 007 - Firewall Blocking
 # =============================================================================
 

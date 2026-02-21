@@ -20,13 +20,6 @@ Fix the volume configuration so data persists across container restarts.
 4. Restore data from the orphaned volume
 5. Verify data survives a container restart
 
-## Validation Criteria
-
-- Database container is running with a named volume mounted
-- Data file exists inside the container at /data/customers.db
-- Container restart preserves the data
-- `docker volume ls` shows the named volume
-
 ## What You're Practising
 
 Understanding Docker storage — the difference between named volumes, bind mounts, and anonymous volumes — is essential. Data loss from missing volume mounts is one of the most painful mistakes in container operations.

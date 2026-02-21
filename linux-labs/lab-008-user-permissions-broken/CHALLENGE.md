@@ -20,13 +20,6 @@ Fix the permissions so the application can operate correctly as a non-root user.
 4. Verify the application can write to the data directory
 5. Verify the application can read the config file
 
-## Validation Criteria
-
-- `appuser` can write files to `/opt/data/`
-- `appuser` can read `/etc/app/config.yml`
-- `/opt/data` is owned by the `appgroup` group
-- `appuser` is a member of `appgroup`
-
 ## What You're Practising
 
 Running applications as non-root users is a fundamental security practice in cloud environments. Understanding Unix file permissions, group membership, and ownership is essential for deploying secure applications.

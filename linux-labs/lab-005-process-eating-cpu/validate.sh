@@ -1,5 +1,12 @@
 #!/bin/bash
 # =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - No process consuming >50% CPU
+#   - The rogue `stress` process is not running
+#   - The legitimate app process (python3) is still running
+#   - System load average is below 2.0
+# =============================================================================
+# =============================================================================
 # Validation: Lab 005 - Process Eating CPU
 # =============================================================================
 

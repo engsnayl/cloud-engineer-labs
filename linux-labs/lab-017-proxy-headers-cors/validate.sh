@@ -1,4 +1,11 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - OPTIONS requests return 204 with CORS headers
+#   - GET requests include Access-Control-Allow-Origin header
+#   - Backend receives correct Host and X-Forwarded-For headers
+#   - Nginx config passes syntax check
+# =============================================================================
 CONTAINER="lab017-proxy-headers-cors"
 PASS=0
 FAIL=0

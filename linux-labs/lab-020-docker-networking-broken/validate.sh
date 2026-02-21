@@ -1,4 +1,11 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - Both containers are on the same Docker network
+#   - Frontend can resolve backend-api by hostname
+#   - Frontend can curl backend-api on port 3000
+#   - A custom bridge network (not default) is being used
+# =============================================================================
 PASS=0
 FAIL=0
 

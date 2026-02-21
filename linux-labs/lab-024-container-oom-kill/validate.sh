@@ -1,4 +1,11 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - data-processor container is running
+#   - Container has not been OOM killed
+#   - Container has a memory limit set (not unlimited)
+#   - Memory limit is >= 256MB
+# =============================================================================
 PASS=0
 FAIL=0
 

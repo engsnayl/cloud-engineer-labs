@@ -18,13 +18,6 @@ The frontend application can't make API calls through the reverse proxy. Browser
 4. Pass correct upstream headers (Host, X-Forwarded-For, X-Real-IP)
 5. Verify API calls work through the proxy
 
-## Validation Criteria
-
-- OPTIONS requests return 204 with CORS headers
-- GET requests include Access-Control-Allow-Origin header
-- Backend receives correct Host and X-Forwarded-For headers
-- Nginx config passes syntax check
-
 ## What You're Practising
 
 Understanding HTTP headers, CORS, and reverse proxy configuration is essential for any web-facing infrastructure. These issues are incredibly common when setting up API gateways.

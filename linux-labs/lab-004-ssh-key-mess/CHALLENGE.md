@@ -20,14 +20,6 @@ You need to fix SSH key authentication so the deploy user can connect.
 4. Ensure the deploy user can authenticate with their SSH key
 5. Verify sshd is running and accepting connections
 
-## Validation Criteria
-
-- SSH daemon is running
-- `/home/deploy/.ssh/authorized_keys` exists with correct permissions
-- `/home/deploy/.ssh` directory has 700 permissions
-- `authorized_keys` file has 600 permissions
-- sshd_config allows pubkey authentication
-
 ## What You're Practising
 
 SSH key authentication issues are extremely common in cloud environments. Every time you provision a new EC2 instance, set up a bastion host, or configure CI/CD, you need to understand the SSH permission model. Getting the file permissions wrong is the #1 cause of SSH auth failures.

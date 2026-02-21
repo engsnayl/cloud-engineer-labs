@@ -20,13 +20,6 @@ Mount the data volume and verify the data is accessible.
 4. Verify the data files are accessible
 5. Ensure the mount persists across reboots (correct fstab)
 
-## Validation Criteria
-
-- /data is mounted
-- Files exist in /data (at least db-data.conf)
-- /etc/fstab has a valid entry for /data
-- `df /data` shows it's on a separate filesystem
-
 ## What You're Practising
 
 Volume mounting issues are common after reboots, especially in cloud environments where EBS volumes or persistent disks need to be correctly configured in fstab. Getting this wrong means data loss or service outages.

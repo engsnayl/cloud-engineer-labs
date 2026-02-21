@@ -1,4 +1,11 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - Grafana is accessible on port 3000
+#   - Prometheus data source shows "Data source is working"
+#   - Dashboard panels show metrics data
+#   - PromQL queries are valid
+# =============================================================================
 PASS=0
 FAIL=0
 check() {

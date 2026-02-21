@@ -20,13 +20,6 @@ Investigate the OOM kills and fix the memory configuration.
 4. Set appropriate memory limits
 5. Verify the container runs without OOM kills
 
-## Validation Criteria
-
-- data-processor container is running
-- Container has not been OOM killed
-- Container has a memory limit set (not unlimited)
-- Memory limit is >= 256MB
-
 ## What You're Practising
 
 Understanding container resource limits is critical for Kubernetes (where resource requests and limits are fundamental). OOM kills are one of the most common container issues in production.

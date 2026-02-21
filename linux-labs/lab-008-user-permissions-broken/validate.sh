@@ -1,5 +1,12 @@
 #!/bin/bash
 # =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - `appuser` can write files to `/opt/data/`
+#   - `appuser` can read `/etc/app/config.yml`
+#   - `/opt/data` is owned by the `appgroup` group
+#   - `appuser` is a member of `appgroup`
+# =============================================================================
+# =============================================================================
 # Validation: Lab 008 - User Permissions Broken
 # =============================================================================
 

@@ -1,4 +1,11 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - `helm template webapp ./webapp-chart` renders without errors
+#   - Chart installs successfully with `helm install`
+#   - Deployment creates running pods
+#   - Service exposes the application correctly
+# =============================================================================
 PASS=0
 FAIL=0
 check() {

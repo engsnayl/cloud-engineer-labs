@@ -1,4 +1,11 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - Nginx is running
+#   - HTTPS on port 443 returns a response (curl -k)
+#   - SSL certificate is valid (not expired)
+#   - Nginx config passes syntax check
+# =============================================================================
 CONTAINER="lab014-ssl-certificate-expired"
 PASS=0
 FAIL=0

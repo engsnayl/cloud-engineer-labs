@@ -18,13 +18,6 @@ Something is making unexpected outbound connections from the server. Security ha
 4. Verify no more suspicious outbound connections
 5. Document what you found (create /tmp/incident-report.txt)
 
-## Validation Criteria
-
-- No process connecting to port 9999
-- The rogue process is stopped
-- /tmp/incident-report.txt exists with findings
-- Legitimate services still running
-
 ## What You're Practising
 
 Packet capture is a critical debugging and security investigation tool. Being able to use tcpdump to identify traffic patterns is a key skill for cloud engineers and SREs.

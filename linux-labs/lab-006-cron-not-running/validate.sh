@@ -1,5 +1,13 @@
 #!/bin/bash
 # =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - Cron daemon is running
+#   - `crontab -l` shows a valid backup job
+#   - `/opt/scripts/backup.sh` is executable
+#   - Backup script runs successfully when triggered
+#   - `/var/backups/db-backup.sql` exists
+# =============================================================================
+# =============================================================================
 # Validation: Lab 006 - Cron Not Running
 # =============================================================================
 

@@ -1,4 +1,11 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - `docker logs` shows application output
+#   - Application is still running and responding
+#   - No large log files inside the container
+#   - Container is running with appropriate log options
+# =============================================================================
 CONTAINER="lab036-container-logging"
 PASS=0
 FAIL=0

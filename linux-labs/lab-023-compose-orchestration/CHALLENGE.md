@@ -20,13 +20,6 @@ Fix the Docker Compose configuration so all three services work together.
 4. Ensure all services communicate correctly
 5. Verify the full stack responds
 
-## Validation Criteria
-
-- All three containers are running
-- Web service returns HTTP 200
-- API can connect to the database
-- docker compose ps shows all services healthy
-
 ## What You're Practising
 
 Docker Compose is the standard for local multi-container development and testing. Understanding service dependencies, networking, environment variables, and health checks is essential for container orchestration.

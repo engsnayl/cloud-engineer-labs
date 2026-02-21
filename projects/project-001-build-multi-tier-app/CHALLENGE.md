@@ -68,16 +68,6 @@ solution/
 └── README.md (your architecture decisions)
 ```
 
-## Validation Criteria
-
-- All Docker images build successfully
-- All K8s resources create without errors
-- Frontend serves static content
-- Backend responds to /api/health and /api/data
-- Database is persistent (survives pod restart)
-- Network policy restricts database access
-- README documents your architecture
-
 ## Tips
 
 - Start with the database (it has no dependencies)

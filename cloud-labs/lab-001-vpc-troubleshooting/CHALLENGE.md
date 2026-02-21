@@ -31,14 +31,6 @@ The Terraform has been applied but the networking is misconfigured in several wa
 - 1 EC2 instance in the private subnet
 - Security groups and NACLs
 
-## Validation Criteria
-
-- EC2 instance can reach the internet (`curl ifconfig.me` works)
-- EC2 instance is in the PRIVATE subnet (not the public one)
-- NAT Gateway is in the public subnet
-- No direct inbound access from the internet to the instance
-- All fixes are in Terraform (no manual console changes)
-
 ## What You're Practising
 
 VPC networking is the #1 topic that trips up cloud engineers. Understanding route tables, the relationship between IGW/NAT/subnets, and how security groups and NACLs interact is fundamental to every cloud role. This is also a Terraform debugging exercise — you fix infrastructure as code, not by clicking.

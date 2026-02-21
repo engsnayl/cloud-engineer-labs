@@ -333,8 +333,8 @@ cmd_start() {
     echo -e "${BLUE}──────────────────────────────────────────────────${NC}"
     echo ""
 
-    # Print the scenario section of the challenge file
-    sed -n '/^## Scenario/,/^## /{ /^## Scenario/d; /^## [^S]/d; p; }' "$challenge_file"
+    # Print the scenario and objectives sections (everything up to "What You're Practising")
+    sed -n '/^## Scenario/,/^## What You/{/^## What You/d; p;}' "$challenge_file"
     echo ""
 
     echo -e "${BLUE}──────────────────────────────────────────────────${NC}"

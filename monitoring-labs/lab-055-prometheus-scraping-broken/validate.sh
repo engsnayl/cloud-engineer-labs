@@ -1,4 +1,11 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - Prometheus is running and accessible
+#   - All three scrape targets are UP
+#   - Metrics are being collected (up metric returns results)
+#   - Configuration passes validation
+# =============================================================================
 PASS=0
 FAIL=0
 check() {

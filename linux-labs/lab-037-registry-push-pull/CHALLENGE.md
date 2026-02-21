@@ -18,13 +18,6 @@ The deployment is failing because Docker can't pull the application image. There
 4. Push the image to the local registry
 5. Pull it back to verify
 
-## Validation Criteria
-
-- Local registry is running on port 5000
-- Image is correctly tagged for the local registry
-- Image can be pulled from localhost:5000
-- Application runs from the pulled image
-
 ## What You're Practising
 
 Understanding container registries, image naming conventions, and authentication is essential for any container workflow. ECR, Docker Hub, and private registries all follow the same patterns.

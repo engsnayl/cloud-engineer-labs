@@ -20,7 +20,3 @@ Fix the NetworkPolicy to allow internal communication while maintaining external
 4. Run `validate.sh` when you think you've fixed it
 
 **Requires:** A running Kubernetes cluster (kind, minikube, or KodeKloud Playground)
-
-## Validation Criteria
-
-See validate.sh for specific checks.

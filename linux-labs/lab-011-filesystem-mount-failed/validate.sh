@@ -1,5 +1,12 @@
 #!/bin/bash
 # =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - /data is mounted
+#   - Files exist in /data (at least db-data.conf)
+#   - /etc/fstab has a valid entry for /data
+#   - `df /data` shows it's on a separate filesystem
+# =============================================================================
+# =============================================================================
 # Validation: Lab 011 - Filesystem Mount Failed
 # =============================================================================
 

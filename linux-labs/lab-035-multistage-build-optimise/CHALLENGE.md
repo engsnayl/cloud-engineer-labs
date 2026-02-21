@@ -18,13 +18,6 @@ The production Docker image is 1.2GB for a simple Go application. The build incl
 4. Build the optimised image
 5. Verify the application still works
 
-## Validation Criteria
-
-- Image 'webapp:optimised' exists
-- Image size is under 100MB
-- Container runs and responds on port 8080
-- Application returns correct response
-
 ## What You're Practising
 
 Image size directly impacts deployment speed, registry costs, and security surface area. Multi-stage builds are the standard technique for production Docker images.

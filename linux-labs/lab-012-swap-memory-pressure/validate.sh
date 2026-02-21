@@ -1,5 +1,12 @@
 #!/bin/bash
 # =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - Swap is enabled and active (>0 swap total in `free`)
+#   - The memory-leaking process is not running
+#   - The legitimate application process is running
+#   - Total memory usage is below 80%
+# =============================================================================
+# =============================================================================
 # Validation: Lab 012 - Swap and Memory Pressure
 # =============================================================================
 

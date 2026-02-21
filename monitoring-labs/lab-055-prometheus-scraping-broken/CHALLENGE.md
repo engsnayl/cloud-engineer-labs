@@ -18,13 +18,6 @@ Prometheus is running but no metrics are being collected. The targets page shows
 4. Fix the prometheus.yml configuration
 5. Verify all three targets are being scraped
 
-## Validation Criteria
-
-- Prometheus is running and accessible
-- All three scrape targets are UP
-- Metrics are being collected (up metric returns results)
-- Configuration passes validation
-
 ## What You're Practising
 
 Prometheus is the standard metrics collection system in cloud-native environments. Configuring scrape targets, understanding service discovery, and debugging collection issues are daily tasks for cloud engineers.

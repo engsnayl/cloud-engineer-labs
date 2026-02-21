@@ -1,4 +1,11 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - Local registry is running on port 5000
+#   - Image is correctly tagged for the local registry
+#   - Image can be pulled from localhost:5000
+#   - Application runs from the pulled image
+# =============================================================================
 PASS=0
 FAIL=0
 check() {

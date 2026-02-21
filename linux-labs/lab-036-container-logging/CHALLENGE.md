@@ -18,13 +18,6 @@ The application container's logs are empty despite the app clearly running and p
 4. Verify docker logs shows output
 5. Ensure log rotation is sensible
 
-## Validation Criteria
-
-- `docker logs` shows application output
-- Application is still running and responding
-- No large log files inside the container
-- Container is running with appropriate log options
-
 ## What You're Practising
 
 Container logging best practice is stdout/stderr, which Docker captures and forwards to logging drivers. Applications that log to files inside containers break the container logging pipeline.

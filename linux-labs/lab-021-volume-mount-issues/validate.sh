@@ -1,4 +1,11 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - Database container is running with a named volume mounted
+#   - Data file exists inside the container at /data/customers.db
+#   - Container restart preserves the data
+#   - `docker volume ls` shows the named volume
+# =============================================================================
 PASS=0
 FAIL=0
 

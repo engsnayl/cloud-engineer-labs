@@ -20,14 +20,6 @@ You need to diagnose why the cron job isn't running and fix it.
 4. Verify the cron job runs successfully
 5. Check that the backup output file is created
 
-## Validation Criteria
-
-- Cron daemon is running
-- `crontab -l` shows a valid backup job
-- `/opt/scripts/backup.sh` is executable
-- Backup script runs successfully when triggered
-- `/var/backups/db-backup.sql` exists
-
 ## What You're Practising
 
 Cron is the backbone of scheduled automation in Linux. Misconfigured cron jobs are a silent killer — they fail without anyone noticing until something critical hasn't happened. Understanding cron syntax, environment, and logging is essential.

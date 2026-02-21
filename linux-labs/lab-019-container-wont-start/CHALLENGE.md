@@ -20,13 +20,6 @@ Investigate the image, find the issues, and get the container running.
 4. Fix the Dockerfile and rebuild
 5. Verify the container stays running and responds
 
-## Validation Criteria
-
-- The payment-service container is running (not exited)
-- `docker logs` shows no error messages
-- The service responds on port 5000
-- Container has been running for >5 seconds
-
 ## What You're Practising
 
 Docker containers that won't start are the most common Docker debugging task. Understanding how to read container logs, inspect image configuration, and debug entrypoints is fundamental to container operations.

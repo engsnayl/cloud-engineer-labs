@@ -20,13 +20,6 @@ You need to restore DNS resolution on this server so the application can reach e
 4. Ensure the internal service `payments-api.internal` resolves to `10.0.1.50`
 5. Confirm external DNS resolution works (e.g. `google.com`)
 
-## Validation Criteria
-
-- `dig google.com` returns a valid A record
-- `curl -s ifconfig.me` returns successfully (proves external connectivity + DNS)
-- `getent hosts payments-api.internal` resolves to `10.0.1.50`
-- `/etc/resolv.conf` contains at least one valid nameserver
-
 ## What You're Practising
 
 DNS issues are the single most common cause of "it's not working" in cloud environments. VPC DNS settings, resolv.conf corruption, and missing hosts entries account for a huge proportion of real incidents.

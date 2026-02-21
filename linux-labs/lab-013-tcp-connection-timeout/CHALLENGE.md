@@ -20,13 +20,6 @@ Debug the TCP connectivity issue and restore the connection.
 4. Fix the connection path between services
 5. Confirm the API can connect to Redis
 
-## Validation Criteria
-
-- Redis process is running and listening on port 6379
-- `nc -zv redis-server 6379` connects successfully from the app container
-- /etc/hosts correctly resolves redis-server
-- Application can reach Redis
-
 ## What You're Practising
 
 TCP connectivity debugging is one of the most fundamental networking skills. In microservices architectures, connection timeouts between services are a daily occurrence. Knowing how to trace the path is essential.

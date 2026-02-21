@@ -1,4 +1,11 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - All three containers are running
+#   - Web service returns HTTP 200
+#   - API can connect to the database
+#   - docker compose ps shows all services healthy
+# =============================================================================
 PASS=0
 FAIL=0
 

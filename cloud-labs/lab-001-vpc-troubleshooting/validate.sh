@@ -1,5 +1,13 @@
 #!/bin/bash
 # =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - EC2 instance can reach the internet (`curl ifconfig.me` works)
+#   - EC2 instance is in the PRIVATE subnet (not the public one)
+#   - NAT Gateway is in the public subnet
+#   - No direct inbound access from the internet to the instance
+#   - All fixes are in Terraform (no manual console changes)
+# =============================================================================
+# =============================================================================
 # Validation: Cloud Lab 001 - VPC Troubleshooting
 # Requires: AWS CLI configured, terraform state available
 # =============================================================================

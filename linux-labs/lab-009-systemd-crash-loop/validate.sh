@@ -1,5 +1,12 @@
 #!/bin/bash
 # =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - api-gateway.service is active (running)
+#   - Service has been running for at least 5 seconds without restarting
+#   - The unit file has correct ExecStart path
+#   - The service responds on its port
+# =============================================================================
+# =============================================================================
 # Validation: Lab 009 - Systemd Crash Loop
 # =============================================================================
 

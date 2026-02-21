@@ -1,4 +1,11 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - The stale process is no longer running
+#   - The API service (python3 api.py) is running on port 8080
+#   - `curl localhost:8080` returns HTTP 200
+#   - No port conflicts exist
+# =============================================================================
 CONTAINER="lab015-port-conflict"
 PASS=0
 FAIL=0

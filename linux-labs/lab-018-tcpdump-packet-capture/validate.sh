@@ -1,4 +1,11 @@
 #!/bin/bash
+# =============================================================================
+# Validation Criteria (from CHALLENGE.md):
+#   - No process connecting to port 9999
+#   - The rogue process is stopped
+#   - /tmp/incident-report.txt exists with findings
+#   - Legitimate services still running
+# =============================================================================
 CONTAINER="lab018-tcpdump-packet-capture"
 PASS=0
 FAIL=0

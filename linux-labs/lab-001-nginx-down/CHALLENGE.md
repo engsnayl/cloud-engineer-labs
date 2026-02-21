@@ -19,13 +19,6 @@ You SSH into the server and need to get Nginx running again.
 3. Fix the issues and get Nginx serving the default page
 4. Ensure Nginx will survive a reboot (enabled in systemd)
 
-## Validation Criteria
-
-- Nginx process is running
-- Nginx is enabled in systemd
-- `curl localhost` returns HTTP 200
-- Nginx config passes `nginx -t`
-
 ## What You're Practising
 
 This simulates a real incident response scenario. In production, web servers fail for multiple overlapping reasons — a config typo here, a permission issue there. The skill is systematic diagnosis rather than guessing.
