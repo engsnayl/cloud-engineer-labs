@@ -14,11 +14,9 @@ Mount the data volume and verify the data is accessible.
 
 ## Objectives
 
-1. Identify why the volume isn't mounted
-2. Check and fix the fstab entry
-3. Successfully mount the volume
-4. Verify the data files are accessible
-5. Ensure the mount persists across reboots (correct fstab)
+1. Get `/data` mounted as a filesystem (must be on a separate device from `/`)
+2. Ensure the data files are accessible (e.g. `/data/db-data.conf` must exist)
+3. Fix the `/etc/fstab` entry so the mount persists across reboots
 
 ## What You're Practising
 

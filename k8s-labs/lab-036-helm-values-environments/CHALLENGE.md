@@ -12,11 +12,17 @@ The same Helm chart deploys to staging and production, but production is running
 
 ## Objectives
 
-1. Review the base values.yaml and environment-specific overrides
-2. Fix the production values file (values-production.yaml)
-3. Fix the staging values file (values-staging.yaml)
-4. Ensure the chart templates correctly reference all values
-5. Verify each environment gets the right configuration
+1. Fix `values-production.yaml`:
+   - 3 or more replicas
+   - Database connection pointing to the production database
+   - Log level set to `info` or `warn` (not `debug`)
+   - Cache enabled
+   - HPA (autoscaling) enabled
+2. Fix `values-staging.yaml`:
+   - 1 replica
+   - Database connection pointing to the staging database
+   - Log level set to `debug`
+3. Ensure the chart templates render correctly for each environment
 
 ## How to Use This Lab
 

@@ -14,11 +14,9 @@ Fix the Docker networking so the containers can communicate.
 
 ## Objectives
 
-1. Inspect the current Docker network setup
-2. Identify why containers can't reach each other
-3. Create or fix the Docker network
-4. Connect both containers to the same network
-5. Verify they can communicate by hostname
+1. Get both `backend-api` and `frontend-web` containers running
+2. Connect both containers to the same Docker network
+3. Containers must communicate by hostname — `frontend-web` must be able to reach `backend-api` on port 3000
 
 ## What You're Practising
 

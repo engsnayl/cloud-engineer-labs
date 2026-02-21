@@ -10,6 +10,13 @@ Someone manually modified AWS resources through the console, causing Terraform s
 
 > **INCIDENT-TF-002**: Terraform plan shows it wants to destroy and recreate resources that should stay. Someone made manual changes via the console. State is out of sync with reality.
 
+## Objectives
+
+1. Identify and fix the Terraform configuration errors causing state drift
+2. Reconcile the configuration so it matches the intended infrastructure
+3. `terraform validate` must pass
+4. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

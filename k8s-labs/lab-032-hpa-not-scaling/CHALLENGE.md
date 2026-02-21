@@ -12,6 +12,11 @@ The Horizontal Pod Autoscaler is supposed to scale the web tier based on CPU usa
 
 Fix the HPA configuration so auto-scaling works correctly.
 
+## Objectives
+
+1. The `web-tier-hpa` HorizontalPodAutoscaler must exist and be reporting real metrics (not `<unknown>`)
+2. The `web-tier` deployment must have CPU resource requests defined
+
 ## How to Use This Lab
 
 1. Apply the broken manifests: `kubectl apply -f manifests/broken/`

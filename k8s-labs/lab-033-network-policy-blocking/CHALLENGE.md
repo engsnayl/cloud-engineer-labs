@@ -12,6 +12,12 @@ The API pods can't communicate with the database pods after a network policy was
 
 Fix the NetworkPolicy to allow internal communication while maintaining external restrictions.
 
+## Objectives
+
+1. The `db-restrict` NetworkPolicy must exist in the `production` namespace
+2. The policy must allow traffic from pods with label `role: api`
+3. The policy must restrict access to port 5432
+
 ## How to Use This Lab
 
 1. Apply the broken manifests: `kubectl apply -f manifests/broken/`

@@ -10,6 +10,14 @@ A major incident occurred overnight and you need to reconstruct what happened fr
 
 > **INCIDENT-MON-005**: Major outage from 02:00-04:30. Payment processing down for 2.5 hours. Multiple systems affected. CTO wants a full post-incident report by EOD.
 
+## Objectives
+
+1. Write a post-incident report to `/tmp/post-incident-report.txt`
+2. Identify the root cause (investigate disk space, WAL files, and database logs)
+3. Include a timeline with timestamps from the incident
+4. Include action items to prevent recurrence
+5. Document the impact on services
+
 ## How to Use This Lab
 
 1. Start the lab: `docker compose up -d`

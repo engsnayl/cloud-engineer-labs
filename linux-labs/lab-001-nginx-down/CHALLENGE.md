@@ -15,9 +15,10 @@ You SSH into the server and need to get Nginx running again.
 ## Objectives
 
 1. Diagnose why Nginx is not running
-2. Identify ALL configuration issues (there are multiple)
-3. Fix the issues and get Nginx serving the default page
-4. Ensure Nginx will survive a reboot (enabled in systemd)
+2. Fix ALL configuration issues — `nginx -t` must pass cleanly
+3. Get Nginx running and serving — `curl localhost` must return HTTP 200
+4. Ensure the Nginx log directory (`/var/log/nginx`) is writable
+5. Ensure Nginx is enabled in systemd (survives reboot)
 
 ## What You're Practising
 

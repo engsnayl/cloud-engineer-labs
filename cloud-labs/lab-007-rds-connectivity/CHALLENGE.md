@@ -10,6 +10,13 @@ The application EC2 instance can't connect to the RDS database. Both are in the 
 
 > **INCIDENT-AWS-004**: Application can't connect to RDS MySQL. Connection timeout on port 3306. Both resources in same VPC. Security groups may be misconfigured.
 
+## Objectives
+
+1. Fix the security group rules so the EC2 instance can reach the RDS database on port 3306
+2. Ensure both resources are in the correct VPC and subnet configuration
+3. `terraform validate` must pass
+4. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

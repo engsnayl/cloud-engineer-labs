@@ -12,11 +12,14 @@ Grafana is running and dashboards are provisioned, but all panels show "No data"
 
 ## Objectives
 
-1. Start the environment with `docker compose up -d`
-2. Access Grafana at http://localhost:3000 (admin/admin)
-3. Fix the Prometheus data source configuration
-4. Fix the PromQL queries in the dashboard panels
-5. Verify all panels show data
+1. Get Grafana running and healthy
+2. Fix the Prometheus data source — it must point to `prometheus:9090` (not localhost)
+3. Fix the PromQL queries in the dashboard panels:
+   - Request rate must use `rate()` (not `rates()`)
+   - Label matchers must use correct syntax (double quotes for values)
+   - Histogram quantile must use decimal notation (e.g. `0.95`, not `95`)
+   - Metric names must be correct (e.g. `active_connections` not `active_connection`)
+4. All dashboard panels must show data
 
 ## What You're Practising
 

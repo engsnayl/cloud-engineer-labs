@@ -12,6 +12,12 @@ The application pod is crashing because it can't find its configuration. The Con
 
 Create the missing ConfigMap and Secret with the correct data.
 
+## Objectives
+
+1. Create the `app-config` ConfigMap with the required key `database_host`
+2. Create the `app-secrets` Secret with the required key `db-password` (base64-encoded)
+3. The pod with label `app=webapp` must be in Running state
+
 ## How to Use This Lab
 
 1. Apply the broken manifests: `kubectl apply -f manifests/broken/`

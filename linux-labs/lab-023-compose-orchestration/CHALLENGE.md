@@ -14,11 +14,10 @@ Fix the Docker Compose configuration so all three services work together.
 
 ## Objectives
 
-1. Read the docker-compose.yml and identify issues
-2. Fix service dependencies and startup order
-3. Fix environment variables and connection strings
-4. Ensure all services communicate correctly
-5. Verify the full stack responds
+1. Fix the `docker-compose.yml` — service dependencies, startup order, and connection strings
+2. All three services must be running
+3. The web service must respond on port 80
+4. The API service must respond on port 5000
 
 ## What You're Practising
 

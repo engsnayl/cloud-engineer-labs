@@ -15,10 +15,9 @@ You need to restore DNS resolution on this server so the application can reach e
 ## Objectives
 
 1. Diagnose why DNS resolution is failing
-2. Identify all DNS-related misconfigurations
-3. Restore working DNS resolution
-4. Ensure the internal service `payments-api.internal` resolves to `10.0.1.50`
-5. Confirm external DNS resolution works (e.g. `google.com`)
+2. Fix all DNS configuration files, including `/etc/resolv.conf` and `/etc/nsswitch.conf`
+3. External DNS resolution must work (e.g. `dig google.com` returns results)
+4. The internal service `payments-api.internal` must resolve to `10.0.1.50`
 
 ## What You're Practising
 

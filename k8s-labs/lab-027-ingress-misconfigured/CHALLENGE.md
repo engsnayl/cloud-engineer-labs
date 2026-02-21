@@ -12,6 +12,12 @@ External traffic can't reach the application through the Ingress. The Ingress re
 
 Fix the Ingress configuration to correctly route external traffic.
 
+## Objectives
+
+1. The `app-ingress` Ingress resource must exist
+2. The root path must route to the `frontend` service
+3. Both path rules must use port 80
+
 ## How to Use This Lab
 
 1. Apply the broken manifests: `kubectl apply -f manifests/broken/`

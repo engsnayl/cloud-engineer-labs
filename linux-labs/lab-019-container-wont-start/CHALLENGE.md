@@ -14,11 +14,10 @@ Investigate the image, find the issues, and get the container running.
 
 ## Objectives
 
-1. Check the container logs to see why it exited
-2. Inspect the image configuration
-3. Identify issues with the entrypoint/command
-4. Fix the Dockerfile and rebuild
-5. Verify the container stays running and responds
+1. Diagnose why the container exited (check logs and image configuration)
+2. Fix the Dockerfile and rebuild the image
+3. The `payment-service` container must be running with no errors in the logs
+4. The service must respond on port 5000
 
 ## What You're Practising
 

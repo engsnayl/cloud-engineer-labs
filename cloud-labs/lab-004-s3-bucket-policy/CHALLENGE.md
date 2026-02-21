@@ -10,6 +10,13 @@ The application can't read from or write to its S3 bucket. The bucket policy and
 
 > **INCIDENT-AWS-001**: Application returning "Access Denied" on all S3 operations. Bucket policy exists. IAM role is attached. CloudTrail shows explicit deny but we can't find where.
 
+## Objectives
+
+1. Fix the S3 bucket policy so the application role can access objects
+2. Resolve any explicit deny rules blocking access
+3. `terraform validate` must pass
+4. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

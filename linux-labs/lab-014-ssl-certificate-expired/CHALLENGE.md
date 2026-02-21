@@ -14,11 +14,10 @@ Restore HTTPS access to the dashboard.
 
 ## Objectives
 
-1. Check the current certificate status
-2. Identify SSL configuration issues in Nginx
-3. Generate a new self-signed certificate
-4. Configure Nginx to use the new certificate
-5. Verify HTTPS is working
+1. Generate a new self-signed SSL certificate (the current one is expired)
+2. Configure Nginx to use the new certificate — `nginx -t` must pass
+3. Get Nginx running and serving HTTPS on port 443
+4. The SSL certificate must not be expired
 
 ## What You're Practising
 

@@ -12,6 +12,12 @@ The database pod can't start because its PersistentVolumeClaim is stuck in Pendi
 
 Fix the PVC/PV configuration so the database can start.
 
+## Objectives
+
+1. Get the `db-pvc` PersistentVolumeClaim into Bound state
+2. The `database` pod must be Running
+3. PVC must use StorageClass `fast-storage` with access mode `ReadWriteOnce`
+
 ## How to Use This Lab
 
 1. Apply the broken manifests: `kubectl apply -f manifests/broken/`

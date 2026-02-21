@@ -10,6 +10,14 @@ Two VPCs need to communicate via VPC peering but traffic isn't flowing despite t
 
 > **INCIDENT-AWS-013**: Application in VPC-A can't reach database in VPC-B. VPC peering connection shows 'active' but no traffic flowing. Both sides say the other is unreachable.
 
+## Objectives
+
+1. Fix the VPC peering connection and route table configuration
+2. Ensure both VPCs have routes pointing to the peering connection
+3. Security groups must allow traffic from the peer VPC CIDR
+4. `terraform validate` must pass
+5. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

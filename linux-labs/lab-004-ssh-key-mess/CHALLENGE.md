@@ -14,10 +14,10 @@ You need to fix SSH key authentication so the deploy user can connect.
 
 ## Objectives
 
-1. Diagnose why SSH key authentication is failing
-2. Identify all SSH-related misconfigurations
-3. Fix permissions and configuration issues
-4. Ensure the deploy user can authenticate with their SSH key
+1. Diagnose why SSH key authentication is failing for the deploy user
+2. Fix `.ssh` directory permissions (must be 700) and `authorized_keys` permissions (must be 600)
+3. Ensure `.ssh` is owned by the deploy user
+4. Ensure `PubkeyAuthentication` is enabled in the sshd configuration
 5. Verify sshd is running and accepting connections
 
 ## What You're Practising

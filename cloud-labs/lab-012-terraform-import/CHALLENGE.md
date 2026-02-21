@@ -10,6 +10,13 @@ Resources were created manually in the AWS console and now need to be brought un
 
 > **INCIDENT-TF-005**: Team wants to manage manually-created resources with Terraform. Running terraform apply would create duplicates. Need to import existing resources into state.
 
+## Objectives
+
+1. Write Terraform configuration to match the existing resources
+2. Import the existing resources into Terraform state
+3. `terraform validate` must pass
+4. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

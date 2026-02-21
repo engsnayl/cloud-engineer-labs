@@ -12,11 +12,9 @@ The production Docker image is 1.2GB for a simple Go application. The build incl
 
 ## Objectives
 
-1. Examine the current Dockerfile and identify why the image is so large
-2. Implement a multi-stage build
-3. Ensure the final image only contains the compiled binary
-4. Build the optimised image
-5. Verify the application still works
+1. Implement a multi-stage build to reduce the image size
+2. Build the image as `webapp:optimised` — target size under 100MB
+3. Run the container and verify the application responds correctly
 
 ## What You're Practising
 

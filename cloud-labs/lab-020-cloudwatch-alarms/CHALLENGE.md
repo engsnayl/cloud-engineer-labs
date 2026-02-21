@@ -10,6 +10,13 @@ CloudWatch alarms should be alerting the team when resources are unhealthy, but 
 
 > **INCIDENT-AWS-011**: No CloudWatch alarms triggered during last outage. Alarms exist but appear misconfigured. Team didn't get notified until customers complained.
 
+## Objectives
+
+1. Fix the CloudWatch alarm configuration (metrics, thresholds, and actions)
+2. Ensure alarms are connected to the correct SNS topic for notifications
+3. `terraform validate` must pass
+4. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

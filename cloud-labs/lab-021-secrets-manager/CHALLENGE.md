@@ -10,6 +10,13 @@ The database password hasn't rotated in 90 days despite a rotation policy being 
 
 > **INCIDENT-AWS-012**: Security audit flagged database password hasn't rotated. Secrets Manager rotation is configured but Lambda rotation function failing. Credentials may be compromised.
 
+## Objectives
+
+1. Fix the Secrets Manager secret rotation configuration
+2. Ensure the rotation Lambda function has correct permissions
+3. `terraform validate` must pass
+4. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

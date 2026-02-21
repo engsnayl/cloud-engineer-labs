@@ -10,6 +10,12 @@ A bad deployment went out and there's no automated rollback. The team needs to i
 
 > **INCIDENT-CICD-003**: Bad code deployed to production. No rollback mechanism. Manual revert took 45 minutes. Need to implement rollback strategy.
 
+## Objectives
+
+1. Fix `deploy.sh` to include a health check after deployment
+2. Add a rollback mechanism that reverts to the previous version on failure
+3. The deploy script must accept a version parameter
+
 ## How to Use This Lab
 
 1. Read the CHALLENGE.md for context

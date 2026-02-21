@@ -14,11 +14,9 @@ Debug the TCP connectivity issue and restore the connection.
 
 ## Objectives
 
-1. Verify Redis is running and listening on the expected port
-2. Check if the API can resolve the Redis hostname
-3. Identify the network connectivity issue
-4. Fix the connection path between services
-5. Confirm the API can connect to Redis
+1. Ensure Redis is running and responds to `PING` on port 6379
+2. The hostname `redis-server` must resolve to `127.0.0.1`
+3. Verify TCP connectivity to `redis-server:6379` succeeds end-to-end
 
 ## What You're Practising
 

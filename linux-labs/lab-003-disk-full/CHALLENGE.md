@@ -14,11 +14,11 @@ The application team says they didn't change anything — this just gradually go
 
 ## Objectives
 
-1. Identify what is consuming the most disk space
-2. Free up disk space to get below 70% usage
-3. Find and deal with the runaway log files
-4. Identify if any deleted files are still being held open by processes
-5. Create a basic log rotation config to prevent this recurring
+1. Find and clean up runaway log files — no log files over 10MB in `/var/log/myapp/`
+2. Identify and release any deleted files still held open by processes
+3. Clean up old temp files from `/tmp/reports/`
+4. Set up logrotate for the application logs (`/etc/logrotate.d/myapp`) to prevent recurrence
+5. Ensure the application log directory exists and is writable
 
 ## What You're Practising
 

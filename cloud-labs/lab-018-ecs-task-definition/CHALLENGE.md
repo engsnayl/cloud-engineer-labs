@@ -10,6 +10,13 @@ The ECS service keeps failing to start tasks. The task definition has several co
 
 > **INCIDENT-AWS-009**: ECS service "payment-api" stuck at 0 running tasks. Task attempts failing with multiple errors. Task definition was recently updated.
 
+## Objectives
+
+1. Fix the ECS task definition (CPU, memory, container configuration)
+2. Ensure the execution role and task role are properly configured
+3. `terraform validate` must pass
+4. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

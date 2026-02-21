@@ -10,6 +10,13 @@ The Route 53 failover routing policy should switch traffic to the backup region 
 
 > **INCIDENT-AWS-008**: Primary region went down but Route 53 didn't failover to secondary. DNS still pointing to unhealthy primary. Customers experiencing full outage.
 
+## Objectives
+
+1. Fix the Route 53 failover routing configuration
+2. Ensure health checks and failover records (PRIMARY and SECONDARY) are correctly configured
+3. `terraform validate` must pass
+4. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

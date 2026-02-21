@@ -12,11 +12,11 @@ The team's Helm chart for the web application won't install. `helm install` fail
 
 ## Objectives
 
-1. Run `helm template` or `helm install --dry-run` to identify errors
-2. Fix the Chart.yaml metadata
+1. Fix `Chart.yaml` — it must have a `name` field and use `apiVersion: v2`
+2. Fix `values.yaml` — `appLabel` must not contain spaces, and the service port must be a number (not a quoted string)
 3. Fix template syntax errors in the deployment and service templates
-4. Fix the values.yaml defaults
-5. Successfully install the chart and verify the app runs
+4. `helm template webapp ./webapp-chart` must render without errors
+5. If a cluster is available, install the chart and verify pods are running
 
 ## How to Use This Lab
 

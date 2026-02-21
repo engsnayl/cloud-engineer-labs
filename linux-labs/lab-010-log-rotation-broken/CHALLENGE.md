@@ -14,11 +14,10 @@ Fix the log rotation configuration and clean up the oversized logs.
 
 ## Objectives
 
-1. Identify which log files are consuming the most space
-2. Find and fix issues in the logrotate configuration
-3. Manually run logrotate to verify it works
-4. Clean up the oversized log files
-5. Ensure log rotation is properly scheduled
+1. Clean up oversized log files — no active log file should be larger than 10MB
+2. Fix the logrotate configuration so it passes validation (`logrotate -d`)
+3. Ensure the logrotate config targets the correct log directory (`/var/log/app/`)
+4. Run logrotate and verify it creates rotated log files
 
 ## What You're Practising
 

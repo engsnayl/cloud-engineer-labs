@@ -14,11 +14,10 @@ Fix the volume configuration so data persists across container restarts.
 
 ## Objectives
 
-1. Investigate why data didn't persist
-2. Check for any existing Docker volumes with data
-3. Create proper volume mount configuration
-4. Restore data from the orphaned volume
-5. Verify data survives a container restart
+1. Get the database container running
+2. Restore the customer data — `/data/customers.db` must exist and contain customer records
+3. Mount the `db-data` Docker volume to ensure data persists
+4. Verify data survives a container restart
 
 ## What You're Practising
 

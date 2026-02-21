@@ -12,11 +12,9 @@ The application container's logs are empty despite the app clearly running and p
 
 ## Objectives
 
-1. Check why docker logs shows nothing
-2. Find where the application is actually logging
-3. Fix the application to log to stdout/stderr
-4. Verify docker logs shows output
-5. Ensure log rotation is sensible
+1. Fix the application so it logs to stdout/stderr (visible via `docker logs`)
+2. The application must still respond on port 8080
+3. No oversized log files (over 1MB) should accumulate inside the container
 
 ## What You're Practising
 

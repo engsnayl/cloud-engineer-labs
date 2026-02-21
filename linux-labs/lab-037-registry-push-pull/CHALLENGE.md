@@ -12,11 +12,9 @@ The deployment is failing because Docker can't pull the application image. There
 
 ## Objectives
 
-1. Identify why docker pull is failing
-2. Check the local registry is running and accessible
-3. Fix the image naming/tagging
-4. Push the image to the local registry
-5. Pull it back to verify
+1. Fix the image naming/tagging for the local registry
+2. Push the `myapp` image to the local registry at `localhost:5000`
+3. Verify you can pull `localhost:5000/myapp:latest` back successfully
 
 ## What You're Practising
 

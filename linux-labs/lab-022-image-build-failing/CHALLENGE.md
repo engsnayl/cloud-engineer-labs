@@ -14,11 +14,9 @@ Fix the Dockerfile so the image builds successfully and the app runs.
 
 ## Objectives
 
-1. Attempt to build the image and read the errors
-2. Fix each Dockerfile issue
-3. Successfully build the image
-4. Run the container and verify the app works
-5. Ensure the image is reasonably sized (multi-stage build if appropriate)
+1. Fix the Dockerfile issues and build the image as `webapp:fixed`
+2. Run the container from the fixed image
+3. The application must respond on port 8080
 
 ## What You're Practising
 

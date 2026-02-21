@@ -10,6 +10,13 @@ The Terraform configuration can't find the AMI it needs and the outputs aren't e
 
 > **INCIDENT-TF-009**: Terraform apply failing because AMI ID is hardcoded and doesn't exist in this region. Outputs are missing critical information that downstream modules need.
 
+## Objectives
+
+1. Replace hardcoded AMI IDs with data source lookups
+2. Ensure outputs expose the correct resource attributes
+3. `terraform validate` must pass
+4. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

@@ -10,6 +10,13 @@ A Lambda function triggered by S3 uploads isn't working. It has permission issue
 
 > **INCIDENT-AWS-005**: S3-triggered Lambda not processing uploads. Function exists but CloudWatch shows no invocation logs. Suspect IAM and trigger configuration issues.
 
+## Objectives
+
+1. Fix the Lambda execution role so it has CloudWatch Logs permissions
+2. Configure the S3 event trigger and Lambda invoke permissions correctly
+3. `terraform validate` must pass
+4. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

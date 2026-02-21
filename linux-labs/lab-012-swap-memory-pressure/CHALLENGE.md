@@ -14,11 +14,10 @@ Fix the swap configuration and deal with the memory leak so the application stay
 
 ## Objectives
 
-1. Check current memory usage and identify the memory hog
-2. Diagnose why swap is not active
-3. Enable swap correctly
-4. Kill or constrain the memory-leaking process
-5. Verify the application process is running stably
+1. Enable swap correctly — the system must have active swap space
+2. Kill the memory-leaking process
+3. Ensure the legitimate application (`python3 /opt/app.py`) is still running
+4. Overall memory usage must be below 80%
 
 ## What You're Practising
 

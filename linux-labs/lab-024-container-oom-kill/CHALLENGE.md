@@ -14,11 +14,9 @@ Investigate the OOM kills and fix the memory configuration.
 
 ## Objectives
 
-1. Check docker inspect for OOM kill evidence
-2. Identify the container's memory limit
-3. Understand what the process actually needs
-4. Set appropriate memory limits
-5. Verify the container runs without OOM kills
+1. Get the `data-processor` container running without being OOM killed
+2. Set an appropriate memory limit (at least 256MB)
+3. The container must stay running with no OOM kills
 
 ## What You're Practising
 

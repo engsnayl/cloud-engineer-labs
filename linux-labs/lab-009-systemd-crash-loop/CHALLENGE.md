@@ -14,11 +14,9 @@ Diagnose the crash loop and get the service running stably.
 
 ## Objectives
 
-1. Check the service status and identify the crash loop
-2. Read the journal logs to understand why it's failing
-3. Examine and fix the systemd unit file
-4. Ensure the service starts and stays running
-5. Verify the service responds correctly
+1. Get `api-gateway.service` running and stable (must stay up for more than 5 seconds without restarting)
+2. Fix the systemd unit file — the `ExecStart` must reference the correct application filename
+3. The service must respond on port 3000
 
 ## What You're Practising
 

@@ -10,6 +10,13 @@ CloudFront is serving outdated content. The S3 origin has been updated but Cloud
 
 > **INCIDENT-AWS-006**: Website showing old content despite S3 updates. CloudFront distribution not reflecting origin changes. Customer complaints about outdated pricing page.
 
+## Objectives
+
+1. Fix the CloudFront distribution origin and cache behaviour configuration
+2. Ensure the origin correctly points to the S3 bucket
+3. `terraform validate` must pass
+4. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

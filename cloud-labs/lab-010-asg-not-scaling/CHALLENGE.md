@@ -10,6 +10,13 @@ The Auto Scaling Group should scale up when CPU exceeds 70% but it's not respond
 
 > **INCIDENT-AWS-007**: ASG not scaling despite high CPU. CloudWatch alarm showing ALARM state. ASG desired count stays at 1. Launch template and scaling policy appear configured.
 
+## Objectives
+
+1. Fix the Auto Scaling Group configuration so scaling policies trigger correctly
+2. Ensure the scaling policy is linked to the correct CloudWatch alarm
+3. `terraform validate` must pass
+4. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

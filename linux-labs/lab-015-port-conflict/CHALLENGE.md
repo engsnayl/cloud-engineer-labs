@@ -14,11 +14,9 @@ Find what's using port 8080 and resolve the conflict.
 
 ## Objectives
 
-1. Identify what process is using port 8080
-2. Determine if it's a legitimate process or something stale
-3. Free up port 8080
-4. Start the actual API service
-5. Verify it's responding
+1. Identify and stop the stale process occupying port 8080
+2. Start the API service (`/opt/api.py`) on port 8080
+3. `curl localhost:8080` must return a successful response
 
 ## What You're Practising
 

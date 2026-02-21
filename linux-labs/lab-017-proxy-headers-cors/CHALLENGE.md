@@ -12,11 +12,10 @@ The frontend application can't make API calls through the reverse proxy. Browser
 
 ## Objectives
 
-1. Check the Nginx proxy configuration for missing headers
-2. Add proper CORS headers to the response
-3. Handle OPTIONS pre-flight requests
-4. Pass correct upstream headers (Host, X-Forwarded-For, X-Real-IP)
-5. Verify API calls work through the proxy
+1. Fix the Nginx proxy configuration — `nginx -t` must pass
+2. Responses must include the `Access-Control-Allow-Origin` CORS header
+3. OPTIONS pre-flight requests must return HTTP 200 or 204
+4. The correct `Host` header must be forwarded to the backend
 
 ## What You're Practising
 

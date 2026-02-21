@@ -10,6 +10,13 @@ The application needs to assume a cross-account role to access resources in a sh
 
 > **INCIDENT-AWS-002**: Application can't assume cross-account role. STS AssumeRole returning "Access Denied". Both the trust policy and the IAM policy seem to be configured. Something in the chain is broken.
 
+## Objectives
+
+1. Fix the IAM trust policy for cross-account role assumption
+2. Ensure the role chain allows STS AssumeRole to succeed
+3. `terraform validate` must pass
+4. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

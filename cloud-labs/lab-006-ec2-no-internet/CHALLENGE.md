@@ -10,6 +10,13 @@ An EC2 instance in a private subnet can't reach the internet for package updates
 
 > **INCIDENT-AWS-003**: EC2 instance can't reach package repositories or external APIs. Instance is in a private subnet. NAT Gateway exists but traffic isn't routing through it.
 
+## Objectives
+
+1. Fix the VPC networking so the EC2 instance has outbound internet access
+2. Ensure the routing, NAT Gateway, and security group configuration are correct
+3. `terraform validate` must pass
+4. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

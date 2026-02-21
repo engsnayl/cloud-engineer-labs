@@ -10,6 +10,13 @@ The team needs to implement blue/green deployments to achieve zero-downtime rele
 
 > **INCIDENT-CICD-004**: Every deployment causes 10-30 seconds of downtime. SLA requires 99.99% uptime. Need zero-downtime deployment strategy.
 
+## Objectives
+
+1. Create an executable `switch.sh` script for blue/green environment switching
+2. The switch script must include health checking before completing the switch
+3. The script must reload Nginx to route traffic to the new environment
+4. The script must reference blue and green environments
+
 ## How to Use This Lab
 
 1. Read the CHALLENGE.md for context

@@ -10,6 +10,12 @@ The infrastructure-as-code pipeline needs to safely run Terraform plan on PRs an
 
 > **INCIDENT-CICD-005**: Junior engineer ran terraform apply locally and broke production. Need a CI pipeline that enforces plan review before apply. No more local applies.
 
+## Objectives
+
+1. Create a GitHub Actions workflow (`.github/workflows/terraform.yml`) that includes `terraform init` and `terraform plan`
+2. Include a validation step (`terraform validate` or `terraform fmt`)
+3. `terraform apply` must only run on pushes to the main branch (not on PRs)
+
 ## How to Use This Lab
 
 1. Read the CHALLENGE.md for context

@@ -14,11 +14,10 @@ You need to diagnose why the cron job isn't running and fix it.
 
 ## Objectives
 
-1. Check if the cron daemon is running
-2. Find and fix issues with the crontab configuration
-3. Ensure the backup script has correct permissions
-4. Verify the cron job runs successfully
-5. Check that the backup output file is created
+1. Ensure the cron daemon is running
+2. Make sure the backup script (`/opt/scripts/backup.sh`) is executable
+3. Fix the crontab entry — it must be a valid 5-field cron expression
+4. Verify the backup job runs successfully and creates `/var/backups/db-backup.sql`
 
 ## What You're Practising
 

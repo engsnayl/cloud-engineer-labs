@@ -12,6 +12,11 @@ New pods are stuck in Pending state. They have node affinity rules that don't ma
 
 Fix the scheduling constraints so pods can be placed on available nodes.
 
+## Objectives
+
+1. Get the `critical-service` deployment running with at least 1 ready replica
+2. No `critical-service` pods should be stuck in Pending state
+
 ## How to Use This Lab
 
 1. Apply the broken manifests: `kubectl apply -f manifests/broken/`

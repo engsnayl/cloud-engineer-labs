@@ -10,6 +10,13 @@ The EKS cluster is running but the managed node group nodes aren't joining the c
 
 > **INCIDENT-AWS-010**: EKS cluster 'production' has 0 ready nodes. Managed node group exists but nodes are in NotReady state. Suspect IAM or networking issue.
 
+## Objectives
+
+1. Fix the EKS node group configuration so nodes can join the cluster
+2. Ensure the node group IAM roles have the required AWS managed policies
+3. `terraform validate` must pass
+4. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

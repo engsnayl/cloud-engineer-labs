@@ -14,11 +14,11 @@ The Terraform has been applied but the networking is misconfigured in several wa
 
 ## Objectives
 
-1. Run `terraform apply` to provision the broken VPC environment
-2. SSH into the EC2 instance (or use SSM Session Manager)
-3. Diagnose why the instance has no outbound internet connectivity
-4. Fix the Terraform configuration (NOT the console — fix the code)
-5. Re-apply and validate
+1. The EC2 instance must be in the private subnet (not the public one)
+2. The NAT Gateway must be in the public subnet
+3. The private subnet's route table must route `0.0.0.0/0` through the NAT Gateway
+4. The security group must allow outbound (egress) traffic
+5. All fixes must be in Terraform — no manual console changes
 
 ## What's Been Provisioned (Broken)
 

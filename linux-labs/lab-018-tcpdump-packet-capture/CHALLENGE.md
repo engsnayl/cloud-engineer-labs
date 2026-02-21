@@ -12,11 +12,11 @@ Something is making unexpected outbound connections from the server. Security ha
 
 ## Objectives
 
-1. Use tcpdump to capture and identify the suspicious traffic
-2. Find which process is generating the traffic
-3. Stop the rogue process
-4. Verify no more suspicious outbound connections
-5. Document what you found (create /tmp/incident-report.txt)
+1. Use tcpdump to identify the suspicious traffic pattern
+2. Stop the rogue exfiltration process
+3. Ensure nothing is listening on port 9999
+4. The legitimate web service on port 8080 must still be running
+5. Document your findings in `/tmp/incident-report.txt`
 
 ## What You're Practising
 

@@ -17,8 +17,8 @@ You need to identify the rogue process, deal with it, and ensure the legitimate 
 1. Identify which process is consuming all the CPU
 2. Determine if it's a legitimate process gone wrong or something unexpected
 3. Kill the rogue process
-4. Ensure the legitimate application process (python3 app.py) is still running
-5. Verify CPU usage has returned to normal
+4. Ensure the legitimate application (`python3 /opt/app.py`) is still running
+5. CPU usage should return to normal — no single process over 50% CPU, load average below 2.0
 
 ## What You're Practising
 

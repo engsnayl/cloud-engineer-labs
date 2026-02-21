@@ -12,11 +12,11 @@ Prometheus is running but no metrics are being collected. The targets page shows
 
 ## Objectives
 
-1. Start the environment with `docker compose up -d`
-2. Access Prometheus at http://localhost:9090 (or exec into the container)
-3. Check the targets page / configuration
-4. Fix the prometheus.yml configuration
-5. Verify all three targets are being scraped
+1. Get Prometheus running and healthy
+2. Fix the `prometheus.yml` configuration — scrape interval must be reasonable (10s-60s)
+3. Ensure the metrics path is correct (`/metrics`)
+4. All three targets must be showing as UP in Prometheus
+5. Verify metrics are being collected (e.g. the `up` metric returns data)
 
 ## What You're Practising
 

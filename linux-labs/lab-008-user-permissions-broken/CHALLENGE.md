@@ -14,11 +14,10 @@ Fix the permissions so the application can operate correctly as a non-root user.
 
 ## Objectives
 
-1. Identify permission issues on /opt/data and /etc/app/config.yml
-2. Fix directory and file ownership/permissions
-3. Ensure appuser is in the correct groups
-4. Verify the application can write to the data directory
-5. Verify the application can read the config file
+1. Ensure `appuser` can write to `/opt/data`
+2. Ensure `appuser` can read `/etc/app/config.yml`
+3. Set `/opt/data` group ownership to `appgroup`
+4. Ensure `appuser` is a member of the `appgroup` group
 
 ## What You're Practising
 

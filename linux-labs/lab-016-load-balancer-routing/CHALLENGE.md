@@ -12,11 +12,10 @@ The Nginx load balancer in front of the application tier isn't distributing traf
 
 ## Objectives
 
-1. Check the Nginx upstream configuration
-2. Identify why traffic isn't being distributed
-3. Fix the upstream block to correctly load balance
-4. Verify all three backends receive traffic
-5. Ensure health checks are configured
+1. Fix the Nginx upstream configuration — `nginx -t` must pass
+2. Configure all three backend servers in the upstream block
+3. Verify traffic is distributed — requests should hit different backends
+4. Nginx must be running
 
 ## What You're Practising
 

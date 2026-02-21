@@ -10,6 +10,13 @@ The team accidentally applied staging configuration to production because they w
 
 > **INCIDENT-TF-006**: Staging instance types and scaling applied to production. Terraform workspaces in use but configuration doesn't vary by workspace. Need to fix workspace-aware config.
 
+## Objectives
+
+1. Fix the workspace configuration so each environment gets the correct settings
+2. Ensure `terraform.workspace` is used to differentiate environments
+3. `terraform validate` must pass
+4. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

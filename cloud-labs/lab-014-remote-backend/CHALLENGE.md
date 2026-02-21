@@ -10,6 +10,13 @@ The team has been running Terraform with local state files and just lost a colle
 
 > **INCIDENT-TF-007**: Production Terraform state lost. Local state file was on a laptop that died. Need to configure S3 remote backend with DynamoDB locking to prevent this happening again.
 
+## Objectives
+
+1. Configure the S3 remote backend for state storage
+2. Set up DynamoDB table for state locking
+3. `terraform validate` must pass
+4. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

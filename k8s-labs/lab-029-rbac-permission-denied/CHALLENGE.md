@@ -12,6 +12,11 @@ The monitoring service account can't read pod metrics. It needs to list and get 
 
 Fix the RBAC configuration so the monitoring service account has the correct permissions.
 
+## Objectives
+
+1. The `monitoring-sa` service account must be able to `list`, `get`, and `watch` pods in the `monitoring` namespace
+2. A Role named `pod-reader` must exist in the `monitoring` namespace
+
 ## How to Use This Lab
 
 1. Apply the broken manifests: `kubectl apply -f manifests/broken/`

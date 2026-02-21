@@ -10,6 +10,14 @@ The GitHub Actions CI pipeline is failing. The workflow file has several syntax 
 
 > **INCIDENT-CICD-001**: CI pipeline red for 2 days. Multiple failures in the GitHub Actions workflow. PR merges blocked. Dev team can't deploy.
 
+## Objectives
+
+1. Fix the GitHub Actions workflow file (`.github/workflows/ci.yml`)
+2. Job names must use valid characters (no spaces)
+3. Environment variables must use the correct `GITHUB_ENV` mechanism
+4. The deploy step must only run on main branch pushes (not on PRs)
+5. Job dependency names must match actual job names
+
 ## How to Use This Lab
 
 1. Read the CHALLENGE.md for context

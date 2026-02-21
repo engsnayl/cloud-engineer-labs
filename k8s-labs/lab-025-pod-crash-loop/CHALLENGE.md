@@ -12,6 +12,12 @@ The payment service pod is in CrashLoopBackOff. It keeps restarting but immediat
 
 Diagnose the crash loop and fix the pod specification.
 
+## Objectives
+
+1. Get the `payment-service` pod into a stable Running state
+2. The pod must not be crash-looping — restart count should be under 3
+3. Ensure the pod is using a valid, available image tag
+
 ## How to Use This Lab
 
 1. Apply the broken manifests: `kubectl apply -f manifests/broken/`

@@ -10,6 +10,13 @@ The Terraform configuration uses conditionals and loops to manage resources acro
 
 > **INCIDENT-TF-008**: Production deployment creating resources that should only exist in staging, and missing resources that should exist in production. Conditional logic in Terraform is wrong.
 
+## Objectives
+
+1. Fix the conditional logic so the correct resources are created for each environment
+2. Ensure `count` or `for_each` expressions evaluate correctly
+3. `terraform validate` must pass
+4. `terraform plan` must complete without errors
+
 ## How to Use This Lab
 
 1. Review the Terraform files — find and fix the bugs

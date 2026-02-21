@@ -14,11 +14,10 @@ You need to fix the firewall rules to allow legitimate traffic while keeping the
 
 ## Objectives
 
-1. Verify the application processes are actually running and listening
-2. Examine the current iptables rules
-3. Identify which rules are blocking legitimate traffic
-4. Fix the rules to allow traffic on ports 8080 and 8081
-5. Ensure a default DROP policy remains on INPUT (maintain security)
+1. Get the application responding on port 8080 (HTTP 200)
+2. Get the health check responding on port 8081 (HTTP 200)
+3. Maintain the default DROP policy on the INPUT chain (don't just flush everything)
+4. Ensure loopback (localhost) traffic is allowed
 
 ## What You're Practising
 
