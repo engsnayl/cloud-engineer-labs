@@ -24,11 +24,8 @@ After=network.target
 
 [Service]
 Type=simple
-# Fault 1: Wrong path to executable
 ExecStart=/usr/bin/python3 /opt/api-gatway.py
-# Fault 2: Working directory doesn't exist
 WorkingDirectory=/opt/api-gateway
-# Fault 3: Running as non-existent user
 User=apigateway
 Restart=always
 RestartSec=1
