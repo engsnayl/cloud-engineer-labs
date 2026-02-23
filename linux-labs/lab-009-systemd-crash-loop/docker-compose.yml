@@ -6,6 +6,5 @@ services:
     command: ["/sbin/init"]
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
-    cgroupns: host
     stdin_open: true
     tty: true
