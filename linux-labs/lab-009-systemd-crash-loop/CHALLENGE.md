@@ -1,3 +1,11 @@
+> **⚠️ Raspberry Pi Users:** Docker Compose doesn't support `cgroupns` on Pi. Start this lab manually:
+> ```
+> docker rm -f lab009-systemd-crash-loop 2>/dev/null
+> docker build -t lab009 linux-labs/lab-009-systemd-crash-loop/
+> docker run -d --name lab009-systemd-crash-loop --privileged --cgroupns=host -v /sys/fs/cgroup:/sys/fs/cgroup:rw lab009 /sbin/init
+> docker exec -it lab009-systemd-crash-loop bash
+> ```
+
 Title: Service Crash Loop — Systemd Unit Failing
 Difficulty: ⭐⭐⭐ (Advanced)
 Time: 15-20 minutes
