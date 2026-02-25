@@ -7,11 +7,15 @@
 
 # --- Disk Hog 1: Application log that has grown out of control ---
 # A single massive log file — the most common real-world cause of disk full
+# Generate a small seed of realistic log lines, then repeat it to reach ~8MB fast
 {
-    for i in $(seq 1 80000); do
+    for i in $(seq 1 500); do
         echo "[2025-02-$(printf '%02d' $((RANDOM % 28 + 1)))T$(printf '%02d' $((RANDOM % 24))):$(printf '%02d' $((RANDOM % 60))):$(printf '%02d' $((RANDOM % 60))).000Z] INFO  com.reports.engine.ReportGenerator - Processing report request id=$((RANDOM))$((RANDOM)) user=user$((RANDOM % 500)) type=quarterly status=generating"
     done
-} > /var/log/myapp/application.log
+} > /tmp/_seed.log
+# Repeat the seed block to reach ~8MB (500 lines * ~110 ≈ 55000 lines)
+for _ in $(seq 1 110); do cat /tmp/_seed.log; done > /var/log/myapp/application.log
+rm /tmp/_seed.log
 
 # --- Disk Hog 2: Old rotated debug logs that were never cleaned up ---
 # In production, logrotate should handle this but it wasn't configured
