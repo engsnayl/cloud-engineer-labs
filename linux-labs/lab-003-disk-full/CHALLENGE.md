@@ -8,7 +8,7 @@ Skills: df, du, find, lsof, log management, disk cleanup
 
 You've been paged at 7am with an urgent alert:
 
-> **INCIDENT-4855**: The reporting application on `reports-server` is failing with "No space left on device" errors. Users cannot generate or download reports. The application writes to `/var/lib/myapp/` and needs at least 50MB of free space to function. The server has a 512MB disk that was plenty when it was provisioned, but something has consumed nearly all of it.
+> **INCIDENT-4855**: The reporting application on `reports-server` is failing with "No space left on device" errors. Users cannot generate or download reports. The application stores everything on a dedicated data partition mounted at `/data` and needs at least 50MB of free space to function. The 180MB partition was plenty when it was provisioned, but something has consumed nearly all of it.
 
 Your job is to find what's eating the disk space and free up enough room for the application to work again. Be careful — don't just delete everything. Some files are important.
 
@@ -17,8 +17,8 @@ Your job is to find what's eating the disk space and free up enough room for the
 1. Confirm the disk is full using `df`
 2. Identify which directories are consuming the most space using `du`
 3. Find and remove files that are safe to delete (old logs, stale backups, temp files)
-4. Ensure at least 50MB of free space is available
-5. Ensure the application directory `/var/lib/myapp/` still exists and is writable
+4. Ensure at least 50MB of free space is available on `/data`
+5. Ensure the application directory `/data/myapp/` still exists and is writable
 
 ## What You're Practising
 

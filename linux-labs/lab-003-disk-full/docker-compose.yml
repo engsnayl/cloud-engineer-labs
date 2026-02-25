@@ -4,3 +4,5 @@ services:
     container_name: lab003-disk-full
     stdin_open: true
     tty: true
+    tmpfs:
+      - /data:size=180m
