@@ -1,25 +1,25 @@
-Title: Disk Full — Application Logging Has Consumed All Storage
-Difficulty: ⭐ (Beginner-Intermediate)
-Time: 10-15 minutes
+Title: Disk Full — Application Failing to Write
+Difficulty: ⭐⭐ (Intermediate)
+Time: 15-20 minutes
 Category: Storage / Disk Management
-Skills: df, du, find, log rotation, file management, process investigation
+Skills: df, du, find, lsof, log management, disk cleanup
 
 ## Scenario
 
-The monitoring system has fired a critical alert:
+You've been paged at 7am with an urgent alert:
 
-> **ALERT-CRIT-DISK**: Disk usage on app-server-03 has exceeded 95%. Application health checks are failing because the app can't write to its log files. Database writes are also failing.
+> **INCIDENT-4855**: The reporting application on `reports-server` is failing with "No space left on device" errors. Users cannot generate or download reports. The application writes to `/var/lib/myapp/` and needs at least 50MB of free space to function. The server has a 512MB disk that was plenty when it was provisioned, but something has consumed nearly all of it.
 
-The application team says they didn't change anything — this just gradually got worse. You need to free up disk space, identify what's consuming it, and put a fix in place so it doesn't happen again.
+Your job is to find what's eating the disk space and free up enough room for the application to work again. Be careful — don't just delete everything. Some files are important.
 
 ## Objectives
 
-1. Find and clean up runaway log files — no log files over 10MB in `/var/log/myapp/`
-2. Identify and release any deleted files still held open by processes
-3. Clean up old temp files from `/tmp/reports/`
-4. Set up logrotate for the application logs (`/etc/logrotate.d/myapp`) to prevent recurrence
-5. Ensure the application log directory exists and is writable
+1. Confirm the disk is full using `df`
+2. Identify which directories are consuming the most space using `du`
+3. Find and remove files that are safe to delete (old logs, stale backups, temp files)
+4. Ensure at least 50MB of free space is available
+5. Ensure the application directory `/var/lib/myapp/` still exists and is writable
 
 ## What You're Practising
 
-Disk full is one of the most common production incidents. The twist is that it's not always obvious — sometimes deleted files are still held by processes, sometimes logs are in unexpected places, sometimes temp files accumulate. Systematic investigation with du and find is the skill here.
+Disk space issues are one of the most common reasons applications fail in production. The skill is methodical investigation — starting with `df` to confirm the problem, then using `du` to drill down directory by directory, and `find` to locate the biggest offenders. Knowing what's safe to delete versus what's critical is a judgement call you'll make constantly as a Cloud Engineer.

@@ -1,12 +1,5 @@
 #!/bin/bash
 # =============================================================================
-# Validation Criteria (from CHALLENGE.md):
-#   - Disk usage is below 70%
-#   - No single log file is larger than 10MB
-#   - A logrotate configuration exists for the application logs
-#   - The application log directory exists and is writable
-# =============================================================================
-# =============================================================================
 # Validation: Lab 003 - Disk Full
 # =============================================================================
 
@@ -29,28 +22,37 @@ check() {
 echo "Running validation checks..."
 echo ""
 
-# Check 1: No single log file over 10MB
-large_files=$(docker exec "$CONTAINER" find /var/log/myapp -type f -size +10M 2>/dev/null | wc -l)
-[[ "$large_files" -eq 0 ]]
-check "No log files larger than 10MB in /var/log/myapp" "$?"
+# Check 1: Application log is gone or under 1MB
+LOG_SIZE=$(docker exec "$CONTAINER" bash -c 'if [ -f /var/log/myapp/application.log ]; then stat -c%s /var/log/myapp/application.log 2>/dev/null; else echo 0; fi')
+[[ "$LOG_SIZE" -lt 1048576 ]]
+check "Application log cleaned up (was ~8MB, now under 1MB)" "$?"
 
-# Check 2: Logrotate config exists for myapp
-docker exec "$CONTAINER" test -f /etc/logrotate.d/myapp
-check "Logrotate configuration exists for /var/log/myapp" "$?"
+# Check 2: Old debug logs removed
+OLD_DEBUG=$(docker exec "$CONTAINER" bash -c 'ls /var/log/myapp/debug.log.* 2>/dev/null | wc -l')
+[[ "$OLD_DEBUG" -le 1 ]]
+check "Old rotated debug logs cleaned up (5 files, now ≤1)" "$?"
 
-# Check 3: App log directory exists and is writable
-docker exec "$CONTAINER" test -w /var/log/myapp
-check "Application log directory exists and is writable" "$?"
+# Check 3: Old backup archives cleaned up (at most 1 kept)
+OLD_BACKUPS=$(docker exec "$CONTAINER" bash -c 'ls /opt/backups/*.tar.gz 2>/dev/null | wc -l')
+[[ "$OLD_BACKUPS" -le 1 ]]
+check "Old backup archives cleaned up (7 files, now ≤1)" "$?"
 
-# Check 4: No deleted files still held open (the sneaky one)
-held_open=$(docker exec "$CONTAINER" bash -c 'find /proc/*/fd -ls 2>/dev/null | grep deleted | wc -l')
-[[ "$held_open" -eq 0 ]]
-check "No deleted files still held open by processes" "$?"
+# Check 4: Temp report files cleaned up
+TEMP_FILES=$(docker exec "$CONTAINER" bash -c 'ls /tmp/reports/*.tmp 2>/dev/null | wc -l')
+[[ "$TEMP_FILES" -eq 0 ]]
+check "Stale temp files in /tmp/reports/ removed" "$?"
 
-# Check 5: Temp files cleaned up
-old_temps=$(docker exec "$CONTAINER" find /tmp/reports -name "*.tmp" -type f 2>/dev/null | wc -l)
-[[ "$old_temps" -eq 0 ]]
-check "Old temp files in /tmp/reports cleaned up" "$?"
+# Check 5: Application data still exists (didn't delete the wrong things!)
+docker exec "$CONTAINER" test -f /var/lib/myapp/config.json
+check "Application config preserved (/var/lib/myapp/config.json exists)" "$?"
+
+# Check 6: Application database still exists
+docker exec "$CONTAINER" test -f /var/lib/myapp/data/reports.db
+check "Application database preserved (/var/lib/myapp/data/reports.db exists)" "$?"
+
+# Check 7: App directory is writable
+docker exec "$CONTAINER" bash -c 'touch /var/lib/myapp/test-write && rm /var/lib/myapp/test-write'
+check "Application directory is writable" "$?"
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

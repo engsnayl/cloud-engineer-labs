@@ -1,10 +1,13 @@
 # Hints — Lab 003: Disk Full
 
-## Hint 1 — Finding what's eating space
-`du -sh /*` gives you a top-level view. Then drill into the biggest directories with `du -sh /var/*`, `du -sh /var/log/*`, etc. The `find` command with `-size` flag is your friend: `find / -type f -size +10M`.
+## Hint 1 — Start with the big picture
+Run `df -h` to see how full the disk is. This confirms the problem and shows you which filesystem is affected.
 
-## Hint 2 — Deleting files might not free space
-If a process has a file open and you delete it, the space isn't actually freed until the process releases the file descriptor. Check for this with `lsof +L1` or look in `/proc/*/fd` for deleted entries. You'll need to deal with the process first.
+## Hint 2 — Drill down by directory
+Use `du -sh /*` to see which top-level directories are using the most space. Then drill deeper into the biggest ones with `du -sh /var/*`, `du -sh /var/log/*`, etc. Follow the trail of big numbers.
 
-## Hint 3 — Preventing recurrence
-Look into `/etc/logrotate.d/` — you need to create a config file for the application logs. A basic logrotate config rotates logs when they hit a certain size and keeps only a few old copies.
+## Hint 3 — Find the biggest individual files
+`find / -type f -size +1M -exec ls -lh {} \; 2>/dev/null | sort -k5 -h` will show you every file over 1MB, sorted by size. This gives you a hit list of what to investigate.
+
+## Hint 4 — Think before you delete
+Not everything big should be deleted. Ask yourself: is this an old log/backup/temp file, or is it live application data? Check the file dates with `ls -la` — old files in `/tmp` and `/opt/backups` are usually safe. Application data in `/var/lib/myapp/` is not.

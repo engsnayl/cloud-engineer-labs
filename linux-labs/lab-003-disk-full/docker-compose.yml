@@ -1,5 +1,5 @@
 services:
-  appserver:
+  server:
     build: .
     container_name: lab003-disk-full
     stdin_open: true

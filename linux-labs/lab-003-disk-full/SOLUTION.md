@@ -1,140 +1,164 @@
-# Solution Walkthrough — Disk Full
+# Solution — Lab 003: Disk Full
 
 ## The Problem
 
-The disk is nearly full, which can cause applications to crash, databases to corrupt, and the system to become unresponsive. There are **four sources** of wasted disk space:
-
-1. **Massive application log files** — the app in `/var/log/myapp/` has accumulated ~150MB of log files (`application.log`, `application.log.1`, `application.log.2`) because nobody set up log rotation.
-2. **Old temporary files** — 20 stale `.tmp` files in `/tmp/reports/` that were never cleaned up (~60MB total).
-3. **Core dump files** — two large core dumps in `/var/cache/myapp/` (~50MB total) from past crashes that nobody investigated or removed.
-4. **A deleted file still held open by a running process** — this is the sneaky one. A 20MB file was deleted with `rm`, but the process that had it open still holds a file descriptor to it. The space won't actually be freed until that process releases the file or is killed. This is a classic gotcha that trips up even experienced engineers.
-
-There's also a prevention requirement: you need to set up `logrotate` so the log files don't grow out of control again.
+The server's disk is full. An application that generates reports can't write files because there's no free space. Something — or several things — have consumed the available disk space and need to be cleaned up.
 
 ## Thought Process
 
-When a disk is full, an experienced engineer works top-down:
+When a disk is full, the investigation always follows the same pattern:
 
-1. **How bad is it?** Run `df -h` to see overall disk usage percentages.
-2. **Where is the space being used?** Use `du -sh /*` to find which top-level directories are biggest, then drill down.
-3. **Find the biggest files** using `find / -type f -size +10M` to locate anything unusually large.
-4. **Check for hidden space consumption** — deleted files held open by processes won't show up in normal `du` output. Check `/proc/*/fd` or use `lsof +L1` to find them.
-5. **Clean up and prevent recurrence** — don't just delete files; set up logrotate so it doesn't happen again.
+1. **Confirm it** — use `df` to verify the disk is actually full
+2. **Find where** — use `du` to drill down directory by directory
+3. **Find what** — use `find` to locate the biggest individual files
+4. **Decide what's safe** — check file ages and types before deleting
+5. **Clean up** — remove what's safe, verify space is freed
+
+This is the process you'd follow every time, whether it's a Docker lab or a production server at 3am.
 
 ## Step-by-Step Solution
 
-### Step 1: Assess the damage
+### Step 1: Confirm the disk is full
 
 ```bash
-df -h /
+df -h
 ```
 
-**What this does:** Shows disk usage in human-readable format (`-h` means sizes like "150M" instead of raw bytes). The `/` argument checks the root filesystem. Look at the "Use%" column — it'll be very high.
+**What this does:** `df` stands for "disk free". The `-h` flag means "human readable" — it shows sizes in MB/GB instead of raw bytes. You're looking for a filesystem that's at 90%+ usage.
 
-### Step 2: Find the biggest space consumers
+You'll see the root filesystem (`/`) is very full. This confirms the problem is real and tells you roughly how much space needs to be freed.
+
+### Step 2: Find which top-level directories are biggest
 
 ```bash
-du -sh /var/log/myapp/* /tmp/reports/* /var/cache/myapp/*
+du -sh /* 2>/dev/null | sort -h
 ```
 
-**What this does:** `du` stands for "disk usage." The `-s` flag gives a summary (total per directory/file rather than every subdirectory), and `-h` makes it human-readable. This reveals the large log files, temp files, and core dumps.
+**What this does:** `du` stands for "disk usage". `-s` means "summary" (total per directory, not every sub-file). `-h` means human readable. The `sort -h` sorts by size so the biggest directories appear at the bottom. The `2>/dev/null` hides "permission denied" errors that would clutter the output.
 
-### Step 3: Clean up the oversized application logs
+You'll see that `/var`, `/opt`, and `/tmp` are the main consumers. These are your investigation targets.
+
+### Step 3: Drill deeper into /var
 
 ```bash
-rm /var/log/myapp/application.log.1 /var/log/myapp/application.log.2
-> /var/log/myapp/application.log
+du -sh /var/* 2>/dev/null | sort -h
 ```
 
-**What this does:** First, we remove the old rotated log files entirely. Then, for the current `application.log`, we use the `>` redirect to truncate it to zero bytes *without deleting the file*. This is important — if a process is currently writing to this file, deleting and recreating it would cause the process to lose its file handle. Truncating it keeps the file handle valid while reclaiming the space.
-
-### Step 4: Clean up the old temp files
+This shows `/var/log` is a big consumer. Drill one more level:
 
 ```bash
-rm -f /tmp/reports/*.tmp
+du -sh /var/log/* 2>/dev/null | sort -h
 ```
 
-**What this does:** Removes all files ending in `.tmp` from the reports directory. The `-f` flag means "force" — don't ask for confirmation and don't error if a file doesn't exist.
-
-### Step 5: Remove the core dumps
+Now you can see `/var/log/myapp/` is taking up a lot of space. Let's see what's in it:
 
 ```bash
-rm -f /var/cache/myapp/core.dump.*
+ls -lh /var/log/myapp/
 ```
 
-**What this does:** Removes the accumulated core dump files. Core dumps are snapshots of a program's memory at the moment it crashed — useful for debugging, but they're large and shouldn't pile up.
+**What you'll find:**
+- `application.log` — a single file around 8MB. This is a log file that's been growing without any rotation or size limit.
+- `debug.log.1` through `debug.log.5` — five old rotated debug logs at ~5MB each. These are leftovers that should have been cleaned up by logrotate but weren't configured.
 
-### Step 6: Find and deal with the deleted-but-held-open file
+**What's safe to delete:** All of these. Application logs can always be recreated — the app will just start a new log file. Old rotated logs (the `.1`, `.2` etc.) are historical and serve no active purpose.
 
 ```bash
-ls -la /proc/*/fd 2>/dev/null | grep deleted
+rm /var/log/myapp/application.log
+rm /var/log/myapp/debug.log.*
 ```
 
-**What this does:** Looks through the file descriptors of every running process for any that point to deleted files. When you `rm` a file that a process still has open, Linux marks it as "(deleted)" but the disk space isn't freed. You'll find a process that's still holding onto the deleted `debug-old.log` file.
+**Why this is safe:** Log files record what already happened. Deleting them doesn't break the application — it just means you lose the historical record. In production you might archive them first, but in an emergency you delete them.
 
-### Step 7: Kill the process holding the deleted file
+### Step 4: Check /opt
 
 ```bash
-# Find the PID of the process holding the file
-ps aux | grep fake-app
-# Kill it (replace <PID> with the actual process ID)
-kill <PID>
+du -sh /opt/* 2>/dev/null | sort -h
+ls -lh /opt/backups/
 ```
 
-**What this does:** First, we identify the process that's holding the deleted file open. Then we send it a graceful termination signal with `kill`. Once the process exits, it releases the file descriptor and the disk space is finally freed. The default `kill` signal is `SIGTERM`, which asks the process to shut down cleanly.
+**What you'll find:** Seven database backup archives (`db-backup-2025-01-XX.tar.gz`), each around 10MB. These are old daily backups that accumulated because nobody configured a retention policy.
 
-### Step 8: Set up logrotate to prevent recurrence
+**What's safe to delete:** All the old ones. You might want to keep the most recent backup as a safety net, but the older ones are redundant — each backup is a full snapshot, so you only need the latest.
 
 ```bash
-cat > /etc/logrotate.d/myapp << 'EOF'
-/var/log/myapp/*.log {
-    daily
-    rotate 3
-    size 10M
-    compress
-    missingok
-    notifempty
-    copytruncate
-}
-EOF
+# Keep the newest, delete the rest
+cd /opt/backups
+ls -t *.tar.gz | tail -n +2 | xargs rm
 ```
 
-**What this does:** Creates a logrotate configuration file that will automatically manage the application's log files. Here's what each directive means:
-- `daily` — check the logs once a day
-- `rotate 3` — keep only 3 old copies of each log file
-- `size 10M` — only rotate if the file exceeds 10MB
-- `compress` — compress old log files with gzip to save space
-- `missingok` — don't error if the log file doesn't exist
-- `notifempty` — don't rotate empty files
-- `copytruncate` — copy the current log, then truncate the original (safe for apps that keep the log file open)
+**What that command does:** `ls -t` lists files sorted by modification time (newest first). `tail -n +2` skips the first line (the newest file) and outputs the rest. `xargs rm` deletes each of those files. The net result: keep the newest backup, delete all the others.
 
-### Step 9: Verify disk usage is healthy
+Or if you prefer something simpler and more explicit:
 
 ```bash
-df -h /
+# Delete them all — in an emergency this is fine
+rm /opt/backups/db-backup-2025-01-01.tar.gz
+rm /opt/backups/db-backup-2025-01-04.tar.gz
+rm /opt/backups/db-backup-2025-01-07.tar.gz
+rm /opt/backups/db-backup-2025-01-10.tar.gz
+rm /opt/backups/db-backup-2025-01-13.tar.gz
+rm /opt/backups/db-backup-2025-01-16.tar.gz
+# Keep db-backup-2025-01-19.tar.gz as the latest
 ```
 
-**What this does:** Check that disk usage has dropped below 70%. If it hasn't, look for other large files you may have missed.
+### Step 5: Check /tmp
+
+```bash
+du -sh /tmp/* 2>/dev/null | sort -h
+ls -lh /tmp/reports/
+```
+
+**What you'll find:** Twenty `.tmp` files in `/tmp/reports/`, each around 1MB. These are temporary files created by the reporting application during report generation. When the app crashed, it left these behind.
+
+**What's safe to delete:** Everything in `/tmp` is temporary by definition. That's what `/tmp` is for — files that don't need to survive a reboot.
+
+```bash
+rm /tmp/reports/*.tmp
+```
+
+### Step 6: Verify you freed enough space
+
+```bash
+df -h
+```
+
+You should now see significantly more free space. The application needs at least 50MB free to function.
+
+### Step 7: Verify the application data is intact
+
+```bash
+ls -la /var/lib/myapp/
+ls -la /var/lib/myapp/data/
+```
+
+**Critical check:** Make sure you did NOT delete anything from `/var/lib/myapp/`. This directory contains:
+- `config.json` — the application configuration
+- `data/reports.db` — the application database
+- `status.txt` — a health check file
+
+These are live application data. Deleting these would break the application worse than the disk being full.
 
 ## Docker Lab vs Real Life
 
-- **Finding held-open files:** In this lab we manually searched `/proc/*/fd`. On a real server with `lsof` installed, you'd use `lsof +L1` which is much easier — it lists all files that have been "unlinked" (deleted) but are still open.
-- **Logrotate timing:** In this lab, logrotate won't actually run automatically because Docker containers don't have cron or systemd timers by default. On a real server, logrotate is typically triggered daily by a cron job or systemd timer that's already set up.
-- **Disk monitoring:** In production, you'd have monitoring (like CloudWatch, Prometheus, or Datadog) that alerts you when disk usage exceeds a threshold (commonly 80%), so you'd catch this before it becomes an emergency.
-- **Core dumps:** On production servers, you'd configure core dump limits with `ulimit -c` or in `/etc/security/limits.conf` to prevent them from filling the disk.
+| In this lab | In production |
+|---|---|
+| `rm /var/log/myapp/*.log` | Configure logrotate to automatically manage log sizes |
+| `rm /opt/backups/old-*.tar.gz` | Set up a backup retention policy (e.g. keep 7 days) |
+| `rm /tmp/reports/*.tmp` | Configure the app to clean up temp files, or use systemd-tmpfiles |
+| Files are created by inject-faults.sh | Files accumulate over days/weeks/months of normal operation |
 
 ## Key Concepts Learned
 
-- **`df -h` for the big picture, `du -sh` for drilling down** — these are the two essential commands for diagnosing disk space issues
-- **Deleted files aren't always gone** — if a process has a file open when you delete it, the space isn't freed until the process releases the file descriptor
-- **Truncate vs. delete** — when a process is writing to a log file, truncate it with `> filename` rather than deleting and recreating it
-- **Logrotate prevents recurrence** — finding and deleting big files is a bandaid; setting up automated log rotation is the real fix
-- **Check `/proc/*/fd` for phantom space usage** — when `df` shows more used space than `du` accounts for, deleted-but-held-open files are usually the culprit
+- **`df -h`** shows you how full each filesystem is — always your first command for disk issues
+- **`du -sh <dir>/*`** lets you drill down directory by directory to find where space is being used
+- **`find / -type f -size +1M`** finds individual large files across the whole system
+- **Logs, backups, and temp files** are the three most common causes of disk full in production
+- **Application data** (databases, configs) should never be deleted to free space
+- **Prevention > cure** — logrotate and backup retention policies stop this from happening
 
 ## Common Mistakes
 
-- **Only cleaning up the obvious files** — many people delete the big log files and temp files, then wonder why disk usage is still high. The deleted-but-held-open file is the one most people miss.
-- **Deleting the active log file with `rm` instead of truncating** — if the application has the file open, `rm` won't free the space (same held-open problem), and the application may stop logging entirely because its file handle is now invalid
-- **Forgetting to set up logrotate** — cleaning up disk space without preventing recurrence means you'll be doing this again next week
-- **Using `kill -9` when `kill` would do** — `kill -9` (SIGKILL) is a last resort. Always try `kill` (SIGTERM) first, which lets the process clean up after itself
-- **Not checking for multiple sources of bloat** — disk space problems often come from several places at once, not just one big file
+- **Deleting application data** instead of logs/backups — always check what a file IS before removing it
+- **Only fixing one thing** — disk full is often caused by multiple culprits, not just one
+- **Forgetting to check /tmp** — temporary files are easy to overlook but can accumulate fast
+- **Not verifying afterwards** — always run `df -h` after cleanup to confirm you freed enough space
