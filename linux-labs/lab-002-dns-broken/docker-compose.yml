@@ -1,5 +1,5 @@
 services:
-  appserver:
+  lab:
     build: .
     container_name: lab002-dns-broken
     stdin_open: true
