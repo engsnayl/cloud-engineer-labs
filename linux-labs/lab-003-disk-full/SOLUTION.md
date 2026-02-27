@@ -1,5 +1,8 @@
 # Solution — Lab 003: Disk Full
 
+## TLDR
+The /data disk is full. Run df -h to see it, then go find what's eating all the space with du -sh /data/*. There's old logs, backups, and temp files that can be safely deleted. Clear enough space so the disk isn't at 100% and the service can write again.
+
 ## The Problem
 
 The server's data partition (`/data`) is full. An application that generates reports can't write files because there's no free space. Something — or several things — have consumed the available disk space and need to be cleaned up.
