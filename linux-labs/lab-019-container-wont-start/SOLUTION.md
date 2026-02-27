@@ -1,63 +1,230 @@
-# Solution Walkthrough — Container Won't Start
+# Solution Walkthrough — Lab 019: Container Won't Start
 
 ## The Problem
 
-A Docker container for the "payment-service" is built from a Dockerfile, but the container immediately exits after starting because the Dockerfile has **two filename mistakes**:
+A developer has built a Docker image for a payment service, but it won't work. The Dockerfile has bugs that prevent the image from building correctly, and even if you got past the build, the entrypoint references the wrong file so the container would crash immediately.
 
-1. **COPY references the wrong filename** — the Dockerfile says `COPY application.py .` but the actual file is called `app.py`. The Docker build fails (or succeeds with a missing file) because it can't find `application.py`.
-2. **ENTRYPOINT references the wrong filename** — even if the COPY worked, the ENTRYPOINT says `python3 server.py`, but the file is called `app.py`. Python would exit with a "file not found" error, causing the container to crash immediately.
+This lab is about reading Docker build errors, understanding how Dockerfiles work, and fixing common mistakes.
 
-These are simple typos, but they represent one of the most common reasons containers fail to start. When the container exits immediately after starting, Docker reports it as "Exited" instead of "Up."
+## Important: How This Lab Works
+
+This is a **Docker lab**, which works differently from the Linux troubleshooting labs. There are two levels:
+
+- **Your Pi's shell** (`engsnayl@pi:~$`) — where you run `lab start`, `lab validate`, `lab stop`
+- **The lab container** (`root@<container-id>:/#`) — where you do the actual troubleshooting
+
+The lab container has Docker installed inside it (via a mounted Docker socket). You'll run `docker build`, `docker run`, and other Docker commands **from inside the lab container**. Think of it as your workstation that happens to be inside a container.
+
+> **How to tell where you are:** Look at your prompt. If it says `engsnayl@pi`, you're on the Pi. If it says `root@` followed by a hex string, you're inside the lab container.
 
 ## Thought Process
 
-When a container exits immediately after starting, an experienced engineer follows this debugging path:
+When someone says "my container won't start", the debugging order is:
 
-1. **Check container status** — `docker ps -a` shows all containers including stopped ones. If the status shows "Exited (1)" or "Exited (2)" instead of "Up," the container crashed.
-2. **Read the logs** — `docker logs <container>` shows the container's stdout/stderr output, which usually contains the error message explaining why it crashed. Look for Python tracebacks, "file not found" errors, or permission denied messages.
-3. **Inspect the Dockerfile** — look at `COPY`, `ENTRYPOINT`, and `CMD` directives. Cross-reference every filename with what actually exists in the build context directory.
-4. **Fix, rebuild, rerun** — after fixing the Dockerfile, you must rebuild the image and create a new container.
+1. **Look at the source files** — What's the app? What's the Dockerfile trying to do?
+2. **Try to build it** — Does it even build? Read the error messages.
+3. **Fix build errors** — Usually filename mismatches, missing files, or bad base images.
+4. **Run it** — Does the container start and stay running?
+5. **Check logs** — If it crashes, `docker logs` tells you why.
+6. **Verify** — Can you reach the service?
 
 ## Step-by-Step Solution
 
-### Step 1: Check the container status
+### Step 1: Get into the lab container
 
-```bash
-docker ps -a --filter "name=payment-service"
+```
+📍 Run this on your Pi
 ```
 
-**What this does:** Lists all containers (including stopped ones) filtered by name. The `-a` flag is crucial — without it, `docker ps` only shows running containers, so a crashed container would be invisible. You'll see the payment-service container with status "Exited."
-
-### Step 2: Check the container logs
-
 ```bash
-docker logs payment-service
+docker exec -it lab019-container-wont-start bash
 ```
 
-**What this does:** Shows the output that the container produced before it exited. You'll see an error like `python3: can't open file 'server.py': No such file or directory`. This tells you the ENTRYPOINT is referencing a file that doesn't exist inside the container.
+**What this does:** Opens an interactive bash shell inside the lab container. The `-it` flags mean **i**nteractive and **t**erminal — without them you'd just get a blank screen.
 
-### Step 3: Look at the application files
+From this point forward, all commands are run inside the lab container unless stated otherwise.
 
-```bash
-ls -la /opt/payment-service/
+---
+
+### Step 2: Explore the project files
+
+```
+📍 Run this inside the lab container
 ```
 
-**What this does:** Lists the actual files in the build context directory. You'll see `app.py` and `Dockerfile`. Note the filename carefully — it's `app.py`, not `application.py` or `server.py`.
+```bash
+ls /opt/payment-service/
+```
 
-### Step 4: Look at the current Dockerfile
+**What you'll see:**
+```
+Dockerfile  Dockerfile.hint  app.py
+```
+
+Three files. The application code (`app.py`), the Dockerfile that's supposed to build it, and a hint file. Let's understand what the app does first:
+
+```bash
+cat /opt/payment-service/app.py
+```
+
+**What you'll see:** A simple Python HTTP server that listens on port 5000 and responds with "Payment Service OK". Note the filename: it's called **`app.py`**. Keep that in mind.
+
+---
+
+### Step 3: Read the Dockerfile
 
 ```bash
 cat /opt/payment-service/Dockerfile
 ```
 
-**What this does:** Shows the Dockerfile with its two bugs:
-- `COPY application.py .` — should be `COPY app.py .`
-- `ENTRYPOINT ["python3", "server.py"]` — should be `ENTRYPOINT ["python3", "app.py"]`
+**What you'll see:**
+```dockerfile
+FROM python:3.11-slim
 
-### Step 5: Fix the Dockerfile
+WORKDIR /app
+
+# Fault 1: Copy wrong filename
+COPY application.py .
+
+# Fault 2: Wrong entrypoint
+ENTRYPOINT ["python3", "server.py"]
+```
+
+Even before trying to build, you can spot potential issues by comparing the Dockerfile to the actual files. The COPY references `application.py`, but the file is called `app.py`. The ENTRYPOINT references `server.py`, but again the file is `app.py`.
+
+But let's not just guess — let's **build it and let Docker tell us what's wrong**.
+
+---
+
+### Step 4: Try to build the image
 
 ```bash
-cat > /opt/payment-service/Dockerfile << 'EOF'
+docker build -t payment-service /opt/payment-service/
+```
+
+**What this does:**
+- `docker build` tells Docker to build an image from a Dockerfile
+- `-t payment-service` tags (names) the resulting image as "payment-service"
+- `/opt/payment-service/` is the **build context** — the directory Docker will use to find files referenced in COPY/ADD instructions
+
+**What you'll see:**
+```
+=> ERROR [2/2] COPY application.py .
+------
+ > [2/2] COPY application.py .:
+------
+failed to solve: failed to compute cache key: failed to calculate checksum of ref: "/application.py": not found
+```
+
+**What this means:** Docker tried to copy `application.py` from the build context (the `/opt/payment-service/` directory) into the image, but that file doesn't exist. The actual file is called `app.py`.
+
+---
+
+### Step 5: Fix the Dockerfile — COPY line
+
+Open the Dockerfile in an editor:
+
+```bash
+vim /opt/payment-service/Dockerfile
+```
+
+**If you're not comfortable with vim**, here's a quick survival guide:
+- Press `i` to enter insert mode (you can now type and edit)
+- Make your changes
+- Press `Esc` to exit insert mode
+- Type `:wq` and press Enter to save and quit
+
+**Or use sed** to do it in one command:
+
+```bash
+sed -i 's/COPY application.py/COPY app.py/' /opt/payment-service/Dockerfile
+```
+
+**What `sed -i 's/old/new/'` does:** Finds `old` text and replaces it with `new` text, editing the file in place (`-i`).
+
+---
+
+### Step 6: Build again
+
+```bash
+docker build -t payment-service /opt/payment-service/
+```
+
+**What you'll see:** This time the build succeeds! Docker pulls the `python:3.11-slim` base image (this might take a minute on the Pi), copies `app.py` into the image, and finishes.
+
+You might think you're done — but there's still the entrypoint issue. The build succeeded because COPY only checks that the source file exists in the build context. The ENTRYPOINT just records what command to run later; Docker doesn't check whether that file actually exists inside the image until you try to **run** it.
+
+---
+
+### Step 7: Try to run the container
+
+```bash
+docker run -d --name payment-service payment-service
+```
+
+**What this does:**
+- `docker run` creates and starts a container from an image
+- `-d` runs it in **d**etached mode (in the background)
+- `--name payment-service` gives the container a human-readable name
+- The last `payment-service` is the image name we built in the previous step
+
+**What happens:** The command returns a container ID, which looks like success. But let's check:
+
+```bash
+docker ps -a --filter "name=payment-service"
+```
+
+**What you'll see:**
+```
+CONTAINER ID   IMAGE             COMMAND              CREATED          STATUS                     PORTS   NAMES
+abc123def456   payment-service   "python3 server.py"  5 seconds ago    Exited (2) 3 seconds ago           payment-service
+```
+
+**Key detail:** The STATUS column says "Exited (2)" — the container started and immediately crashed. Exit code 2 from Python means the file wasn't found. And look at the COMMAND column: it says `python3 server.py`. But our file is called `app.py`, not `server.py`.
+
+---
+
+### Step 8: Check the logs to confirm
+
+```bash
+docker logs payment-service
+```
+
+**What this does:** `docker logs` shows everything the container printed to stdout/stderr before it exited. This is the single most useful command for debugging crashed containers.
+
+**What you'll see:**
+```
+python3: can't open file '/app/server.py': [Errno 2] No such file or directory
+```
+
+This confirms it: the ENTRYPOINT is telling Python to run `server.py`, but the file inside the container is `app.py` (because that's what we COPY'd in).
+
+---
+
+### Step 9: Fix the Dockerfile — ENTRYPOINT line
+
+First, remove the crashed container (you can't reuse the name while it exists):
+
+```bash
+docker rm payment-service
+```
+
+**What this does:** Removes the stopped container. You can't have two containers with the same name, so you need to remove the old one before creating a new one.
+
+Now fix the entrypoint:
+
+```bash
+sed -i 's/server.py/app.py/' /opt/payment-service/Dockerfile
+```
+
+Let's verify the Dockerfile looks right now:
+
+```bash
+cat /opt/payment-service/Dockerfile
+```
+
+**What you should see:**
+```dockerfile
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -65,75 +232,115 @@ WORKDIR /app
 COPY app.py .
 
 ENTRYPOINT ["python3", "app.py"]
-EOF
 ```
 
-**What this does:** Rewrites the Dockerfile with the correct filenames:
-- `COPY app.py .` — copies the actual application file into the container's `/app` directory
-- `ENTRYPOINT ["python3", "app.py"]` — tells Docker to run `python3 app.py` when the container starts
+That looks correct — it copies `app.py` and runs `app.py`.
 
-The rest of the Dockerfile stays the same: `FROM python:3.11-slim` uses a lightweight Python image, and `WORKDIR /app` sets the working directory.
+---
 
-### Step 6: Remove the broken container
-
-```bash
-docker rm -f payment-service
-```
-
-**What this does:** Removes the existing (crashed) container. The `-f` flag forces removal even if the container is somehow still running. You can't create a new container with the same name until the old one is removed.
-
-### Step 7: Rebuild the image
+### Step 10: Rebuild and run
 
 ```bash
 docker build -t payment-service /opt/payment-service/
-```
-
-**What this does:** Builds a new Docker image from the fixed Dockerfile. Docker reads the Dockerfile, executes each instruction (pull base image, copy files, set entrypoint), and produces a new image tagged `payment-service`.
-
-### Step 8: Run the new container
-
-```bash
 docker run -d --name payment-service payment-service
 ```
 
-**What this does:** Creates and starts a new container from the fixed image. The `-d` flag runs it in detached mode (background). The `--name payment-service` gives it the name the validation script expects.
+**What you'll see:** The build completes quickly this time (Docker caches layers it's already built). The run command returns a container ID.
 
-### Step 9: Verify it's running
+---
+
+### Step 11: Verify the container is running
 
 ```bash
 docker ps --filter "name=payment-service"
 ```
 
-**What this does:** Shows the container's status. This time you should see "Up" in the status column instead of "Exited." The container is running successfully.
-
-### Step 10: Verify the service is working
-
-```bash
-docker exec payment-service curl -s http://localhost:5000
+**What you'll see:**
+```
+CONTAINER ID   IMAGE             COMMAND             CREATED          STATUS         PORTS   NAMES
+abc123def456   payment-service   "python3 app.py"    5 seconds ago    Up 4 seconds           payment-service
 ```
 
-**What this does:** Runs `curl` inside the container to test the payment service. You should see "Payment Service OK" — confirming the application is running and serving requests correctly.
+**Key details:** STATUS says "Up" (not "Exited"), and COMMAND says `python3 app.py`. The container is running.
+
+---
+
+### Step 12: Verify the service responds
+
+```bash
+docker logs payment-service
+```
+
+**What you'll see:**
+```
+Payment service starting on port 5000...
+```
+
+No errors! Now test the HTTP endpoint:
+
+```bash
+curl http://localhost:5000
+```
+
+**What this does:** Sends an HTTP GET request to port 5000. Since we didn't publish ports with `-p`, this only works from within the same Docker network — which we're on because the lab container shares the Docker socket.
+
+> **Note:** If curl isn't available inside the lab container, you can use: `docker exec payment-service curl -s http://localhost:5000`
+
+**What you'll see:**
+```
+Payment Service OK
+```
+
+The service is running and responding. You're done!
+
+---
+
+### Step 13: Validate
+
+```
+📍 Run this on your Pi (open a new terminal or exit the lab container first)
+```
+
+```bash
+lab validate 019
+```
+
+All checks should pass.
+
+## Summary of What Was Broken
+
+| Fault | File | What was wrong | How you found it |
+|-------|------|---------------|-----------------|
+| Wrong COPY filename | Dockerfile | `COPY application.py .` but the file is `app.py` | `docker build` failed with "not found" error |
+| Wrong ENTRYPOINT filename | Dockerfile | `ENTRYPOINT ["python3", "server.py"]` but the file is `app.py` | Container exited immediately; `docker logs` showed "can't open file" |
 
 ## Docker Lab vs Real Life
 
-- **Image building in CI/CD:** In production, Docker images are built in CI/CD pipelines (GitHub Actions, GitLab CI, Jenkins), not manually on servers. Build failures (like wrong filenames) would be caught before the image ever reaches production.
-- **Docker Compose:** In production, you'd typically use Docker Compose or Kubernetes manifests to define and run containers, rather than individual `docker run` commands. These files are version-controlled and reviewed, reducing the chance of errors.
-- **Health checks:** Production Dockerfiles include a `HEALTHCHECK` instruction that tells Docker how to verify the application is working. If the health check fails, Docker can automatically restart the container.
-- **Container restart policies:** In production, you'd add `--restart=unless-stopped` or `--restart=on-failure:3` so Docker automatically restarts crashed containers without manual intervention.
-- **Error monitoring:** In production, container crashes would trigger alerts through monitoring systems (Datadog, PagerDuty, CloudWatch). The container logs would be shipped to a centralized logging system for investigation.
+**docker build:** Identical in production. You'd typically run this in a CI/CD pipeline (GitHub Actions, Jenkins, etc.) rather than manually, but the command and Dockerfile syntax are exactly the same.
+
+**docker logs:** This is your first port of call for any crashed container, both locally and in production. In Kubernetes, the equivalent is `kubectl logs <pod-name>`.
+
+**docker ps -a:** The `-a` flag is crucial. Without it, you only see running containers. Crashed containers are invisible without `-a`. This catches people out constantly.
+
+**Build context:** In this lab, the build context is a local directory. In CI/CD, it's usually the repo root. Either way, Docker can only COPY files that are inside the build context.
+
+**Port publishing:** In this lab we accessed the service without `-p` because we share the Docker network. In production, you'd run `docker run -d -p 5000:5000 --name payment-service payment-service` to make port 5000 accessible from outside.
 
 ## Key Concepts Learned
 
-- **`docker ps -a` shows stopped containers** — without the `-a` flag, crashed containers are invisible. This is the first command to run when a container seems to have disappeared.
-- **`docker logs` shows why a container crashed** — the error messages in the logs almost always explain the problem. Always check logs before anything else.
-- **Every filename in a Dockerfile must match reality** — `COPY`, `ENTRYPOINT`, and `CMD` all reference files that must actually exist. Typos cause immediate crashes.
-- **The fix cycle is: edit Dockerfile → remove old container → rebuild image → run new container** — you can't "fix" a running container's Dockerfile. You must rebuild from scratch.
-- **`ENTRYPOINT` vs `CMD`** — `ENTRYPOINT` defines the command that always runs. `CMD` provides default arguments that can be overridden. For application containers, `ENTRYPOINT` is the right choice.
+- **`docker build -t <name> <path>`** builds an image from a Dockerfile in the given directory
+- **`docker run -d --name <name> <image>`** starts a container in the background
+- **`docker ps -a`** shows ALL containers including crashed ones — without `-a` you only see running containers
+- **`docker logs <container>`** shows stdout/stderr output — your first debugging tool for crashed containers
+- **`docker rm <container>`** removes a stopped container (required before reusing the name)
+- **COPY** in a Dockerfile references files in the build context — the filename must match exactly
+- **ENTRYPOINT** defines what runs when the container starts — if it references a file that doesn't exist in the image, the container crashes
+- Build errors and runtime errors are different: a Dockerfile can build successfully but still produce a container that crashes
 
 ## Common Mistakes
 
-- **Trying to fix the file inside the running container** — while you could `docker exec` into the container and fix things, this doesn't fix the Dockerfile. The next time you create a container from the image, it would be broken again. Always fix the Dockerfile.
-- **Rebuilding the image without removing the old container** — `docker run --name payment-service` will fail if a container with that name already exists (even if it's stopped). Remove it first with `docker rm`.
-- **Not checking `docker logs`** — many people jump straight to inspecting the Dockerfile without reading the error message. The logs tell you exactly what's wrong.
-- **Forgetting to rebuild after fixing the Dockerfile** — editing the Dockerfile doesn't change the existing image. You must run `docker build` again to create a new image with your fixes.
-- **Case sensitivity** — Docker, Python, and Linux are all case-sensitive. `App.py`, `app.py`, and `APP.py` are three different files. Always match case exactly.
+- **Running `docker ps` without `-a`:** If you're looking for a crashed container and forget `-a`, you'll see nothing and think the container was never created. Always use `docker ps -a` when debugging.
+- **Forgetting to `docker rm` before re-running:** Docker won't let you create two containers with the same name. You'll get "name already in use". Remove the old one first with `docker rm`.
+- **Not reading `docker logs`:** Many people skip straight to inspecting the Dockerfile instead of just asking Docker what went wrong. `docker logs` usually tells you exactly what happened.
+- **Confusing build context with the container filesystem:** `COPY app.py .` copies from the build directory on your machine into the image. The `.` destination refers to WORKDIR inside the image, not your current directory.
+- **Running Docker commands on the Pi instead of inside the lab container:** In these Docker labs, the troubleshooting happens inside the lab container (which has Docker access via the mounted socket). The Pi shell is just for `lab start`, `lab validate`, and `lab stop`.
