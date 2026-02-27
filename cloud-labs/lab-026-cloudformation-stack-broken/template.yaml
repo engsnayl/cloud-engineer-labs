@@ -1,0 +1,129 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Simple web application - VPC, EC2, and Security Group
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: lab
+    Description: Environment name prefix
+
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    AllowedValues:
+      - t3.micro
+      - t3.small
+      - t3.medium
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          # BUG 1: Wrong intrinsic function syntax — should use !Sub not !Ref for string interpolation
+          Value: !Ref "${EnvironmentName}-vpc"
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-igw"
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      # BUG 2: Using GetAtt where Ref is needed — VPC ID comes from !Ref, not !GetAtt
+      VpcId: !GetAtt VPC.VpcId
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-public-subnet"
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-public-rt"
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  SubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref RouteTable
+
+  WebSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP and SSH
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        # BUG 3: Protocol -1 (all traffic) doesn't use FromPort/ToPort — remove them
+        - IpProtocol: "-1"
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+
+  WebInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      # BUG 4: ImageId is missing — CloudFormation requires an AMI ID
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds:
+        - !Ref WebSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-web-server"
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install -y httpd
+          systemctl start httpd
+          systemctl enable httpd
+          echo "<h1>Hello from ${EnvironmentName}</h1>" > /var/www/html/index.html
+
+Outputs:
+  InstanceId:
+    Description: EC2 Instance ID
+    Value: !Ref WebInstance
+
+  PublicIP:
+    Description: Public IP address
+    # BUG 5: Wrong attribute name — should be PublicIp not IpAddress
+    Value: !GetAtt WebInstance.IpAddress
+
+  VPCId:
+    Description: VPC ID
+    Value: !Ref VPC

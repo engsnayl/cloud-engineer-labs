@@ -1,0 +1,10 @@
+services:
+  scripting:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lab038-scripting
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./healthcheck.sh:/opt/scripts/healthcheck.sh

@@ -2,21 +2,22 @@
 
 A self-directed lab framework for practising real-world cloud engineering and Linux troubleshooting skills. Each lab simulates a realistic broken or incomplete environment that you must diagnose and fix — just like you would on the job.
 
-**74 labs + 1 capstone project** across seven categories: Linux, Docker, Kubernetes, Terraform/AWS, CI/CD, Monitoring, and Projects.
+**82 labs + 1 capstone project** across seven categories: Linux, Docker, Kubernetes, Terraform/AWS, CI/CD, Monitoring, and Projects.
 
 ## Structure
 
 ```
 cloud-engineer-labs/
-├── linux-labs/          # Linux + Docker troubleshooting labs (27 labs)
+├── linux-labs/          # Linux + Docker + Scripting troubleshooting labs (28 labs)
 │   ├── lab-001 … lab-018   (Linux)
-│   └── lab-019 … lab-024, lab-035 … lab-037   (Docker)
+│   ├── lab-019 … lab-024, lab-035 … lab-037   (Docker)
+│   └── lab-038   (Bash Scripting)
 ├── k8s-labs/            # Kubernetes troubleshooting labs (12 labs)
 │   └── lab-025 … lab-036
-├── cloud-labs/          # Terraform / AWS infrastructure labs (22 labs)
-│   └── lab-001 … lab-022
-├── cicd-labs/           # CI/CD pipeline labs (5 labs)
-│   └── lab-040 … lab-044
+├── cloud-labs/          # Terraform / AWS infrastructure labs (28 labs)
+│   └── lab-001 … lab-028
+├── cicd-labs/           # CI/CD pipeline labs (6 labs)
+│   └── lab-040 … lab-045
 ├── monitoring-labs/     # Monitoring & incident response labs (7 labs)
 │   └── lab-050 … lab-056
 ├── projects/            # Capstone projects (1 project)
@@ -65,6 +66,7 @@ cloud-engineer-labs/
 | 035 | Image Too Large — Multi-Stage Build Optimisation | Intermediate | 12-15 min |
 | 036 | Where Are The Logs — Container Logging Debugging | Intermediate | 10-15 min |
 | 037 | Can't Pull Image — Registry Authentication Issues | Intermediate | 10-15 min |
+| 038 | Broken Automation — Bash Script Debugging | Intermediate | 15-20 min |
 
 ### Kubernetes (12 labs)
 
@@ -109,6 +111,12 @@ cloud-engineer-labs/
 | 020 | No Alerts Firing — CloudWatch Alarms Misconfigured | Intermediate | 15-20 min |
 | 021 | Secrets Not Rotating — Secrets Manager Configuration | Advanced | 20-25 min |
 | 022 | Cross-VPC Traffic Blocked — VPC Peering Issues | Advanced | 20-25 min |
+| 023 | Security Findings Ignored — Security Hub & GuardDuty Misconfigured | Advanced | 20-25 min |
+| 024 | WAF Blocking Legitimate Traffic — Rule Debugging | Advanced | 20-25 min |
+| 025 | Private Subnet Can't Reach AWS — NAT Gateway & VPC Endpoints | Advanced | 20-25 min |
+| 026 | CloudFormation Stack Failed — Template Debugging | Intermediate | 15-20 min |
+| 027 | No Cost Visibility — Tagging Strategy & Budget Alarms | Intermediate | 15-20 min |
+| 028 | EKS Pod Can't Access AWS — IRSA Misconfigured | Advanced | 25-30 min |
 
 ### CI/CD Pipelines (5 labs)
 
@@ -119,6 +127,7 @@ cloud-engineer-labs/
 | 042 | Bad Deploy — Rollback Strategy | Advanced | 20-25 min |
 | 043 | Zero-Downtime Deploy — Blue/Green Switch | Advanced | 20-25 min |
 | 044 | IaC Pipeline — Terraform in CI/CD | Advanced | 20-25 min |
+| 045 | ArgoCD App Out of Sync — GitOps Debugging | Advanced | 20-25 min |
 
 ### Monitoring & Incident Response (7 labs)
 
@@ -211,7 +220,7 @@ Projects are build-from-scratch exercises that combine skills across multiple ca
 ## Quick Start
 
 ```bash
-# List all 74 labs + 1 project
+# List all 82 labs + 1 project
 ./tools/labrunner.sh list
 
 # Start a random lab
