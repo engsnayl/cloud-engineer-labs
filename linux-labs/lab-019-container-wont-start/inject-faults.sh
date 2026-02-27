@@ -23,17 +23,15 @@ PYEOF
 cat > /opt/payment-service/Dockerfile << 'DEOF'
 FROM python:3.11-slim
 
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
+# Fault 1: Copy wrong filename
 COPY application.py .
 
+# Fault 2: Wrong entrypoint
 ENTRYPOINT ["python3", "server.py"]
-DEOF
-
-# Create a "fix reference" for validation
-cat > /opt/payment-service/Dockerfile.hint << 'DEOF'
-# The app file is called app.py, not application.py
-# The entrypoint should reference app.py, not server.py
 DEOF
 
 echo "Docker build faults injected."
