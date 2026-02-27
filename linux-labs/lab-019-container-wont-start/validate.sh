@@ -1,12 +1,8 @@
 #!/bin/bash
 # =============================================================================
-# Validation Criteria (from CHALLENGE.md):
-#   - The payment-service container is running (not exited)
-#   - `docker logs` shows no error messages
-#   - The service responds on port 5000
-#   - Container has been running for >5 seconds
+# Validation: Lab 019 - Container Won't Start
 # =============================================================================
-CONTAINER="lab019-container-wont-start"
+
 PASS=0
 FAIL=0
 
@@ -40,4 +36,5 @@ check "Service responds on port 5000" "$?"
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
+
 [[ "$FAIL" -eq 0 ]]
