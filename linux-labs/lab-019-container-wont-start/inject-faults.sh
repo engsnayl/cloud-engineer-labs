@@ -25,10 +25,8 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Fault 1: Copy wrong filename
 COPY application.py .
 
-# Fault 2: Wrong entrypoint
 ENTRYPOINT ["python3", "server.py"]
 DEOF
 
