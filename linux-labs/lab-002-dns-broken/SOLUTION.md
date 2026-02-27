@@ -1,5 +1,8 @@
 # Solution Walkthrough — Lab 002: DNS Resolution Failing
 
+## TLDR
+DNS is broken three ways. The nameservers in /etc/resolv.conf are rubbish — test them, don't just eyeball them, then replace with 8.8.8.8. After that, dig works but ping doesn't because /etc/nsswitch.conf has been changed to skip DNS lookups — add dns back. Finally, /etc/hosts has the wrong IP for the internal hostname — fix the entry.
+
 ## The Problem
 
 DNS (Domain Name System) is what translates human-readable names like `google.com` into IP addresses like `142.250.187.206`. When DNS is broken, almost nothing network-related works — you can't browse the web, you can't call APIs, you can't pull packages.
