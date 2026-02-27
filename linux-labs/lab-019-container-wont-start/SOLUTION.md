@@ -58,10 +58,10 @@ ls /opt/payment-service/
 
 **What you'll see:**
 ```
-Dockerfile  Dockerfile.hint  app.py
+Dockerfile  app.py
 ```
 
-Three files. The application code (`app.py`), the Dockerfile that's supposed to build it, and a hint file. Let's understand what the app does first:
+The application code (`app.py`) and the Dockerfile that's supposed to build it. Let's understand what the app does first:
 
 ```bash
 cat /opt/payment-service/app.py
@@ -80,6 +80,8 @@ cat /opt/payment-service/Dockerfile
 **What you'll see:**
 ```dockerfile
 FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -109,9 +111,9 @@ docker build -t payment-service /opt/payment-service/
 
 **What you'll see:**
 ```
-=> ERROR [2/2] COPY application.py .
+=> ERROR [3/3] COPY application.py .
 ------
- > [2/2] COPY application.py .:
+ > [3/3] COPY application.py .:
 ------
 failed to solve: failed to compute cache key: failed to calculate checksum of ref: "/application.py": not found
 ```
@@ -150,7 +152,7 @@ sed -i 's/COPY application.py/COPY app.py/' /opt/payment-service/Dockerfile
 docker build -t payment-service /opt/payment-service/
 ```
 
-**What you'll see:** This time the build succeeds! Docker pulls the `python:3.11-slim` base image (this might take a minute on the Pi), copies `app.py` into the image, and finishes.
+**What you'll see:** This time the build succeeds! Docker pulls the `python:3.11-slim` base image (this might take a minute on the Pi), installs curl, copies `app.py` into the image, and finishes.
 
 You might think you're done — but there's still the entrypoint issue. The build succeeded because COPY only checks that the source file exists in the build context. The ENTRYPOINT just records what command to run later; Docker doesn't check whether that file actually exists inside the image until you try to **run** it.
 
@@ -227,6 +229,8 @@ cat /opt/payment-service/Dockerfile
 ```dockerfile
 FROM python:3.11-slim
 
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY app.py .
@@ -267,24 +271,23 @@ abc123def456   payment-service   "python3 app.py"    5 seconds ago    Up 4 secon
 
 ### Step 12: Verify the service responds
 
+First, check the logs:
+
 ```bash
 docker logs payment-service
 ```
 
-**What you'll see:**
-```
-Payment service starting on port 5000...
-```
+**What you'll see:** Possibly nothing, or `Payment service starting on port 5000...`. If the output is blank, that's because Python buffers stdout inside containers by default — the print statement ran but the output is stuck in a buffer. This is a common Docker gotcha. In production you'd fix it by adding `ENV PYTHONUNBUFFERED=1` to the Dockerfile, but it doesn't affect the service itself.
 
-No errors! Now test the HTTP endpoint:
+Now test the HTTP endpoint. There's an important networking detail here: the payment-service container has its **own network namespace**. You can't reach it with `curl http://localhost:5000` from the lab container because `localhost` refers to *this* container, not the payment-service container. They're separate containers on separate networks.
+
+The simplest way to test is to run curl **from inside the payment-service container**:
 
 ```bash
-curl http://localhost:5000
+docker exec payment-service curl -s http://localhost:5000
 ```
 
-**What this does:** Sends an HTTP GET request to port 5000. Since we didn't publish ports with `-p`, this only works from within the same Docker network — which we're on because the lab container shares the Docker socket.
-
-> **Note:** If curl isn't available inside the lab container, you can use: `docker exec payment-service curl -s http://localhost:5000`
+**What this does:** `docker exec` runs a command inside the payment-service container. Inside that container, `localhost` correctly refers to itself — which is where the server is listening on port 5000. We included curl in the Dockerfile for exactly this purpose.
 
 **What you'll see:**
 ```
@@ -324,18 +327,23 @@ All checks should pass.
 
 **Build context:** In this lab, the build context is a local directory. In CI/CD, it's usually the repo root. Either way, Docker can only COPY files that are inside the build context.
 
-**Port publishing:** In this lab we accessed the service without `-p` because we share the Docker network. In production, you'd run `docker run -d -p 5000:5000 --name payment-service payment-service` to make port 5000 accessible from outside.
+**Port publishing:** In this lab we tested the service from inside its own container using `docker exec`. In production, you'd run `docker run -d -p 5000:5000 --name payment-service payment-service` to publish port 5000 to the host, making it accessible from outside. The `-p hostPort:containerPort` flag maps a port on the host to a port inside the container.
+
+**Docker socket vs Docker network:** Mounting the Docker socket (`/var/run/docker.sock`) lets a container *manage* other containers (build, run, inspect, logs). But it does **not** share their network. Each container gets its own network namespace. This distinction matters — being able to `docker exec` into a container doesn't mean you can `curl` its ports from yours.
 
 ## Key Concepts Learned
 
-- **`docker build -t <name> <path>`** builds an image from a Dockerfile in the given directory
-- **`docker run -d --name <name> <image>`** starts a container in the background
+- **`docker build -t <n> <path>`** builds an image from a Dockerfile in the given directory
+- **`docker run -d --name <n> <image>`** starts a container in the background
 - **`docker ps -a`** shows ALL containers including crashed ones — without `-a` you only see running containers
 - **`docker logs <container>`** shows stdout/stderr output — your first debugging tool for crashed containers
 - **`docker rm <container>`** removes a stopped container (required before reusing the name)
+- **`docker exec <container> <command>`** runs a command inside a running container
 - **COPY** in a Dockerfile references files in the build context — the filename must match exactly
 - **ENTRYPOINT** defines what runs when the container starts — if it references a file that doesn't exist in the image, the container crashes
 - Build errors and runtime errors are different: a Dockerfile can build successfully but still produce a container that crashes
+- **Docker socket ≠ Docker network:** mounting the socket lets you manage containers, but each container still has its own isolated network
+- **Python stdout buffering:** Python buffers print output in containers by default — add `ENV PYTHONUNBUFFERED=1` to Dockerfiles to fix this
 
 ## Common Mistakes
 
@@ -344,3 +352,4 @@ All checks should pass.
 - **Not reading `docker logs`:** Many people skip straight to inspecting the Dockerfile instead of just asking Docker what went wrong. `docker logs` usually tells you exactly what happened.
 - **Confusing build context with the container filesystem:** `COPY app.py .` copies from the build directory on your machine into the image. The `.` destination refers to WORKDIR inside the image, not your current directory.
 - **Running Docker commands on the Pi instead of inside the lab container:** In these Docker labs, the troubleshooting happens inside the lab container (which has Docker access via the mounted socket). The Pi shell is just for `lab start`, `lab validate`, and `lab stop`.
+- **Assuming localhost works across containers:** Each container has its own network. `curl http://localhost:5000` from one container won't reach a server in a different container. Use `docker exec` to run commands inside the target container, or put containers on the same Docker network.
