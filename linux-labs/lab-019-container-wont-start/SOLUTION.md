@@ -6,6 +6,9 @@ A developer has built a Docker image for a payment service, but it won't work. T
 
 This lab is about reading Docker build errors, understanding how Dockerfiles work, and fixing common mistakes.
 
+TLDR
+The Dockerfile has two wrong filenames. The COPY line references application.py but the file is called app.py. The ENTRYPOINT references server.py but again it's app.py. Fix both, rebuild the image, run the container.
+
 ## Important: How This Lab Works
 
 This is a **Docker lab**, which works differently from the Linux troubleshooting labs. There are two levels:
