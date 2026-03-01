@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
     vim less procps curl \
-    docker.io \
+    docker.io docker-compose-v2 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY inject-faults.sh /opt/inject-faults.sh

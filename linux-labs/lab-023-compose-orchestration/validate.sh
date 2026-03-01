@@ -35,7 +35,7 @@ curl -s http://localhost:80 2>/dev/null | grep -q "ok"
 check "Web service returns response via nginx" "$?"
 
 # Check API is reachable
-docker compose exec -T api curl -s http://localhost:5000 2>/dev/null | grep -q "ok"
+docker compose exec -T api python3 -c "from urllib.request import urlopen; print(urlopen('http://localhost:5000').read().decode())" 2>/dev/null | grep -q "ok"
 check "API service responds on port 5000" "$?"
 
 echo ""

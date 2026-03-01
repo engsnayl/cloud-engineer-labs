@@ -343,6 +343,10 @@ cmd_start() {
     if [[ "$lab_path" == linux-labs/* ]]; then
         echo -e "${CYAN}Building and starting Docker environment...${NC}"
         cd "$full_path"
+        # Run optional host-side pre-start script (e.g. stop conflicting services)
+        if [[ -x "$full_path/pre-start.sh" ]]; then
+            bash "$full_path/pre-start.sh"
+        fi
         docker compose down 2>/dev/null || true
         docker compose build --quiet
         docker compose up -d
