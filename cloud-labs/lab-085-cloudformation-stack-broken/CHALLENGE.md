@@ -22,7 +22,7 @@ A colleague wrote a CloudFormation template to deploy a simple web application (
 
 1. Review `template.yaml` — find and fix the bugs
 2. Validate with `aws cloudformation validate-template --template-body file://template.yaml`
-3. (Optional) Deploy with `aws cloudformation create-stack --stack-name lab-026 --template-body file://template.yaml`
+3. (Optional) Deploy with `aws cloudformation create-stack --stack-name lab-085 --template-body file://template.yaml`
 
 **Requires:** AWS CLI installed. AWS credentials for deploy (optional — you can learn from validate alone).
 
