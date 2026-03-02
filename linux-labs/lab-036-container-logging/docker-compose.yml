@@ -1,6 +1,0 @@
-services:
-  server:
-    build: .
-    container_name: lab036-container-logging
-    stdin_open: true
-    tty: true
