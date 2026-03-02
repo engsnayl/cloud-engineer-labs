@@ -9,4 +9,4 @@ RUN apt-get update && apt-get install -y \
 COPY inject-faults.sh /opt/inject-faults.sh
 RUN chmod +x /opt/inject-faults.sh
 
-CMD ["/bin/bash", "-c", "/opt/inject-faults.sh && tail -f /dev/null"]
+CMD ["/bin/bash", "-c", "/opt/inject-faults.sh"]
