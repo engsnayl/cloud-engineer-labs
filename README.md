@@ -10,14 +10,14 @@ A self-directed lab framework for practising real-world cloud engineering and Li
 cloud-engineer-labs/
 ├── linux-labs/          # Linux + Docker + Scripting troubleshooting labs (28 labs)
 │   ├── lab-001 … lab-018   (Linux)
-│   ├── lab-019 … lab-024, lab-035 … lab-037   (Docker)
-│   └── lab-038   (Bash Scripting)
+│   ├── lab-019 … lab-024, lab-025 … lab-027   (Docker)
+│   └── lab-028   (Bash Scripting)
 ├── k8s-labs/            # Kubernetes troubleshooting labs (12 labs)
-│   └── lab-025 … lab-036
+│   └── lab-029 … lab-040
 ├── cloud-labs/          # Terraform / AWS infrastructure labs (28 labs)
-│   └── lab-001 … lab-028
+│   └── lab-060 … lab-087
 ├── cicd-labs/           # CI/CD pipeline labs (6 labs)
-│   └── lab-040 … lab-045
+│   └── lab-041 … lab-046
 ├── monitoring-labs/     # Monitoring & incident response labs (7 labs)
 │   └── lab-050 … lab-056
 ├── projects/            # Capstone projects (1 project)
@@ -236,8 +236,8 @@ Projects are build-from-scratch exercises that combine skills across multiple ca
 
 # Start a specific lab
 ./tools/labrunner.sh start linux-labs/lab-001-nginx-down
-./tools/labrunner.sh start k8s-labs/lab-025-pod-crash-loop
-./tools/labrunner.sh start cicd-labs/lab-040-github-actions-broken
+./tools/labrunner.sh start k8s-labs/lab-029-pod-crash-loop
+./tools/labrunner.sh start cicd-labs/lab-041-github-actions-broken
 ./tools/labrunner.sh start monitoring-labs/lab-050-app-500-errors
 ./tools/labrunner.sh start projects/project-001-build-multi-tier-app
 
