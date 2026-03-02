@@ -1,129 +1,230 @@
 # Solution Walkthrough — Container OOM Kill
 
+## TLDR
+
+A container has been set up with only 32MB of memory, but the workload inside it needs about 128MB. Think of it like trying to run a dishwasher on a trickle of water — it just can't do the job. When a container tries to use more memory than Docker allows, the Linux kernel steps in and kills the process outright. No warning, no graceful shutdown — just dead. This is called an OOM (Out of Memory) kill.
+
+The fix: remove the broken container and recreate it with a sensible memory limit (256MB). You don't remove the limit entirely — that would leave the host unprotected — you just give the container enough room to do its job.
+
+---
+
+## Environment Limitation — Read This First
+
+**If you're running Docker-in-Docker** (e.g. on a Raspberry Pi running Docker inside a container), your kernel may not support cgroup memory limits. You'll see a warning like:
+
+```
+WARNING: Your kernel does not support memory limit capabilities or the cgroup is not mounted. Limitation discarded.
+```
+
+This means Docker **cannot enforce memory limits** in your environment. The container won't actually get OOM killed, and `docker inspect` will show `"Memory": 0` regardless of what you pass with `--memory`. The validation checks for memory limits will fail — not because you did anything wrong, but because the environment can't support this feature.
+
+The commands and concepts are still correct. If you have access to a cloud VM or a bare-metal Docker install, revisit this lab there to see the real OOM kill behaviour.
+
+---
+
 ## The Problem
 
-A data processing container is being OOM (Out of Memory) killed by Docker because its **memory limit is set too low**. The container has a 32MB memory limit (`--memory=32m`), but the workload needs approximately 128MB of memory to complete its processing. When the process inside the container tries to allocate more memory than the limit allows, the Linux kernel's OOM killer terminates it.
-
-The container doesn't just crash once — Docker may automatically restart it (depending on the restart policy), and it will keep getting OOM killed in a cycle because the memory limit is still too low.
-
-The fix isn't to remove the memory limit entirely — **you should still have a limit**, but it needs to be large enough for the workload to complete successfully. The validation requires a limit of at least 256MB.
+A data processing container keeps crashing. Docker restarts it, and it crashes again — stuck in a loop. Your job is to figure out why and fix it.
 
 ## Thought Process
 
 When a container keeps dying unexpectedly, an experienced engineer checks for OOM kills:
 
-1. **Check the container state** — `docker inspect <container> --format '{{.State.OOMKilled}}'` tells you directly if the last exit was caused by an OOM kill.
-2. **Check the current memory limit** — `docker inspect <container> --format '{{.HostConfig.Memory}}'` shows the limit in bytes.
-3. **Understand the workload's memory needs** — look at the application code or use `docker stats` to monitor real-time memory usage.
-4. **Set an appropriate limit** — large enough for the workload to complete, with some headroom, but not so large that a memory leak could consume all host memory.
+1. **Check what's running** — `docker ps -a` to see the container's state (is it running, exited, restarting?)
+2. **Check for OOM kills** — inspect the container to see if the kernel killed it for using too much memory
+3. **Check the memory limit** — see what limit Docker applied and whether it's realistic for the workload
+4. **Fix the limit** — remove the broken container and recreate it with a sensible memory limit
 
-The key principle: memory limits protect the host from runaway containers. A container without a memory limit could consume all available RAM and crash other containers or the host itself. But the limit must be realistic for the workload.
+---
 
 ## Step-by-Step Solution
 
-### Step 1: Run the processor setup script
+### Step 1: Look around the environment
+
+Before doing anything, check what's already running and what tools are available.
+
+```bash
+docker ps -a
+```
+
+**Command breakdown:**
+- `docker ps` — lists running containers
+- `-a` — includes stopped/crashed containers too, not just running ones
+
+You'll see nothing relevant yet — no data processor container exists.
+
+Now look for setup scripts:
+
+```bash
+ls /opt/
+```
+
+You'll spot `run-processor.sh`. Read it before running it:
+
+```bash
+cat /opt/run-processor.sh
+```
+
+This shows you the script will create a container called `data-processor` with `--memory=32m` running a Python workload.
+
+### Step 2: Run the processor setup script
 
 ```bash
 /opt/run-processor.sh
 ```
 
-**What this does:** Starts the data processor container with a 32MB memory limit. The container will start, begin allocating memory, and quickly get OOM killed.
+This starts the data processor container. In an environment with cgroup support, the container will start allocating memory and quickly get OOM killed. In Docker-in-Docker setups, the memory limit won't be enforced and the container will run fine (see environment limitation above).
 
-### Step 2: Check if the container was OOM killed
+### Step 3: Check the container state
+
+```bash
+docker ps -a
+```
+
+In a working environment, you'd see the container in an `Exited` or `Restarting` state. In Docker-in-Docker, it'll show as `Up`.
+
+### Step 4: Check for OOM kill and memory limit
+
+The quickest way to investigate is to dump the full inspection and search through it:
+
+```bash
+docker inspect data-processor | grep -i oom
+docker inspect data-processor | grep -i memory
+```
+
+**Command breakdown:**
+- `docker inspect data-processor` — dumps all configuration and state info for the container as JSON
+- `| grep -i oom` — pipes that output to grep, searching for "oom" (case-insensitive thanks to `-i`)
+- `| grep -i memory` — same idea, searching for "memory"
+
+**What you're looking for:**
+- `"OOMKilled": true` — confirms the container was killed for exceeding its memory limit
+- `"Memory": 33554432` — that's 32MB in bytes (32 × 1024 × 1024), which is the limit that's too low
+
+**In Docker-in-Docker you'll see:**
+- `"OOMKilled": false` — because the limit wasn't enforced
+- `"Memory": 0` — Docker couldn't apply the limit so it shows zero (unlimited)
+
+If you want to query specific fields directly (useful in scripts), the Go template syntax works too:
 
 ```bash
 docker inspect data-processor --format '{{.State.OOMKilled}}'
-```
-
-**What this does:** Queries the container's state to check if it was killed by the OOM killer. You'll see `true`, confirming this is an out-of-memory situation.
-
-### Step 3: Check the current memory limit
-
-```bash
 docker inspect data-processor --format '{{.HostConfig.Memory}}'
 ```
 
-**What this does:** Shows the container's memory limit in bytes. You'll see `33554432` — which is 32MB (32 × 1024 × 1024). This is far too low for a workload that allocates ~128MB.
+**Command breakdown:**
+- `--format '{{.State.OOMKilled}}'` — uses Go template syntax to pull out just one field from the JSON
+- `.State.OOMKilled` — navigates the JSON structure: State object → OOMKilled field
+- `.HostConfig.Memory` — navigates to: HostConfig object → Memory field (value in bytes)
 
-### Step 4: Check container logs for the error
+The grep method is easier to remember for interactive troubleshooting. The `--format` method is better when scripting or when you know exactly which field you need.
+
+### Step 5: Check container logs
 
 ```bash
 docker logs data-processor
 ```
 
-**What this does:** Shows any output the container produced before it was killed. You might see partial output or nothing at all — OOM kills are abrupt, and the process doesn't get a chance to log a clean error message.
+**Command breakdown:**
+- `docker logs` — shows whatever the container printed to stdout/stderr
+- `data-processor` — the container name
 
-### Step 5: Remove the OOM-killed container
+You might see partial output or nothing useful. OOM kills are abrupt — the kernel kills the process immediately with no chance to log a clean error message. This is why checking `OOMKilled` via inspect is more reliable than reading logs.
+
+### Step 6: Remove the broken container
 
 ```bash
 docker rm -f data-processor
 ```
 
-**What this does:** Removes the dead container so we can create a new one with a higher memory limit. The `-f` flag forces removal.
+**Command breakdown:**
+- `docker rm` — removes a container
+- `-f` — force removal, works even if the container is still running
+- `data-processor` — the container name
 
-### Step 6: Recreate with an appropriate memory limit
+### Step 7: Recreate with an appropriate memory limit
 
 ```bash
 docker run -d --name data-processor \
     --memory=256m \
     python:3.11-slim python3 -c "
 import time
-# Simulate a data processing workload that needs ~128MB
 data = []
 for i in range(100):
-    data.append('X' * 1024 * 1024)  # 1MB chunks
+    data.append('X' * 1024 * 1024)
     time.sleep(0.1)
 print('Processing complete')
 time.sleep(3600)
 "
 ```
 
-**What this does:** Starts the same data processing workload, but with `--memory=256m` (256MB) instead of 32MB. This gives the workload plenty of room for its ~128MB allocation plus Python runtime overhead. The 256MB limit still protects the host from runaway memory consumption.
+**Command breakdown:**
+- `docker run` — creates and starts a new container
+- `-d` — detached mode (runs in the background)
+- `--name data-processor` — gives the container a name so we can refer to it later
+- `--memory=256m` — sets the memory limit to 256 megabytes (was 32m before)
+- `python:3.11-slim` — the container image to use
+- `python3 -c "..."` — the command to run inside the container (a Python script that allocates ~128MB)
+- `\` — line continuation, just lets you split a long command across multiple lines for readability
 
-### Step 7: Monitor memory usage in real time
+**Why 256MB and not 128MB?** The workload allocates about 128MB of data, but the Python runtime itself needs memory too (interpreter, garbage collector, etc.). Setting the limit at exactly what the workload uses leaves no headroom. A good rule of thumb is 2x typical usage as a starting point.
+
+**Why not remove the limit entirely?** A container without a memory limit could consume all available RAM on the host if something goes wrong (like a memory leak). The limit protects everything else running on that machine.
+
+### Step 8: Monitor memory usage
 
 ```bash
 docker stats data-processor --no-stream
 ```
 
-**What this does:** Shows a snapshot of the container's resource usage including memory. The `--no-stream` flag gives a single snapshot instead of continuously updating. You should see memory usage growing as the workload processes data, but staying well under the 256MB limit.
+**Command breakdown:**
+- `docker stats` — shows live resource usage (CPU, memory, network, disk) for containers
+- `data-processor` — the container to monitor
+- `--no-stream` — shows a single snapshot and exits (without this flag, it continuously updates like `top`)
 
-### Step 8: Verify the container is still running (not OOM killed)
+You should see memory usage growing as the workload processes data, but staying well under the 256MB limit.
 
-```bash
-docker inspect data-processor --format 'Running: {{.State.Running}} | OOMKilled: {{.State.OOMKilled}}'
-```
-
-**What this does:** Confirms two things: the container is still running (`true`) and has not been OOM killed (`false`). Both conditions must be met for success.
-
-### Step 9: Verify the memory limit is set correctly
+### Step 9: Verify the fix
 
 ```bash
-docker inspect data-processor --format '{{.HostConfig.Memory}}'
+docker inspect data-processor | grep -i oom
+docker inspect data-processor | grep -i memory
 ```
 
-**What this does:** Confirms the memory limit is 268435456 bytes (256MB). The validation requires a limit of at least 256MB — you shouldn't remove the limit entirely, just set it to an appropriate value.
+Confirm:
+- `"OOMKilled": false` — the container has not been OOM killed
+- `"Memory": 268435456` — that's 256MB in bytes (256 × 1024 × 1024)
 
-## Docker Lab vs Real Life
+Also check the container is still running:
 
-- **Determining memory needs:** In this lab, we can read the code to see it needs ~128MB. In production, you'd use `docker stats`, Prometheus metrics, or load testing to determine a container's actual memory usage under realistic workloads. Add 50-100% headroom above typical usage.
-- **Memory limit vs request:** In Kubernetes, there's a distinction between "requests" (guaranteed allocation) and "limits" (maximum allowed). Docker only has limits. In Kubernetes, you'd set `resources.requests.memory: 128Mi` and `resources.limits.memory: 256Mi`.
-- **OOM kill monitoring:** In production, you'd monitor for OOM kills using Docker events (`docker events --filter event=oom`), or through Kubernetes events and alerts. OOM kills should trigger alerts because they indicate either insufficient limits or a memory leak.
-- **Swap:** Docker containers can also use swap if configured with `--memory-swap`. By default, a container with `--memory=256m` can also use 256MB of swap (512MB total). You can disable swap for a container with `--memory-swap=256m` (setting it equal to memory).
-- **Memory leak detection:** In production, if OOM kills keep happening even with large limits, the application probably has a memory leak. Use profiling tools (Python's `tracemalloc`, Java's heap dumps, Go's `pprof`) to find and fix the leak.
+```bash
+docker ps -a
+```
 
-## Key Concepts Learned
+The container should show status `Up` rather than `Exited`.
 
-- **Docker memory limits protect the host** — without limits, a single container can consume all available RAM and crash everything on the host
-- **`docker inspect` reveals OOM kills** — the `State.OOMKilled` field tells you directly if the container was killed by the OOM killer
-- **Memory limits must match workload needs** — set limits large enough for the workload to complete, with headroom, but not so large that they defeat the purpose of limiting
-- **OOM kills are abrupt** — the kernel kills the process immediately with no opportunity for graceful shutdown or error logging. This is why they're hard to diagnose without checking `OOMKilled`.
-- **`docker stats` monitors live resource usage** — use it to understand a container's actual memory consumption before setting limits
+---
+
+## Key Concepts
+
+- **Docker memory limits protect the host** — without limits, a single container can consume all available RAM and crash everything on the host machine
+- **OOM kills are silent and abrupt** — the kernel kills the process immediately with no chance for graceful shutdown or error logging, which makes them hard to diagnose if you don't know to check `OOMKilled`
+- **Exit code 137 often means OOM** — 137 = 128 + 9, meaning the process was killed by SIGKILL. But other things can cause SIGKILL too, so checking the `OOMKilled` field directly is more reliable
+- **Memory limits must match workload needs** — set limits large enough for the workload plus headroom, but not so large they defeat the purpose of limiting. A good starting point is 2x typical usage
+- **`docker inspect` is your diagnostic Swiss army knife** — pipe it to `grep` for quick interactive searches, or use `--format` with Go templates for scripting
 
 ## Common Mistakes
 
-- **Removing the memory limit entirely** — while this "fixes" the OOM kill, it's a bad practice. Without limits, a memory leak or unexpected workload spike can take down the entire host. Always set a reasonable limit.
-- **Setting the limit too close to actual usage** — if the workload uses 128MB and you set the limit to 128MB, there's no headroom for the Python runtime, garbage collection spikes, or temporary allocations. Always add headroom (2x typical usage is a good starting point).
-- **Not checking `OOMKilled`** — many people see a crashed container and look at logs, but OOM kills often produce no log output. Checking `docker inspect` for `OOMKilled: true` is the definitive diagnostic.
-- **Confusing container exit codes** — an OOM-killed container typically exits with code 137 (128 + 9, meaning killed by SIGKILL). But other causes can also produce exit code 137, so checking the `OOMKilled` field directly is more reliable.
-- **Setting limits in the wrong units** — Docker accepts `m` for megabytes, `g` for gigabytes. `--memory=256m` is 256 megabytes. Don't confuse with Kubernetes, which uses `Mi` (mebibytes) and `Gi` (gibibytes).
+- **Removing the memory limit entirely** — "fixes" the OOM kill but leaves the host unprotected. Always set a reasonable limit.
+- **Setting the limit too close to actual usage** — if the workload uses 128MB and you set 128MB, there's no room for the runtime, garbage collection, or temporary spikes. Always add headroom.
+- **Only checking logs** — OOM kills often produce no log output because the process is killed instantly. Always check `docker inspect` for the `OOMKilled` field.
+- **Confusing Docker and Kubernetes units** — Docker uses `m` for megabytes and `g` for gigabytes (`--memory=256m`). Kubernetes uses `Mi` (mebibytes) and `Gi` (gibibytes). They're slightly different values.
+
+---
+
+## Docker Lab vs Real Life
+
+- **Finding memory needs:** In this lab we can read the code. In production, you'd use `docker stats`, Prometheus metrics, or load testing to understand actual usage under realistic workloads.
+- **OOM kill monitoring:** In production, you'd set up alerts for OOM kills using `docker events --filter event=oom` or Kubernetes events. OOM kills should always trigger alerts.
+- **Memory leaks:** If OOM kills keep happening even with large limits, the application probably has a memory leak. Use profiling tools (Python's `tracemalloc`, Java's heap dumps, Go's `pprof`) to find and fix the root cause.
+- **Kubernetes distinction:** Kubernetes separates "requests" (guaranteed allocation) from "limits" (maximum allowed). You'd typically set requests to typical usage and limits higher with headroom. Docker only has limits.
