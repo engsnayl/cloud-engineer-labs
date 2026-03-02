@@ -1,38 +1,137 @@
-# Solution Walkthrough — Registry Push/Pull
+# Solution Walkthrough — Lab 037: Registry Push/Pull
 
-## The Problem
+## TLDR
 
-A Docker image called `myapp:latest` has been built and exists locally, but it can't be pushed to the local Docker registry running on `localhost:5000`. The issue is straightforward: **the image is tagged incorrectly**.
+You've got a Docker image called `myapp:latest` sitting on your machine, and a private registry running on `localhost:5000` — but the registry is empty. The image was built with the wrong tag. Docker doesn't know where to push it unless the tag includes the registry address. You need to re-tag it as `localhost:5000/myapp:latest`, push it, then pull it back to prove it works.
 
-Docker uses the image tag to determine *where* to push an image. When you run `docker push myapp:latest`, Docker tries to push to Docker Hub (the default public registry). To push to a specific registry, the image name must be prefixed with the registry address — in this case, `localhost:5000/myapp:latest`.
+Three commands. That's the fix. The rest of this walkthrough teaches you *why* it works.
 
-Think of it like a mailing address: `myapp:latest` is just a name with no address, so Docker sends it to the default location (Docker Hub). `localhost:5000/myapp:latest` includes the full address, telling Docker exactly which registry to use.
+---
+
+## The Theory — How Docker Image Registries Actually Work
+
+### What is a Docker Image?
+
+When you run `docker build`, Docker reads your Dockerfile and creates an **image** — a read-only package containing your application code, its dependencies, and a minimal operating system. Think of it like a zip file that contains everything needed to run your app.
+
+Each image is made up of **layers**. Every instruction in your Dockerfile (FROM, RUN, COPY, etc.) creates a new layer stacked on top of the previous one. Layers are cached and shared between images, which is why your second build is usually much faster than the first.
+
+### What is a Registry?
+
+A **registry** is just a server that stores and serves Docker images. That's it. It's a glorified file server with an API.
+
+When you type `docker pull nginx`, Docker contacts a registry, downloads the image layers, and assembles them locally. When you type `docker push myapp`, Docker uploads your image layers to a registry.
+
+There are three types you'll encounter:
+
+**Docker Hub** — The default public registry. When you type `docker pull nginx`, Docker actually contacts `registry-1.docker.io` behind the scenes. It's free for public images, and it's where most open-source images live (nginx, python, redis, etc.).
+
+**Private cloud registries** — Every cloud provider has one:
+- AWS has **ECR** (Elastic Container Registry)
+- Azure has **ACR** (Azure Container Registry)  
+- GCP has **GCR** / Artifact Registry
+
+These are what you'll use at work. At Tandem, your platform team almost certainly pushes images to ECR.
+
+**Self-hosted registries** — You can run your own registry server. That's what's happening in this lab. The `registry:2` image from Docker Hub is a lightweight registry server. Run it on port 5000 and you've got your own private registry.
+
+### The Critical Concept — Image Tags Are Addresses
+
+This is the key thing this lab teaches you. A Docker image tag isn't just a name — **it's an address that tells Docker where to push the image**.
+
+The full format of an image tag is:
+
+```
+[registry-address/][repository-name][:tag]
+```
+
+Let's break down some examples:
+
+| What you type | What Docker actually sees |
+|---|---|
+| `nginx` | `docker.io/library/nginx:latest` |
+| `nginx:1.25` | `docker.io/library/nginx:1.25` |
+| `myapp:latest` | `docker.io/library/myapp:latest` |
+| `localhost:5000/myapp:latest` | `localhost:5000/myapp:latest` |
+| `123456789.dkr.ecr.eu-west-2.amazonaws.com/myapp:v1` | (exactly as typed — full ECR path) |
+
+See the pattern? When there's no registry address in the tag, Docker assumes you mean Docker Hub (`docker.io`). When you want to push to a different registry, the tag **must** include the registry address as a prefix.
+
+So when this lab built the image as `myapp:latest`, Docker would try to push it to Docker Hub — not to the local registry on port 5000. That's why the registry was empty.
+
+### How Push and Pull Actually Work
+
+When you run `docker push localhost:5000/myapp:latest`, here's what happens step by step:
+
+1. Docker reads the tag and extracts the registry address: `localhost:5000`
+2. Docker contacts that registry's API to check which layers it already has
+3. For each layer the registry doesn't have, Docker uploads it (this is why you see individual "Pushed" lines)
+4. Docker sends the **manifest** — a JSON file that describes how all the layers fit together to form the complete image
+5. The registry stores everything and responds with a **digest** — a SHA256 hash that uniquely identifies this exact image
+
+When you run `docker pull localhost:5000/myapp:latest`, the reverse happens — Docker contacts the registry, downloads any layers it doesn't already have locally, and assembles the image.
+
+### The localhost Trap (What Caught You Out)
+
+In this lab you ran `curl http://localhost:5000/v2/_catalog` from **inside** the lab container and got "Connection refused". But `docker push` worked fine from inside the same container. Why?
+
+Two different things are happening:
+
+**Docker commands** (push, pull, build, etc.) don't run inside your container. They talk to the **Docker daemon** running on the host machine via the Docker socket (`/var/run/docker.sock`), which was mounted into the lab container. So when Docker pushes to `localhost:5000`, it's the daemon on the **host** that makes the network connection — and from the host's perspective, the registry container is reachable on `localhost:5000`.
+
+**curl** runs directly inside your container. From your container's perspective, `localhost` means "this container" — and there's nothing listening on port 5000 inside your container. The registry is a completely separate container with its own network namespace.
+
+This is a fundamental Docker networking concept: **localhost inside a container refers to that container only, not the host machine**. To reach another container, you'd need to use the container's name on a shared Docker network, or the host's IP address.
+
+### The Registry API
+
+The Docker Registry exposes a simple HTTP API. The two most useful endpoints:
+
+**List all images (the catalog):**
+```
+GET /v2/_catalog
+→ {"repositories":["myapp","webapp","api"]}
+```
+
+**List all tags for an image:**
+```
+GET /v2/myapp/tags/list
+→ {"name":"myapp","tags":["latest","v1","v2"]}
+```
+
+This is what the validation script checks — it curls the catalog endpoint to verify your image made it into the registry.
+
+---
 
 ## Thought Process
 
-When you can't push an image to a registry, an experienced engineer checks:
+An experienced engineer would approach this in order:
 
-1. **Is the registry running?** Check with `curl http://localhost:5000/v2/_catalog` — this is the registry's API endpoint that lists all stored images.
-2. **Is the image tagged correctly?** `docker images | grep myapp` shows how the image is tagged. If the tag doesn't include the registry hostname, Docker will try to push to Docker Hub.
-3. **Retag and push** — use `docker tag` to add the registry prefix, then `docker push`.
+1. **Check what images exist locally** — `docker images` shows what's been built. You can see `myapp:latest` exists but there's no `localhost:5000/myapp` tag.
+2. **Check what's in the registry** — `curl http://localhost:5000/v2/_catalog` (from the host, not inside a container) shows the registry is empty.
+3. **Connect the dots** — Image exists locally but not in the registry. The tag doesn't include the registry address. That's the problem.
+
+---
 
 ## Step-by-Step Solution
 
-### Step 1: Verify the local registry is running
+### Step 1: Check what images exist
+
+```bash
+docker images
+```
+
+**What this does:** Lists all Docker images stored locally on the machine. You'll see `myapp:latest` in the list — it's been built, but it's only stored locally.
+
+### Step 2: Check what's in the registry
 
 ```bash
 curl -s http://localhost:5000/v2/_catalog
 ```
 
-**What this does:** Queries the Docker Registry's HTTP API to see what images are stored. The `v2/_catalog` endpoint lists all repositories in the registry. You'll see `{"repositories":[]}` — the registry is running but empty. No images have been pushed to it yet.
+**What this does:** Queries the registry's catalog API endpoint. `-s` means "silent" (hides the progress bar). This returns an empty repository list because nothing has been pushed yet.
 
-### Step 2: Check the current image tags
-
-```bash
-docker images | grep myapp
-```
-
-**What this does:** Lists all local Docker images matching "myapp." You'll see `myapp:latest` — but notice there's no `localhost:5000/` prefix. This means Docker doesn't know this image should go to the local registry.
+**Important:** Run this from the host machine, not from inside a container. From inside a container, `localhost` refers to the container itself.
 
 ### Step 3: Tag the image for the local registry
 
@@ -40,66 +139,63 @@ docker images | grep myapp
 docker tag myapp:latest localhost:5000/myapp:latest
 ```
 
-**What this does:** Creates a new tag that points to the same image. `docker tag` doesn't copy the image — it just adds another name (like a symbolic link). The new tag `localhost:5000/myapp:latest` tells Docker that this image belongs to the registry at `localhost:5000`.
+**What this does:** Creates a new tag pointing to the same image. It does NOT copy the image — both tags reference identical image layers (you can verify this because they share the same Image ID in `docker images`).
 
-The tag format is: `registry-host:port/repository:version`
-- `localhost:5000` — the registry address
-- `myapp` — the repository name
-- `latest` — the version tag
+Breaking it down:
+- `docker tag` — the command to create a new tag
+- `myapp:latest` — the source image (already exists)
+- `localhost:5000/myapp:latest` — the new tag, which includes the registry address (`localhost:5000`) as a prefix
 
-### Step 4: Push the image to the local registry
+### Step 4: Push the image to the registry
 
 ```bash
 docker push localhost:5000/myapp:latest
 ```
 
-**What this does:** Uploads the image layers to the local registry. Docker reads the tag, sees `localhost:5000`, and pushes to that registry instead of Docker Hub. You'll see each layer being pushed, and a digest returned on success.
+**What this does:** Uploads the image layers and manifest to the registry at `localhost:5000`. Docker reads the registry address from the tag prefix. You'll see each layer being pushed individually, followed by a digest (the SHA256 hash of the complete image).
 
-### Step 5: Verify the image is in the registry
+### Step 5: Verify it's in the registry
 
 ```bash
 curl -s http://localhost:5000/v2/_catalog
 ```
 
-**What this does:** Queries the registry catalog again. This time you should see `{"repositories":["myapp"]}` — confirming the image was successfully stored in the registry.
+**What this does:** Same catalog query as before. This time it should return `{"repositories":["myapp"]}` confirming the image is stored in the registry.
 
-### Step 6: Test pulling the image (to prove it works)
+### Step 6: Pull it back to verify the full round-trip
 
 ```bash
-docker rmi localhost:5000/myapp:latest
 docker pull localhost:5000/myapp:latest
 ```
 
-**What this does:** First, we remove the local copy of the registry-tagged image (`docker rmi` removes an image tag). Then we pull it back from the registry. This round-trip proves the registry is fully functional — you can both push and pull images.
+**What this does:** Downloads the image from the registry. Since the layers already exist locally, Docker will say "already exists" for each layer — but it still verifies the image is retrievable from the registry, which is the point.
 
-### Step 7: Verify the pulled image exists
-
-```bash
-docker image inspect localhost:5000/myapp:latest > /dev/null && echo "Image exists"
-```
-
-**What this does:** Confirms the image was successfully pulled from the registry and exists locally. `docker image inspect` returns detailed metadata about an image — if the image doesn't exist, it returns an error.
+---
 
 ## Docker Lab vs Real Life
 
-- **Local vs. remote registries:** In this lab, the registry runs on `localhost:5000`. In production, you'd use a hosted registry like Docker Hub, Amazon ECR (`123456789.dkr.ecr.us-east-1.amazonaws.com`), Google Artifact Registry (`us-docker.pkg.dev`), Azure Container Registry (`myregistry.azurecr.io`), or GitHub Container Registry (`ghcr.io`).
-- **Authentication:** This lab uses an unauthenticated registry. In production, registries require authentication. For Docker Hub: `docker login`. For AWS ECR: `aws ecr get-login-password | docker login --username AWS --password-stdin <registry-url>`.
-- **HTTPS:** This lab uses HTTP (unencrypted). Production registries always use HTTPS. If you must use HTTP (for testing), you need to configure Docker to allow "insecure registries" in `/etc/docker/daemon.json`.
-- **Image tags in CI/CD:** In production CI/CD pipelines, images are automatically built, tagged with the git commit SHA or version number (not just `latest`), pushed to the registry, and then deployed. The tag acts as an immutable reference to a specific build.
-- **Image scanning:** Production registries often include vulnerability scanning. AWS ECR, Docker Hub, and others can automatically scan images for known vulnerabilities when they're pushed.
+- **Local registry vs ECR:** In this lab we used `localhost:5000` as the registry. In production at AWS, you'd use ECR with a tag like `123456789.dkr.ecr.eu-west-2.amazonaws.com/myapp:v1`. The push/pull mechanics are identical — only the address changes.
+- **Authentication:** Our local registry has no authentication. Real registries require login first. For ECR: `aws ecr get-login-password | docker login --username AWS --password-stdin <ecr-url>`. For Docker Hub: `docker login`.
+- **Image promotion:** In production, you'd typically push to a "dev" registry/repository, then promote (re-tag and push) to "staging" and "production" registries after testing.
+- **CI/CD pipelines:** In real workflows, the push happens automatically in your CI/CD pipeline after a successful build and test, not manually from your terminal.
+
+---
 
 ## Key Concepts Learned
 
-- **Docker image tags encode the destination registry** — the format `registry:port/name:version` tells Docker where to push. Without a registry prefix, Docker defaults to Docker Hub.
-- **`docker tag` adds a new name to an existing image** — it doesn't copy data, just creates an alias. An image can have multiple tags pointing to it.
-- **`docker push` reads the tag to determine the target** — the tag's registry prefix is what controls where the image goes
-- **The Registry HTTP API** is available at `/v2/_catalog` for listing images and `/v2/<name>/tags/list` for listing tags. This is useful for scripting and verification.
-- **Private registries enable self-hosted image storage** — useful for private images, faster pulls (local network), and meeting compliance requirements about where images are stored
+- Docker image tags are addresses — the registry prefix tells Docker where to push
+- `docker tag` creates a pointer, not a copy — both tags share the same layers
+- A Docker registry is just an HTTP server with a standard API
+- `localhost` means different things on the host vs inside a container
+- Docker CLI commands go through the Docker socket to the daemon on the host
+- `curl` from inside a container uses that container's own network stack
+- The registry catalog API (`/v2/_catalog`) lets you verify what's stored
+
+---
 
 ## Common Mistakes
 
-- **Trying to push without the registry prefix** — `docker push myapp:latest` tries to push to Docker Hub, which will fail if you're not authenticated or don't have permission. The image must be tagged with `localhost:5000/myapp:latest` first.
-- **Forgetting to start the registry** — the registry is a container itself (`registry:2`). If it's not running, pushes and pulls will fail with a "connection refused" error.
-- **Confusing `docker tag` with `docker rename`** — `docker tag` creates an additional tag, it doesn't remove the original. Both `myapp:latest` and `localhost:5000/myapp:latest` exist after tagging.
-- **Using `latest` tag exclusively** — in production, `latest` is ambiguous and can change at any time. Always tag images with specific versions (e.g., `v1.2.3` or a git commit SHA) for reproducible deployments.
-- **Not configuring insecure registries for HTTP** — Docker defaults to HTTPS. If your registry is HTTP-only (like `localhost:5000` in this lab), you need to add it to Docker's insecure-registries list, or you'll get TLS errors. Localhost is a special exception that Docker allows by default.
+- **Forgetting the registry prefix** — typing `docker push myapp:latest` tries to push to Docker Hub, not your local registry
+- **Running curl from inside a container** — `localhost:5000` isn't reachable from inside another container's network namespace
+- **Thinking docker tag copies the image** — it's just a label, the image data is shared
+- **Not authenticating first** — in real environments, `docker push` will fail with "authentication required" if you haven't logged in
