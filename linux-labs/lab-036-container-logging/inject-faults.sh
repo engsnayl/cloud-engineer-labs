@@ -3,10 +3,8 @@
 cat > /opt/app.py << 'PYEOF'
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import logging
-
 # Fault: Logging to a file instead of stdout
 logging.basicConfig(filename='/var/log/app.log', level=logging.INFO)
-
 class H(BaseHTTPRequestHandler):
     def do_GET(self):
         logging.info(f"Request from {self.client_address[0]}")
@@ -15,17 +13,24 @@ class H(BaseHTTPRequestHandler):
         self.wfile.write(b'App OK')
     def log_message(self, format, *args):
         logging.info(format % args)
-
 logging.info("Application starting on port 8080")
 HTTPServer(('0.0.0.0', 8080), H).serve_forever()
 PYEOF
 
+# Start the app in the background temporarily to generate log entries
 python3 /opt/app.py &
-
-# Generate some log entries
+APP_PID=$!
 sleep 1
 for i in $(seq 1 20); do
     curl -s http://localhost:8080 > /dev/null 2>&1
 done
 
-echo "Logging faults injected."
+# Kill the temporary instance
+kill $APP_PID 2>/dev/null
+wait $APP_PID 2>/dev/null
+
+echo "Logging faults injected." >&2
+
+# Now start the app as the foreground process (PID 1 takes over)
+# This is what Docker will capture stdout/stderr from
+exec python3 /opt/app.py
