@@ -16,18 +16,15 @@ spec:
     spec:
       containers:
       - name: payment-service
-        # Fault 1: Image tag doesn't exist
         image: nginx:1.99.0
         ports:
         - containerPort: 80
-        # Fault 2: Liveness probe on wrong port
         livenessProbe:
           httpGet:
             path: /healthz
             port: 8080
           initialDelaySeconds: 5
           periodSeconds: 3
-        # Fault 3: Resource request > limit (invalid)
         resources:
           requests:
             memory: "256Mi"
