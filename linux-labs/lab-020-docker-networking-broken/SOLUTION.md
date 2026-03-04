@@ -1,122 +1,175 @@
-# Solution Walkthrough — Lab 020: Containers Can't Talk
-
-## TLDR
-
-You've got two Docker containers (frontend-web and backend-api) that have been set up on two different networks so they can't talk to each other. You need to create a shared network and add them both to it.
-
-That's it. The commands are `docker network create app-net`, then `docker network connect app-net backend-api` and `docker network connect app-net frontend-web`. Done.
-
-The rest of this walkthrough teaches you how to *diagnose* the problem — which is the actual skill you're learning.
+# Lab 020 — Containers Can't Talk: Solution Walkthrough
 
 ---
 
-## The Problem
+## TLDR — What's Actually Going On (Plain English)
 
-Two containers — a frontend and a backend API — have been deployed but can't communicate. They were manually placed on separate Docker networks during a migration, so they're completely isolated from each other. Docker's networking model means containers on different networks can't see each other at all — not by IP, not by hostname.
+Imagine two workers in the same office building, but they've been put on completely different internal phone systems. They can both make calls — but they can't call *each other* because they're not on the same system.
 
-## Important: How This Lab Works
+That's exactly what's happened here. You have two Docker containers — one pretending to be a frontend website, one pretending to be a backend API — but whoever set them up accidentally put each one on its own private Docker network. Docker networks are completely isolated from each other, so the containers can't see each other at all. Not even by name.
 
-Like lab 019, this is a Docker lab with two levels:
+**The fix is three commands:**
 
-- **Your Pi** (`engsnayl@pi:~$`) — `lab start`, `lab validate`, `lab stop`
-- **Lab container** (`root@<hex>:/#`) — your workstation, where you run Docker commands to manage the broken containers
+1. Create a new shared network: `docker network create app-net`
+2. Add the backend to it: `docker network connect app-net backend-api`
+3. Add the frontend to it: `docker network connect app-net frontend-web`
 
-The lab container has the Docker socket mounted so you can manage other containers from inside it. The broken environment is two other containers (frontend-web and backend-api) that were automatically created when the lab started.
+No containers need to be stopped or restarted. They just gain a new way to talk to each other.
 
-## Thought Process
+---
 
-When containers can't communicate, the debugging order is:
+## Important: How This Lab Is Structured
 
-1. **See what's running** — What containers exist? What are their names?
-2. **Figure out what the service does** — What port is it on? What does it serve?
-3. **Try to connect** — What error do you get?
-4. **Check the networks** — Are the containers on the same network?
-5. **Fix the networking** — Get them onto a shared network
-6. **Verify** — Test the connection works
+This lab has two levels, which can be confusing at first:
+
+| Where you are | Prompt looks like | What you do here |
+|---|---|---|
+| Your Raspberry Pi | `engsnayl@pi:~$` | Start, validate, and stop the lab |
+| Lab container | `root@<hex>:/#` | Run Docker commands to fix the broken setup |
+
+When you `docker exec` into the lab container, you're essentially sitting at a workstation that has Docker installed. The two broken containers — `frontend-web` and `backend-api` — are running separately, and you fix them from the lab container.
+
+---
+
+## Thought Process: How to Debug Container Networking
+
+When two containers can't communicate, work through this order:
+
+1. **What's running?** — Check containers exist and are healthy
+2. **What does the service do?** — Find out which port to connect to
+3. **What error do you get?** — Try the connection and read the failure message
+4. **Where are the containers?** — Check which networks they're on
+5. **Fix and verify** — Add them to a shared network, then test again
+
+---
 
 ## Step-by-Step Solution
 
-### Step 1: Get into the lab container
+### Step 1: Enter the Lab Container
 
 ```
-📍 Run this on your Pi
+📍 Run on your Pi
 ```
 
 ```bash
 docker exec -it lab020-docker-networking-broken bash
 ```
 
-From this point forward, all commands are run inside the lab container unless stated otherwise.
+**Command breakdown:**
+
+| Part | What it does |
+|---|---|
+| `docker exec` | Run a command inside an already-running container |
+| `-it` | Two flags combined: `-i` keeps stdin open (interactive), `-t` allocates a terminal so it feels like a normal shell session |
+| `lab020-docker-networking-broken` | The name of the lab container to enter |
+| `bash` | The command to run inside it — opens a Bash shell |
+
+From here, all commands run **inside the lab container** unless stated otherwise.
 
 ---
 
-### Step 2: See what containers are running
-
-```
-📍 Run this inside the lab container
-```
+### Step 2: See What Containers Are Running
 
 ```bash
 docker ps
 ```
 
-**What you'll see:** Two containers — `backend-api` and `frontend-web` — both with status "Up". So the containers themselves are fine, they're running. The problem is between them.
+**Command breakdown:**
+
+| Part | What it does |
+|---|---|
+| `docker ps` | Lists all currently running containers (ps = "process status") |
+
+**What you'll see:** Two containers — `backend-api` and `frontend-web` — both showing status "Up". The containers themselves are fine; the problem is between them.
 
 ---
 
-### Step 3: Figure out what the backend service does
+### Step 3: Find Out What Port the Backend Uses
 
-Before trying to connect to anything, we need to know what port the backend is running on. Let's check the logs first:
+First, check the logs:
 
 ```bash
 docker logs backend-api
 ```
 
-**What you'll see:** Probably nothing. This is because Python buffers its stdout output inside containers by default — the app printed a startup message but it's stuck in a buffer. This is a common Docker gotcha you'll run into a lot.
+**Command breakdown:**
 
-So logs didn't help. The next option is to look at what command the container is running:
+| Part | What it does |
+|---|---|
+| `docker logs` | Fetches the stdout/stderr output of a container |
+| `backend-api` | The container name to inspect |
+
+**What you'll see:** Nothing. This is because Python buffers its output by default inside containers — the startup message was printed but got stuck in a buffer before it could appear. This is a common Docker gotcha with Python apps.
+
+Since logs didn't help, check the container's configuration directly:
 
 ```bash
-docker inspect backend-api | grep -i cmd
+docker inspect backend-api | grep -A 5 -i cmd
 ```
+
+**Command breakdown:**
+
+| Part | What it does |
+|---|---|
+| `docker inspect backend-api` | Dumps the full configuration of the container as JSON — networks, mounts, environment variables, the command it runs, everything |
+| `\|` | Pipe — takes the output of the left command and feeds it as input to the right command |
+| `grep -A 5 -i cmd` | Find the line containing "cmd" (case-insensitive due to `-i`) and show the **5 lines after it** (`-A` = "after") — needed because the value spans multiple lines in JSON |
 
 **What you'll see:**
 ```
-"Cmd": ["python3", "-c", "\nfrom http.server import HTTPServer...HTTPServer(('0.0.0.0', 3000), H).serve_forever()\n"],
+"Cmd": [
+    "python3",
+    "-c",
+    "\nfrom http.server...HTTPServer(('0.0.0.0', 3000), H).serve_forever()\n"
+],
 ```
 
-It's a bit messy, but you can see `3000` in there — that's the port the backend is listening on. It's running a Python HTTP server on port 3000.
+You can see `3000` in there — the backend is listening on port 3000.
 
-> **Why not use `ss` or `netstat`?** The backend container is built from `python:3.11-slim` which is a minimal image — it doesn't have `ss`, `netstat`, or most other networking tools installed. `docker inspect` works on any container because it runs on the Docker host, not inside the container.
+> **Gotcha — why not just `grep -i cmd`?** Without `-A`, grep only returns the matching line itself (`"Cmd": [`), not the lines below it where the actual content lives. JSON values that span multiple lines always need `-A <n>` to be readable. Combining `-A` and `-i` into `grep -A 5 -i cmd` is the cleaner pattern — one flag for lines after, one for case-insensitivity.
+
+> **Alternative:** Just run `docker inspect backend-api` on its own and scroll to the `"Args"` section near the top — it shows the same port information in a slightly cleaner format.
+
+> **Why not use `ss` or `netstat`?** The backend container was built from `python:3.11-slim` — a minimal image with almost no tools installed. Those commands don't exist inside it. `docker inspect` works from outside the container, so it's always available regardless of what's inside.
 
 ---
 
-### Step 4: Try to reach the backend from the frontend
+### Step 4: Try to Reach the Backend from the Frontend
 
 ```bash
 docker exec frontend-web curl http://backend-api:3000
 ```
 
-**What this does:** Runs `curl` inside the frontend-web container, trying to reach the backend-api by its container name on port 3000.
+**Command breakdown:**
 
-> **Important:** Don't use `curl -s` when troubleshooting. The `-s` (silent) flag hides error messages, which is exactly what you need to see right now. Use `-s` in scripts, not when debugging.
+| Part | What it does |
+|---|---|
+| `docker exec frontend-web` | Run a command inside the `frontend-web` container |
+| `curl` | A command-line tool for making HTTP requests |
+| `http://backend-api:3000` | The URL to request — `backend-api` is the container name (Docker should resolve this to an IP address), port `3000` is where the backend listens |
+
+> **Don't use `curl -s` when debugging.** The `-s` flag means "silent" — it hides error messages. Those messages are exactly what you need right now. Save `-s` for scripts where you don't want noise.
 
 **What you'll see:**
 ```
 curl: (6) Could not resolve host: backend-api
 ```
 
-The frontend can't even *resolve the name* `backend-api`. It's not a timeout or a refused connection — it's a DNS failure. The frontend has no idea that a container called `backend-api` exists. This is the clue that it's a network isolation issue.
+Error code 6 means DNS failure — the frontend has no idea a container called `backend-api` even exists. It's not a timeout, not a refused connection — it's that the name doesn't resolve at all. That points directly to a network isolation problem.
 
 ---
 
-### Step 5: List the Docker networks
+### Step 5: List All Docker Networks
 
 ```bash
 docker network ls
 ```
 
-**What this does:** Shows all Docker networks on the system.
+**Command breakdown:**
+
+| Part | What it does |
+|---|---|
+| `docker network ls` | Lists all Docker networks on the host |
 
 **What you'll see:**
 ```
@@ -124,110 +177,131 @@ NETWORK ID     NAME           DRIVER    SCOPE
 abc123def456   bridge         bridge    local
 789012ghi345   backend-net    bridge    local
 456789jkl012   frontend-net   bridge    local
-...
 ```
 
-There are two custom networks: `backend-net` and `frontend-net`. The names are suspicious — it looks like someone put each container on its own dedicated network.
+Two suspicious custom networks: `backend-net` and `frontend-net`. The names suggest each container was put on its own dedicated network — which would explain why they can't see each other.
 
 ---
 
-### Step 6: Check which network each container is on
+### Step 6: Confirm Which Network Each Container Is On
 
 ```bash
-docker inspect backend-api | grep -A 15 "Networks"
+docker inspect backend-api | grep -A 50 -i networks
 ```
 
-**What this does:** `docker inspect` dumps all the container's configuration as JSON. Piping through `grep -A 15 "Networks"` finds the "Networks" section and shows the next 15 lines, which includes the network name and IP address.
+**Command breakdown:**
+
+| Part | What it does |
+|---|---|
+| `docker inspect backend-api` | Full JSON config dump of the backend container |
+| `grep -A 50 -i networks` | Find the line containing "networks" (case-insensitive due to `-i`) and show the next 50 lines — enough to see all network entries including name and IP address |
 
 **What you'll see:**
 ```
-            "Networks": {
-                "backend-net": {
-                    "IPAMConfig": null,
-                    "Links": null,
-                    "Aliases": null,
-                    ...
-                    "IPAddress": "172.19.0.2",
+"Networks": {
+    "backend-net": {
+        ...
+        "IPAddress": "172.19.0.2",
 ```
 
 Now check the frontend:
 
 ```bash
-docker inspect frontend-web | grep -A 15 "Networks"
+docker inspect frontend-web | grep -A 50 -i networks
 ```
 
 **What you'll see:**
 ```
-            "Networks": {
-                "frontend-net": {
-                    ...
-                    "IPAddress": "172.20.0.2",
+"Networks": {
+    "frontend-net": {
+        ...
+        "IPAddress": "172.20.0.2",
 ```
 
-There's the problem: backend-api is on `backend-net`, frontend-web is on `frontend-net`. They're on completely separate networks with different IP ranges (172.19.x.x vs 172.20.x.x). They can't reach each other at all.
+There's the problem confirmed. The backend is on `172.19.x.x` via `backend-net`. The frontend is on `172.20.x.x` via `frontend-net`. Completely separate networks — no traffic can flow between them.
 
 ---
 
-### Step 7: Understand why this matters
+### Step 7: Understand Why This Matters
 
-Docker networks are like separate VLANs or subnets. Containers on the same custom bridge network can:
+Docker networks are like separate, isolated subnets. Containers on the **same** custom bridge network can:
 - Reach each other by IP address
-- Resolve each other's container names via Docker's built-in DNS (this is the key feature)
+- Resolve each other's container names via Docker's built-in DNS
 
-Containers on *different* networks have no connectivity at all — no DNS, no IP routing, nothing. It's as if they're on completely different physical networks.
+Containers on **different** networks have no connectivity whatsoever — no DNS, no routing, nothing. It's as if they're on completely different physical networks.
 
-> **Important:** Docker's built-in DNS only works on **custom** bridge networks (ones you create with `docker network create`). The default `bridge` network does NOT support DNS resolution — containers on it can only reach each other by IP address. This is a common gotcha.
+> **Key gotcha:** Docker's built-in DNS (container name resolution) only works on **custom** bridge networks — ones you create with `docker network create`. The default `bridge` network does NOT support DNS. Containers on the default bridge can only reach each other by IP address, which is fragile. Always create a custom network.
 
 ---
 
-### Step 8: Create a shared network and connect both containers
+### Step 8: Create a Shared Network and Connect Both Containers
 
 ```bash
 docker network create app-net
 ```
 
-**What this does:** Creates a new custom bridge network called `app-net`. You can name it anything you like.
+**Command breakdown:**
 
-Now connect both containers to it:
+| Part | What it does |
+|---|---|
+| `docker network create` | Creates a new Docker network |
+| `app-net` | The name you're giving the network — you can choose any name |
+
+By default this creates a **bridge** network, which is what you want for containers on the same host.
+
+Now connect both containers to it — **without stopping them:**
 
 ```bash
 docker network connect app-net backend-api
+```
+
+**Command breakdown:**
+
+| Part | What it does |
+|---|---|
+| `docker network connect` | Adds a running container to a network |
+| `app-net` | The network to connect to |
+| `backend-api` | The container to connect |
+
+```bash
 docker network connect app-net frontend-web
 ```
 
-**What this does:** `docker network connect` adds a container to an additional network **without stopping it**. This is important — the containers stay running the whole time. They're now on their original networks *and* on app-net. They just need one network in common to communicate.
+Same pattern — adds the frontend to `app-net`.
+
+The containers remain on their original networks too. They now have **two** network connections each. They only need one network in common to be able to reach each other.
 
 ---
 
-### Step 9: Verify the network configuration changed
+### Step 9: Verify the Network Configuration Changed
 
 ```bash
-docker inspect backend-api | grep -A 15 "Networks"
+docker inspect backend-api | grep -A 50 -i networks
 ```
 
-**What you'll see:** Now there are two network entries instead of one — `backend-net` and `app-net`. The container is on both networks simultaneously. Check frontend-web too and you'll see the same — it's now on `frontend-net` and `app-net`.
+**What you'll see:** Two network entries — `backend-net` and `app-net`. The container is now on both networks simultaneously. Check `frontend-web` too and you'll see `frontend-net` and `app-net`.
 
 ---
 
-### Step 10: Test the connection
+### Step 10: Test the Connection
 
 ```bash
 docker exec frontend-web curl http://backend-api:3000
 ```
 
 **What you'll see:**
-```
+```json
 {"status": "healthy", "service": "backend-api"}
 ```
 
-The frontend can now reach the backend by name. Docker's DNS on the shared `app-net` network resolves `backend-api` to its IP address on that network, and the HTTP request gets through.
+Docker's DNS on the shared `app-net` network now resolves `backend-api` to its IP address on that network, and the HTTP request goes through successfully.
 
 ---
 
 ### Step 11: Validate
 
 ```
-📍 Run this on your Pi
+📍 Run on your Pi
 ```
 
 ```bash
@@ -236,64 +310,73 @@ lab validate 020
 
 All checks should pass.
 
+---
+
 ## Summary of What Was Broken
 
 | Issue | What was wrong | How you found it |
-|-------|---------------|-----------------|
-| Network isolation | frontend-web on `frontend-net`, backend-api on `backend-net` | `docker inspect` + grep showed different networks |
-| No DNS resolution | Container name lookup failed | `curl` returned "Could not resolve host" |
+|---|---|---|
+| Network isolation | `frontend-web` on `frontend-net`, `backend-api` on `backend-net` | `docker inspect` + `grep -A 15 "Networks"` showed different networks |
+| DNS failure | Container name lookup failed completely | `curl` returned "Could not resolve host: backend-api" |
 
-## Docker Lab vs Real Life
+---
 
-**docker network create/connect:** These are real Docker commands you'd use in production for standalone containers. In practice though, most multi-container apps use Docker Compose, which automatically creates a shared network for all services in the compose file — you rarely have this problem with Compose.
+## Real World Comparison
 
-**Docker DNS:** The built-in DNS that lets containers find each other by name is exactly how Docker Compose networking works behind the scenes. In Kubernetes, a similar mechanism exists through Services and kube-dns/CoreDNS.
+**This vs. Docker Compose:** In real projects, most multi-container apps use Docker Compose, which automatically creates a shared network for all services in the compose file. You rarely hit this problem with Compose because it handles networking for you. Understanding what Compose does under the hood is exactly what this lab teaches.
 
-**Network isolation:** Docker's network isolation is actually a security feature. In production, you might deliberately keep databases on a separate network from public-facing containers. The problem here was accidental isolation, but intentional isolation is good practice.
+**This vs. Kubernetes:** Kubernetes uses Services and CoreDNS to do the same thing — give containers stable names they can reach each other by. The concept is identical, the tooling is different.
 
-**docker network connect without restart:** This is a genuinely useful production trick. You can add a container to a network for debugging, run your tests, then `docker network disconnect` to remove it — all without downtime.
+**Network isolation as a feature:** Docker's network isolation isn't a bug — it's a deliberate security feature. In production, you might intentionally put a database on a separate network from public-facing containers. What happened here was *accidental* isolation. Knowing how to diagnose and fix it is the skill.
 
-**Python stdout buffering:** This will keep coming up with Python containers. The fix in production is to add `ENV PYTHONUNBUFFERED=1` to your Dockerfile, or run Python with the `-u` flag. Then `docker logs` works as expected.
+**`docker network connect` without restart:** This is a genuinely useful production technique. You can temporarily add a container to a network for debugging, run your tests, then `docker network disconnect` to remove it — all without any downtime.
 
-## Key Concepts Learned
+**Python stdout buffering:** You'll keep hitting this with Python containers. The production fix is to add `ENV PYTHONUNBUFFERED=1` to the Dockerfile, or run Python with the `-u` flag. Then `docker logs` works as expected.
 
-- **`docker network ls`** shows all Docker networks
-- **`docker network create <n>`** creates a custom bridge network
-- **`docker network connect <network> <container>`** adds a container to a network without stopping it
-- **`docker network disconnect <network> <container>`** removes a container from a network
-- **`docker inspect <container> | grep -A 15 "Networks"`** shows which networks a container is on
-- Containers must be on the **same custom bridge network** to resolve each other's names
-- The **default bridge network** does NOT support DNS resolution — only custom networks do
-- A container can be on **multiple networks** simultaneously
-- Don't use `curl -s` when troubleshooting — the `-s` flag hides error messages
-- Minimal Docker images (`*-slim`, `alpine`) often lack basic tools like `ss` and `netstat` — use `docker inspect` instead
+---
 
 ## Alternative Fixes
 
-There were other ways to solve this:
-
-**Option A — Connect frontend to backend's network:**
+**Option A — Connect frontend directly to the backend's existing network:**
 ```bash
 docker network connect backend-net frontend-web
 ```
-This works but leaves you dependent on a network called "backend-net" which is misleading since both containers are on it.
+Works, but leaves both containers on a network called "backend-net" which is misleading.
 
 **Option B — Recreate containers on a shared network:**
 ```bash
 docker rm -f frontend-web backend-api
 docker network create app-net
-# Then re-run both containers with --network app-net
+# Re-run both containers with --network app-net
 ```
-This works but means downtime while you recreate the containers. The `docker network connect` approach has zero downtime.
+Works, but causes downtime while containers are recreated.
 
-**Option C — Use container IP addresses directly:**
-You could find the backend's IP and curl that instead of the hostname. This is fragile — IPs change when containers restart. Always use DNS names.
+**Option C — Use IP addresses directly:**
+You could find the backend's IP with `docker inspect` and curl that IP instead of the hostname. This is fragile — IPs can change when containers restart. Always use DNS names where possible.
+
+---
 
 ## Common Mistakes
 
-- **Forgetting that the default bridge doesn't support DNS:** If you connect both containers to the default `bridge` network, they can reach each other by IP but not by name. Always use a custom network.
-- **Trying to use localhost:** `curl http://localhost:3000` from the frontend won't reach the backend. Each container's `localhost` refers to itself only.
-- **Thinking you need to restart containers:** `docker network connect` works on running containers. No need to stop, remove, and recreate.
-- **Using IP addresses instead of names:** Hardcoding IPs works temporarily but breaks when containers restart and get new IPs. Container names are stable.
-- **Using `curl -s` when debugging:** Silent mode hides the error messages that tell you what's actually wrong. Only use `-s` in scripts.
-- **Confusing the lab container with the target containers:** The lab container is your workstation. The frontend-web and backend-api are the containers you're fixing. Docker commands you run in the lab container manage those other containers via the mounted socket.
+- **Connecting to the default `bridge` network:** Containers on the default bridge can reach each other by IP but NOT by name. Always use a custom network for DNS to work.
+- **Using `localhost` to reach another container:** Each container's `localhost` refers only to itself. `curl http://localhost:3000` from the frontend will never reach the backend.
+- **Thinking you need to restart containers:** `docker network connect` works on running containers. No stop, no remove, no recreate needed.
+- **Hardcoding IP addresses:** Container IPs change when containers restart. Use container names — they stay stable as long as the container exists.
+- **Using `curl -s` when debugging:** Silent mode hides error messages. Only use `-s` in scripts where you don't want output noise.
+- **Confusing the lab container with the target containers:** The lab container is your workstation. `frontend-web` and `backend-api` are the containers you're fixing.
+
+---
+
+## Key Commands Reference
+
+| Command | What it does |
+|---|---|
+| `docker ps` | List running containers |
+| `docker logs <container>` | View container stdout/stderr output |
+| `docker inspect <container>` | Dump full container configuration as JSON |
+| `docker network ls` | List all Docker networks |
+| `docker network create <name>` | Create a new custom bridge network |
+| `docker network connect <network> <container>` | Add a running container to a network |
+| `docker network disconnect <network> <container>` | Remove a container from a network |
+| `docker exec <container> <command>` | Run a command inside a running container |
+| `grep -A <n> "<term>"` | Find a line matching a term and show `n` lines after it |
