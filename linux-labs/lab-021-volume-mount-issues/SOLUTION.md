@@ -95,24 +95,18 @@ docker rm -f database
 ### Step 5: Start a new container with the volume mounted
 
 ```bash
-docker run -d --name database -v db-data:/data \
-    python:3.11-slim python3 -c "
-import time, os
-os.makedirs('/data', exist_ok=True)
-while True:
-    time.sleep(60)
-"
+docker run -d --name database -v db-data:/data alpine sleep infinity
 ```
 
-**Command breakdown (the important part):**
+**Command breakdown:**
 - `docker run` — create and start a new container
 - `-d` — run in detached mode (in the background)
 - `--name database` — name the container "database"
 - `-v db-data:/data` — **mount the `db-data` volume at `/data`** — this is the key fix, the whole point of the lab
+- `alpine` — a tiny, lightweight Linux image (just need something small to keep the container alive)
+- `sleep infinity` — tells the container to stay running forever. In real life your container would be running an actual application like PostgreSQL or MySQL, so you wouldn't need this — it's just to keep the container alive for lab purposes.
 
 The `-v` flag stands for **volume**. It creates the mount — the pipe between the filing cabinet (`db-data`) and the directory inside the container (`/data`). You could also write it as `--volume db-data:/data` — same thing, just more typing.
-
-**Note about the Python script:** The `python:3.11-slim python3 -c "..."` part is just lab scaffolding — it's a simple script to keep the container running in the background. In real life, your container would be running an actual application like PostgreSQL or MySQL, so you wouldn't need this. Don't let it distract you — the important flags are `-d`, `--name`, and `-v`.
 
 ### Step 6: Verify the data is accessible
 
