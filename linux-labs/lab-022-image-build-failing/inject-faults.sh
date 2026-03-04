@@ -28,19 +28,16 @@ EOF
 
 # Create a broken Dockerfile with multiple issues
 cat > /opt/webapp/Dockerfile << 'DEOF'
-# Fault 1: Non-existent base image tag
+
 FROM node:23-alpine
 
 WORKDIR /app
 
-# Fault 2: COPY before the file exists in context (wrong order)
 RUN npm install
 
-# Fault 3: Missing COPY for application files
 # COPY package.json .
 # COPY app.js .
 
-# Fault 4: Wrong CMD syntax
 CMD npm start
 DEOF
 
