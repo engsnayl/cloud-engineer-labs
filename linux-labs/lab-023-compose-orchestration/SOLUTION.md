@@ -254,13 +254,19 @@ This confirms the full chain: your request hits Nginx → Nginx proxies to the A
 ### Step 9: Test the API directly
 
 ```bash
-docker compose exec api python3 -c "from urllib.request import urlopen; print(urlopen('http://localhost:5000').read().decode())"
+docker compose exec api curl -s http://localhost:5000
 ```
 
 **Command breakdown:**
 - `docker compose exec` — run a command inside a running container
 - `api` — the service name to run the command in
-- The Python one-liner uses `urllib` to make an HTTP request (the `python:3.11-slim` image doesn't include `curl`)
+- `curl -s http://localhost:5000` — the command to run (test the API from inside its own container)
+
+Note: This only works if `curl` is installed in the API container. If it's not, you can use Python instead:
+
+```bash
+docker compose exec api python3 -c "import urllib.request; print(urllib.request.urlopen('http://localhost:5000').read().decode())"
+```
 
 ### Step 10: Clean up when done
 
