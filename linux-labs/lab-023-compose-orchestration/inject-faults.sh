@@ -11,7 +11,7 @@ services:
   web:
     image: nginx:alpine
     ports:
-      - "80:80"
+      - "8080:80"
     depends_on:
       - backend
     volumes:

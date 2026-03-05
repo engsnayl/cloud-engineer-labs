@@ -31,7 +31,7 @@ running=$(docker compose ps --format '{{.Status}}' 2>/dev/null | grep -c "Up")
 check "All three services are running" "$?"
 
 # Check web responds
-curl -s http://localhost:80 2>/dev/null | grep -q "ok"
+curl -s http://localhost:8080 2>/dev/null | grep -q "ok"
 check "Web service returns response via nginx" "$?"
 
 # Check API is reachable

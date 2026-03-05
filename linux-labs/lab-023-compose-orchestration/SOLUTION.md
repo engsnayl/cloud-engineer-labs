@@ -11,7 +11,7 @@ A full-stack app has three services defined in a `docker-compose.yml` file: a we
 The app lives at `/opt/fullstack-app` and has three services that are supposed to work together like this:
 
 ```
-User → Nginx (port 80) → Python API (port 5000) → PostgreSQL database
+User → Nginx (port 8080) → Python API (port 5000) → PostgreSQL database
 ```
 
 But four bugs in `docker-compose.yml` prevent any of it from working:
@@ -31,7 +31,7 @@ services:                               # Start of service definitions
   web:                                  # First service: the Nginx web server
     image: nginx:alpine                 # Use the official Nginx image (Alpine = small Linux variant)
     ports:
-      - "80:80"                         # Map host port 80 → container port 80
+      - "8080:80"                        # Map host port 8080 → container port 80
     depends_on:
       - backend                         # ❌ BUG 1: No service called "backend" — should be "api"
     volumes:
@@ -63,7 +63,7 @@ services:
   web:
     image: nginx:alpine                 # Official Nginx image
     ports:
-      - "80:80"                         # Host port 80 → container port 80
+      - "8080:80"                        # Host port 8080 → container port 80
     depends_on:
       - api                             # ✅ FIX 1: Now references the correct service name "api"
     volumes:
@@ -180,7 +180,7 @@ services:
   web:
     image: nginx:alpine
     ports:
-      - "80:80"
+      - "8080:80"
     depends_on:
       - api
     volumes:
@@ -239,13 +239,13 @@ docker compose ps
 ### Step 8: Test the full stack
 
 ```bash
-curl -s http://localhost:80
+curl -s http://localhost:8080
 ```
 
 **Command breakdown:**
 - `curl` — make an HTTP request from the command line
 - `-s` — silent mode, don't show progress bars
-- `http://localhost:80` — request port 80 on this machine (which Nginx is listening on)
+- `http://localhost:8080` — request port 8080 on this machine (which Nginx is listening on)
 
 Expected response: `{"status":"ok","db_host":"db"}`
 
@@ -254,19 +254,13 @@ This confirms the full chain: your request hits Nginx → Nginx proxies to the A
 ### Step 9: Test the API directly
 
 ```bash
-docker compose exec api curl -s http://localhost:5000
+docker compose exec api python3 -c "from urllib.request import urlopen; print(urlopen('http://localhost:5000').read().decode())"
 ```
 
 **Command breakdown:**
 - `docker compose exec` — run a command inside a running container
 - `api` — the service name to run the command in
-- `curl -s http://localhost:5000` — the command to run (test the API from inside its own container)
-
-Note: This only works if `curl` is installed in the API container. If it's not, you can use Python instead:
-
-```bash
-docker compose exec api python3 -c "import urllib.request; print(urllib.request.urlopen('http://localhost:5000').read().decode())"
-```
+- The Python one-liner uses `urllib` to make an HTTP request (the `python:3.11-slim` image doesn't include `curl`)
 
 ### Step 10: Clean up when done
 

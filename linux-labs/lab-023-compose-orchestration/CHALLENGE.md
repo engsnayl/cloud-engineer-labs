@@ -16,7 +16,7 @@ Fix the Docker Compose configuration so all three services work together.
 
 1. Fix the `docker-compose.yml` — service dependencies, startup order, and connection strings
 2. All three services must be running
-3. The web service must respond on port 80
+3. The web service must respond on port 8080
 4. The API service must respond on port 5000
 
 ## What You're Practising
