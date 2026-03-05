@@ -5,7 +5,6 @@
 
 mkdir -p /opt/fullstack-app
 
-# Create a broken docker-compose.yml
 cat > /opt/fullstack-app/docker-compose.yml << 'EOF'
 version: "3.8"
 services:
@@ -13,7 +12,6 @@ services:
     image: nginx:alpine
     ports:
       - "80:80"
-    # Fault 1: depends_on references wrong service name
     depends_on:
       - backend
     volumes:
@@ -22,16 +20,13 @@ services:
   api:
     image: python:3.11-slim
     command: python3 /app/api.py
-    # Fault 2: Missing volume mount for app code
     environment:
-      # Fault 3: Wrong database host
       - DB_HOST=database
       - DB_PORT=5432
 
   db:
     image: postgres:15-alpine
     environment:
-      # Fault 4: Missing required POSTGRES_PASSWORD
       - POSTGRES_USER=appuser
       - POSTGRES_DB=appdb
 EOF
