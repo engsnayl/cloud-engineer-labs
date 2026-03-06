@@ -17,10 +17,10 @@ spec:
       - name: legacy
         image: nginx:1.25-alpine
         resources:
-          # These are way too high for what the service actually needs
+          # Right-sized to match actual usage
           requests:
-            cpu: "600m"
-            memory: 512Mi
+            cpu: "200m"
+            memory: 128Mi
           limits:
-            cpu: "800m"
-            memory: 768Mi
+            cpu: "400m"
+            memory: 256Mi
