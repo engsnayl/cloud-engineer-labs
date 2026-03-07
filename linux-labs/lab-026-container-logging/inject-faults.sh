@@ -1,5 +1,7 @@
 #!/bin/bash
 # Create an app that logs to a file instead of stdout (the anti-pattern)
+# Only write the broken file if it doesn't already exist (preserves student fixes on restart)
+if [ ! -f /opt/app.py ]; then
 cat > /opt/app.py << 'PYEOF'
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import logging
@@ -28,6 +30,7 @@ done
 # Kill the temporary instance
 kill $APP_PID 2>/dev/null
 wait $APP_PID 2>/dev/null
+fi
 
 echo "Logging faults injected." >&2
 
