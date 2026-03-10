@@ -1,7 +1,5 @@
 # =============================================================================
-# Cloud Lab 001: VPC Troubleshooting
-# THIS TERRAFORM IS DELIBERATELY BROKEN — YOUR JOB IS TO FIX IT
-# There are 4 bugs. Find them all.
+# Cloud Lab 060: VPC Troubleshooting
 # =============================================================================
 
 terraform {
@@ -62,7 +60,6 @@ resource "aws_eip" "nat" {
   tags = { Name = "lab001-nat-eip" }
 }
 
-# BUG 1: NAT Gateway is in the PRIVATE subnet — it should be in the PUBLIC subnet
 resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat.id
   subnet_id     = aws_subnet.private.id
@@ -74,7 +71,6 @@ resource "aws_nat_gateway" "main" {
 
 # ---------- Route Tables ----------
 
-# Public route table
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
@@ -91,8 +87,6 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# Private route table
-# BUG 2: Private route table points to the IGW instead of the NAT Gateway
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 
@@ -111,7 +105,6 @@ resource "aws_route_table_association" "private" {
 
 # ---------- Security Group ----------
 
-# BUG 3: Security group has NO egress rule — EC2 can't make outbound connections
 resource "aws_security_group" "app" {
   name_prefix = "lab001-app-"
   vpc_id      = aws_vpc.main.id
@@ -124,8 +117,6 @@ resource "aws_security_group" "app" {
     protocol    = "tcp"
     cidr_blocks = ["10.0.0.0/16"]
   }
-
-  # Egress rule deliberately missing
 
   tags = { Name = "lab001-app-sg" }
 }
@@ -142,7 +133,6 @@ data "aws_ami" "amazon_linux" {
   }
 }
 
-# BUG 4: Instance is launched in the PUBLIC subnet instead of the PRIVATE subnet
 resource "aws_instance" "app" {
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t3.micro"
