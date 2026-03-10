@@ -1,94 +1,124 @@
 #!/bin/bash
-# =============================================================================
-# Validation Criteria (from CHALLENGE.md):
-#   - EC2 instance can reach the internet (`curl ifconfig.me` works)
-#   - EC2 instance is in the PRIVATE subnet (not the public one)
-#   - NAT Gateway is in the public subnet
-#   - No direct inbound access from the internet to the instance
-#   - All fixes are in Terraform (no manual console changes)
-# =============================================================================
-# =============================================================================
-# Validation: Cloud Lab 001 - VPC Troubleshooting
-# Requires: AWS CLI configured, terraform state available
-# =============================================================================
+# validate.sh — Lab 060: VPC Troubleshooting
 
 PASS=0
 FAIL=0
 
 check() {
-    local description="$1"
-    local result="$2"
-    if [[ "$result" == "0" ]]; then
-        echo -e "  ✅  $description"
-        ((PASS++))
-    else
-        echo -e "  ❌  $description"
-        ((FAIL++))
-    fi
+  local description="$1"
+  local result="$2"
+  if [ "$result" = "true" ]; then
+    echo "  ✅  $description"
+    ((PASS++))
+  else
+    echo "  ❌  $description"
+    ((FAIL++))
+  fi
 }
 
-echo "Running validation checks..."
-echo ""
-
-LAB_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$LAB_DIR"
-
-# Get resource IDs from Terraform state
+# Get Terraform outputs
 INSTANCE_ID=$(terraform output -raw instance_id 2>/dev/null)
 VPC_ID=$(terraform output -raw vpc_id 2>/dev/null)
 
-if [[ -z "$INSTANCE_ID" || -z "$VPC_ID" ]]; then
-    echo "  ❌  Could not read Terraform outputs. Is the infrastructure deployed?"
-    exit 1
+if [ -z "$INSTANCE_ID" ] || [ -z "$VPC_ID" ]; then
+  echo "  ❌  Could not read Terraform outputs. Have you run terraform apply?"
+  exit 1
 fi
 
-# Check 1: Instance is in the private subnet
+# ------------------------------------------------------------------
+# Check 1: EC2 instance is in the private subnet (10.0.2.0/24)
+# ------------------------------------------------------------------
 INSTANCE_SUBNET=$(aws ec2 describe-instances \
-    --instance-ids "$INSTANCE_ID" \
-    --query 'Reservations[0].Instances[0].SubnetId' \
-    --output text 2>/dev/null)
+  --instance-ids "$INSTANCE_ID" \
+  --query "Reservations[0].Instances[0].SubnetId" \
+  --output text 2>/dev/null)
 
 PRIVATE_SUBNET_ID=$(aws ec2 describe-subnets \
-    --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=lab001-private-subnet" \
-    --query 'Subnets[0].SubnetId' \
-    --output text 2>/dev/null)
+  --filters "Name=vpc-id,Values=$VPC_ID" "Name=cidr-block,Values=10.0.2.0/24" \
+  --query "Subnets[0].SubnetId" \
+  --output text 2>/dev/null)
 
-[[ "$INSTANCE_SUBNET" == "$PRIVATE_SUBNET_ID" ]]
-check "EC2 instance is in the private subnet" "$?"
+if [ "$INSTANCE_SUBNET" = "$PRIVATE_SUBNET_ID" ]; then
+  check "EC2 instance is in the private subnet" "true"
+else
+  check "EC2 instance is in the private subnet" "false"
+fi
 
-# Check 2: NAT Gateway is in the public subnet
+# ------------------------------------------------------------------
+# Check 2: NAT Gateway is in the public subnet (10.0.1.0/24)
+# ------------------------------------------------------------------
 PUBLIC_SUBNET_ID=$(aws ec2 describe-subnets \
-    --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=lab001-public-subnet" \
-    --query 'Subnets[0].SubnetId' \
-    --output text 2>/dev/null)
+  --filters "Name=vpc-id,Values=$VPC_ID" "Name=cidr-block,Values=10.0.1.0/24" \
+  --query "Subnets[0].SubnetId" \
+  --output text 2>/dev/null)
 
 NAT_SUBNET=$(aws ec2 describe-nat-gateways \
-    --filter "Name=vpc-id,Values=$VPC_ID" "Name=state,Values=available" \
-    --query 'NatGateways[0].SubnetId' \
-    --output text 2>/dev/null)
+  --filter "Name=vpc-id,Values=$VPC_ID" "Name=state,Values=available" \
+  --query "NatGateways[0].SubnetId" \
+  --output text 2>/dev/null)
 
-[[ "$NAT_SUBNET" == "$PUBLIC_SUBNET_ID" ]]
-check "NAT Gateway is in the public subnet" "$?"
+if [ "$NAT_SUBNET" = "$PUBLIC_SUBNET_ID" ]; then
+  check "NAT Gateway is in the public subnet" "true"
+else
+  check "NAT Gateway is in the public subnet" "false"
+fi
 
-# Check 3: Private route table points to NAT Gateway (not IGW)
+# ------------------------------------------------------------------
+# Check 3: Private route table default route points to NAT Gateway
+# ------------------------------------------------------------------
 PRIVATE_RT=$(aws ec2 describe-route-tables \
-    --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=lab001-private-rt" \
-    --query 'RouteTables[0].Routes[?DestinationCidrBlock==`0.0.0.0/0`].NatGatewayId' \
-    --output text 2>/dev/null)
+  --filters "Name=vpc-id,Values=$VPC_ID" "Name=association.subnet-id,Values=$PRIVATE_SUBNET_ID" \
+  --query "RouteTables[0].RouteTableId" \
+  --output text 2>/dev/null)
 
-[[ -n "$PRIVATE_RT" && "$PRIVATE_RT" != "None" ]]
-check "Private route table default route points to NAT Gateway" "$?"
+NAT_GW_ID=$(aws ec2 describe-nat-gateways \
+  --filter "Name=vpc-id,Values=$VPC_ID" "Name=state,Values=available" \
+  --query "NatGateways[0].NatGatewayId" \
+  --output text 2>/dev/null)
 
-# Check 4: Security group has an egress rule
+ROUTE_TARGET=$(aws ec2 describe-route-tables \
+  --route-table-ids "$PRIVATE_RT" \
+  --query "RouteTables[0].Routes[?DestinationCidrBlock=='0.0.0.0/0'].NatGatewayId" \
+  --output text 2>/dev/null)
+
+if [ "$ROUTE_TARGET" = "$NAT_GW_ID" ]; then
+  check "Private route table default route points to NAT Gateway" "true"
+else
+  check "Private route table default route points to NAT Gateway" "false"
+fi
+
+# ------------------------------------------------------------------
+# Check 4: Security group has egress rules
+# ------------------------------------------------------------------
+SG_ID=$(aws ec2 describe-instances \
+  --instance-ids "$INSTANCE_ID" \
+  --query "Reservations[0].Instances[0].SecurityGroups[0].GroupId" \
+  --output text 2>/dev/null)
+
 EGRESS_COUNT=$(aws ec2 describe-security-groups \
-    --filters "Name=vpc-id,Values=$VPC_ID" "Name=group-name,Values=lab001-app-*" \
-    --query 'SecurityGroups[0].IpPermissionsEgress | length(@)' \
-    --output text 2>/dev/null)
+  --group-ids "$SG_ID" \
+  --query "length(SecurityGroups[0].IpPermissionsEgress)" \
+  --output text 2>/dev/null)
 
-[[ "$EGRESS_COUNT" -gt 0 ]]
-check "Security group has egress rules allowing outbound traffic" "$?"
+if [ "$EGRESS_COUNT" -gt 0 ] 2>/dev/null; then
+  check "Security group has egress rules allowing outbound traffic" "true"
+else
+  check "Security group has egress rules allowing outbound traffic" "false"
+fi
 
+# ------------------------------------------------------------------
+# Summary
+# ------------------------------------------------------------------
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
+echo ""
 
-[[ "$FAIL" -eq 0 ]]
+if [ "$FAIL" -eq 0 ]; then
+  echo "╔══════════════════════════════════════╗"
+  echo "║  ✅  ALL CHECKS PASSED — WELL DONE!  ║"
+  echo "╚══════════════════════════════════════╝"
+else
+  echo "╔══════════════════════════════════════╗"
+  echo "║  ❌  SOME CHECKS FAILED — TRY AGAIN  ║"
+  echo "╚══════════════════════════════════════╝"
+fi
