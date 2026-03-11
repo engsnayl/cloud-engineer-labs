@@ -476,6 +476,7 @@ print(data.get('labs',{}).get('$lab_path',{}).get('last_started', ''))
     fi
 
     chmod +x "$validate_script"
+    cd "$full_path"
     if bash "$validate_script"; then
         echo ""
         echo -e "${GREEN}╔══════════════════════════════════════╗${NC}"
@@ -519,7 +520,7 @@ cmd_reset() {
         kubectl apply -f "$full_path/manifests/broken/"
         echo -e "${GREEN}Lab reset. Broken manifests re-applied.${NC}"
     elif [[ "$lab_path" == cloud-labs/* ]]; then
-        echo -e "${CYAN}Destroying cloud resources...${NC}"
+        echo -e "${CYAN}Destroying cloud resources...${NC)"
         cd "$full_path"
         terraform destroy -auto-approve
         echo -e "${GREEN}Cloud resources destroyed. Run 'terraform apply' to start again.${NC}"
