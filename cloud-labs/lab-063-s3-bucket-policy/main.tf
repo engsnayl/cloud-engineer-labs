@@ -14,7 +14,6 @@ resource "aws_s3_bucket_policy" "app_data" {
     Version = "2012-10-17"
     Statement = [
       {
-        # BUG 1: Effect is Deny instead of Allow
         Effect    = "Deny"
         Principal = "*"
         Action    = ["s3:GetObject", "s3:PutObject"]
@@ -26,7 +25,6 @@ resource "aws_s3_bucket_policy" "app_data" {
           AWS = aws_iam_role.app_role.arn
         }
         Action    = ["s3:ListBucket"]
-        # BUG 2: Wrong resource — ListBucket needs bucket ARN, not object ARN
         Resource  = "${aws_s3_bucket.app_data.arn}/*"
       }
     ]
@@ -55,7 +53,6 @@ resource "aws_iam_role_policy" "app_s3" {
     Statement = [{
       Effect   = "Allow"
       Action   = ["s3:GetObject", "s3:PutObject", "s3:ListBucket"]
-      # BUG 3: Resource should include both bucket and objects
       Resource = aws_s3_bucket.app_data.arn
     }]
   })
