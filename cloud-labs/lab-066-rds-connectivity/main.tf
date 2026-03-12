@@ -53,11 +53,9 @@ resource "aws_security_group" "db" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    # BUG 1: Allows traffic from wrong CIDR (not the app subnet)
     cidr_blocks = ["10.0.99.0/24"]
   }
 
-  # BUG 2: No egress rule
 }
 
 resource "aws_db_instance" "main" {
@@ -69,7 +67,6 @@ resource "aws_db_instance" "main" {
   db_name             = "appdb"
   username            = "admin"
   password            = "changeme123"
-  # BUG 3: Publicly accessible when it shouldn't be
   publicly_accessible = true
   skip_final_snapshot = true
   db_subnet_group_name   = aws_db_subnet_group.main.name
