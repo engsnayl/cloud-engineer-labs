@@ -1,42 +1,105 @@
 #!/bin/bash
 # corrupt-state.sh
-# Simulates what happens when someone manually deletes a resource in the AWS
-# console without going through Terraform.
 #
-# In the real world: an engineer logs into the console and deletes the
-# security group directly. Terraform's state file still thinks it exists.
-# The next time you run terraform plan, Terraform tries to read the SG
-# from AWS and gets nothing back — because it's gone.
+# Simulates what happens when an engineer makes three changes directly
+# in the AWS console, bypassing Terraform entirely.
 #
-# This script replicates that scenario by removing the security group
-# entry from Terraform's state file.
+# What this script does (as AWS CLI calls — exactly what the console does
+# under the hood):
+#
+#   1. Changes the S3 bucket tags from staging/ops to production/engineering
+#   2. Enables bucket versioning
+#   3. Deletes the security group
+#
+# After this script runs, Terraform's state file is out of date.
+# Run: terraform plan
+# You'll see drift — Terraform wants to undo or re-apply changes it
+# doesn't know about.
 
 set -e
 
+REGION="eu-west-1"
+
 echo ""
 echo "================================================"
-echo " Simulating manual console deletion..."
-echo " Someone just deleted the security group in AWS."
+echo " Simulating manual AWS console changes..."
 echo "================================================"
 echo ""
 
-# Check we have a state file to work with
-if [ ! -f "terraform.tfstate" ]; then
-  echo "ERROR: No terraform.tfstate found."
-  echo "Make sure you have run: cp terraform.tfstate.bak terraform.tfstate"
-  echo "or that the state file is present in this directory."
+# ── Read resource IDs from Terraform state ────────────────────────────────────
+
+echo "Reading resource IDs from Terraform state..."
+
+BUCKET_NAME=$(terraform state show aws_s3_bucket.data 2>/dev/null | grep '"id"' | head -1 | awk -F'"' '{print $4}')
+SG_ID=$(terraform state show aws_security_group.app 2>/dev/null | grep '"id"' | head -1 | awk -F'"' '{print $4}')
+
+if [ -z "$BUCKET_NAME" ]; then
+  echo "ERROR: Could not read bucket name from Terraform state."
+  echo "Make sure you have run 'terraform apply' before running this script."
   exit 1
 fi
 
-# Remove the security group from state, simulating it being deleted in the console
-terraform state rm aws_security_group.app
+if [ -z "$SG_ID" ]; then
+  echo "ERROR: Could not read security group ID from Terraform state."
+  echo "Make sure you have run 'terraform apply' before running this script."
+  exit 1
+fi
 
+echo "  Bucket : $BUCKET_NAME"
+echo "  SG ID  : $SG_ID"
 echo ""
+
+# ── Change 1: Update S3 bucket tags ──────────────────────────────────────────
+
+echo "[1/3] Someone retagged the S3 bucket in the console..."
+echo "      Changing tags from staging/ops → production/engineering"
+
+aws s3api put-bucket-tagging \
+  --bucket "$BUCKET_NAME" \
+  --tagging 'TagSet=[{Key=Environment,Value=production},{Key=Team,Value=engineering}]' \
+  --region "$REGION"
+
+echo "      Done."
+echo ""
+
+# ── Change 2: Enable bucket versioning ───────────────────────────────────────
+
+echo "[2/3] Someone enabled versioning on the bucket in the console..."
+echo "      Setting versioning: Disabled → Enabled"
+
+aws s3api put-bucket-versioning \
+  --bucket "$BUCKET_NAME" \
+  --versioning-configuration Status=Enabled \
+  --region "$REGION"
+
+echo "      Done."
+echo ""
+
+# ── Change 3: Delete the security group ──────────────────────────────────────
+
+echo "[3/3] Someone deleted the security group in the console..."
+echo "      Deleting SG: $SG_ID"
+
+aws ec2 delete-security-group \
+  --group-id "$SG_ID" \
+  --region "$REGION"
+
+echo "      Done."
+echo ""
+
+# ── Summary ───────────────────────────────────────────────────────────────────
+
 echo "================================================"
-echo " Done. The security group no longer exists in"
-echo " AWS — but Terraform's config still defines it."
+echo " Three manual changes have been made in AWS."
+echo " Terraform's state file is now out of date."
 echo ""
 echo " Run: terraform plan"
-echo " Observe the error, then work out how to fix it."
+echo ""
+echo " You should see:"
+echo "   ~ S3 bucket tags — Terraform wants to revert"
+echo "     them back to staging/ops"
+echo "   ~ Versioning — Terraform wants to disable it"
+echo "   x Security group — error reading a resource"
+echo "     that no longer exists"
 echo "================================================"
 echo ""
