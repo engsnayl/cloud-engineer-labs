@@ -11,32 +11,41 @@
 
 > **INCIDENT-TF-002:** Terraform plan shows it wants to destroy and recreate resources that should stay. Someone made manual changes via the AWS console. State is out of sync with reality.
 
-Infrastructure was previously applied. Since then, three things happened in the AWS console without going through Terraform:
-
-The Terraform state file reflects the original apply. The config hasn't been updated. Your job is to reconcile everything.
+Infrastructure was previously applied. Since then, changes were made directly in the AWS console without going through Terraform. The config hasn't been updated. Your job is to reconcile everything.
 
 ---
 
 ## Lab Setup
 
-This lab comes with a pre-baked state file (`terraform.tfstate`) representing what was applied originally. Before starting the exercises, you need to simulate the three console changes.
+> ⚠️ **This lab requires a real AWS account. Charges may apply — all resources should be destroyed at the end.**
 
-### Step 1: Initialise
+### Step 1: Initialise and apply
 
 ```bash
 terraform init
+terraform apply
 ```
+
+This creates the real AWS infrastructure. Terraform's state file is written after apply — this is your baseline.
 
 ### Step 2: Simulate the console changes
 
-Run the corruption script to simulate the security group being manually deleted:
+Someone has just gone into the AWS console and made changes without telling anyone. Run this script to replicate what they did:
 
 ```bash
 chmod +x corrupt-state.sh
 ./corrupt-state.sh
 ```
 
-Now run `terraform plan` — you should see errors and drift. That's the starting point for this lab.
+The script will tell you what it did. Terraform's state file is now out of date.
+
+### Step 3: Detect the drift
+
+```bash
+terraform plan
+```
+
+Read the output carefully. Your job starts here.
 
 ---
 
@@ -45,9 +54,9 @@ Now run `terraform plan` — you should see errors and drift. That's the startin
 1. Read and interpret `terraform plan` output — identify each type of drift
 2. Fix the S3 bucket tags in `main.tf` to match the intended production values
 3. Fix the versioning configuration in `main.tf` to reflect the console change
-4. Handle the deleted security group using `terraform state rm` then allow Terraform to recreate it
+4. Understand how Terraform handles a resource that was deleted outside of Terraform
 5. `terraform validate` must pass
-6. `terraform plan` must complete with expected changes only (no errors, no unintended modifications)
+6. `terraform plan` must complete without errors
 
 ---
 
@@ -57,4 +66,13 @@ Now run `terraform plan` — you should see errors and drift. That's the startin
 ./validate.sh
 ```
 
-Or manually verify with `terraform plan` showing no errors and only expected creates.
+> 💡 **After validation passes:** Run `terraform destroy` to tear down all resources, then clean up your local Terraform files ready for a fresh run next time:
+>
+> ```bash
+> terraform destroy
+> rm -f terraform.tfstate terraform.tfstate.backup
+> rm -rf .terraform
+> rm -f .terraform.lock.hcl
+> ```
+>
+> The lab directory will be back to its clean starting state for next time.
