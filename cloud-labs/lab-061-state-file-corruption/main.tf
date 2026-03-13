@@ -1,15 +1,17 @@
 # Terraform State Drift Lab
-# Some resources were modified outside of Terraform
+# Infrastructure was previously applied. Since then, someone made manual
+# changes through the AWS console. The configuration below no longer
+# matches what exists in AWS.
 
 provider "aws" {
-  region = "eu-west-2"
+  region = "eu-west-1"
 }
 
 resource "aws_s3_bucket" "data" {
   bucket = "company-data-${random_id.suffix.hex}"
   tags = {
-    Environment = "production"
-    Team        = "engineering"
+    Environment = "staging"
+    Team        = "ops"
   }
 }
 
@@ -27,7 +29,6 @@ resource "random_id" "suffix" {
 resource "aws_security_group" "app" {
   name        = "app-sg"
   description = "Application security group"
-
   ingress {
     from_port   = 80
     to_port     = 80
