@@ -30,8 +30,8 @@ echo ""
 
 echo "Reading resource IDs from Terraform state..."
 
-BUCKET_NAME=$(terraform state show aws_s3_bucket.data 2>/dev/null | grep '"id"' | head -1 | awk -F'"' '{print $4}')
-SG_ID=$(terraform state show aws_security_group.app 2>/dev/null | grep '"id"' | head -1 | awk -F'"' '{print $4}')
+BUCKET_NAME=$(terraform state show aws_s3_bucket.data 2>/dev/null | grep '^\s*bucket\s*=' | head -1 | awk -F'"' '{print $2}')
+SG_ID=$(terraform state show aws_security_group.app 2>/dev/null | grep '^\s*id\s*=' | head -1 | awk -F'"' '{print $2}')
 
 if [ -z "$BUCKET_NAME" ]; then
   echo "ERROR: Could not read bucket name from Terraform state."
