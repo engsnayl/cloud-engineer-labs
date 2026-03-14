@@ -230,6 +230,38 @@ kubectl get pod database
 
 ---
 
+### Step 11: Run lab validation
+
+```bash
+lab validate 032
+```
+
+**What this does:** Runs the lab's automated validation checks to confirm everything is in the expected state. All checks should pass before moving on.
+
+---
+
+### Step 12: Reset the lab environment
+
+Run this after completing the lab so it can be repeated from Step 1 immediately with no leftover resources:
+
+```bash
+kubectl delete pod database --ignore-not-found
+kubectl delete pvc db-pvc --ignore-not-found
+kubectl delete pv db-pv --ignore-not-found
+```
+
+**What this does:** Removes all three resources created by this lab. The `--ignore-not-found` flag means the command won't error if a resource is already gone — safe to run at any time.
+
+Confirm everything is clean:
+
+```bash
+kubectl get pod database; kubectl get pvc db-pvc; kubectl get pv db-pv
+```
+
+All three should return `NotFound`. The cluster is now back to factory settings for this lab.
+
+---
+
 ## Real World vs. Lab Environment
 
 - **Dynamic provisioning:** In production, you rarely create PVs manually. Instead, you use a StorageClass with a provisioner (like AWS EBS or GCE PD) that automatically creates PVs whenever a PVC is submitted. You just specify the StorageClass name and size in your PVC — the provisioner handles the rest.
