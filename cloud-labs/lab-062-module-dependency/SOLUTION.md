@@ -1,51 +1,174 @@
-# Solution Walkthrough — Module Won't Apply (Dependency Issues)
+# Lab 062 — Module Won't Apply (Dependency Issues)
+## Solution Walkthrough
 
-## The Problem
+---
 
-A modular Terraform configuration fails with dependency errors. The infrastructure was refactored from a flat configuration into modules (`vpc` and `ec2`), but the references between modules are broken. There are **two bugs**:
+## TLDR — Plain English Summary
 
-1. **Wrong module name** — the `ec2` module references `module.networking.vpc_id`, but the VPC module is named `module.vpc`, not `module.networking`. Terraform can't find a module called `networking` because it doesn't exist.
-2. **Wrong output name** — the `ec2` module references `module.vpc.private_subnet`, but the VPC module's output is likely called `private_subnet_id` (or similar). The output name must match exactly what the module exports.
+You've refactored your Terraform code into modules — a VPC module and an EC2 module. But now `terraform plan` is throwing errors. Nothing is broken in AWS yet because nothing has been applied, but Terraform is refusing to even generate a plan.
 
-Both bugs produce errors during `terraform plan` because Terraform can't resolve the references.
+The reason is simple: **your EC2 module is trying to reference the VPC module by the wrong name, and asking for an output that doesn't exist under that name.**
 
-## Thought Process
+Think of it like this. You've given the VPC module a name badge that says `vpc`. But in your EC2 module, you're asking to speak to someone called `networking`. Nobody by that name works here — so Terraform refuses. On top of that, even if you corrected the name, you're asking for a piece of information called `private_subnet`, but the VPC module has labelled that information `private_subnet_id`. Wrong name, wrong label — two problems, both fixable in `main.tf`.
 
-When Terraform module references fail, an experienced engineer:
+**The fix:** Correct the module name from `module.networking` to `module.vpc`, and correct the output name from `module.vpc.private_subnet` to `module.vpc.private_subnet_id`.
 
-1. **Read the error message** — Terraform error messages for module reference issues are very specific: "A managed resource 'module.networking' has not been declared in the root module." This tells you exactly which reference is broken.
-2. **Check module names** — the name after `module.` must match the label in the `module "label" {}` block. If the block says `module "vpc"`, you reference it as `module.vpc`.
-3. **Check module outputs** — look at the module's `outputs.tf` file to see the exact output names. `module.vpc.private_subnet` only works if the VPC module has `output "private_subnet" {}`.
-4. **Trace the dependency chain** — modules that depend on other modules must pass values explicitly through variables and outputs. There's no implicit sharing.
+---
 
-## Step-by-Step Solution
+## The Two Bugs
 
-### Step 1: Try to initialize and plan
+| # | Bug | Where | What's wrong |
+|---|-----|--------|--------------|
+| 1 | Wrong module name | `main.tf` — ec2 module block | References `module.networking` but the module is declared as `module "vpc"` |
+| 2 | Wrong output name | `main.tf` — ec2 module block | References `module.vpc.private_subnet` but the VPC module exports `private_subnet_id` |
+
+---
+
+## Investigative Learning Pathway
+
+This section walks you through the thought process an experienced engineer uses — not just what to fix, but how to find it, why it's wrong, and how you'd reason through it in a real production incident.
+
+---
+
+### Stage 1 — Run it and read what breaks
+
+**What you do:**
 
 ```bash
 terraform init
 terraform plan
 ```
 
-**What this does:** `terraform init` downloads providers and initializes modules. `terraform plan` will fail with errors showing which references are broken. You'll see errors like:
-- `No module call named "networking" is declared in the root module` — the first bug
-- Output reference errors — the second bug
+| Command | What it does |
+|---------|-------------|
+| `terraform init` | Downloads providers, initialises modules, sets up the local `.terraform/` directory. Must be run before any other Terraform command, and re-run any time you add or change a module source path. |
+| `terraform plan` | Reads your `.tf` files, compares them against current state, and produces a preview of what would be created/changed/destroyed. Does not touch real infrastructure. |
 
-### Step 2: Fix Bug 1 — Correct the module name reference
+**What you see:** Terraform errors. Don't panic — Terraform error messages for module reference problems are very specific. Read them carefully before touching any code. The error will say something like:
 
-In `main.tf`, find the `ec2` module:
+```
+A managed resource 'module.networking' has not been declared in the root module.
+```
+
+**What this tells you:**
+Terraform is saying "you've asked me to look up something called `module.networking`, but I've never been told that anything by that name exists." This is your first bug, right there in the error message.
+
+> **Real-world parallel:** In a production incident, the first instinct is often to jump straight to the code. Resist that. Terraform errors tell you the exact thing that's wrong. Train yourself to read the full error before touching anything.
+
+---
+
+### Stage 2 — Understand why the name matters
+
+Before fixing anything, understand the rule:
+
+Terraform module references follow this exact pattern:
+
+```
+module.<LABEL>.<OUTPUT_NAME>
+```
+
+The `LABEL` is not the folder path. It's not the module description. It's the name you gave it in the `module` block in `main.tf`. Look at how the VPC module is declared:
 
 ```hcl
-# BROKEN: module.networking doesn't exist — it's called module.vpc
-module "ec2" {
-  source = "./modules/ec2"
-
-  vpc_id    = module.networking.vpc_id    # Wrong module name!
-  subnet_id = module.vpc.private_subnet   # Wrong output name!
+module "vpc" {
+  source = "./modules/vpc"
+  ...
 }
 ```
 
-Change `module.networking.vpc_id` to `module.vpc.vpc_id`:
+The label here is `vpc`. So the correct reference is `module.vpc`. Full stop. It doesn't matter that the source folder might be called `networking`, or that you might think of it as "the networking module" — Terraform only knows the label.
+
+**How to check the declared module names:**
+
+```bash
+grep -n 'module "' main.tf
+```
+
+| Part | What it does |
+|------|-------------|
+| `grep` | Searches for a text pattern in a file |
+| `-n` | Prints the line number alongside each match — useful for navigating large files |
+| `'module "'` | The pattern to search for — matches any line declaring a module block |
+| `main.tf` | The file to search in |
+
+This prints every module declaration in your root `main.tf` with line numbers. You'll immediately see that `networking` doesn't appear anywhere. Only `vpc` and `ec2` do.
+
+> **Key insight:** The error says `module.networking` has not been declared. Running the grep above confirms there's no `module "networking"` block anywhere. That's your smoking gun.
+
+---
+
+### Stage 3 — Find Bug 1 and fix it
+
+Now you know what's wrong and why. Fix the first bug:
+
+**Open `main.tf` and find the `ec2` module block:**
+
+```hcl
+# BROKEN — as written in the lab
+module "ec2" {
+  source = "./modules/ec2"
+
+  vpc_id    = module.networking.vpc_id    # Wrong: module.networking doesn't exist
+  subnet_id = module.vpc.private_subnet   # Wrong: output name is incorrect
+}
+```
+
+**Fix the module name:**
+
+```hcl
+vpc_id = module.vpc.vpc_id
+```
+
+**Why `module.vpc.vpc_id`?**
+- `module.vpc` — because the VPC module is declared as `module "vpc"` in `main.tf`
+- `.vpc_id` — because `vpc_id` is the name of the output defined in the VPC module's `outputs.tf`
+
+---
+
+### Stage 4 — Investigate Bug 2 before assuming you know the fix
+
+You've corrected the module name. Now the subnet reference needs fixing too:
+
+```hcl
+subnet_id = module.vpc.private_subnet   # Still wrong — output name is off
+```
+
+But wait — before you change `private_subnet` to `private_subnet_id`, **check the actual outputs file first.** Don't assume. In real Terraform codebases, output names vary. The only source of truth is the module's own `outputs.tf`.
+
+**Check the VPC module's outputs:**
+
+```bash
+cat modules/vpc/outputs.tf
+```
+
+| Part | What it does |
+|------|-------------|
+| `cat` | Prints the full contents of a file to the terminal |
+| `modules/vpc/outputs.tf` | The path to the VPC module's outputs file — this is where all values the module exposes to callers are defined |
+
+**What you're looking for:** An `output` block with the exact name you need. For example:
+
+```hcl
+output "private_subnet_id" {
+  value = aws_subnet.private.id
+}
+```
+
+If you see `private_subnet_id`, your reference must be `module.vpc.private_subnet_id`. If it were named `private_subnet`, you'd use that instead. The file tells you. Never guess.
+
+> **Why this matters:** In production, a module's output names are part of its interface contract. Changing an output name in a shared module breaks every caller of that module — potentially across dozens of Terraform root modules. This is why module versioning exists. You pin to a version so that output names don't change under you.
+
+**Fix the output name:**
+
+```hcl
+subnet_id = module.vpc.private_subnet_id
+```
+
+---
+
+### Stage 5 — Apply both fixes together
+
+Your corrected `ec2` module block in `main.tf` should now look like:
 
 ```hcl
 module "ec2" {
@@ -56,82 +179,107 @@ module "ec2" {
 }
 ```
 
-**Why this matters:** Terraform module references follow the pattern `module.<MODULE_LABEL>.<OUTPUT_NAME>`. The module label is the name you gave it in the `module` block declaration. The VPC module is declared as `module "vpc"`, so you reference it as `module.vpc` — not `module.networking`, `module.network`, or any other name.
+**How the dependency chain now works:**
+1. Terraform sees that `module.ec2` depends on outputs from `module.vpc`
+2. Terraform automatically creates the VPC resources first
+3. Once VPC outputs are available, Terraform passes them as variables into the EC2 module
+4. EC2 resources are created using those values
 
-### Step 3: Fix Bug 2 — Correct the output name
+This is the core principle of Terraform module composition: **modules don't share state automatically — they communicate explicitly through variables (in) and outputs (out).**
 
-The reference `module.vpc.private_subnet` should be `module.vpc.private_subnet_id`. Check the VPC module's outputs to see the exact name:
+---
 
-```bash
-cat modules/vpc/outputs.tf
-```
-
-**What this does:** Shows the actual output names defined in the VPC module. Match your references to these exact names. If the output is:
-
-```hcl
-output "private_subnet_id" {
-  value = aws_subnet.private.id
-}
-```
-
-Then your reference must be `module.vpc.private_subnet_id` — not `module.vpc.private_subnet`.
-
-**Note:** In this lab, the modules directory may not be pre-created. The important thing is understanding that the `main.tf` references must match the module definitions. If the modules need to be created, they would contain the VPC resources and export the needed outputs.
-
-### Step 4: Verify the module structure
-
-If the modules directory exists, check both modules:
-
-```bash
-ls modules/vpc/
-ls modules/ec2/
-```
-
-The VPC module should have:
-- `main.tf` — VPC, subnets, IGW, NAT Gateway, route tables
-- `outputs.tf` — exports `vpc_id`, `private_subnet_id`, etc.
-- `variables.tf` — any input variables
-
-The EC2 module should have:
-- `main.tf` — EC2 instance, security group
-- `variables.tf` — accepts `vpc_id` and `subnet_id` as inputs
-
-### Step 5: Run plan to verify
+### Stage 6 — Verify the fix
 
 ```bash
 terraform plan
 ```
 
-**What this does:** With the references fixed, Terraform can now resolve the dependency chain: VPC module creates resources and exports outputs → EC2 module receives those outputs as variables. The plan should complete without errors.
+If both bugs are fixed, the plan runs to completion. You'll see the planned resources — no errors.
 
-### Step 6: Run validation
+**Then run validation:**
 
 ```bash
 ./validate.sh
 ```
 
-**What this does:** Runs `terraform validate` and `terraform plan` to confirm the configuration is valid and error-free.
+| Part | What it does |
+|------|-------------|
+| `./` | Runs a script from the current directory |
+| `validate.sh` | A lab-provided script that runs `terraform validate` and `terraform plan` and checks for errors |
 
-## Docker Lab vs Real Life
+`terraform validate` is worth understanding separately:
 
-- **Module registries:** In production, modules are published to the Terraform Registry (public or private) with versioned releases. Instead of `source = "./modules/vpc"`, you'd use `source = "terraform-aws-modules/vpc/aws"` with a version pin.
-- **Module versioning:** Production modules use version constraints: `version = "~> 5.0"`. This prevents breaking changes from being pulled in automatically.
-- **Module composition:** Real infrastructure uses layered modules — a VPC module outputs IDs that feed into an ECS module, a RDS module, and an ALB module. Getting the output names right across 5+ modules is a common challenge.
-- **Terragrunt:** Many teams use Terragrunt to manage module dependencies, automatically passing outputs from one module to another using `dependency` blocks. This reduces manual wiring errors.
-- **Module documentation:** Well-maintained modules have README files listing all inputs and outputs. The `terraform-docs` tool auto-generates this documentation from the code.
+```bash
+terraform validate
+```
 
-## Key Concepts Learned
+| What it checks | What it doesn't check |
+|----------------|----------------------|
+| Syntax errors in `.tf` files | Whether your AWS credentials are valid |
+| Invalid references (wrong module names, missing outputs) | Whether the resources will actually deploy successfully |
+| Missing required variables | Runtime failures or quota limits |
 
-- **Module references use `module.<LABEL>.<OUTPUT>`** — the label must match the `module "label" {}` block name exactly. The output must match an `output` block in the module.
-- **Terraform error messages are very specific** — "No module call named 'networking'" tells you the exact module name that's wrong. Read errors carefully before changing code.
-- **Modules communicate through inputs (variables) and outputs** — the parent module passes values to child modules via variables, and reads results via outputs. There's no implicit sharing or inheritance.
-- **`terraform init` must be re-run when module sources change** — if you change the `source` path of a module, you need to re-run `terraform init` to initialize the new module location.
-- **Output names are part of a module's interface** — changing an output name in a module breaks all callers. This is why module versioning is important in production.
+It's a fast, local check — no AWS calls, no state file needed. Good to run after any change before committing.
+
+---
+
+## Module Reference Rules — Quick Summary
+
+| Rule | Example |
+|------|---------|
+| Reference a module using its label, not its source path | `module.vpc` not `module.networking` even if source is `./modules/networking` |
+| Output names must match exactly | `module.vpc.private_subnet_id` not `module.vpc.private_subnet` |
+| Always check `outputs.tf` for exact names | `cat modules/vpc/outputs.tf` |
+| Re-run `terraform init` after changing module sources | Source path changes require re-initialisation |
+
+---
 
 ## Common Mistakes
 
-- **Confusing module name with module source** — `module "vpc" { source = "./modules/networking" }` means the reference is `module.vpc`, not `module.networking`. The label (first argument) is what you use in references, not the source path.
-- **Referencing resources instead of outputs** — you can't write `module.vpc.aws_subnet.private.id`. You can only reference outputs defined in the module's `outputs.tf`. If an output doesn't exist, add it to the module.
-- **Circular dependencies between modules** — if module A depends on module B, and module B depends on module A, Terraform will error. Restructure your modules to have a clear dependency direction.
-- **Forgetting to run `terraform init` after adding modules** — new modules (or changed source paths) require re-initialization. Without init, Terraform doesn't know about the module.
-- **Typos in output names** — `private_subnet` vs `private_subnet_id` is a single-word difference that causes a hard error. Always check `outputs.tf` for exact names.
+**Confusing module label with source path**
+`module "vpc" { source = "./modules/networking" }` means the reference is `module.vpc`, not `module.networking`. The label (the word in quotes after `module`) is what you use. The source path is just a filesystem pointer.
+
+**Referencing resources directly instead of outputs**
+You cannot write `module.vpc.aws_subnet.private.id`. You can only access values that are explicitly declared in an `output` block in `modules/vpc/outputs.tf`. If the output doesn't exist, you must add it to the module.
+
+**Forgetting `terraform init` after adding modules**
+If you add a new module block or change a source path, Terraform won't know about it until you re-run `terraform init`. The plan will fail.
+
+**Circular dependencies**
+If Module A needs an output from Module B, and Module B needs an output from Module A, Terraform cannot resolve the order. Restructure so dependencies flow in one direction only.
+
+---
+
+## Real-World Context
+
+| Lab behaviour | Production reality |
+|--------------|-------------------|
+| Modules sourced locally with `./modules/vpc` | Modules published to Terraform Registry with versioned releases (`source = "terraform-aws-modules/vpc/aws"`, `version = "~> 5.0"`) |
+| Two modules | Layered module stacks — VPC → ECS, RDS, ALB, WAF all consuming the same VPC outputs |
+| Manual wiring via `main.tf` | Many teams use Terragrunt `dependency` blocks to auto-wire module outputs |
+| Output names found by reading the file | Well-maintained modules publish `terraform-docs`-generated READMEs listing every input and output |
+
+---
+
+## Cleanup
+
+```bash
+terraform destroy -auto-approve
+```
+
+| Part | What it does |
+|------|-------------|
+| `terraform destroy` | Removes all infrastructure managed by this Terraform configuration |
+| `-auto-approve` | Skips the interactive confirmation prompt |
+
+> If you haven't successfully applied anything, there's nothing to destroy. You can skip this step.
+
+---
+
+## Pi / K3s Notes
+
+This is a Terraform/AWS lab — no K3s involvement. Ensure:
+- AWS CLI is configured with valid credentials: `aws sts get-caller-identity`
+- You're working in the correct lab directory on the Pi: `~/cloud-engineer-labs/terraform-labs/lab-062-...`
+- Terraform ARM64 binary is on your PATH: `terraform version`
