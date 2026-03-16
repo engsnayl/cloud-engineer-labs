@@ -8,11 +8,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: pod-reader
-  # Fault 1: Role in wrong namespace
   namespace: default
 rules:
 - apiGroups: [""]
-  # Fault 2: Missing 'list' verb
   resources: ["pods"]
   verbs: ["get", "watch"]
 ---
