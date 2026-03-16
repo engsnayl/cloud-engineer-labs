@@ -10,8 +10,6 @@ spec:
   policyTypes:
   - Ingress
   ingress:
-  # Fault: Only allows traffic from pods with label 'role: admin'
-  # But API pods have label 'role: api'
   - from:
     - podSelector:
         matchLabels:
