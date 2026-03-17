@@ -152,9 +152,11 @@ Running validation checks...
 Results: 1 passed, 3 failed
 ```
 
-### A note on the validator — Check 1 has a flaw
+### Important — the original validator has two flaws
 
-You'll notice check 1 shows green even though `build and test:` clearly has spaces in its name. This is a bug in the validator itself.
+The original `validate.sh` has two buggy checks that don't accurately test what they claim. Both are documented here so you understand what's happening, and a fixed version of the script is provided below.
+
+**Flaw 1 — Check 1 passes when it shouldn't**
 
 The validator checks for this pattern:
 
@@ -162,9 +164,32 @@ The validator checks for this pattern:
 grep -E "^  [a-z][a-z0-9_-]+:" "$WORKFLOW"
 ```
 
-What this actually does: it looks for *any* line that starts with two spaces, a lowercase letter, then valid characters. Because `deploy:` and `notify:` are valid job names, they match — so the check passes even though `build and test:` is broken.
+What this actually does: it looks for *any* line that starts with two spaces, a lowercase letter, then valid characters. Because `deploy:` and `notify:` are valid job names, they match — so the check passes even though `build and test:` is broken. The bug still needs fixing; the validator just can't catch it.
 
-**What this means for you:** Don't trust check 1 as a signal. The bug still needs fixing — the validator just can't catch it properly. Your real target is all 4 checks passing, which requires fixing all 4 bugs including the job name.
+**Flaw 2 — Check 3 fails even when the fix is correct**
+
+The validator checks for `if:` like this:
+
+```bash
+grep -A2 "Deploy" "$WORKFLOW" | grep -q "if:"
+```
+
+This searches for the word "Deploy" and then looks at the next 2 lines for `if:`. But `if:` correctly sits at the *job* level — several lines above the step name "Deploy". The validator is looking in the wrong place, so it always fails even when your fix is perfectly correct.
+
+**The correct fix** is to place `if:` on the `deploy` job itself, not inside the step:
+
+```yaml
+deploy:
+  needs: build-and-test
+  runs-on: ubuntu-latest
+  if: github.event_name == 'push' && github.ref == 'refs/heads/main'   # ← job level
+  steps:
+    - name: Deploy
+```
+
+This is correct GitHub Actions syntax. The original validator simply cannot detect it properly.
+
+**Use the fixed validator** (see section below) which correctly checks all four conditions.
 
 ---
 
@@ -458,6 +483,85 @@ Running validation checks...
   ✅  Job names use valid characters (no spaces)
   ✅  Environment variables use GITHUB_ENV
   ✅  Deploy step has conditional (not running on PRs)
+  ✅  Job dependency name matches actual job
+Results: 4 passed, 0 failed
+```
+
+---
+
+## Fixed Validator
+
+Replace the contents of `validate.sh` with this corrected version. It fixes both flaws described above:
+
+```bash
+#!/bin/bash
+PASS=0
+FAIL=0
+check() {
+    local description="$1"; local result="$2"
+    if [[ "$result" == "0" ]]; then echo -e "  ✅  $description"; ((PASS++))
+    else echo -e "  ❌  $description"; ((FAIL++)); fi
+}
+echo "Running validation checks..."
+echo ""
+WORKFLOW=".github/workflows/ci.yml"
+
+# Check 1: No spaces in ANY job name
+# Looks for lines at job indentation level that contain a space before the colon
+if grep -E "^  [a-z].* .*:" "$WORKFLOW" &>/dev/null; then
+    check "Job names use valid characters (no spaces)" "1"
+else
+    check "Job names use valid characters (no spaces)" "0"
+fi
+
+# Check 2: GITHUB_ENV usage
+grep -q "GITHUB_ENV" "$WORKFLOW"
+check "Environment variables use GITHUB_ENV" "$?"
+
+# Check 3: Deploy job has if: condition at job level (not step level)
+# Captures 5 lines after the deploy: key and checks for if: within them
+grep -A5 "^  deploy:" "$WORKFLOW" | grep -q "if:"
+check "Deploy job has if: condition (not running on PRs)" "$?"
+
+# Check 4: Job dependency references match actual job names
+needs_job=$(grep "needs:" "$WORKFLOW" | head -1 | awk '{print $2}')
+grep -q "^  ${needs_job}:" "$WORKFLOW"
+check "Job dependency name matches actual job" "$?"
+
+echo ""
+echo "Results: $PASS passed, $FAIL failed"
+[[ "$FAIL" -eq 0 ]]
+```
+
+### What changed and why
+
+| Check | Original problem | Fix |
+|-------|-----------------|-----|
+| Check 1 | Passed if *any* valid job name existed — missed broken names | Now explicitly looks for spaces in job name lines and fails if found |
+| Check 3 | Looked 2 lines after "Deploy" step name — `if:` is at job level, not there | Uses `grep -A5` to capture 5 lines after the `deploy:` job key and searches within that block for `if:` |
+
+> **Why not awk?** An awk range pattern like `/^  deploy:/,/^  [a-z]/` should theoretically capture everything from `deploy:` to the next job — but on this file it only returned the single word `deploy:` and nothing else. `grep -A5` is simpler and reliable: it captures exactly 5 lines after the match, which is enough to include the `if:` line without overshooting into the next job.
+
+To update the file on your Pi:
+
+```bash
+vi validate.sh
+# gg → dG → i → paste → Esc → :wq
+```
+
+Then run it against your fixed workflow to confirm all 4 pass:
+
+```bash
+bash validate.sh
+```
+
+Expected output:
+
+```
+Running validation checks...
+  ✅  Job names use valid characters (no spaces)
+  ✅  Environment variables use GITHUB_ENV
+  ✅  Deploy job has if: condition (not running on PRs)
   ✅  Job dependency name matches actual job
 Results: 4 passed, 0 failed
 ```
