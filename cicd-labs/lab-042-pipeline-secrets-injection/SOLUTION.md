@@ -1,33 +1,177 @@
-# Solution Walkthrough — Pipeline Secrets Injection
+# Lab 042 — Pipeline Secrets Injection
 
-## The Problem
+## TLDR — Plain English Summary
 
-AWS credentials are not available during deployment, and worse, the current setup bakes secrets directly into the Docker image. There are **three bugs**:
+Imagine you bake your house key into a birthday cake and then post a photo of that cake on the internet. Even if you later bake a new cake without the key, the original photo is still out there — and anyone can look at it. That's exactly what this lab is about.
 
-1. **Secrets baked into the Dockerfile** — `ARG` and `ENV` instructions put `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `DATABASE_URL` directly into the image. Anyone who pulls the image can extract these credentials from the image layers.
-2. **Secrets passed as Docker build args** — the GitHub Actions workflow passes secrets via `--build-arg`, which embeds them in the image build history. `docker history` reveals them in plain text.
-3. **Wrong secret names** — the workflow uses `secrets.ACCESS_KEY` and `secrets.SECRET_KEY` instead of the standard `secrets.AWS_ACCESS_KEY_ID` and `secrets.AWS_SECRET_ACCESS_KEY`.
+The broken setup bakes AWS credentials (your access keys) directly into a Docker image during the build process. Docker images are made of layers, and every layer is permanently recorded in the image's history. Anyone who can pull the image — or even just run `docker history` — can read those credentials in plain text. The fix is simple in concept: **never put secrets in the image**. Build the image with just the application code. Pass the credentials in at runtime, only to the processes that actually need them, only when they're running.
 
-## Thought Process
+There are three specific bugs to find and fix:
 
-When secrets aren't working in a CI/CD pipeline, an experienced engineer checks:
+1. The `Dockerfile` uses `ARG` and `ENV` to pull secrets into the image at build time.
+2. The GitHub Actions workflow passes those secrets to the Docker build using `--build-arg`, which bakes them into image layer metadata.
+3. The workflow references the wrong secret names (`ACCESS_KEY`, `SECRET_KEY`) instead of the standard AWS names — so even if the rest were correct, the credentials would be empty strings.
 
-1. **Are secrets in the Dockerfile?** — credentials should NEVER appear in a Dockerfile as `ARG` or `ENV`. Image layers are permanent and visible to anyone with the image.
-2. **Are secrets passed as build args?** — `--build-arg` values are stored in image metadata. Use `docker history` or `docker inspect` to see them. This is a security vulnerability.
-3. **Are secret names correct?** — GitHub secrets are referenced by exact name. A typo means an empty string, not an error.
-4. **When should secrets be injected?** — at runtime (environment variables in ECS task definitions, Kubernetes secrets, `docker run -e`), not at build time.
+---
 
-## Step-by-Step Solution
+## Step 0 — Start the Lab and Orient Yourself
 
-### Step 1: Remove secrets from the Dockerfile
+Before touching anything, get into the lab directory and read what's there.
 
-Open the `Dockerfile` and remove all `ARG` and `ENV` lines that reference credentials.
+```bash
+# Start the lab
+lab start 042
+
+# Navigate into the lab directory
+cd ~/cloud-engineer-labs/cicd-labs/lab-042-pipeline-secrets-injection
+
+# See what files are present
+ls -la
+```
+
+You should see:
+- `CHALLENGE.md` — the scenario and objectives
+- `Dockerfile` — the broken Docker image definition
+- `.github/workflows/deploy.yml` — the broken GitHub Actions workflow
+- `validate.sh` — run this when you're ready to check your fixes
+
+**Read `CHALLENGE.md` first.** It gives you the incident description and objectives without spoiling the bugs. Then open the two broken files and read them top to bottom before changing anything.
+
+```bash
+cat CHALLENGE.md
+cat Dockerfile
+cat .github/workflows/deploy.yml
+```
+
+This is a file-based lab — there are no containers to start and nothing to `docker-compose up`. The broken state is already present in the files. Your job is to find and fix it.
+
+---
+
+## Diagnostic Pathway — How to Think Through This
+
+When a deployment pipeline fails with credential errors, or when you're asked to audit a pipeline for secret handling, here is the logical sequence an engineer follows.
+
+---
+
+### Stage 1 — Start with the error symptom
+
+**What are you seeing?**
+
+The pipeline runs but AWS commands fail. The typical error is something like:
+
+```
+Unable to locate credentials. You can configure credentials by running "aws configure".
+```
+
+or
+
+```
+An error occurred (AuthFailure) when calling the... operation: AWS was not able to validate the provided access credentials
+```
+
+**Why does this happen?**
+
+Either the credentials were never made available to the process, or the names used to reference them are wrong — resulting in empty environment variables.
+
+**First question to ask yourself:** Are credentials even being passed to the step that needs them?
+
+---
+
+### Stage 2 — Read both files top to bottom before changing anything
+
+Open the `Dockerfile` and the workflow file and read them completely first. Don't start fixing on instinct.
+
+```bash
+cat Dockerfile
+cat .github/workflows/deploy.yml
+```
+
+In the `Dockerfile` you will see `ARG` and `ENV` instructions referencing credentials:
 
 ```dockerfile
-# BROKEN — secrets baked into the image!
-FROM node:18-alpine
+ARG AWS_ACCESS_KEY_ID
+ENV AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+```
+
+Your first instinct might be that this is fine because there are no hardcoded values — it's just referencing a variable, not pasting in a real key. **This is a common misconception.** The credentials are not hardcoded here, but the mechanism to receive and permanently store them is. The question to ask is: where does the real value come from, and what happens to it?
+
+---
+
+### Stage 3 — Trace the full chain from secret to image
+
+Follow the value through the system step by step:
+
+1. GitHub stores the real credential under a secret name (e.g. `ACCESS_KEY`)
+2. The workflow passes it into the Docker build: `--build-arg AWS_ACCESS_KEY_ID=${{ secrets.ACCESS_KEY }}`
+3. The `${{ secrets.ACCESS_KEY }}` reference is resolved to the **real credential value** before Docker even starts
+4. Docker receives the real value and the `ARG` instruction captures it
+5. The `ENV` instruction then writes that real value **permanently into the image layer**
+
+The key insight: by the time Docker sees it, the reference has already been substituted for the real thing. The image layer now contains the actual credential, not a reference to it.
+
+**Why does this matter?** Docker images are made of layers and every layer is permanent. Run this against any image built this way:
+
+```bash
+docker history myapp:latest
+```
+
+The credential values will be visible in the output. Anyone with read access to the image registry can extract them.
+
+---
+
+### Stage 4 — Understand what the Dockerfile actually needs to do
+
+The Dockerfile's only job is to package the application so it can run anywhere. It does not need credentials to do that.
+
+Credentials are needed by two things — neither of which is the image itself:
+
+- **The workflow** — to authenticate with AWS when pushing the image to ECR
+- **The running container** — when it starts up on a server and needs to connect to AWS or a database
+
+Both of those happen outside the image build. The workflow already has credentials available via GitHub secrets. The running container receives them at startup from the platform (ECS task definition, Kubernetes secrets, `docker run -e`) — not from the image.
+
+**A useful distinction:** Not all environment variables in a Dockerfile are wrong. The rule is specific:
+
+| Type | Example | OK in Dockerfile? |
+|---|---|---|
+| Non-sensitive config | `ENV NODE_ENV=production` | Yes — knowing this reveals nothing sensitive |
+| Credentials or secrets | `ENV AWS_ACCESS_KEY_ID=...` | Never — baked permanently into the image |
+
+---
+
+### Stage 5 — Audit everything before fixing
+
+Don't just fix the one thing that caused the visible error. Check the full scope first.
+
+```bash
+# Find all ARG and ENV lines in the Dockerfile
+grep -iE "ARG|ENV" Dockerfile
+
+# Find all secret references and build-arg usage in the workflow
+grep -i "build-arg\|secrets\." .github/workflows/deploy.yml
+```
+
+In this lab you will find three credentials affected in the Dockerfile (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `DATABASE_URL`) and two bugs in the workflow (wrong secret names and `--build-arg` passing).
+
+---
+
+### Stage 6 — Apply the fixes
+
+Now that you understand what the problem is and why it exists, the fixes are straightforward. Work through them one at a time.
+
+---
+
+## Step-by-Step Fix
+
+### Step 1 — Remove all credential lines from the Dockerfile
+
+Open `Dockerfile`. Find and remove the `ARG`/`ENV` blocks for credentials. Also remove the `ARG` lines — if nothing is writing the value into an `ENV`, the `ARG` declarations serve no purpose either.
+
+**Broken version:**
+```dockerfile
+FROM node:20-alpine
 WORKDIR /app
-COPY package*.json ./
+COPY package.json .
 RUN npm install
 COPY . .
 
@@ -35,117 +179,190 @@ ARG DATABASE_URL
 ENV DATABASE_URL=$DATABASE_URL
 
 ARG AWS_ACCESS_KEY_ID
-ENV AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-
 ARG AWS_SECRET_ACCESS_KEY
+ENV AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
 ENV AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
 
 CMD ["node", "server.js"]
+```
 
-# FIXED — no secrets in the image
-FROM node:18-alpine
+**Fixed version:**
+```dockerfile
+FROM node:20-alpine
 WORKDIR /app
-COPY package*.json ./
+COPY package.json .
 RUN npm install
 COPY . .
 CMD ["node", "server.js"]
 ```
 
-**What this does:** Removing the `ARG`/`ENV` lines ensures credentials are never embedded in the Docker image. The image now contains only application code. Credentials will be injected at runtime when the container starts, not at build time when the image is created.
+**What each instruction does:**
 
-### Step 2: Remove --build-arg from the workflow
+| Instruction | What it does |
+|---|---|
+| `FROM node:20-alpine` | Sets the base image — a minimal Linux image with Node.js 20 pre-installed |
+| `WORKDIR /app` | Sets the working directory inside the container for all subsequent instructions |
+| `COPY package.json .` | Copies `package.json` into `/app` |
+| `RUN npm install` | Installs Node dependencies — runs at build time and creates an image layer |
+| `COPY . .` | Copies the rest of the application code into `/app` |
+| `CMD ["node", "server.js"]` | Defines the default command to run when the container starts |
 
-Open `.github/workflows/deploy.yml` and remove the `--build-arg` flags that pass secrets to Docker build.
+**Why the removed lines were dangerous:**
 
+| Instruction | What it was doing |
+|---|---|
+| `ARG AWS_ACCESS_KEY_ID` | Declares a build argument — Docker build receives this value from the command line at build time |
+| `ENV AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID` | Takes that build arg value and writes it permanently into the image as an environment variable in this layer |
+
+Once an `ENV` is written to an image layer, it is there forever — even if a later layer overwrites it, the original value is still readable in the layer history.
+
+---
+
+### Step 2 — Remove `--build-arg` flags from the workflow
+
+Open `.github/workflows/deploy.yml` and find the Build and push step.
+
+**Broken version:**
 ```yaml
-# BROKEN — secrets visible in image layers
-    steps:
-      - name: Build Docker image
-        run: |
-          docker build \
-            --build-arg AWS_ACCESS_KEY_ID=${{ secrets.ACCESS_KEY }} \
-            --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.SECRET_KEY }} \
-            --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} \
-            -t myapp:latest .
-
-# FIXED — no secrets in build command
-    steps:
-      - name: Build Docker image
-        run: |
-          docker build -t myapp:latest .
+- name: Build and push
+  run: |
+    docker build \
+      --build-arg AWS_ACCESS_KEY_ID=${{ secrets.ACCESS_KEY }} \
+      --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.SECRET_KEY }} \
+      --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} \
+      -t $ECR_REGISTRY/app:${{ github.sha }} .
+    docker push $ECR_REGISTRY/app:${{ github.sha }}
 ```
 
-**What this does:** The Docker build command no longer passes any credentials. The image is built with only the application code. `--build-arg` values are stored in the image metadata — anyone with `docker history myapp:latest` or `docker inspect` could see the credentials in plain text.
-
-### Step 3: Fix the secret names in the workflow
-
-Use the standard AWS credential names when referencing GitHub secrets for deployment.
-
+**Fixed version:**
 ```yaml
-# BROKEN — wrong secret names
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.SECRET_KEY }}
-
-# FIXED — standard secret names
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+- name: Build and push
+  run: |
+    docker build -t $ECR_REGISTRY/app:${{ github.sha }} .
+    docker push $ECR_REGISTRY/app:${{ github.sha }}
 ```
 
-**What this does:** GitHub secrets are referenced by their exact configured name. The AWS CLI and SDKs expect `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` as environment variable names. Using the wrong names (`ACCESS_KEY`, `SECRET_KEY`) results in empty values, and AWS commands fail with "Unable to locate credentials."
+**What each part does:**
 
-### Step 4: Inject secrets at runtime instead
+| Flag / Component | What it does |
+|---|---|
+| `docker build` | The Docker CLI command to build an image from a Dockerfile |
+| `--build-arg KEY=VALUE` | Passes a variable into the Docker build process, accessible via `ARG` in the Dockerfile. Stored in image metadata — visible via `docker history` |
+| `-t $ECR_REGISTRY/app:${{ github.sha }}` | Tags the image. `-t` is short for `--tag`. `github.sha` is the Git commit hash — used as a unique version tag |
+| `.` | The build context — the directory Docker packages up and sends to the daemon |
+| `docker push` | Pushes the tagged image to the ECR repository |
 
-In the deploy step, pass credentials to the running container, not the build.
+---
 
+### Step 3 — Fix the secret names in the workflow
+
+Find the Configure AWS step in the workflow.
+
+**Broken version:**
 ```yaml
-      - name: Deploy
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: |
-          docker build -t myapp:latest .
-          # Push to ECR, then deploy via ECS/EKS
-          # Credentials are in the DEPLOYMENT environment, not the image
-          aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REPO
-          docker push $ECR_REPO/myapp:latest
+- name: Configure AWS
+  uses: aws-actions/configure-aws-credentials@v4
+  with:
+    aws-access-key-id: ${{ secrets.ACCESS_KEY }}
+    aws-secret-access-key: ${{ secrets.SECRET_KEY }}
+    aws-region: eu-west-2
 ```
 
-**What this does:** AWS credentials are available as environment variables during the deploy step (for pushing to ECR, updating ECS, etc.) but are never embedded in the Docker image. The running container receives its credentials via the ECS task definition, Kubernetes secrets, or `docker run -e` at startup time.
+**Fixed version:**
+```yaml
+- name: Configure AWS
+  uses: aws-actions/configure-aws-credentials@v4
+  with:
+    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    aws-region: eu-west-2
+```
 
-### Step 5: Validate
+**What's happening here:**
+
+| Part | What it does |
+|---|---|
+| `uses: aws-actions/configure-aws-credentials@v4` | A pre-built GitHub Action that handles AWS authentication — you give it credentials, it configures the AWS CLI for all subsequent steps in the job |
+| `aws-access-key-id: ...` | The input parameter this Action expects — maps to the `AWS_ACCESS_KEY_ID` environment variable internally |
+| `${{ secrets.AWS_ACCESS_KEY_ID }}` | Reads the GitHub secret whose name is `AWS_ACCESS_KEY_ID`. If the name doesn't match exactly, GitHub returns an empty string — no error, no warning |
+
+**Why wrong names cause silent failures:** GitHub does not raise an error for a missing secret reference. `${{ secrets.NONEXISTENT }}` evaluates to an empty string. The AWS CLI then receives an empty credential and reports "Unable to locate credentials" — the error looks like a configuration problem, not a typo. This is one of the most common causes of confusing pipeline failures.
+
+---
+
+### Step 4 — Validate your fixes
 
 ```bash
-# Check no secrets in Dockerfile
-grep -i "AWS_ACCESS_KEY\|AWS_SECRET\|DATABASE_URL" Dockerfile
-# Should return nothing
-
-# Check no --build-arg with secrets in workflow
-grep -i "build-arg.*secret\|build-arg.*KEY\|build-arg.*DATABASE" .github/workflows/deploy.yml
-# Should return nothing
+lab validate 042
 ```
 
-## Docker Lab vs Real Life
+All four checks should pass:
+- Dockerfile doesn't contain AWS credentials
+- No secret access key in Dockerfile
+- No secrets passed as Docker build args
+- Workflow uses standard AWS credential names
 
-- **IAM roles instead of access keys:** In production AWS environments, use IAM roles for ECS tasks (`task_role_arn`) or EC2 instance profiles. The application never sees credentials — AWS SDKs automatically use the role. No environment variables needed.
-- **AWS Secrets Manager:** For database URLs and API keys, store them in AWS Secrets Manager and reference them in ECS task definitions using `valueFrom`. The container receives the secret at startup without it touching CI/CD.
-- **OIDC for GitHub Actions:** Instead of storing AWS access keys as GitHub secrets, configure OIDC federation. GitHub Actions assumes an IAM role directly — no long-lived credentials to manage or rotate.
-- **Docker multi-stage builds:** If you need build-time secrets (e.g., private npm registry tokens), use Docker BuildKit secrets (`--mount=type=secret`) which are never stored in image layers.
-- **Image scanning:** Production pipelines run Trivy or Snyk to scan Docker images for leaked secrets and vulnerabilities before pushing to the registry.
+---
 
-## Key Concepts Learned
+### Step 5 — Manual verification
 
-- **Never bake secrets into Docker images** — `ARG` and `ENV` values are stored in image layers permanently. Anyone with the image can extract them.
-- **`--build-arg` values are visible in image history** — `docker history` shows all build arguments. This is not a secret storage mechanism.
-- **Inject secrets at runtime, not build time** — use ECS task definitions, Kubernetes secrets, or `docker run -e` to provide credentials when the container starts.
-- **Use exact secret names** — GitHub secrets are referenced by their configured name. Typos result in empty strings, not errors.
-- **IAM roles are the gold standard** — in AWS, IAM roles for services (ECS tasks, EC2 instances, Lambda) eliminate the need for access keys entirely.
+After validation, confirm both files look clean:
 
-## Common Mistakes
+```bash
+# Confirm no credential references remain in the Dockerfile
+grep -iE "AWS_ACCESS_KEY|AWS_SECRET|DATABASE_URL" Dockerfile
 
-- **Leaving `ARG`/`ENV` for credentials in Dockerfile** — this is the #1 Docker security mistake. The credentials are permanently in every image layer.
-- **Using `--build-arg` for secrets** — build args are metadata, not secrets. Use Docker BuildKit `--secret` mount if you truly need build-time secrets.
-- **Wrong secret names in GitHub Actions** — `secrets.ACCESS_KEY` vs `secrets.AWS_ACCESS_KEY_ID`. There's no error — you just get an empty string.
-- **Committing `.env` files** — similar to the Dockerfile issue. If `.env` is in the repo, credentials are in git history forever. Add `.env` to `.gitignore`.
-- **Not rotating compromised credentials** — if secrets were ever baked into an image, they must be rotated immediately. The old credentials are compromised even if you rebuild the image.
+# Confirm no --build-arg secret passing remains in the workflow
+grep -iE "build-arg" .github/workflows/deploy.yml
+```
+
+**What these commands do:**
+
+| Part | What it does |
+|---|---|
+| `grep` | Searches for a pattern in a file |
+| `-i` | Case-insensitive — matches regardless of capitalisation |
+| `-E` | Extended regular expressions — enables the pipe character as OR |
+| `"AWS_ACCESS_KEY\|AWS_SECRET\|DATABASE_URL"` | The pattern to search for — any of these three strings |
+
+Both commands should return **nothing**. Any output means there is still a reference to clean up.
+
+---
+
+## Environment Notes
+
+- **This lab uses GitHub Actions** — the workflow file lives at `.github/workflows/deploy.yml` in the repo
+- **AWS credentials** should be stored in GitHub Settings → Secrets and Variables → Actions with the exact names `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+- **In real AWS environments**, you would use IAM roles for ECS/EC2 instead of long-lived access keys — the application never needs to see credentials at all. This lab teaches the correct handling of access keys for the cases where they are unavoidable
+
+---
+
+## Real-World Context
+
+| Practice | What it means in production |
+|---|---|
+| IAM roles instead of access keys | ECS tasks and EC2 instances can be assigned an IAM role. AWS SDKs automatically use it — no credentials in environment variables at all |
+| AWS Secrets Manager | Database URLs and API keys are stored in Secrets Manager and injected into ECS task definitions via `valueFrom` at container startup |
+| OIDC for GitHub Actions | GitHub can directly assume an IAM role via federation — no long-lived access keys stored in GitHub Secrets at all |
+| Docker BuildKit secrets | If you genuinely need a secret at build time (e.g. a private npm registry token), use `--mount=type=secret` which is never written to image layers |
+| Image scanning | Trivy or Snyk scans images for leaked secrets and vulnerabilities before they are pushed to the registry |
+
+---
+
+## Cleanup / Reset
+
+To reset the lab back to the broken state so you can run through it again from Step 0:
+
+```bash
+# Restore the broken Dockerfile — re-add the ARG/ENV credential lines
+vi Dockerfile
+
+# Restore the broken workflow — re-add --build-arg flags and wrong secret names
+vi .github/workflows/deploy.yml
+
+# Confirm you're back to the broken state before re-attempting
+grep -iE "ARG|ENV" Dockerfile
+grep -i "build-arg" .github/workflows/deploy.yml
+```
+
+Both `grep` commands should return output confirming the broken lines are present before re-attempting.
