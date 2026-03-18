@@ -12,7 +12,6 @@ jobs:
     - name: Configure AWS
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        # BUG 3: Referencing wrong secret names
         aws-access-key-id: ${{ secrets.ACCESS_KEY }}
         aws-secret-access-key: ${{ secrets.SECRET_KEY }}
         aws-region: eu-west-2
@@ -22,7 +21,6 @@ jobs:
     
     - name: Build and push
       run: |
-        # BUG 4: Passing secrets as build args (visible in image layers!)
         docker build \
           --build-arg AWS_ACCESS_KEY_ID=${{ secrets.ACCESS_KEY }} \
           --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.SECRET_KEY }} \
