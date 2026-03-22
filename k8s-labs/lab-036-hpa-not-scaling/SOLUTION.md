@@ -232,6 +232,42 @@ The HPA is now functional and will scale based on CPU usage.
 
 ---
 
+## Cleanup / Reset
+
+Run these commands when the lab is complete, or any time you want to reset back to the broken starting state for a re-run.
+
+### Step 1: Delete all lab resources
+
+```bash
+kubectl delete -f k8s-labs/lab-036-hpa-not-scaling/manifests/broken/
+```
+
+| Part | What it does |
+|---|---|
+| `kubectl delete` | Removes resources from the cluster |
+| `-f k8s-labs/lab-036-hpa-not-scaling/manifests/broken/` | Targets all manifests in the broken directory — removes both the Deployment and the HPA |
+
+### Step 2: Confirm everything is gone
+
+```bash
+kubectl get hpa
+kubectl get deployment web-tier
+```
+
+Both should return "No resources found". If either still shows, wait a few seconds and repeat.
+
+### Step 3: Reset for a re-run (optional)
+
+The broken starting state is already preserved in the manifest files — the fix lives only in the solution file, never in the source YAML. To re-run from Step 1:
+
+```bash
+kubectl apply -f k8s-labs/lab-036-hpa-not-scaling/manifests/broken/
+```
+
+> **Note:** No ConfigMaps, Secrets, or namespaces were created in this lab — the delete command above is all that's needed.
+
+---
+
 ## Common Mistakes
 
 - **Creating an HPA without resource requests** — the HPA silently shows `<unknown>` rather than giving an obvious error. Easy to miss.
