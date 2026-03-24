@@ -183,17 +183,98 @@ Ask yourself: is anything in this configuration supplying this ExternalId when c
 
 **Two ways to fix this:**
 
-**Option 1 — Remove the condition (what we do in this lab):**
-If ExternalId isn't needed for the scenario, remove the Condition block entirely. Clean and simple for same-account setups.
+---
 
-**Option 2 — Satisfy the condition:**
-Keep the ExternalId in the trust policy, and update the calling application code to pass `"required-external-id-12345"` in the `sts:AssumeRole` API call. Both sides must match. This is the correct production pattern when a third party needs to assume a role in your account — the ExternalId is agreed out of band and acts as proof that it's really them calling.
+**Option 1 — Remove the condition (what we do in this lab):**
+
+If ExternalId isn't needed for the scenario — a same-account setup like this lab — remove the Condition block entirely.
+
+```hcl
+# BEFORE — trust policy requires an ExternalId that nobody is supplying
+assume_role_policy = jsonencode({
+  Version = "2012-10-17"
+  Statement = [{
+    Effect    = "Allow"
+    Principal = {
+      AWS = aws_iam_role.app_role.arn
+    }
+    Action    = "sts:AssumeRole"
+    Condition = {
+      StringEquals = {
+        "sts:ExternalId" = "required-external-id-12345"
+      }
+    }
+  }]
+})
+
+# AFTER — condition removed, no passcode required
+assume_role_policy = jsonencode({
+  Version = "2012-10-17"
+  Statement = [{
+    Effect    = "Allow"
+    Principal = {
+      AWS = aws_iam_role.app_role.arn
+    }
+    Action = "sts:AssumeRole"
+  }]
+})
+```
+
+---
+
+**Option 2 — Keep the condition and satisfy it at runtime (production cross-account pattern):**
+
+In a real cross-account setup with a third party, you'd keep the ExternalId in the trust policy — that's the security control. The fix is on the **calling application side**, not in Terraform. The application must pass the matching ExternalId in its `sts:AssumeRole` API call.
+
+The trust policy stays as-is (or uses a real agreed ExternalId rather than the placeholder):
+
+```hcl
+# Trust policy — ExternalId kept, but using a real agreed value
+assume_role_policy = jsonencode({
+  Version = "2012-10-17"
+  Statement = [{
+    Effect    = "Allow"
+    Principal = {
+      AWS = aws_iam_role.app_role.arn
+    }
+    Action    = "sts:AssumeRole"
+    Condition = {
+      StringEquals = {
+        "sts:ExternalId" = "required-external-id-12345"
+      }
+    }
+  }]
+})
+```
+
+And the calling application must include the ExternalId in the API call. In Python (boto3) that looks like:
+
+```python
+# BEFORE — no ExternalId passed, trust policy rejects the call
+sts_client = boto3.client('sts')
+response = sts_client.assume_role(
+    RoleArn="arn:aws:iam::123456789012:role/shared-services-role",
+    RoleSessionName="app-session"
+)
+
+# AFTER — ExternalId included, trust policy condition is satisfied
+sts_client = boto3.client('sts')
+response = sts_client.assume_role(
+    RoleArn="arn:aws:iam::123456789012:role/shared-services-role",
+    RoleSessionName="app-session",
+    ExternalId="required-external-id-12345"   # must match the trust policy exactly
+)
+```
+
+The ExternalId is not configured anywhere in IAM on the caller's side — it's passed as a runtime argument in the API call itself. If the strings don't match exactly, STS rejects the request even if the Principal and Action are both correct.
+
+---
 
 **What ExternalId protects against:**
 
 ExternalId prevents the "confused deputy" problem. Imagine Datadog is trusted to assume roles in your account. A malicious actor could trick Datadog into assuming your role on their behalf — because Datadog is trusted, and the trust policy doesn't know who's actually driving the request. An ExternalId is a shared secret only you and Datadog know. The malicious actor doesn't have it, so their requests fail.
 
-For this lab — remove the Condition block entirely.
+**For this lab — use Option 1. Remove the Condition block entirely.**
 
 ---
 
@@ -393,3 +474,43 @@ When you hit "Access Denied" on `sts:AssumeRole` in production, work through thi
 ## Pi/K3s Lab Notes
 
 This lab runs against real AWS IAM — there are no Pi-specific environment constraints. Terraform communicates directly with AWS APIs from the Pi using the credentials configured via `aws configure`. All behaviour observed is identical to running this lab from any other machine.
+
+---
+
+## Cleanup & Reset — Run Again From Step 1
+
+Two things need to happen to fully reset this lab: AWS resources destroyed, and `main.tf` restored to its broken state.
+
+**Step 1 — Destroy the AWS resources:**
+
+```bash
+terraform destroy -auto-approve
+```
+
+| Component | What it does |
+|-----------|-------------|
+| `terraform` | The Terraform CLI |
+| `destroy` | Destroys all resources tracked in the current Terraform state — in this lab, the two IAM roles and the inline policy |
+| `-auto-approve` | Skips the manual yes/no confirmation prompt |
+
+**Step 2 — Restore the broken `main.tf` from the repo:**
+
+```bash
+git checkout main.tf
+```
+
+| Component | What it does |
+|-----------|-------------|
+| `git` | The Git CLI |
+| `checkout` | In this context (with a filename rather than a branch name), discards all uncommitted local changes to the specified file and restores it to the last committed version from the repo |
+| `main.tf` | The specific file to restore — your fixed version is discarded, the broken version from GitHub is restored |
+
+**Why this works:** The broken state is committed in the GitHub repo. Your fixes were only ever made locally on the Pi and never pushed. `git checkout main.tf` throws away the local changes and pulls the file back from the repo — which still holds the three bugs exactly as they were.
+
+**Verify the reset worked:**
+
+```bash
+cat main.tf
+```
+
+You should see `wrong-role-name`, the `ExternalId` condition, and `iam:PassRole` all back in place. If you do — the lab is fully reset and ready to run from Step 1.
