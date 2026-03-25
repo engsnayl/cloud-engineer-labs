@@ -4,220 +4,293 @@
 
 ## TLDR — Plain English Summary
 
-Imagine your application is trying to knock on the database's door, but three things are going wrong:
+You've been handed a ticket: the application can't connect to the database. Both live in the same VPC. Nothing else is known.
 
-1. **The bouncer has the wrong guest list.** The database security group only lets in traffic from IP range `10.0.99.0/24`, but your app lives at `10.0.1.0/24`. It's like your app is knocking on the right door but it's not on the list — so the knock is silently ignored.
+When you try to stand up the infrastructure, AWS immediately throws an error — the database won't even create. That error is your first clue and points you directly at the first thing to fix. Once infrastructure is up, the connectivity fault is still there — and tracking it down means reading security group rules carefully and knowing what "normal" looks like so you can spot what's wrong.
 
-2. **The database can't talk back.** Even if traffic gets in, the database has no rule allowing it to send a response. Without an egress rule in Terraform, response packets can't leave. It's like the database picks up the phone but can't speak — the line goes dead.
-
-3. **The database has a public-facing door that should be locked.** `publicly_accessible = true` gives the RDS instance a public DNS name and exposes it to the internet. For a database that should only ever talk to your internal app, this is a security risk — and in this lab it actually prevents the instance from being created at all.
-
-**To fix it:** Disable public accessibility first (so the instance can be created), then point the security group at the correct source using a security group reference instead of a wrong CIDR, then add the missing egress rule.
+There are three things broken in total. You won't know that at the start — you'll find them one at a time as you work through the investigation.
 
 ---
 
-## The Three Bugs at a Glance
+## The Ticket
 
-| # | Bug | Impact |
-|---|-----|--------|
-| 1 | DB security group ingress allows wrong CIDR (`10.0.99.0/24` instead of `10.0.1.0/24`) | App traffic is silently dropped — connection never reaches the DB |
-| 2 | DB security group has no egress rule | DB can receive traffic but can't send responses back |
-| 3 | `publicly_accessible = true` on the RDS instance | Prevents instance creation entirely in a VPC without an internet gateway |
+> **Application cannot connect to RDS database on port 3306. Both are deployed in the same VPC. Connection attempts are failing.**
+
+That's all you have. You don't know why. You don't know where the fault is. You start by trying to deploy the infrastructure and see what happens.
 
 ---
 
-## Important: Apply Order Matters
+## Phase 1: Stand Up the Infrastructure
 
-**Fix Bug 3 first.** In this lab, `publicly_accessible = true` causes `terraform apply` to fail immediately with:
+### Step 1: Initialise and apply
 
-```
-InvalidVPCNetworkStateFault: Cannot create a publicly accessible DBInstance.
-The specified VPC has no internet gateway attached.
+You've been given a Terraform config. First thing — try to deploy it and see what happens.
+
+```bash
+terraform init
+terraform apply
 ```
 
-The VPC has no internet gateway (correctly, for a private DB), so AWS refuses to create the instance at all. You cannot get into a broken-but-running state until this is fixed. In a real environment with an IGW present this would succeed silently — making it a hidden security risk rather than an obvious error. Here it fails loudly, which is actually helpful.
+You'll be asked to confirm. Type `yes`.
 
-Fix `publicly_accessible = false` in `main.tf` first, then apply to get the infrastructure up before working through Bugs 1 and 2.
+**What you see:**
+
+```
+Error: creating RDS DB Instance (app-db): InvalidVPCNetworkStateFault:
+Cannot create a publicly accessible DBInstance. The specified VPC has
+no internet gateway attached.
+```
+
+The apply fails immediately. The database won't even create.
 
 ---
 
-## Step-by-Step Investigative Learning Pathway
+### Step 2: Read the error — what is it actually telling you?
+
+Don't skip past this. The error message is specific:
+
+- **`publicly accessible DBInstance`** — Terraform is trying to create a database that's reachable from the public internet
+- **`VPC has no internet gateway attached`** — the VPC is private; there's no route out to the internet
+
+AWS is refusing to create a publicly accessible database in a VPC that has no internet gateway. Those two things are incompatible.
+
+**The question to ask yourself:** should this database be publicly accessible at all?
+
+The answer is no. This database exists to serve an internal application. It should only ever be reachable from within the VPC. Making it publicly accessible is both unnecessary and a security risk.
 
 ---
 
-### Bug 3 (Fix First): RDS Instance Set to Publicly Accessible
+### Step 3: Find the setting and fix it
 
-#### The Symptom
-`terraform apply` fails immediately with `InvalidVPCNetworkStateFault`. AWS won't create a publicly accessible RDS instance in a VPC that has no internet gateway.
+Open `main.tf` and find the `aws_db_instance` resource. Look for `publicly_accessible`:
 
-#### The Investigation
+```bash
+vi main.tf
+```
 
-**Step 1: Find the RDS instance resource in main.tf**
-
-Look for the `aws_db_instance` resource. Scan for the `publicly_accessible` argument.
-
-**Step 2: Why is this wrong?**
-
-`publicly_accessible = true` does two things:
-1. Assigns a public DNS name to the RDS instance
-2. Makes the instance reachable from outside the VPC if any security group allows it
-
-For a database that only needs to talk to an internal app server, this is unnecessary exposure. In a real environment with an IGW, this would succeed silently — and potentially expose your database to the internet if a security group was ever misconfigured to allow `0.0.0.0/0`.
-
-**Step 3: Will changing this break anything?**
-
-Only if something outside the VPC is currently connecting directly to the database — which should never be the case for a properly designed internal application. All internal app to DB connections via private IP are unaffected.
-
-#### The Fix
+You'll see:
 
 ```hcl
-# BROKEN
-resource "aws_db_instance" "main" {
-  publicly_accessible = true    # Prevents creation in a VPC without IGW
-}
-
-# FIXED
-resource "aws_db_instance" "main" {
-  identifier             = "app-db"
-  engine                 = "mysql"
-  engine_version         = "8.0"
-  instance_class         = "db.t3.micro"
-  allocated_storage      = 20
-  db_name                = "appdb"
-  username               = "admin"
-  password               = "changeme123"
-  publicly_accessible    = false
-  skip_final_snapshot    = true
-  db_subnet_group_name   = aws_db_subnet_group.main.name
-  vpc_security_group_ids = [aws_security_group.db.id]
-}
+publicly_accessible = true
 ```
 
-#### aws_db_instance Key Fields
+Change it to:
 
-| Field | Value | What it means |
-|-------|-------|---------------|
-| `identifier` | `"app-db"` | Unique name for this RDS instance in your AWS account |
-| `engine` | `"mysql"` | The database engine to run |
-| `engine_version` | `"8.0"` | Specific MySQL version |
-| `instance_class` | `"db.t3.micro"` | Compute size — small, burstable |
-| `allocated_storage` | `20` | Storage in gigabytes |
-| `publicly_accessible` | `false` | No public DNS name — DB is VPC-only |
-| `skip_final_snapshot` | `true` | Don't create a snapshot on destroy (fine for labs, not production) |
-| `db_subnet_group_name` | (reference) | Which subnets RDS can use — must span 2+ AZs |
-| `vpc_security_group_ids` | (reference) | Attaches the DB security group to control who can connect |
+```hcl
+publicly_accessible = false
+```
+
+Save and exit (`:wq`).
+
+#### What does `publicly_accessible` actually control?
+
+| Setting | What it does |
+|---------|--------------|
+| `true` | Assigns a public DNS name to the RDS instance; makes it reachable from outside the VPC if security groups allow |
+| `false` | No public DNS name; DB is only reachable from within the VPC |
 
 ---
 
-### Bug 1: Wrong CIDR in the Security Group Ingress Rule
+### Step 4: Apply again
 
-#### The Symptom
-After the infrastructure is up, connection attempts to the database time out rather than getting an explicit rejection. Timeout behaviour is the key clue — it means a security group is silently dropping packets, not actively refusing them.
-
-#### The Investigation
-
-**Step 1: Where do you start?**
-
-Security groups are almost always the first thing to check when an app can't reach a database in AWS. Go to your Terraform config and find the `aws_security_group` resource attached to your RDS instance. Look at the `ingress` block.
-
-**Step 2: What are you looking for?**
-
-Three things need to match:
-- `from_port` / `to_port` → should be `3306` (MySQL)
-- `protocol` → should be `"tcp"`
-- The *source* → this is where the bug is
-
-**Step 3: How do you spot the bug?**
-
-Check the `cidr_blocks` value in the ingress rule:
-
-```hcl
-cidr_blocks = ["10.0.99.0/24"]
+```bash
+terraform apply
 ```
 
-Now ask: where does my application actually live? Check the `aws_subnet` resource definitions in your config, or pull it directly from state:
+This time the infrastructure builds. The VPC, subnets, security groups, and RDS instance all create successfully. RDS takes 4-5 minutes.
+
+**You now have a running database — but the connectivity problem from the ticket is still there.** The infrastructure is up; now the investigation begins.
+
+---
+
+## Phase 2: Investigate the Connectivity Fault
+
+### Step 5: Establish what you know before touching anything
+
+Before you start changing things, take stock of what's been deployed. Look at the Terraform config and understand the setup:
+
+- There's a VPC (`10.0.0.0/16`)
+- There's an app subnet (`10.0.1.0/24`)
+- There's a database sitting in its own subnets
+- There are two security groups — one for the app (`app-sg`), one for the database (`db-sg`)
+- The database has `db-sg` attached via `vpc_security_group_ids`
+
+The application connects to the database on port 3306 (MySQL). For that to work, the database's security group must allow inbound traffic from the application on port 3306.
+
+**This is where you start: the database security group.**
+
+---
+
+### Step 6: Read the database security group
+
+In `main.tf`, find the `aws_security_group` resource named `"db"`. Read it carefully:
+
+```hcl
+resource "aws_security_group" "db" {
+  name   = "db-sg"
+  vpc_id = aws_vpc.main.id
+
+  ingress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.99.0/24"]
+  }
+}
+```
+
+Walk through this line by line:
+
+- `from_port = 3306`, `to_port = 3306`, `protocol = "tcp"` — correct, MySQL uses TCP on 3306
+- `cidr_blocks = ["10.0.99.0/24"]` — this is the source. Only traffic from `10.0.99.0/24` is allowed in
+
+**Now ask: where does the application actually live?**
+
+---
+
+### Step 7: Find the app subnet CIDR and compare
+
+Look back at the Terraform config. Find the app subnet:
+
+```hcl
+resource "aws_subnet" "app" {
+  vpc_id     = aws_vpc.main.id
+  cidr_block = "10.0.1.0/24"
+  ...
+}
+```
+
+Or pull it directly from state to be certain:
 
 ```bash
 terraform state show aws_subnet.app | grep cidr
 ```
 
-You'll find the app subnet is `10.0.1.0/24`. These are completely different ranges — traffic from your app doesn't match the allowed CIDR and is silently dropped.
+The app subnet is `10.0.1.0/24`.
 
-**Step 4: What's the fix — and is there a better approach than CIDRs?**
+**Now compare:**
 
-You could swap `10.0.99.0/24` for `10.0.1.0/24` and that would work. But the better real-world approach is to reference the security group directly:
+| What the security group allows | Where the app actually is |
+|-------------------------------|--------------------------|
+| `10.0.99.0/24` | `10.0.1.0/24` |
 
-```hcl
-security_groups = [aws_security_group.app.id]
+These are completely different ranges. `10.0.99.x` and `10.0.1.x` have nothing in common — traffic from the app instance simply doesn't match the allowed CIDR. The security group silently drops every connection attempt. This is why connection attempts time out rather than getting an explicit refusal — the packets are dropped without response.
+
+**This is Bug 1. You've found it by reading and comparing, not by guessing.**
+
+---
+
+### Step 8: How to read a CIDR so you can spot this at a glance
+
+A CIDR like `10.0.1.0/24` breaks down like this:
+
+```
+10  .  0  .  1  .  0  /24
+|      |     |     |
+Fixed  Fixed Fixed  Variable (hosts 0-255)
 ```
 
-This says "allow traffic from any instance with the app security group attached." If the app ever moves to a different subnet, the rule still works automatically.
+The `/24` means the first 24 bits — the first three octets — are fixed. Only the last octet varies. So `10.0.1.0/24` covers `10.0.1.0` through `10.0.1.255`.
 
-#### The Fix
+`10.0.99.0/24` covers `10.0.99.0` through `10.0.99.255`.
+
+These ranges don't overlap at all. If you look at two `/24` addresses and the third octet is different, they are completely separate subnets. Traffic from one will never match a rule written for the other.
+
+**Private IP ranges worth memorising:**
+- `10.0.0.0/8` — the large private range AWS VPCs typically use
+- `172.16.0.0/12`
+- `192.168.0.0/16`
+
+---
+
+### Step 9: Fix the ingress rule — and use the better approach
+
+You could just swap `10.0.99.0/24` for `10.0.1.0/24`. That would work. But there's a better pattern: reference the application's security group directly instead of its subnet CIDR.
+
+**Why is this better?**
+
+If you use a CIDR, the rule breaks the moment the app moves to a different subnet. If you reference the security group, the rule says "allow traffic from any instance with the app security group attached" — it works regardless of which subnet the app is in, and it's more readable.
+
+Open `main.tf` and change the db security group ingress:
 
 ```hcl
-# BROKEN
+# BROKEN — wrong CIDR, and fragile
 ingress {
   from_port   = 3306
   to_port     = 3306
   protocol    = "tcp"
-  cidr_blocks = ["10.0.99.0/24"]    # Wrong CIDR — app is at 10.0.1.0/24
+  cidr_blocks = ["10.0.99.0/24"]
 }
 
-# FIXED
+# FIXED — correct source, more robust
 ingress {
   from_port       = 3306
   to_port         = 3306
   protocol        = "tcp"
-  security_groups = [aws_security_group.app.id]    # Reference the app SG directly
+  security_groups = [aws_security_group.app.id]
 }
 ```
 
-#### Ingress Rule Fields
+#### Ingress rule fields explained
 
 | Field | Value | What it means |
 |-------|-------|---------------|
 | `from_port` | `3306` | Start of the allowed port range |
-| `to_port` | `3306` | End of the allowed port range — same value means exactly port 3306 |
+| `to_port` | `3306` | End — same as from_port means exactly port 3306 only |
 | `protocol` | `"tcp"` | MySQL uses TCP |
-| `security_groups` | (reference) | Allow traffic from any instance with this security group attached |
+| `security_groups` | (reference) | Allow traffic from any instance with this SG attached |
 
 ---
 
-### Bug 2: No Egress Rule on the DB Security Group
+### Step 10: Look at the security group again — is there anything else missing?
 
-#### The Symptom
-Even after fixing the ingress CIDR, connections may still fail or behave inconsistently. AWS security groups are stateful — return traffic is normally allowed automatically — but Terraform-managed security groups without any egress block can behave unexpectedly and block all outbound traffic.
-
-#### The Investigation
-
-**Step 1: Check whether there's an egress block at all**
-
-Look at the `aws_security_group` resource for your database. If there's no `egress` block, that's the problem. Unlike the AWS console (which adds an allow-all egress rule by default), Terraform requires you to define this explicitly.
-
-**Step 2: What should the egress rule look like?**
-
-For a database, egress doesn't need to be restrictive — it just needs to exist so response traffic can flow back to the application:
+Now that you've fixed the ingress rule, read the whole security group again:
 
 ```hcl
-egress {
-  from_port   = 0
-  to_port     = 0
-  protocol    = "-1"
-  cidr_blocks = ["0.0.0.0/0"]
+resource "aws_security_group" "db" {
+  name   = "db-sg"
+  vpc_id = aws_vpc.main.id
+
+  ingress {
+    from_port       = 3306
+    to_port         = 3306
+    protocol        = "tcp"
+    security_groups = [aws_security_group.app.id]
+  }
 }
 ```
 
-#### Egress Rule Fields
+There's an ingress rule — but no egress rule.
 
-| Field | Value | What it means |
-|-------|-------|---------------|
-| `from_port` | `0` | Combined with protocol `-1`, means any port |
-| `to_port` | `0` | Combined with protocol `-1`, means any port |
-| `protocol` | `"-1"` | AWS shorthand for "all protocols" |
-| `cidr_blocks` | `["0.0.0.0/0"]` | Allow responses to any destination |
+**Does that matter?**
 
-#### The Fix
+AWS security groups are stateful. In theory, return traffic for an established connection is automatically allowed. But in practice, Terraform-managed security groups without any egress block can behave unexpectedly and block all outbound traffic. The AWS console adds an allow-all egress rule by default when you create a security group. Terraform does not — if you don't define it, it doesn't exist.
+
+Compare the app security group in the same config:
+
+```hcl
+resource "aws_security_group" "app" {
+  name   = "app-sg"
+  vpc_id = aws_vpc.main.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+```
+
+The app security group has an egress rule. The db security group doesn't. That inconsistency is a signal — the db security group is incomplete.
+
+**This is Bug 2. You found it by reading carefully and comparing against what a complete security group looks like.**
+
+---
+
+### Step 11: Add the egress rule
+
+Add an egress block to the db security group in `main.tf`:
 
 ```hcl
 resource "aws_security_group" "db" {
@@ -240,91 +313,93 @@ resource "aws_security_group" "db" {
 }
 ```
 
+#### Egress rule fields explained
+
+| Field | Value | What it means |
+|-------|-------|---------------|
+| `from_port` | `0` | Combined with protocol `-1`: any port |
+| `to_port` | `0` | Combined with protocol `-1`: any port |
+| `protocol` | `"-1"` | AWS shorthand for all protocols |
+| `cidr_blocks` | `["0.0.0.0/0"]` | Allow responses to any destination |
+
 ---
 
-## Validate and Apply
+## Phase 3: Apply the Fixes and Validate
 
-Once all fixes are in place:
+### Step 12: Review your changes before applying
+
+Before you apply, it's good practice to validate and plan:
 
 ```bash
 terraform validate
 terraform plan
-terraform apply
 ```
 
-#### Command Breakdown
+#### Command breakdown
 
 | Command | What it does |
 |---------|--------------|
 | `terraform validate` | Checks HCL syntax — catches typos and structural errors before touching AWS |
 | `terraform plan` | Shows exactly what Terraform would change — read this before applying |
-| `terraform apply` | Makes the changes real in AWS |
 
-**What to look for in `terraform plan`:**
-- `aws_security_group` should show the wrong CIDR ingress replaced with a security group reference, and a new egress block added
-- `aws_db_instance` should show `publicly_accessible` changing from `true` to `false`
+**What to look for in the plan:**
+- `aws_security_group.db` should show the ingress source changing from a CIDR to a security group reference, and a new egress block being added
+- Nothing else should be changing — if you see unexpected changes, investigate before applying
+
+### Step 13: Apply and run the validate script
+
+```bash
+terraform apply
+./validate.sh
+```
+
+All checks should pass.
 
 ---
 
-## Finding the RDS Endpoint (No Outputs File)
+## Useful Commands for This Type of Fault
 
-This lab has no `outputs.tf`, so `terraform output` returns nothing useful. Pull the endpoint directly from state:
-
+**Find the RDS endpoint when there's no outputs.tf:**
 ```bash
 terraform state show aws_db_instance.main | grep endpoint
 ```
 
-#### Command Breakdown
-
 | Part | What it does |
 |------|--------------|
 | `terraform state show` | Reads the current state of a specific resource |
-| `aws_db_instance.main` | The resource name — matches what's defined in `main.tf` |
-| `grep endpoint` | Filters output to lines containing "endpoint" |
+| `aws_db_instance.main` | The resource name — matches what's in main.tf |
+| `grep endpoint` | Filters to just the endpoint lines |
 
-The endpoint value includes the port (`hostname:3306`) — strip the `:3306` suffix when passing to connection tools.
+Note: the endpoint includes the port (`hostname:3306`) — strip the `:3306` when passing to connection tools.
 
-In a real deployment you'd always expose the RDS endpoint as a Terraform output so application configs can reference it. The absence of `outputs.tf` here is a gap worth flagging in any real infrastructure repo.
-
----
-
-## Testing Connectivity
-
-This lab runs from the Pi as the host — there's no EC2 app instance. The RDS instance is in a private VPC with no internet gateway, so the Pi cannot resolve or reach the private RDS endpoint from outside the VPC. Use the validate script:
-
+**Test TCP connectivity to a database port (from inside the VPC):**
 ```bash
-./validate.sh
-```
-
-**If you want to test TCP connectivity from inside a VPC in future labs**, use netcat:
-
-```bash
-# Install once — available globally thereafter (apt installs system-wide, not per-directory)
-sudo apt install netcat-openbsd -y
-
 nc -zv <rds-endpoint> 3306
 ```
 
-#### nc Command Breakdown
-
 | Part | What it does |
 |------|--------------|
-| `nc` | Netcat — raw TCP connection tool |
-| `-z` | Zero I/O mode — just check if the port is open, don't send data |
+| `nc` | Netcat — raw TCP connection tool (`sudo apt install netcat-openbsd -y` on Pi) |
+| `-z` | Zero I/O — just check if the port is open, don't send data |
 | `-v` | Verbose — explicitly reports success or failure |
-| `<rds-endpoint>` | DNS hostname of the RDS instance |
-| `3306` | The MySQL port to test |
 
 **What the response tells you:**
-- `Connection timed out` → packets silently dropped — classic security group block
-- `Connection refused` → port actively rejected — DB not listening, or different block type
-- `open` → connection succeeded
+- `Connection timed out` → packets silently dropped — security group blocking traffic, no rule matches
+- `Connection refused` → port actively rejected — DB not listening, or a different type of block
+- `open` → success
 
-If `nc` isn't available (e.g. minimal containers, Alpine images), use this pure-bash fallback — no external tools required:
-
+**If nc isn't available (minimal containers, Alpine images):**
 ```bash
 timeout 5 bash -c 'echo > /dev/tcp/<host>/3306' && echo "Connected" || echo "Failed"
 ```
+
+Pure bash — no external tools needed.
+
+**If your terminal stops showing what you type:**
+```bash
+stty sane
+```
+Resets terminal echo settings — happens when a command is killed mid-execution.
 
 ---
 
@@ -333,31 +408,30 @@ timeout 5 bash -c 'echo > /dev/tcp/<host>/3306' && echo "Connected" || echo "Fai
 | Lab Simplification | Production Reality |
 |--------------------|--------------------|
 | `password = "changeme123"` in plain text | Use `manage_master_user_password = true` — RDS manages rotation via Secrets Manager |
-| Single-AZ deployment | `multi_az = true` for a synchronous standby replica that auto-promotes on failure |
-| No encryption | `storage_encrypted = true` with a KMS key |
-| No deletion protection | `deletion_protection = true` to prevent accidental `terraform destroy` |
+| Single-AZ deployment | `multi_az = true` — synchronous standby in a different AZ, auto-promotes on failure |
+| No storage encryption | `storage_encrypted = true` with a KMS key |
+| No deletion protection | `deletion_protection = true` — prevents accidental `terraform destroy` |
 | No monitoring | `monitoring_interval` and `performance_insights_enabled = true` |
+| No outputs.tf | Always expose the RDS endpoint as a Terraform output so app configs can reference it |
 
 ---
 
-## Key Concepts from This Lab
+## What You Found and Why
 
-- **Fix `publicly_accessible` first** — in a VPC without an IGW this blocks infrastructure creation entirely; in a VPC with an IGW it's a silent security risk instead
-- **Security group source CIDR must match the actual source subnet** — `10.0.99.0/24` silently drops all traffic from `10.0.1.0/24`; always verify the CIDR matches where traffic actually comes from
-- **Security group references beat CIDRs** — `security_groups = [aws_security_group.app.id]` is more robust and readable than hardcoding a subnet CIDR
-- **Terraform security groups need explicit egress rules** — unlike the AWS console default, Terraform requires this to be defined explicitly
-- **Timeout vs refused is diagnostic** — timeout means silent drop (security group); refused means active rejection (port not listening)
-- **No outputs.tf? Use terraform state show** — `terraform state show aws_db_instance.main | grep endpoint` pulls connection details directly from state
+Looking back once the investigation is complete:
 
----
+| Bug | How you found it | Why it caused the symptom |
+|-----|-----------------|--------------------------|
+| `publicly_accessible = true` | Terraform apply failed with an explicit AWS error | VPC has no IGW — AWS refuses to create a public-facing DB in a private VPC |
+| Wrong CIDR in ingress rule (`10.0.99.0/24`) | Read the SG, compared source CIDR against actual app subnet CIDR | Traffic from app silently dropped — no rule match |
+| Missing egress rule | Read the whole SG, noticed no egress block, compared against app SG which had one | DB can't send response traffic back |
 
-## Common Mistakes to Watch For
-
-- **Wrong CIDR in the ingress rule** — the number one cause of "can't connect to database" in AWS; always verify the CIDR matches the actual source subnet
-- **No egress block on Terraform-managed security groups** — the AWS console adds allow-all egress by default; Terraform does not
-- **Leaving `publicly_accessible = true` "for testing"** — gets forgotten and ends up in production; always default to `false`
-- **Forgetting to attach the security group to the RDS instance** — `vpc_security_group_ids` must reference the correct SG
-- **Passwords in plain text in Terraform** — use `sensitive = true` on variables at minimum, or Secrets Manager for production
+**The pattern that finds bugs like these every time:**
+1. Try to deploy — read any errors carefully, they usually point directly at the problem
+2. Read the security group rules — check source, port, protocol
+3. Compare the source against where traffic is actually coming from
+4. Check both ingress and egress — an incomplete security group is a common fault
+5. Compare against working resources in the same config — inconsistencies are signals
 
 ---
 
@@ -365,4 +439,4 @@ timeout 5 bash -c 'echo > /dev/tcp/<host>/3306' && echo "Connected" || echo "Fai
 
 This is a Terraform/AWS lab — no Pi-specific caveats apply. All changes are in AWS infrastructure.
 
-Note: `nc` (netcat) is not installed on the Pi by default. Run `sudo apt install netcat-openbsd -y` once to make it available globally for future connectivity testing across all labs. `apt` installs system-wide — not scoped to a directory.
+`nc` (netcat) is not installed on the Pi by default. Install once with `sudo apt install netcat-openbsd -y` — `apt` installs system-wide, not per-directory, so it's available everywhere after that.
