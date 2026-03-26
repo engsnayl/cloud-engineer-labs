@@ -30,7 +30,6 @@ HTTPServer(('0.0.0.0', 8081), H).serve_forever()
 
 sleep 1
 
-# Fault: Apply overly restrictive iptables rules
 # Allow established connections (so Docker exec still works)
 iptables -F INPUT
 iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
