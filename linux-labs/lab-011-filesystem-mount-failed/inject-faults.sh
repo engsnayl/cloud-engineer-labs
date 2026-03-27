@@ -16,10 +16,6 @@ mkdir -p /data/pgdata
 echo "PostgreSQL data lives here" > /data/pgdata/PG_VERSION
 umount /data
 
-# Fault 1: Wrong device path in fstab
 echo "/dev/sdb1    /data    ext4    defaults    0    2" >> /etc/fstab
-# The actual device is a loop device from /opt/fake-volume.img, not /dev/sdb1
-
-# Fault 2: The mount point exists but is empty (confusing — looks like data loss)
 
 echo "Filesystem mount faults injected."
