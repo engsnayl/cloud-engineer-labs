@@ -22,14 +22,7 @@ cat > /etc/nginx/sites-enabled/api-proxy << 'EOF'
 server {
     listen 80;
     location /api/ {
-        # Fault 1: No proxy headers passed
         proxy_pass http://127.0.0.1:3000/;
-        # Missing: proxy_set_header Host, X-Forwarded-For, X-Real-IP
-        
-        # Fault 2: No CORS headers
-        # Missing: Access-Control-Allow-Origin, Methods, Headers
-        
-        # Fault 3: OPTIONS method not handled
     }
 }
 EOF
