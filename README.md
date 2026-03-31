@@ -2,7 +2,7 @@
 
 A self-directed lab framework for practising real-world cloud engineering and Linux troubleshooting skills. Each lab simulates a realistic broken or incomplete environment that you must diagnose and fix — just like you would on the job.
 
-**82 labs + 1 capstone project** across seven categories: Linux, Docker, Kubernetes, Terraform/AWS, CI/CD, Monitoring, and Projects.
+**84 labs + 1 capstone project** across seven categories: Linux, Docker, Kubernetes, Terraform/AWS, CI/CD, Monitoring, and Projects.
 
 ## Structure
 
@@ -14,8 +14,8 @@ cloud-engineer-labs/
 │   └── lab-028   (Bash Scripting)
 ├── k8s-labs/            # Kubernetes troubleshooting labs (12 labs)
 │   └── lab-029 … lab-040
-├── cloud-labs/          # Terraform / AWS infrastructure labs (28 labs)
-│   └── lab-060 … lab-087
+├── cloud-labs/          # Terraform / AWS infrastructure labs (30 labs)
+│   └── lab-060 … lab-091
 ├── cicd-labs/           # CI/CD pipeline labs (6 labs)
 │   └── lab-041 … lab-046
 ├── monitoring-labs/     # Monitoring & incident response labs (7 labs)
@@ -85,7 +85,7 @@ cloud-engineer-labs/
 | 035 | Helm Chart Won't Install — Debug a Broken Chart | Advanced | 20-25 min |
 | 036 | Wrong Config in Production — Helm Values and Overrides | Advanced | 20-25 min |
 
-### Terraform / AWS (22 labs)
+### Terraform / AWS (24 labs)
 
 | # | Lab | Difficulty | Time |
 |---|-----|-----------|------|
@@ -117,6 +117,8 @@ cloud-engineer-labs/
 | 026 | CloudFormation Stack Failed — Template Debugging | Intermediate | 15-20 min |
 | 027 | No Cost Visibility — Tagging Strategy & Budget Alarms | Intermediate | 15-20 min |
 | 028 | EKS Pod Can't Access AWS — IRSA Misconfigured | Advanced | 25-30 min |
+| 029 | AWS Cost Optimisation — Right-Sizing & Waste Elimination | Advanced | 30-40 min |
+| 030 | ClickOps Reverse Engineering — Discover & Codify | Advanced | 35-45 min |
 
 ### CI/CD Pipelines (5 labs)
 
