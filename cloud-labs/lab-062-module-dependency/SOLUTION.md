@@ -264,6 +264,8 @@ If Module A needs an output from Module B, and Module B needs an output from Mod
 
 ## Cleanup
 
+This lab validates with `terraform plan` only — there is no need to run `terraform apply`. If you did apply, destroy first:
+
 ```bash
 terraform destroy -auto-approve
 ```
@@ -273,7 +275,39 @@ terraform destroy -auto-approve
 | `terraform destroy` | Removes all infrastructure managed by this Terraform configuration |
 | `-auto-approve` | Skips the interactive confirmation prompt |
 
-> If you haven't successfully applied anything, there's nothing to destroy. You can skip this step.
+> If you haven't applied anything, skip this step.
+
+---
+
+## Reset — Restore the Lab to Broken Starting State
+
+Run this to restore `main.tf` back to the broken state so the lab can be run again from scratch:
+
+```bash
+cat > main.tf << 'EOF'
+provider "aws" {
+  region = "eu-west-2"
+}
+
+module "vpc" {
+  source = "./modules/vpc"
+}
+
+module "ec2" {
+  source    = "./modules/ec2"
+  vpc_id    = module.networking.vpc_id
+  subnet_id = module.vpc.private_subnet
+}
+EOF
+```
+
+| Part | What it does |
+|------|-------------|
+| `cat > main.tf` | Writes output directly into `main.tf`, overwriting whatever is currently there |
+| `<< 'EOF'` | Starts a heredoc — everything between here and the closing `EOF` is treated as the file content. Single quotes around `EOF` prevent variable expansion inside the block |
+| `EOF` | Closes the heredoc and triggers the write |
+
+After running this, `terraform plan` will fail again with the two reference errors — the lab is ready to repeat.
 
 ---
 
