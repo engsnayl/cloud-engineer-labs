@@ -1,0 +1,105 @@
+name: CI/CD Pipeline                                  # This is just the pipeline label - you could call it anything
+
+on:                                                   # On = When should this pipeline run?
+  push:                                               # Run when somebody pushes code to main
+    branches: [main]
+  pull_request:                                       # Run when somebody opens or updates a pull request
+    branches: [main]
+
+env:                                                  # Defines variables that are available to every job (2 variables in this case)
+  IMAGE_NAME: api-service
+  APP_PORT: 3000
+
+jobs:                                                 # Top level key - same as on, env etc
+  lint:                                               # Job ID
+    name: Lint                                        # Human readable name for your job (call what you like)
+    runs-on: ubuntu-latest                            # Every job runs on a fresh Ubuntu VM from GitHub's own pool of servers
+    steps:                                            # The list of things this job must do in order (if any fail then the job stops)
+      - name: Checkout code                           # Clones your code repo onto this fresh VM
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js                           # Installs Node 18 onto your new VM
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies                    # Run command "npm ci" from inside "./app" directory 
+        run: npm ci                                   # npm ci = clean install
+        working-directory: ./app                      # Look here (./app) for your package.json file and install all the dependencies from it
+
+      - name: Run linter                              # Run command "npm run lint" from inside "./app" directory
+        run: npm run lint                             # Reads package.json, find scripts section, looks up what lint maps to and runs it
+        working-directory: ./app
+
+  test:                                               # Job ID
+    name: Test                                        # Human readable name for your job (call what you like)
+    needs: lint                                       # Dependency Chain: Don't start this job until lint has passed
+    runs-on: ubuntu-latest                            # Every job runs on a fresh Ubuntu VM from GitHub's own pool of servers
+    steps:                                            # The list of things this job must do in order (if any fail then the job stops)
+      - name: Checkout code                           # Clones your code repo onto this fresh VM
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js                           # Installs Node 18 onto your new VM
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies                    # Run command "npm ci" from inside "./app" directory
+        run: npm ci                                   # npm ci = clean install
+        working-directory: ./app                      # Look here (./app) for your package.json file and install all the dependencies from it
+
+      - name: Run tests
+        run: npm test                                 # Run command "npm run test" from inside "./app" directory
+        working-directory: ./app                      # Reads package.json, find scripts section, looks up what tests maps to and runs i
+
+  build:
+    name: Build Docker Image
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} ./app  # Build Docker image from Dockerfile and tag it
+                                                                            # Build from the ./app directory where Dockerfile lives
+      - name: Verify image exists
+        run: docker images ${{ env.IMAGE_NAME }}:${{ github.sha }}          # Use the IMAGE_NAME environment variable from above
+                                                                            # github.SHA is a unique commit reference that gets appended
+  deploy:
+    name: Deploy
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'      # Only runs on a push to the main branch trigger
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@4
+
+      - name: Deploy application
+        run: |                                                              # The pipe here just allows multi-line scripting to follow it
+          chmod +x deploy.sh                                                # Makes the deploy script executable
+          ./deploy.sh ${{ github.sha }}                                     # Runs deploy script for the image we created in the build step 
+
+  smoke-test:
+    name: Smoke Test
+    needs: deploy
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for application to start
+        run: sleep 5
+
+      - name: Health check
+        run: |
+          for i in 1 2 3 4 5; do
+            STATUS=$(curl -sf -o /dev/null -w "%{http_code}" http://localhost:${{ env.APP_PORT }}/health || true)
+            if [[ "$STATUS" == "200" ]]; then
+              echo "Health check passed on attempt $i"
+              exit 0
+            fi
+            echo "Attempt $i: got status $STATUS, retrying in 3s..."
+            sleep 3
+          done
+          echo "Health check failed after 5 attempts"
+          exit 1
+
