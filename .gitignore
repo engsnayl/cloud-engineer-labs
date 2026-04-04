@@ -17,3 +17,6 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+awscliv2.zip
+terraform_*.zip
+aws/
