@@ -10,15 +10,15 @@ provider "aws" {
 resource "aws_s3_bucket" "data" {
   bucket = "company-data-${random_id.suffix.hex}"
   tags = {
-    Environment = "staging"
-    Team        = "ops"
+    Environment = "production"
+    Team        = "engineering"
   }
 }
 
 resource "aws_s3_bucket_versioning" "data" {
   bucket = aws_s3_bucket.data.id
   versioning_configuration {
-    status = "Disabled"
+    status = "Enabled"
   }
 }
 
