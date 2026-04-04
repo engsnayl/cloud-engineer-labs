@@ -161,6 +161,214 @@ Now that you understand what the problem is and why it exists, the fixes are str
 
 ---
 
+## File-by-File Breakdown
+
+Before fixing anything, read both files completely and understand what every line is doing. This section explains each line in plain English — including which lines are bugs and why.
+
+---
+
+### The deploy.yml — Line by Line
+
+```yaml
+name: Deploy
+```
+Just a label. This is the name that appears in the GitHub Actions UI so you can identify this workflow. Has no effect on what it does.
+
+---
+
+```yaml
+on:
+  push:
+    branches: [main]
+```
+**When does this workflow run?** Only when someone pushes code to the `main` branch. This is the trigger. Nothing in this file runs unless that condition is met.
+
+---
+
+```yaml
+jobs:
+  deploy:
+```
+A workflow is made up of jobs. This one has a single job called `deploy`. If you had multiple jobs they would be listed here side by side.
+
+---
+
+```yaml
+    runs-on: ubuntu-latest
+```
+Which computer should this job run on? GitHub spins up a fresh Ubuntu Linux virtual machine for every run. Your code doesn't run on your Pi — it runs on GitHub's servers.
+
+---
+
+```yaml
+    steps:
+```
+A job is made up of steps — individual tasks that run in order, one after another.
+
+---
+
+```yaml
+    - uses: actions/checkout@v4
+```
+Step 1. `uses` means "run this pre-built Action". `actions/checkout` is an official GitHub Action that downloads your repository code onto the virtual machine. Without this, the VM has no idea what your code looks like.
+
+---
+
+```yaml
+    - name: Configure AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.SECRET_KEY }}
+        aws-region: eu-west-2
+```
+Step 2. A pre-built Action that sets up the AWS CLI with credentials so subsequent steps can talk to AWS. `with:` passes inputs into the Action — think of them as settings.
+
+`${{ secrets.ACCESS_KEY }}` reads a secret stored in GitHub Settings by name.
+
+**BUG 3 — Wrong secret names.** The secrets are stored in GitHub as `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` — but this step is looking for `ACCESS_KEY` and `SECRET_KEY`. Those don't exist. GitHub returns empty strings with no error or warning. AWS gets no credentials and everything fails silently.
+
+There is no way to know from the workflow file alone what names the secrets are stored under — you have to go to GitHub → Repository → Settings → Secrets and Variables → Actions and check. The standard AWS convention (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`) is well established — seeing `ACCESS_KEY` and `SECRET_KEY` is immediately suspicious to an experienced engineer.
+
+**Fix:**
+```yaml
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+```
+
+---
+
+```yaml
+    - name: Login to ECR
+      uses: aws-actions/amazon-ecr-login@v2
+```
+Step 3. Logs into Amazon's container registry (ECR) — the place where Docker images are stored. You need to be authenticated before you can push an image there. This step uses the AWS credentials configured in Step 2.
+
+Nothing wrong with this line.
+
+---
+
+```yaml
+    - name: Build and push
+      run: |
+        docker build \
+          --build-arg AWS_ACCESS_KEY_ID=${{ secrets.ACCESS_KEY }} \
+          --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.SECRET_KEY }} \
+          --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} \
+          -t $ECR_REGISTRY/app:${{ github.sha }} .
+        docker push $ECR_REGISTRY/app:${{ github.sha }}
+```
+Step 4. `run:` means run a shell command directly — not a pre-built Action.
+
+`docker build` — builds the image from the Dockerfile.
+
+**BUG 2 — Secrets passed as `--build-arg`.** Each `--build-arg` flag passes a secret value into the Docker build. By the time Docker sees it, the `${{ secrets.ACCESS_KEY }}` reference has already been resolved to the real credential value. The Dockerfile receives it via `ARG` and bakes it permanently into the image layer via `ENV`. Also uses the wrong secret names again.
+
+`-t $ECR_REGISTRY/app:${{ github.sha }}` — tags the image. `$ECR_REGISTRY` is the address of your ECR registry. `${{ github.sha }}` is the Git commit hash — used as a unique version tag so every build is distinctly labelled.
+
+`.` — the build context. Tells Docker to use the current directory, which contains your Dockerfile.
+
+`docker push` — pushes the finished image up to ECR. Nothing wrong with this line.
+
+**Fix — remove all three `--build-arg` lines:**
+```yaml
+      run: |
+        docker build -t $ECR_REGISTRY/app:${{ github.sha }} .
+        docker push $ECR_REGISTRY/app:${{ github.sha }}
+```
+
+---
+
+### The Dockerfile — Line by Line
+
+```dockerfile
+FROM node:20-alpine
+```
+The starting point. Every Dockerfile begins with `FROM` — it defines the base image. `node:20-alpine` means: start with a minimal Linux operating system (Alpine) that already has Node.js version 20 installed. Alpine is used because it's tiny — keeps the image small.
+
+Nothing wrong with this line.
+
+---
+
+```dockerfile
+WORKDIR /app
+```
+Sets the working directory inside the container. Every instruction that follows runs from this location. It's the equivalent of `cd /app` — except it also creates the folder if it doesn't exist.
+
+Nothing wrong with this line.
+
+---
+
+```dockerfile
+COPY package.json .
+```
+Copies `package.json` from your project into `/app` inside the container. The `.` means "copy it here, into the current working directory." `package.json` is a Node.js file that lists all the dependencies your application needs — like a shopping list.
+
+Nothing wrong with this line.
+
+---
+
+```dockerfile
+RUN npm install
+```
+Runs a command at build time. Reads `package.json` and installs all the dependencies listed in it. This creates a layer in the image containing all those installed packages.
+
+This is why `package.json` was copied in the step before — `npm install` needs it to know what to install. It also comes before `COPY . .` deliberately — so that if you only change your app code but not your dependencies, Docker can reuse the cached `npm install` layer and skip reinstalling everything.
+
+Nothing wrong with this line.
+
+---
+
+```dockerfile
+COPY . .
+```
+Copies everything else from your project directory into `/app` inside the container. This is where your actual application code lands — `server.js` and any other files.
+
+Nothing wrong with this line.
+
+---
+
+```dockerfile
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+```
+**BUG 1 — first credential.**
+
+`ARG DATABASE_URL` declares that the Docker build is willing to receive a value called `DATABASE_URL` from whoever is running `docker build`. That value comes from the `--build-arg DATABASE_URL=...` flag in the `deploy.yml`.
+
+`ENV DATABASE_URL=$DATABASE_URL` takes that received value and writes it permanently into the image as an environment variable in this layer.
+
+The database URL is sensitive — it typically contains the address, username, and password for your database. Baking it into the image means anyone who can pull the image can read it via `docker history`.
+
+**Fix: remove both lines.**
+
+---
+
+```dockerfile
+ARG AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
+ENV AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+ENV AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+```
+**BUG 1 continued — the other two credentials.**
+
+Same pattern. `ARG` receives the values from `--build-arg` in the workflow. `ENV` bakes them permanently into the image layer. These are your AWS credentials — the most sensitive values in the entire setup. Anyone with the image can run `docker history` and read them in plain text.
+
+It may look safe because there are no hardcoded values — just variable references. But the reference is resolved to the real credential value before Docker even starts. By the time `ENV` runs, it is writing the actual key, not a reference.
+
+**Fix: remove all four lines.**
+
+---
+
+```dockerfile
+CMD ["node", "server.js"]
+```
+Defines what command runs when the container starts. This is not a build-time instruction — nothing happens here during `docker build`. It is a declaration that says "when someone runs this image, start the app by running `node server.js`."
+
+Nothing wrong with this line.
+
+---
+
 ## Step-by-Step Fix
 
 ### Step 1 — Remove all credential lines from the Dockerfile
@@ -351,18 +559,20 @@ Both commands should return **nothing**. Any output means there is still a refer
 
 ## Cleanup / Reset
 
-To reset the lab back to the broken state so you can run through it again from Step 0:
+To reset the lab back to the broken state so you can run through it again from Step 0, use `git checkout` to restore both files to their committed broken state:
 
 ```bash
-# Restore the broken Dockerfile — re-add the ARG/ENV credential lines
-vi Dockerfile
+git checkout -- Dockerfile
+git checkout -- .github/workflows/deploy.yml
+```
 
-# Restore the broken workflow — re-add --build-arg flags and wrong secret names
-vi .github/workflows/deploy.yml
+That's it. No manual editing — git throws away your local changes and restores both files exactly as they are in the repo.
 
-# Confirm you're back to the broken state before re-attempting
+Confirm you're back to the broken state:
+
+```bash
 grep -iE "ARG|ENV" Dockerfile
 grep -i "build-arg" .github/workflows/deploy.yml
 ```
 
-Both `grep` commands should return output confirming the broken lines are present before re-attempting.
+Both commands should return output confirming the broken lines are present before re-attempting.
