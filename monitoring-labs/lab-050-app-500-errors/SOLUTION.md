@@ -1,475 +1,434 @@
-# Lab 055 — Prometheus Scraping Broken: Solution Walkthrough
+# Lab 050 — Solution Walkthrough: Application Throwing 500 Errors
 
 ---
 
-## TLDR Summary
+## TLDR (Plain English Summary)
 
-You've been handed an incident ticket: Grafana dashboards are empty, Prometheus shows 0 of 3 targets UP, and alerting is blind. Prometheus itself is running fine — the problem is entirely in `prometheus.yml`, the configuration file that tells Prometheus what to scrape, where to find it, and how often.
+A web application is returning HTTP 500 errors — but only on one endpoint (`/api/payments`), and only sometimes. The other endpoints work fine. The app hasn't crashed.
 
-There are four bugs in the file:
+The reason: every time someone hits `/api/payments`, the code increments a database connection counter. The app only allows 5 connections at once. Connections are only released 30% of the time — so under any real traffic, the counter climbs past 5, new requests get rejected, and the user sees a 500 error.
 
-1. **Scrape interval set to 600 seconds (10 minutes)** — Prometheus collects data so infrequently that dashboards are nearly empty and short-lived incidents are completely invisible. This bug is silent — it produces no error message.
-2. **Wrong port for the app targets** — the config points at port `9090` (Prometheus's own port) instead of `8080` where the apps actually serve their metrics. Every connection is refused.
-3. **Wrong metrics path** — the config asks for `/api/metrics` but the apps expose metrics at `/metrics`. Prometheus gets a 404 on every scrape attempt.
-4. **Hostname typo for node exporter** — the config says `node_exporter` (underscore) but the Docker Compose service is named `node-exporter` (hyphen). Docker's DNS can't resolve it.
+**The fix isn't in the code itself — it's in the pool configuration and connection lifecycle management.**
 
-Fix all four in `prometheus.yml`, restart Prometheus, and all targets come up green.
-
----
-
-## Background — What Is Prometheus?
-
-Before diving into the fix, it helps to understand what Prometheus actually is and why it exists.
-
-Imagine you have five servers, three applications, and a database all running at once. How do you know if any of them are struggling? You could SSH into each one and check manually — but that's not realistic at scale, and you'd miss anything that happened between checks.
-
-**Prometheus is a central metrics collector.** It works on a pull model — every few seconds it reaches out to each of your services and asks "how are you doing?" Each service responds with a snapshot of numbers: requests handled, memory used, errors seen. Prometheus stores all of that over time so you can ask questions like "when did CPU spike?" or "how long has the error rate been elevated?"
-
-**The three components in this lab:**
-
-| Component | What it does |
-|---|---|
-| **Prometheus** | The core collector — scrapes metrics from targets and stores them |
-| **Node Exporter** | A small agent that exposes the host machine's metrics (CPU, RAM, disk) in a format Prometheus can scrape |
-| **Grafana** | The dashboard layer — reads from Prometheus and draws the graphs you actually look at |
-
-**`prometheus.yml`** is the control file. It tells Prometheus what to scrape, where to find it (hostname + port), what URL path to request, and how often to collect. Get any of those wrong and Prometheus either can't reach the target or collects data too infrequently to be useful.
+Your job in this lab is to:
+1. Investigate the logs to find the exact error
+2. Confirm which endpoints are affected and which aren't
+3. Understand *why* it only fails under load
+4. Write a structured incident report documenting the findings and recommending fixes
 
 ---
 
-## Background — What Is Docker Compose?
+## Step 0 — Start the Lab Environment
 
-Docker on its own runs a single container at a time. Docker Compose is for when you need multiple containers that work together.
-
-In this lab you have five containers running simultaneously — Prometheus, Grafana, Node Exporter, app1, and app2. Each is a separate container, but they all need to talk to each other on the same network and start together. Managing that with raw Docker commands would be painful. Compose lets you describe the entire stack in one file — `docker-compose.yml` — and bring everything up or down with a single command.
-
-**Important:** `docker compose` commands must be run from the directory that contains `docker-compose.yml`. Running them from anywhere else produces `no configuration file provided: not found`.
-
-**Core Compose commands used in this lab:**
-
-| Command | What it does |
-|---|---|
-| `docker compose ps` | Lists all containers in the stack and their current status |
-| `docker compose restart prometheus` | Restarts the Prometheus container — required to pick up config changes |
-| `docker compose down` | Stops and removes all containers |
-
----
-
-## The Investigative Learning Pathway
-
-This is how an experienced engineer approaches this incident — not "go fix the config" but a methodical process of finding out *what* is broken and *why* before touching anything.
-
----
-
-### Step 0: Navigate to the lab directory
-
-All `docker compose` commands must be run from the directory containing `docker-compose.yml`. Start by navigating there:
+Before you can investigate anything, you need the application running. This lab uses Docker Compose to build and start the container.
 
 ```bash
-cd ~/cloud-engineer-labs/monitoring-labs/lab-055-prometheus-scraping-broken
+cd ~/cloud-engineer-labs/monitoring-labs/lab-050-app-500-errors
+docker compose up -d
 ```
 
-Every command in this walkthrough is run from this directory.
-
----
-
-### Step 1: Confirm the environment is actually running
-
-Before anything else, establish what the system is doing. Don't assume the containers are up.
-
-```bash
-docker compose ps
-```
-
-**Example output:**
-```
-NAME                   IMAGE                        COMMAND              SERVICE         STATUS
-lab055-app1            lab-055-...-app1             "python3 /app.py"    app1            Up 19 minutes   0.0.0.0:8081->8080/tcp
-lab055-app2            lab-055-...-app2             "python3 /app.py"    app2            Up 19 minutes   0.0.0.0:8082->8080/tcp
-lab055-node-exporter   prom/node-exporter:latest    "/bin/node_exporter" node-exporter   Up 19 minutes   0.0.0.0:9100->9100/tcp
-lab055-prometheus      prom/prometheus:latest       "/bin/prometheus…"   prometheus      Up 19 minutes   0.0.0.0:9090->9090/tcp
-```
-
-**How to read the PORTS column:**
-
-The `->` means: host port on the left, container port on the right. So `0.0.0.0:8081->8080/tcp` means the Pi exposes port 8081 externally, which maps to port 8080 inside the container. Prometheus talks to the containers on their *internal* ports — so the port you care about for the config is the number on the **right** side of the arrow.
-
-**What this output already tells you before opening any config file:**
-
-| Container | Internal port | Correct hostname |
-|---|---|---|
-| app1 | 8080 | app1 |
-| app2 | 8080 | app2 |
-| node-exporter | 9100 | node-exporter |
-| prometheus | 9090 | prometheus |
-
-If any container shows as `Exited` or `Restarting` here, you have a different problem — a container crash or bad YAML syntax — and that needs resolving before anything else.
-
-**Then confirm Prometheus's web interface is responding:**
-
-```bash
-curl -s -o /dev/null -w "%{http_code}" http://localhost:9090
-```
+**Command breakdown:**
 
 | Part | What it does |
-|---|---|
-| `curl` | Makes an HTTP request |
-| `-s` | Silent mode — suppresses the progress bar |
-| `-o /dev/null` | Throws away the response body — we only care about the status code |
-| `-w "%{http_code}"` | Prints just the HTTP status code after the request completes |
-| `http://localhost:9090` | Prometheus's web interface address |
+|------|--------------|
+| `docker compose` | The Compose tool — reads `docker-compose.yml` in the current directory |
+| `up` | Build the image (if needed) and start the container |
+| `-d` | Detached mode — runs in the background so your terminal stays free |
 
-**What the response means:**
+**What happens when you run it:**
 
-| Response | Meaning |
-|---|---|
-| `200` | Prometheus UI is up and responding normally |
-| `302` | Prometheus is redirecting you to `/graph` — this is normal, Prometheus is alive |
-| `000` or `connection refused` | Prometheus is not responding — container may be crashed |
+1. Compose reads `docker-compose.yml`
+2. It sees `build: .` — so it builds a Docker image from the `Dockerfile` in the current directory
+3. Once the image is built, it starts a container from it named `lab050-app-500-errors`
+4. The `-d` flag means it runs in the background
 
-A `302` is completely normal here. Prometheus redirects the root path to its graph UI. This is not an error.
-
----
-
-### Step 2: Check the targets page — your primary diagnostic tool
-
-The single most useful thing in Prometheus for diagnosing scrape failures is the targets endpoint. It shows every configured target, its current state, and the exact error message for anything that's failing.
-
-**In a non-headless environment** (where you have browser access) you'd simply open:
+**Expected output:**
 ```
-http://localhost:9090/targets
+[+] Building 12.3s (8/8) FINISHED
+[+] Running 1/1
+ ✔ Container lab050-app-500-errors  Started
 ```
 
-**In a headless environment** (SSH'd into a server with no browser, as in this lab) use the API directly:
+> **Why Compose and not `docker run`?**
+> Previous labs used `docker run` with pre-built images. This lab has its own application code and a `Dockerfile` that needs building first. Compose handles the build-then-run sequence in a single command. Without Compose you'd need to run `docker build` manually first, then `docker run` separately. As labs get more complex — especially when multiple containers need to work together — Compose becomes the standard way to manage them.
+
+Now exec into the container — the incident report must be written from inside:
 
 ```bash
-curl -s http://localhost:9090/api/v1/targets | python3 -m json.tool | grep -E "health|lastError|job"
+docker exec -it lab050-app-500-errors bash
 ```
+
+**Command breakdown:**
 
 | Part | What it does |
-|---|---|
-| `curl -s` | Makes an HTTP request, `-s` suppresses the progress bar |
-| `http://localhost:9090` | Address of your Prometheus instance |
-| `/api/v1/targets` | The Prometheus API endpoint that returns all configured scrape targets and their health as JSON |
-| `\|` | Pipes the output of curl into the next command |
-| `python3 -m json.tool` | Python's built-in JSON formatter — makes raw compressed JSON human-readable with proper indentation |
-| `\|` | Pipes the formatted JSON into the next command |
-| `grep -E` | Searches through text line by line, `-E` enables extended regex to match multiple patterns at once |
-| `"health\|lastError\|job"` | Prints any line containing `health`, `lastError`, or `job` — the three fields that tell you what's broken and where |
+|------|--------------|
+| `docker exec` | Run a command inside a running container |
+| `-it` | `-i` keeps stdin open, `-t` allocates a terminal — together they give you an interactive shell |
+| `lab050-app-500-errors` | The name of the container to exec into |
+| `bash` | The command to run — opens a bash shell inside the container |
 
-> **In practice:** Nobody types this command from memory. In a real environment it would live in a runbook, a cheat sheet, or a shell alias. The important thing is understanding *what you're querying and why* — not memorising the syntax.
+**Why do we exec in for this lab?**
 
-**Example output:**
+The `validate.sh` script checks for the incident report using `docker exec "$CONTAINER" test -f /tmp/incident-report.txt` — meaning it's looking for the file **inside the container's filesystem**, not on your Pi. If you wrote the report to your Pi's `/tmp/`, validation would fail every time even though the file exists.
+
+> **How to tell where you are:** Your prompt changes when you exec in. On the Pi it shows `engsnayl@pi:~$`. Inside the container it shows `root@<container-id>:/#`. When you see that, you're inside. This matters — running commands in the wrong place is one of the most common sources of confusion in this lab.
+
+**The overall flow for this lab:**
+
 ```
-"job": "app"
-"lastError": "Get \"http://app1:9090/api/metrics\": dial tcp 172.20.0.2:9090: connect: connection refused",
-"health": "down",
-"job": "app"
-"lastError": "Get \"http://app2:9090/api/metrics\": dial tcp 172.20.0.3:9090: connect: connection refused",
-"health": "down",
-"job": "node"
-"lastError": "Get \"http://node_exporter:9100/metrics\": dial tcp: lookup node_exporter on 127.0.0.11:53: no such host",
-"health": "down",
-"job": "prometheus"
-"lastError": "",
-"health": "up",
+Pi terminal      →  docker compose up -d
+Pi terminal      →  docker exec -it lab050-app-500-errors bash
+Inside container →  curl endpoints to check health and blast radius
+Inside container →  exit  (docker logs only works from outside)
+Pi terminal      →  docker logs ... | grep "ERROR"
+Pi terminal      →  docker exec -it lab050-app-500-errors bash  (back in to write report)
+Inside container →  cat > /tmp/incident-report.txt
+Inside container →  exit
+Pi terminal      →  lab validate monitoring-labs/lab-050-app-500-errors
 ```
-
-**Reading the error messages:**
-
-| Error message | What it means | Which bug |
-|---|---|---|
-| `connection refused` on port `9090` | Nothing is listening on that port in the app containers — and the wrong path is visible in the URL too | Bugs 2 & 3 |
-| `lookup node_exporter: no such host` | Docker DNS can't resolve this hostname — underscore vs hyphen mismatch | Bug 4 |
-| `lastError: ""` and `health: up` | No error — this target is working fine | None |
-
-**Important:** You will only see three error messages here, not four. Bug 1 (scrape interval) produces no error — Prometheus is scraping successfully, just far too infrequently. The only way to catch it is by inspecting the config directly or noticing that dashboards have almost no data points despite targets showing as UP. This makes it the sneakiest of the four bugs.
-
-You now have a complete map of what's broken before opening a single config file.
 
 ---
 
-### Step 3: Inspect the config file
+## Learning Pathway — How to Think Through This
 
-Now open `prometheus.yml` to see the bugs directly:
+This is the kind of problem where you'd be handed a ticket saying "payments endpoint is broken, please investigate." There's no one telling you it's a connection pool issue. Here's how a real engineer works through it.
+
+### Phase 1 — What are we actually dealing with?
+
+> ⚠️ **Check your prompt before running anything.** You should see `root@<container-id>:/#` — not `engsnayl@pi`. If you're still on the Pi, run `docker exec -it lab050-app-500-errors bash` first. Running curl from the Pi won't work — the app is listening on port 8080 inside the container, and that port isn't exposed to the host. You'll get no output at all, which can be misleading.
+
+**Start with the broadest question first: is the application even running?**
+
+Before investigating *why* something's failing, confirm the process is alive. A 500 error from a running app is a completely different problem to a crashed app returning nothing.
 
 ```bash
-cat prometheus.yml
+curl -s http://localhost:8080/api/health
 ```
 
-**The broken config:**
-```yaml
-# Prometheus configuration — BROKEN
-global:
-  scrape_interval: 600s
-  evaluation_interval: 600s
+> If this returns `OK`, the app is running. The problem is in specific code paths, not the process itself. This narrows your investigation significantly — you're not dealing with an OOM kill, a crash loop, or a failed deployment.
 
-scrape_configs:
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['localhost:9090']
+**Then ask: which endpoints are failing?**
 
-  - job_name: 'app'
-    static_configs:
-      - targets: ['app1:9090', 'app2:9090']
-    metrics_path: '/api/metrics'
+500 errors are a symptom, not a root cause. "The app is broken" is too broad. You need to establish the blast radius — is everything down, or just specific paths?
 
-  - job_name: 'node'
-    static_configs:
-      - targets: ['node_exporter:9100']
-```
-
-Every bug is visible here. Map each one against what the error messages already told you:
-
-| Line in config | Bug | Evidence you already had |
-|---|---|---|
-| `scrape_interval: 600s` | 10 minutes — far too long | Validator flagged it; no error message produced |
-| `targets: ['app1:9090', 'app2:9090']` | Wrong port | `docker compose ps` showed internal port is 8080 |
-| `metrics_path: '/api/metrics'` | Wrong path | Error message showed this path in the failed URL |
-| `targets: ['node_exporter:9100']` | Underscore in hostname | Error message said `lookup node_exporter: no such host` |
-
-> **Note:** In a real incident the comment `# Prometheus configuration — BROKEN` wouldn't be there. The file would look like a normal config and you'd have to spot the bugs yourself — which is exactly what the investigative pathway trains you to do.
-
----
-
-### Step 4: Understand each bug before fixing it
-
-#### Bug 1 — Scrape interval too long
-
-**Why does this matter?** Prometheus doesn't stream metrics — it polls. Every `scrape_interval` seconds it reaches out to each target and requests a fresh snapshot. At 600 seconds (10 minutes) you get one data point per target every 10 minutes. A Grafana dashboard covering the last 15 minutes has at most 1-2 data points — which often renders as nothing at all. Any incident that starts and resolves within 10 minutes is completely invisible.
-
-**What should it be?** 15 seconds is the standard Prometheus default and a safe starting point. In practice:
-
-| Interval | When it's appropriate |
-|---|---|
-| 15s | Development, labs, general purpose monitoring where you need good dashboard resolution |
-| 30-60s | Production environments with many targets, where reducing load and storage matters |
-| Under 15s | Rarely justified — creates excessive load on Prometheus and targets |
-
-The principle isn't "15s is always right" — it's that the interval must be short enough for dashboards to be meaningful, alerting to fire in time, and short-lived spikes to be caught. 600s fails all three tests.
-
----
-
-#### Bug 2 — Wrong port for app targets
-
-**Why does this happen?** Port 9090 is where *Prometheus itself* listens — not where your application containers listen. The app containers listen on port 8080. When Prometheus tries to connect to port 9090 on an app container, nothing is listening there, so the connection is refused.
-
-**How do you know the correct port?** Two sources confirmed it before you opened the config:
-- `docker compose ps` showed `->8080/tcp` for both app containers
-- The error message itself showed the wrong port in the failed URL
-
----
-
-#### Bug 3 — Wrong metrics path
-
-**Why does this happen?** Prometheus sends an HTTP GET to a specific path on the target. `/api/metrics` doesn't exist on these apps — so the server returns 404 and Prometheus marks the target as DOWN.
-
-**How do you find the correct path?** Three approaches in order of preference:
-
-**1. Probe the running container directly:**
 ```bash
-docker compose exec app1 curl -s http://localhost:8080/metrics | head -5
+curl -s http://localhost:8080/api/users
+curl -s http://localhost:8080/api/payments
 ```
+
+**Expected output:**
+```
+{"users": []}
+{"error": "Internal Server Error"}
+```
+
+> `/api/users` returning data but `/api/payments` returning an error tells you the issue is in the payments code path specifically — not infrastructure, not networking, not the web server. The blast radius is one endpoint.
+
+---
+
+### Phase 2 — What does the error actually say?
+
+**Now go to the logs — but there's a catch in this lab.**
+
+`docker logs` is a **host-side command**. It talks to the Docker daemon via the Docker socket — and from inside a container, you don't have access to that socket. Running `docker logs` from inside the container will return nothing at all, with no error message to tell you why.
+
+You need to **exit the container first**, then run the log commands from your Pi terminal:
+
+```bash
+# Inside the container — exit back to Pi
+exit
+
+# Now on your Pi terminal
+docker logs lab050-app-500-errors 2>&1 | grep "500"
+docker logs lab050-app-500-errors 2>&1 | grep "ERROR"
+```
+
+**Command breakdown:**
 
 | Part | What it does |
-|---|---|
-| `docker compose exec app1` | Runs a command inside the running `app1` container |
-| `curl -s http://localhost:8080/metrics` | Makes an HTTP request to port 8080 on the `/metrics` path from inside the container |
-| `\| head -5` | Shows only the first 5 lines — enough to confirm it's returning Prometheus-format metrics |
+|------|--------------|
+| `docker logs lab050-app-500-errors` | Fetches all logs (stdout + stderr) from the named container |
+| `2>&1` | Redirects stderr (file descriptor 2) to stdout (file descriptor 1) — so both streams are captured together. Without this, error-level log lines written to stderr would be invisible to `grep` |
+| `\| grep "500"` | Pipes the combined output to `grep`, filtering to only lines containing "500" |
+| `\| grep "ERROR"` | Same pattern, filtering for lines with "ERROR" severity |
 
-If you get metric output back, that's your path. If you get a 404, try other common paths.
+> **Why does `docker logs` only work from outside?** Docker CLI routes commands through the Docker socket (`/var/run/docker.sock`) to the host daemon. Inside a container, that socket isn't available — the container is isolated from the host's Docker daemon. This is the same reason you can't run `docker` commands from inside a container by default.
 
-**2. Know the convention:**
+**What you expect to find:**
 
-| Path | Framework |
-|---|---|
-| `/metrics` | Default for all Prometheus client libraries — always your first guess |
-| `/actuator/prometheus` | Java Spring Boot |
-| `/actuator/metrics` | Spring Boot variant |
-| `/prometheus/metrics` | Some custom setups |
+```
+ERROR 500 GET /api/payments - DatabaseError: connection pool exhausted (used: 6, max: 5)
+```
 
-**3. Check the application documentation or README** — if someone wrote the app, they should have documented what endpoint it exposes.
+Break this down mentally when you see it:
+
+- `ERROR 500` → severity and HTTP status code
+- `GET /api/payments` → the specific endpoint — not all endpoints, just this one
+- `DatabaseError` → the error class — a database problem, not application logic
+- `connection pool exhausted` → the specific condition — the pool is full
+- `(used: 6, max: 5)` → the evidence — 6 connections attempted, pool only allows 5
+
+**Why does it say "used: 6" if the max is 5?**
+The app tried to open a 6th connection, was denied, and logged the attempt. The number shown is what was requested, not what was granted.
 
 ---
 
-#### Bug 4 — Hostname typo for node exporter
+### Phase 2b — What if the logs don't show anything useful?
 
-**Why does this happen?** In Docker Compose, each service's name becomes a DNS hostname that other containers use to reach it. Docker's internal DNS is exact-match — `node-exporter` and `node_exporter` are two completely different hostnames. The config uses an underscore; the service is defined with a hyphen.
+If `docker logs` returns nothing or the output isn't clear enough, there's another technique: **find the running process and read the application code directly.**
 
-**How do you confirm the correct name?** `docker compose ps` already showed you — the SERVICE column listed `node-exporter` with a hyphen. Always copy the service name directly from `docker compose ps` or `docker-compose.yml` rather than typing it from memory.
-
----
-
-### Step 5: Apply all four fixes
-
-Open the config file:
+Exec back into the container and run:
 
 ```bash
-vi prometheus.yml
+docker exec -it lab050-app-500-errors bash
+ps aux
 ```
 
-Apply each fix:
-
-**Fix 1 — Scrape interval:**
-```yaml
-# Change from:
-global:
-  scrape_interval: 600s
-  evaluation_interval: 600s
-
-# Change to:
-global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
+**Expected output:**
+```
+root   1   /bin/bash -c /opt/inject-faults.sh && tail -f /dev/null
+root   7   /bin/bash /opt/inject-faults.sh
+root   9   python3 /opt/app.py
 ```
 
-**Fix 2 & 3 — App targets port and path:**
-```yaml
-# Change from:
-- job_name: 'app'
-  static_configs:
-    - targets: ['app1:9090', 'app2:9090']
-  metrics_path: '/api/metrics'
-
-# Change to:
-- job_name: 'app'
-  metrics_path: '/metrics'
-  static_configs:
-    - targets: ['app1:8080', 'app2:8080']
-```
-
-**Fix 4 — Node exporter hostname:**
-```yaml
-# Change from:
-- job_name: 'node'
-  static_configs:
-    - targets: ['node_exporter:9100']
-
-# Change to:
-- job_name: 'node'
-  static_configs:
-    - targets: ['node-exporter:9100']
-```
-
-**The complete fixed prometheus.yml:**
-```yaml
-global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
-
-scrape_configs:
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['localhost:9090']
-
-  - job_name: 'app'
-    metrics_path: '/metrics'
-    static_configs:
-      - targets: ['app1:8080', 'app2:8080']
-
-  - job_name: 'node'
-    static_configs:
-      - targets: ['node-exporter:9100']
-```
-
----
-
-### Step 6: Restart Prometheus and validate
-
-Editing `prometheus.yml` has no effect until Prometheus reloads it. In this lab, restart the container:
-
-```bash
-docker compose restart prometheus
-```
+**Command breakdown (`ps aux`):**
 
 | Part | What it does |
-|---|---|
-| `docker compose restart` | Stops and starts the named service, picking up any config file changes |
-| `prometheus` | The service name as defined in `docker-compose.yml` |
+|------|--------------|
+| `ps` | Process status — lists running processes |
+| `a` | Show processes from all users, not just the current one |
+| `u` | Show in user-oriented format (includes user, CPU, memory) |
+| `x` | Include processes not attached to a terminal (background processes) |
 
-> **In production:** You wouldn't restart Prometheus — that creates a gap in metric collection. Instead you'd send a reload signal: `kill -HUP <pid>` or POST to the `/-/reload` endpoint. This reloads the config without stopping the process.
-
-Wait for Prometheus to initialise and complete its first scrape:
-
-```bash
-sleep 30
-```
-
-Then re-run the targets check:
+This tells you the app is a Python script at `/opt/app.py` and there's a fault injection script also running. Now read the application code directly:
 
 ```bash
-curl -s http://localhost:9090/api/v1/targets | python3 -m json.tool | grep -E "health|lastError|job"
+cat /opt/app.py
 ```
 
-All three jobs should now show `"health": "up"` with empty `lastError` fields.
+Reading the source code tells you everything — exactly how the connection pool is implemented, why it exhausts, and what the log messages will say. In a real incident you won't always have access to source code, but when you do it's the most definitive way to confirm your hypothesis.
+
+**What the code reveals:**
+
+```python
+DB_POOL = {"max": 5, "used": 0}
+```
+The pool is simulated as a simple counter with a max of 5.
+
+```python
+DB_POOL["used"] += 1
+if DB_POOL["used"] > DB_POOL["max"]:
+    # returns 500 error
+```
+Every request to `/api/payments` increments the counter. Once it exceeds 5, every subsequent request fails.
+
+```python
+if random.random() > 0.7:
+    DB_POOL["used"] = max(0, DB_POOL["used"] - 1)
+```
+Connections are only released 30% of the time — so the counter climbs steadily until the pool is permanently exhausted.
 
 ---
 
-### Step 7: Run the validator
+### Phase 3 — Why does this only fail sometimes?
+
+This is the critical insight. If you tested this endpoint with a single early request, it probably worked. So why does it fail now?
+
+The pool counter starts at 0 and only climbs. The first 5 requests to `/api/payments` succeed. From the 6th request onwards, every request fails — because connections are only released 30% of the time, the counter never comes back down below 5 under normal usage.
+
+**The broader pattern to remember:**
+
+Intermittent failures that get progressively worse and eventually become permanent point to a **resource leak** — something being consumed but not reliably released. Connection pools, memory, file descriptors, and thread pools all fail this way. The symptom looks random at first but the underlying counter only ever moves in one direction.
+
+This is different from a purely concurrent exhaustion scenario where the pool fills under load but recovers when traffic drops. Here the pool never recovers — which is why once the errors start, they don't stop.
+
+---
+
+### Phase 4 — Write the incident report
+
+An incident report is not just a note to yourself. It's the artefact that gets handed to the team, shared in a post-mortem, or attached to a Jira ticket. It needs to stand alone.
+
+> ⚠️ **Exec back into the container before writing the report.** The file must live at `/tmp/incident-report.txt` inside the container — not on your Pi. Writing it to your Pi's `/tmp/` is a common mistake that causes all validation checks to fail even though the file exists.
 
 ```bash
-./tools/labrunner.sh validate monitoring-labs/lab-055-prometheus-scraping-broken
+docker exec -it lab050-app-500-errors bash
 ```
 
-Expected output:
+Then write the report:
+
+```bash
+cat > /tmp/incident-report.txt << 'EOF'
+# Incident Report: HTTP 500 Errors on Payment API
+
+## Summary
+Intermittent HTTP 500 errors on the /api/payments endpoint caused by database
+connection pool exhaustion. Error rate reached approximately 15%.
+
+## Affected Endpoint
+/api/payments — the only endpoint experiencing failures.
+/api/users and /api/health are unaffected.
+
+## Root Cause
+The database connection pool has a maximum of 5 connections. The /api/payments
+endpoint increments the connection counter on every request but only releases
+connections 30% of the time. The counter climbs past the maximum of 5 and
+every subsequent request receives a connection pool exhausted error and returns
+HTTP 500 to clients.
+
+## Evidence
+Application logs show:
+  ERROR 500 GET /api/payments - DatabaseError: connection pool exhausted (used: 6, max: 5)
+
+## Impact
+- Payment processing is intermittently failing
+- Approximately 15% of payment requests receive HTTP 500 errors
+- Other endpoints (/api/users, /api/health) are not affected
+
+## Recommended Fix
+1. Increase the database connection pool size (e.g., max: 20)
+2. Fix connection release logic — connections must be returned on every request, not 30%
+3. Add connection timeouts so idle connections are returned to the pool automatically
+4. Add monitoring and alerting on pool utilisation before it hits 100%
+5. Add circuit breaker pattern to prevent cascading failures
+EOF
 ```
-✅  Prometheus is healthy
-✅  All 3 targets are UP
-✅  Scrape interval is reasonable (10-60s)
-✅  Metrics path is correct (/metrics)
-✅  Metrics are being collected (up metric has data)
-Results: 5 passed, 0 failed
+
+**Command breakdown:**
+
+| Part | What it does |
+|------|--------------|
+| `cat > /tmp/incident-report.txt` | Redirects output into a new file — overwrites if it already exists |
+| `<< 'EOF'` | Heredoc — everything until the closing `EOF` is treated as literal input. Single quotes prevent variable expansion inside the block |
+| `EOF` on its own line | Signals the end of the heredoc |
+
+> Heredocs are the standard way to write multi-line content to a file in a single shell command. You'll see this constantly in DevOps scripts, CI/CD pipelines, and Terraform provisioners.
+
+---
+
+### Phase 5 — Validate your work
+
+Exit the container, then run validation from your Pi terminal:
+
+```bash
+# Inside the container
+exit
+
+# Back on your Pi terminal
+lab validate monitoring-labs/lab-050-app-500-errors
+```
+
+> **Why exit first?** The lab runner uses `docker exec` internally to reach into the container for each check — it's designed to be run from outside.
+
+**What the validator is checking under the hood:**
+
+| Check | What it looks for |
+|-------|-------------------|
+| Incident report exists | `test -f /tmp/incident-report.txt` inside the container |
+| Root cause documented | Report contains "pool", "connection", or "database" |
+| Affected endpoint documented | Report contains "payment" |
+| Application still running | `curl http://localhost:8080/api/health` returns "OK" |
+
+**Expected output when all 4 pass:**
+```
+Running validation checks...
+
+  ✅  Incident report exists at /tmp/incident-report.txt
+  ✅  Report identifies database connection pool as root cause
+  ✅  Report identifies /api/payments as affected endpoint
+  ✅  Application is still running
+
+Results: 4 passed, 0 failed
+```
+
+---
+
+## Full Step-by-Step Command Reference
+
+```bash
+# ── FROM YOUR PI TERMINAL ──────────────────────────────────
+cd ~/cloud-engineer-labs/monitoring-labs/lab-050-app-500-errors
+docker compose up -d
+docker exec -it lab050-app-500-errors bash
+
+# ── NOW INSIDE THE CONTAINER ───────────────────────────────
+
+# 1. Confirm the application is running
+curl -s http://localhost:8080/api/health
+
+# 2. Check which endpoints are affected
+curl -s http://localhost:8080/api/users
+curl -s http://localhost:8080/api/payments
+
+# 3. Exit — docker logs only works from the Pi
+exit
+
+# ── BACK ON YOUR PI TERMINAL ───────────────────────────────
+
+# 4. Filter logs for errors
+docker logs lab050-app-500-errors 2>&1 | grep "500"
+docker logs lab050-app-500-errors 2>&1 | grep "ERROR"
+
+# Optional: if logs are unclear, read the source directly
+docker exec -it lab050-app-500-errors bash
+ps aux          # find the process and where it lives
+cat /opt/app.py # read the code to confirm root cause
+exit
+
+# ── BACK ON YOUR PI TERMINAL ───────────────────────────────
+
+# 5. Exec back in to write the incident report inside the container
+docker exec -it lab050-app-500-errors bash
+
+cat > /tmp/incident-report.txt << 'EOF'
+[report content — see Phase 4 above]
+EOF
+
+# 6. Exit and validate
+exit
+lab validate monitoring-labs/lab-050-app-500-errors
 ```
 
 ---
 
 ## Docker Lab vs Real Life
 
-- **Browser access:** In a real environment with browser access you'd open `http://<host>:9090/targets` directly — much faster than the API command. In this lab you're SSHd into a headless Pi, so the API command is the correct approach.
-- **Config reload without restart:** Production Prometheus uses `kill -HUP` or the `/-/reload` HTTP endpoint to reload config without stopping. Restarting creates a gap in data collection.
-- **Service discovery:** Production Prometheus doesn't use static target lists. It uses service discovery — Kubernetes SD, EC2 SD, Consul SD — so new pods or instances are automatically picked up without editing config files.
-- **Relabeling:** `relabel_configs` lets you transform or filter targets dynamically — only scraping pods with a specific annotation, or rewriting job labels based on discovered tags.
-- **Recording rules:** Pre-compute expensive PromQL queries and store the result as a new metric. Keeps dashboards fast at scale without recalculating on every load.
-- **Remote write:** Production Prometheus writes to long-term storage backends (Thanos, Mimir, Grafana Cloud) because local disk retention is limited.
+- **`docker logs` is always host-side** — in production you'd use a log aggregator (Datadog, CloudWatch, ELK) that collects container logs automatically. You'd never need to exec in to read them.
+- **APM tools:** Tools like Datadog APM, New Relic, or Jaeger trace each request through every service. You'd see the exact query that timed out and how long it held the connection.
+- **Connection pool monitoring:** Production databases expose pool metrics (active, idle, waiting). A Grafana dashboard showing pool utilisation trending toward 100% lets you respond *before* failures start.
+- **PgBouncer / ProxySQL:** Production systems often put a connection pooler between the application and database — it multiplexes hundreds of app connections onto a smaller number of database connections, making exhaustion much harder to trigger.
+- **Alerting thresholds:** Set alerts at 70% pool utilisation (warning) and 90% (critical). This gives the team time to act before exhaustion causes 500s.
 
 ---
 
-## Key Concepts to Take Away
+## Key Concepts
 
-- **The targets page is your first stop** — Prometheus tells you exactly why each target is failing. Read the error message before touching any config.
-- **Only 3 of 4 bugs produce error messages** — the scrape interval bug is silent. You'd only catch it by inspecting the config or noticing sparse dashboard data.
-- **`docker compose ps` gives you the correct ports before you open any config file** — the internal port (right side of `->`) is what Prometheus needs.
-- **`/metrics` is the default path** — verify against the running container if unsure. Never assume.
-- **Docker Compose service names are DNS hostnames** — exact character match. Copy from `docker compose ps`, don't type from memory.
-- **15s is the standard default** — but 30-60s is common in production. The interval must be short enough for meaningful dashboards, timely alerting, and catching short-lived spikes.
-- **Config changes require a restart or reload** — editing the file has no effect until Prometheus picks it up.
+- **`docker logs` is host-side only** — it talks to the Docker daemon via the socket, which isn't accessible from inside a container. Always run it from your Pi terminal.
+- **Check your prompt** — `engsnayl@pi` means you're on the Pi; `root@<id>:/#` means you're inside the container. Many errors in this lab come from running commands in the wrong place.
+- **The incident report lives inside the container** — validate.sh checks `/tmp/` inside the container, not on the Pi. Writing it to the wrong `/tmp/` is a silent failure.
+- **Filter logs immediately** — `grep "ERROR"` and `grep "500"` get you to the signal in seconds. Never scroll.
+- **Read the message, not just the code** — `500` tells you something broke. `connection pool exhausted (used: 6, max: 5)` tells you exactly what and why.
+- **Resource leaks look intermittent at first** — works for the first few requests, then fails permanently. The counter only goes up; recovery never happens.
+- **`ps aux` + `cat` is a valid investigation technique** — when logs aren't accessible, find the process, find the code, read it directly.
 
 ---
 
 ## Common Mistakes
 
-- **Pointing app targets at port 9090** — that's Prometheus's own port, not your application's. Always check `docker compose ps` first.
-- **Guessing the metrics path** — always verify by probing the container directly with `docker compose exec`.
-- **Underscore vs hyphen in hostnames** — Docker DNS is exact-match. Copy the name, don't type it.
-- **Forgetting to restart** — editing `prometheus.yml` and wondering why nothing changed.
-- **Scrape interval too short** — 1s creates enormous load and storage use. 15-30s is the practical sweet spot.
+- **Running `docker logs` from inside the container** — returns nothing, no error. Exit first, then run it from the Pi.
+- **Writing the incident report to the Pi's `/tmp/`** — the file exists but validation still fails because validate.sh looks inside the container. Always exec in before writing the report.
+- **Running curl from the Pi** — port 8080 isn't exposed to the host. Curl only works from inside the container where localhost means the container's own network. From the Pi you get no output and no error — just silence.
+- **Looking at status codes only** — `500` tells you nothing actionable. The log message tells you everything.
+- **Testing with a single early request** — the first 5 requests to `/api/payments` succeed. The fault only becomes visible after the pool counter climbs past 5.
+- **Incident reports without recommended actions** — finding the problem is half the job. The report must include what to do about it.
 
 ---
 
-## Cleanup / Reset
+## Cleanup
 
-To reset the lab to its broken starting state so it can be run again from Step 0:
+From your Pi terminal, in the lab directory:
 
 ```bash
 docker compose down
-git checkout prometheus.yml
-docker compose up -d
 ```
 
-| Command | What it does |
-|---|---|
-| `docker compose down` | Stops and removes all containers defined in `docker-compose.yml` |
-| `git checkout prometheus.yml` | Restores `prometheus.yml` to the broken version committed in the repo |
-| `docker compose up -d` | Starts all containers in detached mode (background) |
-
-You can now run the lab from Step 0 with a clean broken state.
+> This stops and removes the container. The incident report inside `/tmp/` disappears with it — containers don't persist filesystem changes after removal unless you've used a volume. `docker compose down` is the clean equivalent of `docker stop` + `docker rm` for Compose-managed containers.
