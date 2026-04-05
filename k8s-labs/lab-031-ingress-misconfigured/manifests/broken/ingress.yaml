@@ -9,7 +9,6 @@ spec:
   - host: app.example.com
     http:
       paths:
-      # Fault 1: Service name doesn't match actual service
       - path: /
         pathType: Prefix
         backend:
@@ -17,7 +16,6 @@ spec:
             name: web-frontend
             port:
               number: 8080
-      # Fault 2: Wrong port for API
       - path: /api
         pathType: Prefix
         backend:
