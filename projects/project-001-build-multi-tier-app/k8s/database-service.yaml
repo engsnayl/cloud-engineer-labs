@@ -1,0 +1,55 @@
+# =============================================================================
+# database-service.yaml — Headless Service for PostgreSQL
+# =============================================================================
+# A Service in Kubernetes provides a stable network endpoint to reach pods.
+# Pods get random IPs that change on every restart — Services give them a
+# fixed DNS name that other pods can rely on.
+#
+# This is a HEADLESS Service (clusterIP: None). What does that mean?
+#
+# Normal (ClusterIP) Service:
+#   - Gets a virtual IP address (e.g., 10.96.0.15)
+#   - Load-balances across all matching pods
+#   - DNS resolves to the virtual IP: postgres.multi-tier-app.svc -> 10.96.0.15
+#
+# Headless Service (clusterIP: None):
+#   - Gets NO virtual IP
+#   - DNS resolves directly to the pod IPs: postgres.multi-tier-app.svc -> 10.42.0.15
+#   - Creates individual DNS records per pod: postgres-0.postgres.multi-tier-app.svc
+#
+# Why headless for PostgreSQL?
+#   - StatefulSets REQUIRE a headless service for stable network identities
+#   - We want to connect to a SPECIFIC pod (postgres-0), not a random one
+#   - For database replication, you need to know which is primary vs. replica
+#   - The backend can connect using: postgres-0.postgres.multi-tier-app.svc
+#     or just "postgres" (the service name) for simple setups
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres                  # Service name — becomes the DNS hostname
+  namespace: multi-tier-app
+  labels:
+    app: postgres
+    tier: database
+spec:
+  # clusterIP: None makes this a headless service.
+  # This is required for StatefulSets to create per-pod DNS records.
+  clusterIP: None
+
+  # selector: Determines which pods this service routes to.
+  # Any pod with BOTH labels (app: postgres AND tier: database) will be
+  # included. These must match the pod template labels in the StatefulSet.
+  selector:
+    app: postgres
+    tier: database
+
+  # ports: Define the port mapping.
+  # - port: The port the Service listens on (what clients connect to)
+  # - targetPort: The port on the pod to forward traffic to
+  # - In this case, both are 5432 (PostgreSQL's standard port)
+  ports:
+    - port: 5432
+      targetPort: 5432
+      name: postgresql            # Naming ports is required for headless services
+      protocol: TCP               # TCP is the default, but we're explicit for clarity

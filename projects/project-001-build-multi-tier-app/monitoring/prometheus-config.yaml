@@ -1,0 +1,200 @@
+# =============================================================================
+# Prometheus Configuration -- Kubernetes ConfigMap
+# =============================================================================
+#
+# WHAT IS PROMETHEUS?
+# -------------------
+# Prometheus is an open-source monitoring system. It collects metrics (numbers
+# that describe how your application is performing) from your services and
+# stores them in a time-series database.
+#
+# Think of it like a health dashboard for your app. Instead of you manually
+# checking "is the server slow?", Prometheus continuously collects data like:
+#   - How many requests per second is the backend handling?
+#   - How long do requests take?
+#   - How many errors are happening?
+#   - Is the service even running?
+#
+# WHAT IS "SCRAPING"?
+# -------------------
+# Prometheus works on a PULL model. Instead of your app pushing metrics to
+# Prometheus, Prometheus reaches out to your app and "scrapes" (fetches)
+# metrics from a /metrics endpoint. It does this on a regular interval
+# (every 15 seconds by default).
+#
+# Your backend app exposes a /metrics endpoint that returns data in a format
+# Prometheus understands (plain text with metric names and values).
+#
+# HOW TO DEPLOY PROMETHEUS:
+# -------------------------
+# The easiest way is using Helm (the Kubernetes package manager):
+#
+#   # Add the Prometheus community Helm chart repository
+#   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+#   helm repo update
+#
+#   # Install Prometheus + Grafana stack (this installs everything you need)
+#   helm install monitoring prometheus-community/kube-prometheus-stack \
+#     --namespace monitoring \
+#     --create-namespace \
+#     --set prometheus.prometheusSpec.additionalScrapeConfigs[0].job_name=backend \
+#     --set prometheus.prometheusSpec.additionalScrapeConfigs[0].static_configs[0].targets[0]="backend.multi-tier-app.svc.cluster.local:5000"
+#
+#   # OR apply this ConfigMap if you're running Prometheus manually:
+#   kubectl apply -f prometheus-config.yaml
+#
+# HOW TO ACCESS PROMETHEUS UI:
+# ----------------------------
+# After deploying, use port-forward to access from your local machine:
+#
+#   kubectl port-forward svc/monitoring-kube-prometheus-prometheus 9090:9090 -n monitoring
+#
+# Then open http://localhost:9090 in your browser. You can run queries like:
+#   - http_requests_total              (total request count)
+#   - rate(http_requests_total[5m])    (requests per second over 5 minutes)
+#   - up                               (is the target alive? 1=yes, 0=no)
+#
+# =============================================================================
+
+# --- This is a Kubernetes ConfigMap ---
+# A ConfigMap stores configuration data as key-value pairs. Pods can mount
+# ConfigMaps as files. Here, we store the prometheus.yml config file so
+# Prometheus can read it.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: monitoring
+  labels:
+    app: prometheus
+    # These labels help identify what this ConfigMap belongs to
+    project: multi-tier-app
+data:
+  # --- The actual Prometheus configuration file ---
+  # This gets mounted as /etc/prometheus/prometheus.yml inside the Prometheus pod.
+  prometheus.yml: |
+    # =================================================================
+    # Global Configuration
+    # =================================================================
+    # These settings apply to all scrape jobs unless overridden.
+    global:
+      # scrape_interval: How often Prometheus fetches metrics from targets.
+      # 15s means every 15 seconds, Prometheus visits each target's /metrics
+      # endpoint and collects the current values.
+      #
+      # Trade-off:
+      #   - Lower interval (e.g., 5s)  = more detail, more storage, more CPU
+      #   - Higher interval (e.g., 60s) = less detail, less storage, less CPU
+      # 15s is the standard default -- good balance for most applications.
+      scrape_interval: 15s
+
+      # evaluation_interval: How often Prometheus evaluates alerting rules.
+      # (We haven't set up alerts yet, but this is good to have configured.)
+      evaluation_interval: 15s
+
+    # =================================================================
+    # Scrape Configurations
+    # =================================================================
+    # Each "job" defines a set of targets to scrape and how to scrape them.
+    # A "target" is an endpoint that exposes metrics (like your backend's
+    # /metrics endpoint).
+    scrape_configs:
+
+      # ---------------------------------------------------------------
+      # Job 1: Prometheus itself
+      # ---------------------------------------------------------------
+      # Prometheus exposes its own metrics! This lets you monitor the
+      # monitor (meta, right?). Useful for knowing if Prometheus is
+      # healthy and how much data it's handling.
+      - job_name: "prometheus"
+        static_configs:
+          - targets: ["localhost:9090"]
+
+      # ---------------------------------------------------------------
+      # Job 2: Backend application (SIMPLE / STATIC CONFIG)
+      # ---------------------------------------------------------------
+      # This is the straightforward approach: we explicitly tell Prometheus
+      # where our backend is. This works well when you know the exact
+      # address of your service.
+      #
+      # In Kubernetes, services have DNS names following the pattern:
+      #   <service-name>.<namespace>.svc.cluster.local
+      #
+      # So our backend service in the "multi-tier-app" namespace is at:
+      #   backend.multi-tier-app.svc.cluster.local:5000
+      - job_name: "backend"
+        # metrics_path defaults to /metrics, which is what our backend exposes.
+        # If your app uses a different path (e.g., /api/metrics), set it here:
+        # metrics_path: /metrics
+
+        # How often to scrape THIS job (overrides global scrape_interval).
+        # We scrape the backend every 10 seconds for finer-grained data.
+        scrape_interval: 10s
+
+        static_configs:
+          - targets:
+              - "backend.multi-tier-app.svc.cluster.local:5000"
+            # Labels are metadata attached to every metric from this target.
+            # They help you filter and group metrics in queries.
+            labels:
+              app: "backend"
+              environment: "production"
+              namespace: "multi-tier-app"
+
+      # ---------------------------------------------------------------
+      # Job 3: Backend application (ADVANCED / KUBERNETES SERVICE DISCOVERY)
+      # ---------------------------------------------------------------
+      # This is the more "Kubernetes-native" approach. Instead of hardcoding
+      # addresses, Prometheus automatically discovers pods using the
+      # Kubernetes API.
+      #
+      # HOW IT WORKS:
+      # 1. Prometheus queries the Kubernetes API for all pods
+      # 2. It filters for pods with the annotation "prometheus.io/scrape: true"
+      # 3. It reads the port and path from annotations
+      # 4. It automatically scrapes matching pods
+      #
+      # ADVANTAGE: If you add more replicas or new services, Prometheus
+      # finds them automatically. No config changes needed.
+      #
+      # NOTE: Uncomment this section and comment out Job 2 above if you
+      # want to use service discovery instead of static config.
+      # (Don't run both at the same time or you'll scrape targets twice!)
+      #
+      # - job_name: "kubernetes-pods"
+      #   kubernetes_sd_configs:
+      #     - role: pod
+      #       # Only look for pods in our application namespace
+      #       namespaces:
+      #         names:
+      #           - multi-tier-app
+      #
+      #   # relabel_configs filter and transform discovered targets.
+      #   # Think of them as "rules" that decide which pods to scrape.
+      #   relabel_configs:
+      #     # Rule 1: Only scrape pods that have the annotation
+      #     # "prometheus.io/scrape: true" in their metadata.
+      #     # You add this annotation to your pod spec in the Deployment YAML.
+      #     - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+      #       action: keep
+      #       regex: true
+      #
+      #     # Rule 2: Use the port from the "prometheus.io/port" annotation.
+      #     # This tells Prometheus which port the /metrics endpoint is on.
+      #     - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_port]
+      #       action: replace
+      #       target_label: __address__
+      #       regex: (.+)
+      #       replacement: $1
+      #
+      #     # Rule 3: Use the path from the "prometheus.io/path" annotation.
+      #     # Defaults to /metrics if not specified.
+      #     - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+      #       action: replace
+      #       target_label: __metrics_path__
+      #       regex: (.+)
+      #
+      #     # Rule 4: Add the pod name as a label for easier identification.
+      #     - source_labels: [__meta_kubernetes_pod_name]
+      #       action: replace
+      #       target_label: kubernetes_pod_name

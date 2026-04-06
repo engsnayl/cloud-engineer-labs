@@ -1,0 +1,48 @@
+# =============================================================================
+# backend-service.yaml — ClusterIP Service for the backend API
+# =============================================================================
+# This Service provides a stable internal endpoint for the backend pods.
+# The frontend's nginx config uses "backend" as the proxy_pass target —
+# in Kubernetes, that resolves to this Service's ClusterIP.
+#
+# ClusterIP (the default type) means:
+#   - The Service gets a virtual IP address internal to the cluster
+#   - Only other pods in the cluster can reach it (not external traffic)
+#   - DNS: backend.multi-tier-app.svc.cluster.local (or just "backend"
+#     from the same namespace)
+#   - Kubernetes load-balances across all healthy backend pods (2 replicas)
+#
+# Other Service types (for reference):
+#   - NodePort: Exposes on every node's IP at a static port (30000-32767)
+#   - LoadBalancer: Provisions a cloud load balancer (AWS ELB, GCP LB, etc.)
+#   - ExternalName: Maps to an external DNS name (like a CNAME record)
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend                   # DNS name other pods use to reach the backend
+  namespace: multi-tier-app
+  labels:
+    app: backend
+    tier: application
+spec:
+  # type: ClusterIP is the default and most common type.
+  # Internal-only access — the frontend (nginx) connects to this from
+  # within the cluster, and the Ingress routes external traffic to it.
+  type: ClusterIP
+
+  # selector: Route traffic to pods with these labels.
+  # Both backend pods (2 replicas) have these labels, so traffic is
+  # load-balanced between them using round-robin by default.
+  selector:
+    app: backend
+    tier: application
+
+  # ports: Define the port mapping.
+  # - port: 5000 — The port clients connect to (what nginx uses in proxy_pass)
+  # - targetPort: 5000 — The port on the pod (must match containerPort)
+  ports:
+    - port: 5000
+      targetPort: 5000
+      name: http
+      protocol: TCP

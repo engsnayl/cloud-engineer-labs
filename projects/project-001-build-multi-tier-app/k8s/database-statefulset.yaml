@@ -1,0 +1,149 @@
+# =============================================================================
+# database-statefulset.yaml — PostgreSQL StatefulSet
+# =============================================================================
+# Why StatefulSet instead of Deployment?
+#   - Deployment: Best for stateless apps (web servers, APIs). Pods are
+#     interchangeable and can be replaced freely.
+#   - StatefulSet: Best for stateful apps (databases, message queues). Pods get:
+#     * Stable network identities (postgres-0, postgres-1, not random names)
+#     * Stable persistent storage (each pod gets its own PVC that follows it)
+#     * Ordered startup/shutdown (postgres-0 starts before postgres-1)
+#
+# For PostgreSQL, the stable identity and persistent storage are critical.
+# If a database pod restarts, it MUST reconnect to the SAME storage volume
+# to preserve its data. StatefulSet guarantees this.
+#
+# With 1 replica, a StatefulSet creates a pod named "postgres-0" and a PVC
+# named "postgres-data-postgres-0" (template name + pod name).
+# =============================================================================
+apiVersion: apps/v1               # apps/v1 is the API group for workload resources
+kind: StatefulSet
+metadata:
+  name: postgres                  # The StatefulSet name
+  namespace: multi-tier-app
+  labels:
+    app: postgres
+    tier: database
+spec:
+  # serviceName: REQUIRED for StatefulSets. Must match a headless Service.
+  # This creates DNS records like: postgres-0.postgres.multi-tier-app.svc.cluster.local
+  # Other pods can use this predictable DNS name to connect to a specific replica.
+  serviceName: postgres
+
+  # replicas: How many pod instances to run.
+  # For PostgreSQL, 1 is fine for development. Running multiple replicas
+  # requires setting up PostgreSQL replication (primary/standby), which is
+  # complex and beyond the scope of this lab.
+  replicas: 1
+
+  # selector: Tells the StatefulSet which pods it manages.
+  # The labels here MUST match the labels in the pod template below.
+  selector:
+    matchLabels:
+      app: postgres
+      tier: database
+
+  # -------------------------------------------------------------------------
+  # POD TEMPLATE — Blueprint for creating pods
+  # -------------------------------------------------------------------------
+  template:
+    metadata:
+      labels:
+        app: postgres             # Must match selector.matchLabels above
+        tier: database
+    spec:
+      containers:
+        - name: postgres
+          # PostgreSQL 15 official image — supports linux/arm64 for Raspberry Pi.
+          image: postgres:15
+
+          # ports: Declare which ports the container listens on.
+          # containerPort is informational (like EXPOSE in Dockerfile).
+          ports:
+            - containerPort: 5432
+              name: postgresql      # Naming ports is a best practice — makes configs more readable
+
+          # -------------------------------------------------------------------
+          # ENVIRONMENT VARIABLES — Database configuration from Secret
+          # -------------------------------------------------------------------
+          # envFrom: Loads ALL key-value pairs from a Secret/ConfigMap as
+          # environment variables. Every key in postgres-secret becomes an
+          # env var (POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB).
+          envFrom:
+            - secretRef:
+                name: postgres-secret  # References our database-secret.yaml
+
+          # PGDATA: Tell PostgreSQL to store data in a subdirectory.
+          # Why a subdirectory? The PVC mount creates a "lost+found" directory
+          # (a Linux filesystem artifact). PostgreSQL refuses to initialize
+          # in a non-empty directory. Using a subdirectory avoids this issue.
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+
+          # -------------------------------------------------------------------
+          # VOLUME MOUNTS — Attach storage and config files to the container
+          # -------------------------------------------------------------------
+          volumeMounts:
+            # Mount the persistent volume for database files.
+            # This is where PostgreSQL stores all its data (tables, indexes, etc.)
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+
+            # Mount the init script from ConfigMap.
+            # PostgreSQL runs *.sql files in this directory on first startup.
+            - name: init-script
+              mountPath: /docker-entrypoint-initdb.d
+
+          # -------------------------------------------------------------------
+          # RESOURCE REQUESTS AND LIMITS
+          # -------------------------------------------------------------------
+          # requests: The MINIMUM resources Kubernetes guarantees to this pod.
+          #   The scheduler uses this to decide which node has enough capacity.
+          # limits: The MAXIMUM resources the pod can use.
+          #   If it exceeds memory limit, Kubernetes kills it (OOMKilled).
+          #   If it exceeds CPU limit, it gets throttled (slowed down, not killed).
+          #
+          # On a Raspberry Pi 5 (8GB RAM, 4 cores), these values are conservative
+          # to leave room for other pods and the system.
+          resources:
+            requests:
+              memory: "256Mi"       # 256 mebibytes minimum RAM
+              cpu: "250m"           # 250 millicores = 0.25 CPU cores
+            limits:
+              memory: "512Mi"       # 512 mebibytes maximum RAM
+              cpu: "500m"           # 500 millicores = 0.5 CPU cores
+
+      # ---------------------------------------------------------------------
+      # VOLUMES — Define the storage sources
+      # ---------------------------------------------------------------------
+      # Note: "postgres-data" is defined in volumeClaimTemplates below,
+      # NOT here. Only the init-script ConfigMap volume is defined here.
+      volumes:
+        # Mount the init SQL script from our ConfigMap
+        - name: init-script
+          configMap:
+            name: postgres-init-script  # References database-init-configmap.yaml
+
+  # -------------------------------------------------------------------------
+  # VOLUME CLAIM TEMPLATES — StatefulSet-managed persistent storage
+  # -------------------------------------------------------------------------
+  # This is THE key feature of StatefulSets. For each replica, Kubernetes
+  # automatically creates a PVC using this template.
+  #
+  # For 1 replica: Creates PVC "postgres-data-postgres-0"
+  # For 3 replicas: Creates "postgres-data-postgres-0", "...-1", "...-2"
+  #
+  # These PVCs persist even if you delete the StatefulSet! This is a safety
+  # feature — you won't accidentally lose your database. To delete them:
+  #   kubectl delete pvc -l app=postgres -n multi-tier-app
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data       # Matches the volumeMounts name above
+      spec:
+        accessModes:
+          - ReadWriteOnce         # Only one pod can mount this volume read/write
+        resources:
+          requests:
+            storage: 1Gi          # 1 gibibyte of storage
+        # storageClassName: local-path  # Uncomment if k3s doesn't set a default

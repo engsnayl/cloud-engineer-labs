@@ -1,0 +1,51 @@
+# =============================================================================
+# FILE: terraform.tfvars.example
+# PURPOSE: Example variable values for this Terraform project.
+#
+# HOW TO USE THIS FILE:
+#   1. Copy this file:  cp terraform.tfvars.example terraform.tfvars
+#   2. Edit terraform.tfvars with YOUR values
+#   3. Terraform automatically loads terraform.tfvars when you run plan/apply
+#
+# =============================================================================
+#
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !! SECURITY WARNING !!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !!                                                                         !!
+# !!  NEVER commit your actual terraform.tfvars file to Git!                 !!
+# !!  It may contain sensitive values (account IDs, custom settings).        !!
+# !!                                                                         !!
+# !!  Your .gitignore should include:                                        !!
+# !!    *.tfvars                                                             !!
+# !!    !*.tfvars.example                                                    !!
+# !!                                                                         !!
+# !!  This .example file IS safe to commit — it contains no real secrets.    !!
+# !!  It serves as documentation for what variables are available.           !!
+# !!                                                                         !!
+# !!  NEVER put AWS access keys, secret keys, passwords, or tokens in       !!
+# !!  .tfvars files. Use environment variables or AWS CLI profiles instead.  !!
+# !!                                                                         !!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+# -----------------------------------------------------------------------------
+# AWS Region
+# -----------------------------------------------------------------------------
+# The AWS region where all resources will be created.
+# eu-west-2 = London. Other options: us-east-1 (Virginia), eu-west-1 (Ireland)
+aws_region = "eu-west-2"
+
+# -----------------------------------------------------------------------------
+# Project Name
+# -----------------------------------------------------------------------------
+# Used in resource names and tags. Keep it short, lowercase, hyphens only.
+# This will appear in resource names like "multi-tier-app-vpc",
+# "multi-tier-app-frontend-sg", etc.
+project_name = "multi-tier-app"
+
+# -----------------------------------------------------------------------------
+# Environment
+# -----------------------------------------------------------------------------
+# Which environment this is. Controls tags and can be used in conditionals.
+# Common values: "development", "staging", "production"
+environment = "development"

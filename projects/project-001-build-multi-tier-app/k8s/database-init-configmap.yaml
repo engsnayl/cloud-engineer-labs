@@ -1,0 +1,65 @@
+# =============================================================================
+# database-init-configmap.yaml — SQL initialization script for PostgreSQL
+# =============================================================================
+# A ConfigMap stores non-sensitive configuration data as key-value pairs.
+# Unlike Secrets, ConfigMaps are for data that doesn't need to be protected
+# (config files, SQL scripts, feature flags, etc.).
+#
+# Here, we store an SQL script that creates our "items" table and inserts
+# sample data. We'll mount this ConfigMap as a file inside the PostgreSQL
+# container at /docker-entrypoint-initdb.d/init.sql — PostgreSQL automatically
+# runs any .sql files in that directory on first startup.
+#
+# This is the same init script used by docker-compose, but stored as a
+# Kubernetes resource instead of a local file.
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-script      # Name referenced in the StatefulSet volume mount
+  namespace: multi-tier-app
+  labels:
+    app: postgres
+    tier: database
+data:
+  # The key "init.sql" becomes the filename when mounted as a volume.
+  # The "|" (pipe) character in YAML starts a multi-line string block.
+  init.sql: |
+    -- =========================================================================
+    -- init.sql — Database initialization script
+    -- =========================================================================
+    -- This script runs automatically when PostgreSQL starts for the FIRST TIME
+    -- (when the data directory is empty). It will NOT run on subsequent restarts
+    -- because PostgreSQL detects that the database already exists.
+    -- =========================================================================
+
+    -- CREATE TABLE IF NOT EXISTS: Creates the table only if it doesn't exist.
+    -- The "IF NOT EXISTS" clause prevents errors if the script runs twice.
+    CREATE TABLE IF NOT EXISTS items (
+        -- SERIAL: Auto-incrementing integer. PostgreSQL automatically assigns
+        -- the next number (1, 2, 3...) when you insert a row without specifying id.
+        -- PRIMARY KEY: Uniquely identifies each row. No duplicates allowed.
+        id SERIAL PRIMARY KEY,
+
+        -- VARCHAR(255): Variable-length string, max 255 characters.
+        -- NOT NULL: This column is required — inserts without a name will fail.
+        name VARCHAR(255) NOT NULL,
+
+        -- TEXT: Variable-length string with no max length.
+        -- DEFAULT '': If no description is provided, use an empty string.
+        description TEXT DEFAULT '',
+
+        -- TIMESTAMP: Stores date + time.
+        -- DEFAULT CURRENT_TIMESTAMP: Automatically set to "now" when the row
+        -- is created. You don't need to provide this value in INSERT statements.
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Seed data: Insert sample items so the app isn't empty on first load.
+    -- These give the user something to see immediately and verify the system works.
+    INSERT INTO items (name, description) VALUES
+        ('Raspberry Pi 5', 'ARM64 single-board computer running k3s'),
+        ('Docker Container', 'Lightweight, portable application package'),
+        ('Kubernetes Pod', 'Smallest deployable unit in Kubernetes'),
+        ('PostgreSQL', 'Open-source relational database management system'),
+        ('Flask API', 'Python micro-framework powering our backend');

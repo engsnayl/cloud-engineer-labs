@@ -1,0 +1,25 @@
+# =============================================================================
+# namespace.yaml — Kubernetes Namespace for our application
+# =============================================================================
+# A Namespace is like a "folder" or "project" in Kubernetes. It provides:
+#   - Isolation: Resources in different namespaces don't interfere with each other
+#   - Organization: Group related resources together (all our app's stuff in one place)
+#   - Access Control: You can grant permissions per-namespace (e.g., dev team
+#     can only deploy to "dev" namespace, not "production")
+#   - Resource Quotas: Limit how much CPU/RAM a namespace can consume
+#
+# Without a namespace, everything goes into "default" — which gets messy fast
+# when you have multiple apps or environments on the same cluster.
+#
+# Common namespace patterns:
+#   - Per-app: multi-tier-app, monitoring, logging
+#   - Per-environment: dev, staging, production
+#   - Per-team: team-alpha, team-beta
+# =============================================================================
+apiVersion: v1                    # Core API group — Namespace is a fundamental resource
+kind: Namespace                   # The type of Kubernetes resource
+metadata:
+  name: multi-tier-app            # The namespace name — used in all other manifests
+  labels:                         # Labels are key-value pairs for organizing/selecting resources
+    project: multi-tier-app       # Custom label — useful for filtering (kubectl get ns -l project=multi-tier-app)
+    environment: development      # Indicates this is a dev environment

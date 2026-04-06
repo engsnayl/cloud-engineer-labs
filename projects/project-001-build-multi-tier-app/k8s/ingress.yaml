@@ -1,0 +1,110 @@
+# =============================================================================
+# ingress.yaml — Path-based Ingress for external access
+# =============================================================================
+# An Ingress is a Kubernetes resource that manages external HTTP/HTTPS access
+# to services within the cluster. Think of it as a "smart router" that:
+#   - Listens on ports 80/443 on the node
+#   - Routes requests to different services based on the URL path or hostname
+#   - Can terminate TLS/SSL (HTTPS)
+#
+# An Ingress resource is just a set of RULES. The actual routing is done by
+# an "Ingress Controller" — a pod running a reverse proxy (like Traefik or Nginx).
+#
+# On k3s, Traefik is the DEFAULT Ingress Controller (installed automatically).
+# Many other clusters use the Nginx Ingress Controller instead.
+#
+# Our routing rules:
+#   /api/*  -> backend Service (port 5000) — API requests
+#   /*      -> frontend Service (port 80)  — Everything else (HTML, CSS, JS)
+#
+# This means you access the entire app at one URL (e.g., http://pi-ip/)
+# and the Ingress splits traffic between frontend and backend automatically.
+# =============================================================================
+apiVersion: networking.k8s.io/v1  # Ingress is in the networking API group
+kind: Ingress
+metadata:
+  name: multi-tier-ingress
+  namespace: multi-tier-app
+  labels:
+    app: multi-tier-app
+
+  # -------------------------------------------------------------------------
+  # ANNOTATIONS — Controller-specific configuration
+  # -------------------------------------------------------------------------
+  # Annotations are key-value metadata that tools/controllers read.
+  # Different Ingress Controllers use different annotations — we include
+  # BOTH Nginx and Traefik annotations so this manifest works with either.
+  annotations:
+    # --- NGINX INGRESS CONTROLLER ANNOTATIONS ---
+    # If you're using the nginx ingress controller (common on cloud Kubernetes),
+    # this annotation tells it to claim this Ingress resource.
+    kubernetes.io/ingress.class: "nginx"
+
+    # nginx rewrite-target: Strips/rewrites the URL path before forwarding.
+    # "/$1" means "forward whatever was captured by the regex in the path."
+    # For example: /api/health -> /api/health (the $1 captures "api/health")
+    # This is a no-op with our current paths but shown for educational purposes.
+    # nginx.ingress.kubernetes.io/rewrite-target: /
+
+    # --- TRAEFIK INGRESS CONTROLLER ANNOTATIONS ---
+    # k3s uses Traefik by default. This annotation tells Traefik to handle
+    # this Ingress. On k3s, Traefik usually picks up Ingress resources
+    # automatically, but being explicit is good practice.
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+
+    # --- COMMON ANNOTATIONS ---
+    # These work with most ingress controllers:
+
+    # Proxy body size: Maximum size of the request body (for POST requests).
+    # The default is often 1MB, which may be too small for file uploads.
+    # "10m" = 10 megabytes.
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+
+    # Proxy timeouts: How long to wait for the backend to respond.
+    # Useful for slow endpoints (complex database queries, etc.)
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+
+spec:
+  # ingressClassName: The modern way to select which Ingress Controller
+  # should handle this resource (replaces the kubernetes.io/ingress.class
+  # annotation). On k3s, use "traefik". For nginx controller, use "nginx".
+  # We set "traefik" since k3s is our target platform.
+  ingressClassName: traefik
+
+  # -------------------------------------------------------------------------
+  # ROUTING RULES
+  # -------------------------------------------------------------------------
+  rules:
+    # host: Optional — if you set a hostname (e.g., myapp.local), the Ingress
+    # only matches requests with that Host header. Without it, the rule matches
+    # ALL hostnames (including IP addresses). We omit it so you can access
+    # the app via http://pi-ip-address/ without setting up DNS.
+    - http:
+        paths:
+          # --- BACKEND API ROUTE ---
+          # Requests to /api/* go to the backend service.
+          # This MUST be listed BEFORE the catch-all "/" path because
+          # Ingress evaluates more specific paths first (Prefix matching).
+          - path: /api
+            # pathType: How the path is matched.
+            #   - Prefix: Matches the URL prefix. /api matches /api, /api/health, /api/data
+            #   - Exact: Only matches the exact path. /api would NOT match /api/health
+            #   - ImplementationSpecific: Controller-dependent behavior
+            pathType: Prefix
+            backend:
+              service:
+                name: backend     # Route to the backend Service
+                port:
+                  number: 5000    # The Service's port (from backend-service.yaml)
+
+          # --- FRONTEND CATCH-ALL ROUTE ---
+          # Everything that doesn't match /api goes to the frontend.
+          # This serves the HTML page and static assets.
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend    # Route to the frontend Service
+                port:
+                  number: 80      # The Service's port (from frontend-service.yaml)

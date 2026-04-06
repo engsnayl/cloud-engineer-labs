@@ -1,0 +1,189 @@
+# =============================================================================
+# docker-compose.yml — Orchestrates all three services locally
+# =============================================================================
+# Docker Compose lets you define and run multi-container applications.
+# Instead of running three separate "docker run" commands with lots of flags,
+# you describe everything in this YAML file and run "docker compose up".
+#
+# This file defines:
+#   1. postgres  — The database (stores our data permanently)
+#   2. backend   — The Python/Flask API (talks to the database)
+#   3. frontend  — The Nginx web server (serves HTML + proxies to backend)
+#
+# To start everything:  docker compose up -d --build
+# To stop everything:   docker compose down
+# To see logs:          docker compose logs -f
+# To remove volumes:    docker compose down -v  (WARNING: deletes DB data!)
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# VERSION NOTE:
+# ---------------------------------------------------------------------------
+# Older docker-compose files start with "version: '3.8'" but modern Docker
+# Compose (v2+) no longer requires the version key. If you see it in examples
+# online, it's from older tutorials. Omitting it is fine and recommended.
+
+# ---------------------------------------------------------------------------
+# SERVICES — Each service becomes a running container
+# ---------------------------------------------------------------------------
+services:
+
+  # =========================================================================
+  # POSTGRES — The database tier
+  # =========================================================================
+  postgres:
+    # The official PostgreSQL 15 image from Docker Hub.
+    # This image supports linux/arm64 (Raspberry Pi 5 compatible).
+    image: postgres:15
+
+    # container_name gives the container a fixed name instead of a random one.
+    # Makes it easier to reference in logs and debugging.
+    container_name: multi-tier-postgres
+
+    # environment: Sets environment variables INSIDE the container.
+    # The official postgres image reads these on first startup to:
+    #   - Create the database user (POSTGRES_USER)
+    #   - Set their password (POSTGRES_PASSWORD)
+    #   - Create a database (POSTGRES_DB)
+    # These are only used on first run — changing them later won't affect
+    # an existing database (the data is in the volume).
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: securepassword123
+      POSTGRES_DB: multitierdb
+
+    # volumes: Mount host directories/named volumes into the container.
+    # "postgres-data:/var/lib/postgresql/data" means:
+    #   - Docker creates a named volume called "postgres-data"
+    #   - It's mounted at /var/lib/postgresql/data inside the container
+    #   - PostgreSQL stores all its data files here
+    #   - The volume PERSISTS even when the container is deleted
+    #   - Without this, all data would be lost when the container stops!
+    #
+    # The second mount copies our init script into a special directory.
+    # The postgres image automatically runs any .sql files found in
+    # /docker-entrypoint-initdb.d/ on first startup (only once, when
+    # the data directory is empty).
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./k8s/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    # healthcheck: Docker periodically runs this command to check if the
+    # container is healthy. Other services can wait for this with
+    # depends_on: condition: service_healthy.
+    #
+    # pg_isready is a PostgreSQL utility that checks if the server is
+    # accepting connections. It's the standard way to health-check Postgres.
+    #
+    # interval: Run the check every 10 seconds
+    # timeout: If the check takes longer than 5 seconds, consider it failed
+    # retries: After 5 consecutive failures, mark the container as "unhealthy"
+    # start_period: Give the container 30s to initialize before checking.
+    #   PostgreSQL needs time to create the database on first run.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d multitierdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+    # ports: Map container ports to host ports. "5432:5432" means
+    # host port 5432 -> container port 5432. This lets you connect
+    # to the database from your host machine (e.g., with pgAdmin or psql).
+    # In production, you'd remove this to keep the DB internal-only.
+    ports:
+      - "5432:5432"
+
+    # restart: What to do if the container crashes.
+    # "unless-stopped" means Docker will always restart it unless you
+    # explicitly run "docker compose stop" or "docker stop".
+    restart: unless-stopped
+
+  # =========================================================================
+  # BACKEND — The application tier (Python/Flask API)
+  # =========================================================================
+  backend:
+    # build: Instead of pulling a pre-built image, build from a Dockerfile.
+    # context: The directory to use as the build context (sent to Docker daemon)
+    # dockerfile: Path to the Dockerfile (relative to context)
+    build:
+      context: ./docker/backend
+      dockerfile: Dockerfile
+
+    container_name: multi-tier-backend
+
+    # depends_on: Controls startup ORDER and CONDITIONS.
+    # "service_healthy" means: don't start the backend until PostgreSQL's
+    # healthcheck reports healthy. Without this condition, the backend
+    # might start before PostgreSQL is ready to accept connections, causing
+    # the first few API calls to fail.
+    #
+    # Note: depends_on only controls startup order, not runtime. If Postgres
+    # crashes later, depends_on won't restart the backend.
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    # Environment variables for the backend to find the database.
+    # "postgres" as DB_HOST works because Docker Compose creates a network
+    # and registers each service name as a DNS entry. So "postgres" resolves
+    # to the postgres container's IP address automatically.
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: multitierdb
+      DB_USER: postgres
+      DB_PASSWORD: securepassword123
+
+    # ports: Map host:container ports.
+    # "5000:5000" makes the backend accessible on http://localhost:5000
+    # from your host machine (useful for direct API testing with curl).
+    ports:
+      - "5000:5000"
+
+    restart: unless-stopped
+
+  # =========================================================================
+  # FRONTEND — The presentation tier (Nginx serving HTML + reverse proxy)
+  # =========================================================================
+  frontend:
+    build:
+      context: ./docker/frontend
+      dockerfile: Dockerfile
+
+    container_name: multi-tier-frontend
+
+    # The frontend depends on the backend being started (but not necessarily
+    # healthy — nginx can handle backend being temporarily unavailable and
+    # will retry. We use service_started which just waits for the container
+    # to be running, not for a health check to pass.
+    depends_on:
+      - backend
+
+    # ports: "8080:80" maps host port 8080 to container port 80.
+    # Why not "80:80"?
+    #   - On a Raspberry Pi with k3s, port 80 is already used by Traefik
+    #     (the default k3s ingress controller)
+    #   - Using 8080 avoids the conflict
+    #   - On Linux, ports below 1024 require root privileges
+    # So you access the app at http://localhost:8080 (or http://pi-ip:8080)
+    ports:
+      - "8080:80"
+
+    restart: unless-stopped
+
+# =============================================================================
+# VOLUMES — Named volumes for persistent data
+# =============================================================================
+# Named volumes are managed by Docker and stored in Docker's data directory
+# (usually /var/lib/docker/volumes/ on Linux). They persist across container
+# restarts and removals. You can list them with "docker volume ls" and
+# inspect them with "docker volume inspect postgres-data".
+#
+# To DELETE the volume and all its data: docker compose down -v
+# (Be careful — this is irreversible!)
+volumes:
+  postgres-data:
+    # driver: local is the default — stores data on the host filesystem.
+    # Other drivers exist for cloud storage (e.g., AWS EBS, NFS).
+    driver: local

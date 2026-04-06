@@ -1,0 +1,39 @@
+# =============================================================================
+# backend-configmap.yaml — Non-sensitive configuration for the backend
+# =============================================================================
+# ConfigMaps store non-sensitive configuration data. We separate config from
+# code so you can change settings without rebuilding Docker images.
+#
+# The "12-Factor App" methodology (a set of best practices for cloud apps)
+# says: "Store config in the environment." ConfigMaps and Secrets are how
+# Kubernetes implements this principle.
+#
+# Why separate ConfigMap for non-sensitive vs. Secret for sensitive data?
+#   - ConfigMap (this file): DB hostname, port, database name — not secret
+#   - Secret (database-secret.yaml): Username, password — sensitive!
+#   - This separation makes it clear what needs extra protection
+#   - You can give developers access to ConfigMaps without exposing Secrets
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config            # Name referenced by the backend Deployment
+  namespace: multi-tier-app
+  labels:
+    app: backend
+    tier: application
+data:
+  # DB_HOST: The hostname where PostgreSQL is running.
+  # "postgres" matches the Service name in database-service.yaml.
+  # Kubernetes DNS resolves this to the postgres service's address.
+  # Full DNS: postgres.multi-tier-app.svc.cluster.local
+  # Short form "postgres" works because the backend is in the same namespace.
+  DB_HOST: postgres
+
+  # DB_PORT: PostgreSQL's standard port. Stored as a string in ConfigMaps
+  # (all ConfigMap values are strings — Kubernetes converts them to env vars).
+  DB_PORT: "5432"
+
+  # DB_NAME: Which database to connect to within the PostgreSQL instance.
+  # One PostgreSQL server can host multiple databases.
+  DB_NAME: multitierdb

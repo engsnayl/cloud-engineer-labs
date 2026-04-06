@@ -1,0 +1,33 @@
+# =============================================================================
+# frontend-service.yaml — ClusterIP Service for the frontend
+# =============================================================================
+# This Service provides a stable endpoint for the frontend pods.
+# The Ingress resource routes external traffic to this Service, which then
+# load-balances across the frontend pod replicas.
+#
+# Traffic flow:
+#   Internet -> Ingress Controller (Traefik on k3s) -> frontend Service -> frontend Pods
+#
+# We use ClusterIP (internal only) because the Ingress handles external access.
+# If you didn't have an Ingress, you could use NodePort or LoadBalancer instead.
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: multi-tier-app
+  labels:
+    app: frontend
+    tier: presentation
+spec:
+  type: ClusterIP
+
+  selector:
+    app: frontend
+    tier: presentation
+
+  ports:
+    - port: 80                    # Service port (what the Ingress connects to)
+      targetPort: 80              # Pod port (must match containerPort)
+      name: http
+      protocol: TCP

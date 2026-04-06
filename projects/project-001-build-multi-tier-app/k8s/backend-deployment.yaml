@@ -1,0 +1,151 @@
+# =============================================================================
+# backend-deployment.yaml — Flask API Deployment
+# =============================================================================
+# A Deployment manages a set of identical pods (replicas) and handles:
+#   - Creating pods to match the desired replica count
+#   - Rolling updates (replace pods one-by-one when you update the image)
+#   - Rollbacks (revert to a previous version if something breaks)
+#   - Self-healing (restart pods that crash or fail health checks)
+#
+# We use a Deployment (not StatefulSet) for the backend because:
+#   - The API is stateless — any replica can handle any request
+#   - Pods are interchangeable (no need for stable identity or storage)
+#   - We want fast rolling updates (Deployment handles this better)
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: multi-tier-app
+  labels:
+    app: backend
+    tier: application
+spec:
+  # replicas: Run 2 copies of the backend for basic high availability.
+  # If one pod crashes or gets rescheduled, the other keeps serving traffic.
+  # On a single-node Pi, both replicas run on the same node — true HA requires
+  # multiple nodes so pods can survive a node failure.
+  replicas: 2
+
+  # selector: How the Deployment finds which pods it owns.
+  # The labels here MUST match the pod template labels below.
+  selector:
+    matchLabels:
+      app: backend
+      tier: application
+
+  # -------------------------------------------------------------------------
+  # POD TEMPLATE
+  # -------------------------------------------------------------------------
+  template:
+    metadata:
+      labels:
+        app: backend
+        tier: application
+
+      # Prometheus annotations — these tell Prometheus how to scrape metrics.
+      # Prometheus discovers pods by looking for these specific annotations.
+      # When it finds them, it automatically starts collecting metrics.
+      annotations:
+        # "true" = Prometheus should scrape this pod
+        prometheus.io/scrape: "true"
+        # Which port to scrape (our Flask app's port)
+        prometheus.io/port: "5000"
+        # Which URL path to fetch metrics from
+        prometheus.io/path: "/metrics"
+
+    spec:
+      containers:
+        - name: backend
+          # Image name — this must match what you tag when building locally.
+          # Build with: docker build -t multi-tier-backend:latest ./docker/backend/
+          #
+          # For k3s, you need to import the image into k3s's containerd:
+          #   docker save multi-tier-backend:latest | sudo k3s ctr images import -
+          image: multi-tier-backend:latest
+
+          # imagePullPolicy: Controls when Kubernetes pulls (downloads) the image.
+          #   - Always: Pull every time a pod starts (ensures latest, but slow)
+          #   - IfNotPresent: Only pull if the image isn't already on the node
+          #   - Never: Never pull — image must already be on the node
+          #
+          # We use IfNotPresent because:
+          #   - We're building images locally and importing them to k3s
+          #   - There's no remote registry to pull from
+          #   - "Always" would fail because Docker Hub doesn't have our image
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 5000
+              name: http
+
+          # -------------------------------------------------------------------
+          # ENVIRONMENT VARIABLES
+          # -------------------------------------------------------------------
+          # envFrom: Load ALL keys from a ConfigMap as environment variables.
+          # This injects DB_HOST, DB_PORT, and DB_NAME from backend-config.
+          envFrom:
+            - configMapRef:
+                name: backend-config  # References backend-configmap.yaml
+
+          # env: Set individual environment variables.
+          # We pull DB_USER and DB_PASSWORD from the Secret individually
+          # (rather than using envFrom with secretRef) to control which
+          # secret keys map to which env var names.
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret    # References database-secret.yaml
+                  key: POSTGRES_USER       # The key within the Secret
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+
+          # -------------------------------------------------------------------
+          # HEALTH PROBES — How Kubernetes monitors pod health
+          # -------------------------------------------------------------------
+          # readinessProbe: "Is this pod ready to receive traffic?"
+          #   - Runs periodically after startup
+          #   - If it fails, the pod is REMOVED from the Service's endpoints
+          #     (no traffic is sent to it) but the pod is NOT restarted
+          #   - Once it passes again, traffic resumes
+          #   - Use case: Pod is alive but temporarily overloaded or waiting
+          #     for a dependency (like the database) to recover
+          readinessProbe:
+            httpGet:
+              path: /api/health     # Our health check endpoint
+              port: 5000
+            initialDelaySeconds: 10  # Wait 10s before first check (app needs startup time)
+            periodSeconds: 10        # Check every 10 seconds
+            timeoutSeconds: 5        # Fail if no response in 5 seconds
+            failureThreshold: 3      # Remove from service after 3 consecutive failures
+
+          # livenessProbe: "Is this pod still alive?"
+          #   - If it fails, Kubernetes RESTARTS the pod
+          #   - More aggressive than readiness — use a higher failure threshold
+          #   - Use case: Pod is stuck/deadlocked and needs a restart
+          #   - WARNING: Don't set this too aggressively or you'll get restart loops!
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 5000
+            initialDelaySeconds: 15  # Give the app extra time before liveness checks
+            periodSeconds: 20        # Check less frequently than readiness
+            timeoutSeconds: 5
+            failureThreshold: 5      # Allow 5 failures before restart (more lenient)
+
+          # -------------------------------------------------------------------
+          # RESOURCE REQUESTS AND LIMITS
+          # -------------------------------------------------------------------
+          # Sized smaller than PostgreSQL because Python/Flask is lighter.
+          # On a Pi 5, be conservative to leave room for the system + other pods.
+          resources:
+            requests:
+              memory: "128Mi"       # 128 MiB minimum
+              cpu: "100m"           # 100 millicores = 0.1 CPU cores
+            limits:
+              memory: "256Mi"       # 256 MiB maximum (OOMKilled if exceeded)
+              cpu: "250m"           # 250 millicores = 0.25 CPU cores

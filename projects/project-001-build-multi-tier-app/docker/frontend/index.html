@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<!--
+  =============================================================================
+  index.html — Frontend for the Multi-Tier Application
+  =============================================================================
+  This is a single-page application (SPA) — everything happens in one HTML file.
+  No frameworks (React, Vue, etc.) — just plain HTML, CSS, and JavaScript.
+  This makes it easier to understand what's happening at every level.
+
+  The page has four sections:
+    1. Header with a live health status badge
+    2. ASCII architecture diagram (because it's cool and educational)
+    3. Items list fetched from the API
+    4. A form to add new items
+
+  All API calls use the Fetch API (built into modern browsers).
+  =============================================================================
+-->
+<html lang="en">
+<head>
+    <!-- meta charset: Tells the browser this page uses UTF-8 encoding (supports
+         all characters including emojis, accented letters, etc.) -->
+    <meta charset="UTF-8">
+
+    <!-- viewport meta: Makes the page responsive on mobile devices. Without this,
+         mobile browsers render the page at desktop width and zoom out. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Multi-Tier App | Cloud Engineering Lab</title>
+
+    <!-- =======================================================================
+         EMBEDDED CSS — Styles for our dark-themed dashboard
+         =======================================================================
+         In a production app, you'd put CSS in a separate file (styles.css).
+         We embed it here to keep everything in one file for simplicity. -->
+    <style>
+        /* ------------------------------------------------------------------- */
+        /* CSS Custom Properties (Variables)                                    */
+        /* ------------------------------------------------------------------- */
+        /* Define colors once, reuse everywhere. If you want to change the     */
+        /* theme, just update these values instead of hunting through the CSS.  */
+        :root {
+            --bg-primary: #0d1117;       /* Main background — very dark blue-black */
+            --bg-secondary: #161b22;     /* Card/section background — slightly lighter */
+            --bg-tertiary: #21262d;      /* Input fields, hover states */
+            --text-primary: #e6edf3;     /* Main text — off-white (easier on eyes than pure white) */
+            --text-secondary: #8b949e;   /* Muted text — for descriptions, labels */
+            --accent-green: #3fb950;     /* Success/healthy indicators */
+            --accent-red: #f85149;       /* Error/unhealthy indicators */
+            --accent-blue: #58a6ff;      /* Links and interactive elements */
+            --accent-purple: #bc8cff;    /* Decorative accents */
+            --border-color: #30363d;     /* Subtle borders between sections */
+            --font-mono: 'Courier New', Courier, monospace;  /* For code/ASCII art */
+        }
+
+        /* ------------------------------------------------------------------- */
+        /* RESET & BASE STYLES                                                  */
+        /* ------------------------------------------------------------------- */
+        /* Remove default browser margins/padding and set up the dark theme.   */
+        /* box-sizing: border-box makes width/height include padding+border,    */
+        /* which makes layout math much simpler.                                */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;           /* Space between lines — 1.6x font size is very readable */
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;            /* Centers the content horizontally */
+        }
+
+        /* ------------------------------------------------------------------- */
+        /* HEADER                                                               */
+        /* ------------------------------------------------------------------- */
+        header {
+            text-align: center;
+            padding: 30px 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Health badge — small pill-shaped status indicator */
+        .health-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;       /* Large radius = pill shape */
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 12px;
+            transition: all 0.3s ease; /* Smooth color transition when status changes */
+        }
+
+        /* Status-specific colors — JavaScript toggles these classes */
+        .health-badge.healthy {
+            background-color: rgba(63, 185, 80, 0.15);  /* Semi-transparent green */
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+        }
+
+        .health-badge.unhealthy {
+            background-color: rgba(248, 81, 73, 0.15);  /* Semi-transparent red */
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+        }
+
+        .health-badge.checking {
+            background-color: rgba(88, 166, 255, 0.15);
+            color: var(--accent-blue);
+            border: 1px solid var(--accent-blue);
+        }
+
+        /* ------------------------------------------------------------------- */
+        /* SECTIONS (Cards)                                                     */
+        /* ------------------------------------------------------------------- */
+        .section {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .section h2 {
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            color: var(--accent-blue);
+        }
+
+        /* ------------------------------------------------------------------- */
+        /* ASCII ARCHITECTURE DIAGRAM                                           */
+        /* ------------------------------------------------------------------- */
+        /* pre = preformatted text — preserves spaces and line breaks exactly   */
+        .architecture-diagram {
+            background-color: var(--bg-tertiary);
+            padding: 20px;
+            border-radius: 6px;
+            overflow-x: auto;          /* Horizontal scroll if diagram is too wide */
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            line-height: 1.4;
+            color: var(--accent-purple);
+        }
+
+        /* ------------------------------------------------------------------- */
+        /* ITEMS LIST                                                           */
+        /* ------------------------------------------------------------------- */
+        .items-list {
+            list-style: none;          /* Remove default bullet points */
+        }
+
+        .items-list li {
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            background-color: var(--bg-tertiary);
+        }
+
+        .items-list li .item-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .items-list li .item-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .items-list li .item-date {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            margin-top: 4px;
+        }
+
+        .empty-state {
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        /* ------------------------------------------------------------------- */
+        /* ADD ITEM FORM                                                        */
+        /* ------------------------------------------------------------------- */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+
+        /* :focus styles — what inputs look like when clicked/selected */
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;             /* Remove default blue outline */
+            border-color: var(--accent-blue);  /* Replace with our accent color */
+        }
+
+        .form-group textarea {
+            resize: vertical;          /* Allow vertical resize only */
+            min-height: 60px;
+        }
+
+        button {
+            padding: 10px 24px;
+            background-color: var(--accent-blue);
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            cursor: pointer;           /* Show hand cursor on hover */
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ------------------------------------------------------------------- */
+        /* STATUS MESSAGES (success/error feedback after form submission)        */
+        /* ------------------------------------------------------------------- */
+        .status-message {
+            padding: 10px 16px;
+            border-radius: 6px;
+            margin-top: 12px;
+            font-size: 0.9rem;
+            display: none;             /* Hidden by default — JS shows it */
+        }
+
+        .status-message.success {
+            background-color: rgba(63, 185, 80, 0.15);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+            display: block;
+        }
+
+        .status-message.error {
+            background-color: rgba(248, 81, 73, 0.15);
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+            display: block;
+        }
+
+        /* ------------------------------------------------------------------- */
+        /* FOOTER                                                               */
+        /* ------------------------------------------------------------------- */
+        footer {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ===================================================================== -->
+    <!-- HEADER — App title and live health status badge                        -->
+    <!-- ===================================================================== -->
+    <header>
+        <h1>Multi-Tier Application</h1>
+        <p>Cloud Engineering Capstone Project</p>
+        <!-- The health badge starts as "checking" and gets updated by JavaScript -->
+        <div id="health-badge" class="health-badge checking">Checking health...</div>
+    </header>
+
+    <!-- ===================================================================== -->
+    <!-- ARCHITECTURE DIAGRAM — ASCII art showing how the tiers connect         -->
+    <!-- ===================================================================== -->
+    <!-- This helps visualize the system you just built. The <pre> tag          -->
+    <!-- preserves whitespace exactly as written (unlike normal HTML which      -->
+    <!-- collapses multiple spaces into one).                                   -->
+    <div class="section">
+        <h2>Architecture</h2>
+        <pre class="architecture-diagram">
+    +-------------------+       +-------------------+       +-------------------+
+    |                   |       |                   |       |                   |
+    |     Frontend      | ----> |     Backend       | ----> |    PostgreSQL     |
+    |     (Nginx)       |       |   (Flask/Python)  |       |    (Database)     |
+    |                   |       |                   |       |                   |
+    |   Port: 80/8080   |       |    Port: 5000     |       |    Port: 5432     |
+    |   Serves HTML +   |       |   REST API +      |       |   Stores items    |
+    |   Proxies /api/   |       |   Prometheus      |       |   table data      |
+    |                   |       |   metrics         |       |                   |
+    +-------------------+       +-------------------+       +-------------------+
+
+    Browser --> Nginx (/:80) --> Flask (/api/*:5000) --> PostgreSQL (:5432)
+        </pre>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- ITEMS LIST — Populated by JavaScript from GET /api/data                -->
+    <!-- ===================================================================== -->
+    <div class="section">
+        <h2>Items</h2>
+        <!-- This ul (unordered list) starts empty. JavaScript fills it with   -->
+        <!-- li (list item) elements fetched from the API.                      -->
+        <ul id="items-list" class="items-list">
+            <li class="empty-state">Loading items...</li>
+        </ul>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- ADD ITEM FORM — Sends POST /api/data to create new items               -->
+    <!-- ===================================================================== -->
+    <div class="section">
+        <h2>Add New Item</h2>
+        <!-- The form's default behavior is to reload the page on submit.       -->
+        <!-- We prevent that with JavaScript (e.preventDefault()) and use       -->
+        <!-- fetch() to submit via AJAX instead — no page reload needed.        -->
+        <form id="add-item-form">
+            <div class="form-group">
+                <label for="item-name">Name (required)</label>
+                <!-- "required" attribute makes the browser validate before submit -->
+                <input type="text" id="item-name" placeholder="Enter item name" required>
+            </div>
+            <div class="form-group">
+                <label for="item-desc">Description (optional)</label>
+                <textarea id="item-desc" placeholder="Enter a description"></textarea>
+            </div>
+            <button type="submit" id="submit-btn">Add Item</button>
+        </form>
+        <!-- Status message div — hidden by default, shown after form submit -->
+        <div id="form-status" class="status-message"></div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- FOOTER                                                                 -->
+    <!-- ===================================================================== -->
+    <footer>
+        <p>Multi-Tier App | Running on Raspberry Pi 5 with k3s</p>
+    </footer>
+
+    <!-- ===================================================================== -->
+    <!-- JAVASCRIPT — All the interactive behavior                              -->
+    <!-- ===================================================================== -->
+    <!-- The <script> tag at the bottom of <body> ensures the HTML has fully    -->
+    <!-- loaded before JavaScript tries to find elements by ID.                 -->
+    <script>
+        // =================================================================
+        // HEALTH CHECK — Polls GET /api/health every 10 seconds
+        // =================================================================
+        // This function fetches the health endpoint and updates the badge.
+        // "async" means the function can use "await" to pause for network
+        // requests without blocking the rest of the page.
+        async function checkHealth() {
+            // Get a reference to the badge element by its ID
+            const badge = document.getElementById('health-badge');
+
+            try {
+                // fetch() is the modern browser API for making HTTP requests.
+                // It returns a Promise — "await" pauses until the response arrives.
+                // We're calling /api/health which nginx proxies to the backend.
+                const response = await fetch('/api/health');
+
+                // response.json() parses the JSON body into a JavaScript object.
+                const data = await response.json();
+
+                if (response.ok && data.status === 'healthy') {
+                    // Update the badge text and CSS class for green "healthy" style
+                    badge.textContent = 'Healthy (' + data.response_time_ms + 'ms)';
+                    badge.className = 'health-badge healthy';  // Replaces all classes
+                } else {
+                    badge.textContent = 'Unhealthy: ' + (data.error || 'Unknown error');
+                    badge.className = 'health-badge unhealthy';
+                }
+            } catch (error) {
+                // catch runs if the fetch itself fails (network error, server down)
+                badge.textContent = 'Connection Error';
+                badge.className = 'health-badge unhealthy';
+            }
+        }
+
+        // =================================================================
+        // LOAD ITEMS — Fetches GET /api/data and renders the list
+        // =================================================================
+        async function loadItems() {
+            const itemsList = document.getElementById('items-list');
+
+            try {
+                const response = await fetch('/api/data');
+                const items = await response.json();
+
+                // If the API returned an empty array, show a friendly message
+                if (items.length === 0) {
+                    itemsList.innerHTML = '<li class="empty-state">No items yet. Add one below!</li>';
+                    return;
+                }
+
+                // Build the HTML for each item.
+                // .map() transforms each item object into an HTML string.
+                // .join('') combines all strings into one (no separator).
+                itemsList.innerHTML = items.map(function(item) {
+                    // Format the date to be human-readable
+                    // new Date() parses ISO 8601 strings from the API
+                    const date = item.created_at
+                        ? new Date(item.created_at).toLocaleString()
+                        : 'Unknown date';
+
+                    return '<li>' +
+                        '<div class="item-name">' + escapeHtml(item.name) + '</div>' +
+                        (item.description
+                            ? '<div class="item-desc">' + escapeHtml(item.description) + '</div>'
+                            : '') +
+                        '<div class="item-date">Created: ' + date + '</div>' +
+                        '</li>';
+                }).join('');
+
+            } catch (error) {
+                // Show error state if the API is unreachable
+                itemsList.innerHTML = '<li class="empty-state">Failed to load items: ' +
+                    escapeHtml(error.message) + '</li>';
+            }
+        }
+
+        // =================================================================
+        // ESCAPE HTML — Prevents Cross-Site Scripting (XSS) attacks
+        // =================================================================
+        // If a user enters "<script>alert('hacked')</script>" as an item name,
+        // we DON'T want the browser to execute that as JavaScript!
+        // This function converts special characters to their HTML entities:
+        //   < becomes &lt;   > becomes &gt;   & becomes &amp;
+        // So the browser displays the text literally instead of interpreting it.
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.appendChild(document.createTextNode(text));
+            return div.innerHTML;
+        }
+
+        // =================================================================
+        // FORM SUBMISSION — Sends POST /api/data with the new item
+        // =================================================================
+        // We attach an "event listener" to the form's "submit" event.
+        // This runs our function instead of the browser's default form behavior.
+        document.getElementById('add-item-form').addEventListener('submit', async function(event) {
+            // Prevent the default form submission (which would reload the page)
+            event.preventDefault();
+
+            const nameInput = document.getElementById('item-name');
+            const descInput = document.getElementById('item-desc');
+            const submitBtn = document.getElementById('submit-btn');
+            const statusDiv = document.getElementById('form-status');
+
+            // Disable the button while the request is in flight (prevent double-submit)
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Adding...';
+
+            try {
+                // fetch() with POST method sends data TO the server.
+                // We include:
+                //   method: 'POST' — tells the server we're creating something
+                //   headers: Content-Type — tells the server the body is JSON
+                //   body: JSON.stringify() — converts our JS object to a JSON string
+                const response = await fetch('/api/data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'  // Required! Without this,
+                        // Flask's request.get_json() returns None
+                    },
+                    body: JSON.stringify({
+                        name: nameInput.value,
+                        description: descInput.value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Success! Show a green message and clear the form
+                    statusDiv.textContent = 'Item "' + data.name + '" created successfully!';
+                    statusDiv.className = 'status-message success';
+                    nameInput.value = '';   // Clear the inputs
+                    descInput.value = '';
+                    loadItems();            // Refresh the list to show the new item
+                } else {
+                    // Server returned an error (4xx or 5xx status code)
+                    statusDiv.textContent = 'Error: ' + (data.error || 'Unknown error');
+                    statusDiv.className = 'status-message error';
+                }
+            } catch (error) {
+                // Network error (server unreachable)
+                statusDiv.textContent = 'Network error: ' + error.message;
+                statusDiv.className = 'status-message error';
+            } finally {
+                // "finally" always runs, whether the try succeeded or failed.
+                // Re-enable the submit button so the user can try again.
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Add Item';
+
+                // Auto-hide the status message after 5 seconds
+                setTimeout(function() {
+                    statusDiv.className = 'status-message';  // Removes success/error class = hides it
+                }, 5000);
+            }
+        });
+
+        // =================================================================
+        // INITIALIZATION — Run on page load
+        // =================================================================
+        // Call both functions immediately when the page loads
+        checkHealth();
+        loadItems();
+
+        // setInterval() calls a function repeatedly at a fixed interval.
+        // Here we check health every 10 seconds (10000 milliseconds).
+        // This keeps the health badge up-to-date without manual refresh.
+        setInterval(checkHealth, 10000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+# =============================================================================
+# .dockerignore — Tells Docker which files to EXCLUDE from the build context
+# =============================================================================
+# When you run "docker build", Docker sends ALL files in the directory to the
+# Docker daemon (the "build context"). This file works like .gitignore — it
+# prevents unnecessary or sensitive files from being included.
+#
+# Why does this matter?
+#   1. Smaller build context = faster builds (less data to transfer)
+#   2. Prevents secrets (.env files) from accidentally ending up in images
+#   3. Avoids cache-busting (if irrelevant files change, Docker won't rebuild)
+# =============================================================================
+
+# Python bytecode cache — generated at runtime, never needed in the image.
+# Including these would waste space and could cause cross-platform issues
+# (bytecode compiled on your Mac/PC won't work in the Linux container).
+__pycache__/
+*.pyc
+
+# Environment variable files — these often contain secrets like database
+# passwords and API keys. NEVER bake these into a Docker image! Instead,
+# pass them at runtime via docker-compose environment: or Kubernetes Secrets.
+.env
+
+# Git directory — contains your entire repo history, hooks, and config.
+# This can be huge and is completely irrelevant inside a container.
+.git/
+
+# Virtual environment — your local Python venv has platform-specific binaries
+# (e.g., compiled for Windows/Mac). The container installs its own deps
+# via pip inside the Linux-based image, so your local venv is useless here.
+venv/
+
+# Markdown/documentation files — nice for humans reading GitHub, but the
+# container only needs runnable code. Excluding these keeps the image lean.
+*.md

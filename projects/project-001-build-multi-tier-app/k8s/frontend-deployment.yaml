@@ -1,0 +1,84 @@
+# =============================================================================
+# frontend-deployment.yaml — Nginx Frontend Deployment
+# =============================================================================
+# The frontend Deployment runs nginx containers that serve our HTML and
+# proxy API requests to the backend Service.
+#
+# Like the backend, we use a Deployment (not StatefulSet) because nginx
+# is completely stateless — it just serves files and forwards requests.
+# Any replica can handle any request identically.
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: multi-tier-app
+  labels:
+    app: frontend
+    tier: presentation
+spec:
+  # 2 replicas for basic availability — same reasoning as the backend.
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: frontend
+      tier: presentation
+
+  template:
+    metadata:
+      labels:
+        app: frontend
+        tier: presentation
+    spec:
+      containers:
+        - name: frontend
+          # Image built from docker/frontend/Dockerfile.
+          # Build: docker build -t multi-tier-frontend:latest ./docker/frontend/
+          # Import to k3s: docker save multi-tier-frontend:latest | sudo k3s ctr images import -
+          image: multi-tier-frontend:latest
+
+          # IfNotPresent: Don't try to pull from Docker Hub — we import locally.
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 80
+              name: http
+
+          # -------------------------------------------------------------------
+          # HEALTH PROBES
+          # -------------------------------------------------------------------
+          # For nginx, we just check if port 80 responds to HTTP requests.
+          # The root path "/" serves our index.html — if nginx is working,
+          # this will return 200 OK.
+          readinessProbe:
+            httpGet:
+              path: /               # Serve index.html as a health indicator
+              port: 80
+            initialDelaySeconds: 5   # Nginx starts fast — less delay needed
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 5
+
+          # -------------------------------------------------------------------
+          # RESOURCE REQUESTS AND LIMITS
+          # -------------------------------------------------------------------
+          # Nginx is very lightweight — it's written in C and uses minimal RAM.
+          # These are the smallest resource allocations in our app, which makes
+          # sense since nginx just serves static files and proxies connections.
+          resources:
+            requests:
+              memory: "64Mi"        # 64 MiB minimum (nginx barely needs this much)
+              cpu: "50m"            # 50 millicores = 0.05 CPU cores
+            limits:
+              memory: "128Mi"       # 128 MiB maximum
+              cpu: "100m"           # 100 millicores = 0.1 CPU cores

@@ -1,0 +1,92 @@
+# =============================================================================
+# network-policy.yaml — Restrict database access to backend pods only
+# =============================================================================
+#
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !! IMPORTANT: k3s with Flannel (the default CNI) does NOT enforce         !!
+# !! NetworkPolicies! This manifest is applied but has NO EFFECT unless     !!
+# !! you install a CNI that supports NetworkPolicy enforcement, such as:    !!
+# !!                                                                        !!
+# !!   - Calico:  Popular, full-featured, supports NetworkPolicy natively   !!
+# !!   - Cilium:  eBPF-based, fast, supports advanced policies             !!
+# !!                                                                        !!
+# !! To install Calico on k3s:                                              !!
+# !!   1. Install k3s with --flannel-backend=none --disable-network-policy  !!
+# !!   2. Install Calico: kubectl apply -f calico.yaml                      !!
+# !!                                                                        !!
+# !! We include this file because:                                          !!
+# !!   - It documents our INTENDED security posture                         !!
+# !!   - It will work immediately if you switch to Calico/Cilium            !!
+# !!   - It's a real-world best practice you should know about              !!
+# !!   - Interview questions often ask about NetworkPolicies!               !!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#
+# What does a NetworkPolicy do?
+#   - By default, ALL pods can talk to ALL other pods (flat network)
+#   - A NetworkPolicy is like a firewall rule for pods
+#   - Once you apply a NetworkPolicy targeting certain pods, those pods
+#     DENY all traffic that doesn't match an explicit "allow" rule
+#   - This follows the "principle of least privilege" — only allow what's needed
+#
+# This policy says: "Only pods with label app=backend can connect to
+# pods with label app=postgres on TCP port 5432."
+#
+# This prevents:
+#   - The frontend from connecting to the database directly
+#   - Any random pod in the namespace from accessing the database
+#   - Potential lateral movement if a pod is compromised
+# =============================================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgres-access-policy
+  namespace: multi-tier-app
+  labels:
+    app: postgres
+    tier: database
+spec:
+  # podSelector: Which pods does this policy APPLY TO?
+  # This policy protects pods with app=postgres (our database).
+  # Once a NetworkPolicy selects a pod, that pod's DEFAULT behavior changes
+  # from "allow all" to "deny all" for the specified policyTypes.
+  podSelector:
+    matchLabels:
+      app: postgres
+
+  # policyTypes: What kind of traffic does this policy control?
+  #   - Ingress: Incoming traffic TO the selected pods
+  #   - Egress: Outgoing traffic FROM the selected pods
+  # We only restrict Ingress (who can connect TO postgres).
+  # We don't restrict Egress (postgres can still make outbound connections,
+  # e.g., for DNS resolution or replication).
+  policyTypes:
+    - Ingress
+
+  # ingress: The "allow" rules. Traffic matching ANY of these rules is permitted.
+  # Traffic that doesn't match ANY rule is DENIED (because we have a policy).
+  ingress:
+    - # from: Which pods are allowed to send traffic?
+      # This uses a podSelector to match pods by label.
+      from:
+        - podSelector:
+            matchLabels:
+              app: backend        # Only pods with label app=backend can connect
+
+      # ports: Which ports can they connect to?
+      # Only TCP port 5432 (PostgreSQL) is allowed.
+      # Even if someone somehow got "from" access, they couldn't connect
+      # to any other port that might be running on the pod.
+      ports:
+        - protocol: TCP
+          port: 5432
+
+# =============================================================================
+# WHAT THIS BLOCKS (when enforced by Calico/Cilium):
+#   - frontend pods trying to connect to postgres:5432 -> DENIED
+#   - any pod without app=backend label -> DENIED
+#   - backend pods connecting to postgres on port 80 -> DENIED (wrong port)
+#
+# WHAT THIS ALLOWS:
+#   - backend pods connecting to postgres:5432 -> ALLOWED
+#   - DNS traffic is not affected (it's a separate network path)
+# =============================================================================

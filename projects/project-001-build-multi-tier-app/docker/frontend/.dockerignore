@@ -1,0 +1,19 @@
+# =============================================================================
+# .dockerignore — Frontend build exclusions
+# =============================================================================
+# Same concept as the backend .dockerignore: keep the build context small
+# and avoid sending irrelevant files to the Docker daemon.
+# =============================================================================
+
+# Git directory — repo history and metadata is not needed in the container.
+# This folder can be surprisingly large (every commit ever) and has no
+# purpose inside a web server container.
+.git/
+
+# Markdown files — documentation like README.md is for developers reading
+# the repo, not for the nginx container serving your web app.
+*.md
+
+# The .dockerignore file itself — a bit meta, but there's no reason to
+# copy this file into the image. It's only used during the build process.
+.dockerignore

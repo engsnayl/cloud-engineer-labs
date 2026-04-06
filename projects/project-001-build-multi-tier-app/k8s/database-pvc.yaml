@@ -1,0 +1,58 @@
+# =============================================================================
+# database-pvc.yaml — PersistentVolumeClaim for PostgreSQL data
+# =============================================================================
+# A PersistentVolumeClaim (PVC) is a REQUEST for storage. Think of it like:
+#   - PersistentVolume (PV) = an actual disk (provisioned by the cluster or cloud)
+#   - PersistentVolumeClaim (PVC) = "I need X amount of storage with Y access mode"
+#   - Kubernetes matches PVCs to PVs automatically (dynamic provisioning)
+#
+# IMPORTANT NOTE:
+#   This PVC is provided FOR REFERENCE ONLY. In our actual deployment, the
+#   StatefulSet in database-statefulset.yaml uses volumeClaimTemplates, which
+#   AUTOMATICALLY creates PVCs for each replica. You don't need to create
+#   PVCs manually when using StatefulSet volumeClaimTemplates.
+#
+#   We include this file to show you what a standalone PVC looks like, since
+#   you'll encounter them in Deployments (which don't have volumeClaimTemplates).
+#
+# Why does a database need persistent storage?
+#   - Pods are ephemeral (temporary) — when a pod restarts, its filesystem
+#     is wiped clean. Without persistent storage, all your database records
+#     would vanish on every restart!
+#   - A PVC ensures the data lives on a storage volume that survives pod
+#     restarts, rescheduling, and even node failures (with network storage).
+#
+# On k3s (Raspberry Pi), the default storage class is "local-path" which
+# stores data on the node's filesystem at /var/lib/rancher/k3s/storage/.
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data-pvc         # Name to reference in pod volume mounts
+  namespace: multi-tier-app
+  labels:
+    app: postgres
+    tier: database
+spec:
+  # accessModes: How the volume can be accessed.
+  #   - ReadWriteOnce (RWO): Only ONE node can mount it for read/write.
+  #     This is the most common mode and what most storage backends support.
+  #   - ReadOnlyMany (ROX): Multiple nodes can mount it read-only.
+  #   - ReadWriteMany (RWX): Multiple nodes can mount it read/write (needs NFS or similar).
+  # For a database, RWO is correct — only one pod should write to it.
+  accessModes:
+    - ReadWriteOnce
+
+  # resources.requests.storage: How much disk space to reserve.
+  # 1Gi = 1 gibibyte (1024 MiB). For our small learning app, this is plenty.
+  # In production, you'd size this based on expected data growth.
+  resources:
+    requests:
+      storage: 1Gi
+
+  # storageClassName: Which storage provisioner to use.
+  # On k3s, "local-path" is the default provisioner (created automatically).
+  # On cloud providers, you'd see things like "gp3" (AWS EBS), "standard" (GKE),
+  # or "managed-premium" (AKS).
+  # Omitting this field uses the cluster's default storage class.
+  # storageClassName: local-path

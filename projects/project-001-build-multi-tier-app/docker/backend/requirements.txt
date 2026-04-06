@@ -1,0 +1,35 @@
+# =============================================================================
+# requirements.txt — Python dependencies for the backend service
+# =============================================================================
+# This file tells pip which packages to install. The ">=" syntax means
+# "install this version or newer." In production, you'd often pin exact
+# versions (e.g., Flask==3.0.2) for reproducibility, but >= is fine for
+# learning and lets you get security patches automatically.
+# =============================================================================
+
+# Flask — A lightweight web framework for Python. It handles HTTP routing
+# (mapping URLs to Python functions), request/response parsing, and more.
+# It's the most popular "micro-framework" — minimal by default, extensible
+# when you need more features.
+Flask>=3.0.0
+
+# psycopg2-binary — The most popular PostgreSQL adapter for Python.
+# "binary" means it comes pre-compiled, so you don't need PostgreSQL
+# development headers installed in your container. The non-binary version
+# (psycopg2) compiles from source and is recommended for production, but
+# the binary version is simpler for learning and works great.
+psycopg2-binary>=2.9.9
+
+# gunicorn — A production-grade WSGI HTTP server for Python web apps.
+# Flask's built-in server (flask run) is for development only — it handles
+# one request at a time and has no security hardening. Gunicorn spawns
+# multiple worker processes to handle concurrent requests reliably.
+# Think of it as the "real" web server that runs your Flask app.
+gunicorn>=21.2.0
+
+# prometheus_client — Official Python client for Prometheus monitoring.
+# Prometheus is the standard for metrics in Kubernetes. This library lets
+# you create Counters (things that only go up, like request counts),
+# Histograms (distributions, like response times), and expose them in
+# a format Prometheus can scrape (pull) from your /metrics endpoint.
+prometheus_client>=0.19.0
