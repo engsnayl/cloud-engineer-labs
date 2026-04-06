@@ -1,0 +1,73 @@
+# =============================================================================
+# INGRESS — The "front door" that routes external traffic into the cluster
+# =============================================================================
+# An Ingress is like a receptionist at a building entrance. When a request
+# arrives from outside the cluster, the Ingress looks at the URL path and
+# sends it to the right Service:
+#   - "/"       → frontend Service (nginx serves the webpage)
+#   - "/api/"   → backend Service (Flask handles API calls)
+#
+# IMPORTANT: An Ingress resource by itself does nothing. You also need an
+# Ingress Controller running in your cluster (like nginx-ingress-controller,
+# Traefik, or cloud-specific ones like AWS ALB Ingress Controller).
+# The Ingress Controller watches for Ingress resources and configures the
+# actual routing.
+#
+# In minikube: "minikube addons enable ingress" installs the nginx controller.
+# =============================================================================
+
+# "networking.k8s.io/v1" is the stable Ingress API (older versions used
+# "extensions/v1beta1" which is now deprecated).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+  name: multi-tier-ingress
+  namespace: multi-tier-app
+  labels:
+    app: multi-tier-app
+
+  # "annotations" are extra metadata that Ingress Controllers read for
+  # additional configuration. Different controllers use different annotations.
+  annotations:
+    # Tells the cluster which Ingress Controller should handle this Ingress.
+    # "nginx" means the NGINX Ingress Controller.
+    kubernetes.io/ingress.class: nginx
+
+    # This annotation enables URL rewriting. When a request for "/api/health"
+    # arrives, the Ingress Controller strips/rewrites the path based on the
+    # rules below before forwarding it to the backend Service.
+    nginx.ingress.kubernetes.io/rewrite-target: /
+
+spec:
+  # "rules" define the routing logic. Each rule can match on a hostname
+  # and/or URL path.
+  rules:
+    # We're not specifying a "host" here, which means this rule matches
+    # ALL hostnames. In production, you'd add something like:
+    #   host: myapp.example.com
+    - http:
+        paths:
+          # --- API traffic → backend ---
+          # "pathType: Prefix" means "match any URL that STARTS WITH this path".
+          # So "/api/health", "/api/data", "/api/anything" all match.
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                # Route to the Service named "backend" in our namespace.
+                name: backend
+                port:
+                  number: 5000
+
+          # --- Everything else → frontend ---
+          # "/" with Prefix matches ALL paths (since every URL starts with "/").
+          # BUT Kubernetes picks the MOST SPECIFIC match first, so "/api" paths
+          # go to the backend (above), and everything else falls through to here.
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80

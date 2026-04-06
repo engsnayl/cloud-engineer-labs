@@ -1,0 +1,130 @@
+# =============================================================================
+# DEPLOYMENT (Backend) — Manages the API pods
+# =============================================================================
+# A Deployment is the most common way to run stateless applications in K8s.
+# It ensures the desired number of pod replicas are always running.
+# If a pod crashes, the Deployment controller automatically creates a new one.
+#
+# Deployments also handle rolling updates — when you push a new container
+# image, it gradually replaces old pods with new ones so there's zero downtime.
+# =============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: backend
+  namespace: multi-tier-app
+  labels:
+    app: backend
+    tier: api
+
+spec:
+  # Run 2 copies of our backend for redundancy.
+  # If one pod crashes or gets restarted, the other continues serving traffic.
+  replicas: 2
+
+  # The selector tells the Deployment which pods it manages.
+  # It uses label matching — "find all pods with app=backend".
+  selector:
+    matchLabels:
+      app: backend
+
+  # "strategy" controls how updates are rolled out.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # During an update, allow 1 extra pod above the desired count.
+      # So briefly you might have 3 pods (2 old + 1 new) during a rollout.
+      maxSurge: 1
+      # Don't take more than 1 pod offline at a time during updates.
+      # This ensures at least 1 pod is always serving traffic.
+      maxUnavailable: 1
+
+  template:
+    metadata:
+      labels:
+        app: backend
+        tier: api
+    spec:
+      containers:
+        - name: backend
+
+          # In a real project, this would be your container registry URL like:
+          # myregistry.azurecr.io/multi-tier-backend:v1.0.0
+          # For local development with minikube, you can build directly into
+          # minikube's Docker daemon (eval $(minikube docker-env)).
+          image: multi-tier-backend:latest
+
+          # "imagePullPolicy: IfNotPresent" tells Kubernetes to only pull the
+          # image from a registry if it's not already available locally.
+          # Use "Always" in production to ensure you get the latest image.
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 5000
+              name: http
+
+          # =================================================================
+          # ENVIRONMENT VARIABLES — Assembled from ConfigMap + Secret
+          # =================================================================
+          # envFrom bulk-imports ALL key-value pairs from a ConfigMap or Secret
+          # as environment variables. This is cleaner than listing each one
+          # individually with env[].valueFrom when you want all of them.
+          envFrom:
+            # Import DB_HOST, DB_PORT, DB_NAME from our ConfigMap
+            - configMapRef:
+                name: backend-config
+
+          # Individual env vars from the Secret (we only need user and password,
+          # and we want to map them to specific variable names).
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+
+          # =================================================================
+          # HEALTH PROBES — How Kubernetes monitors this container
+          # =================================================================
+
+          # READINESS PROBE — "Is this pod ready to receive traffic?"
+          # Until this probe passes, Kubernetes won't send any traffic to the pod.
+          # This is crucial during startup: the backend needs time to boot and
+          # establish a database connection before it can serve requests.
+          readinessProbe:
+            httpGet:
+              path: /api/health    # The endpoint to check
+              port: 5000           # The port to check on
+            initialDelaySeconds: 5  # Wait 5 seconds before first check
+            periodSeconds: 10       # Check every 10 seconds after that
+            failureThreshold: 3     # Mark as "not ready" after 3 consecutive failures
+
+          # LIVENESS PROBE — "Is this pod still alive and functioning?"
+          # If this probe fails, Kubernetes RESTARTS the pod (kills and recreates it).
+          # This catches situations where the app is running but deadlocked or frozen.
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 5000
+            initialDelaySeconds: 15  # Give more startup time before checking liveness
+            periodSeconds: 20        # Check less frequently than readiness
+            failureThreshold: 3      # Restart after 3 consecutive failures
+
+          # =================================================================
+          # RESOURCE MANAGEMENT
+          # =================================================================
+          resources:
+            requests:
+              memory: "128Mi"   # 128 MB minimum — Flask apps are lightweight
+              cpu: "100m"       # 0.1 CPU cores minimum
+            limits:
+              memory: "256Mi"   # 256 MB maximum
+              cpu: "250m"       # 0.25 CPU cores maximum

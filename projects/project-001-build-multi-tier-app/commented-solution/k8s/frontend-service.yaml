@@ -1,0 +1,36 @@
+# =============================================================================
+# SERVICE (Frontend) — Exposes the nginx pods to the Ingress
+# =============================================================================
+# This Service sits between the Ingress and the frontend pods.
+# The Ingress receives external traffic and routes it here, then this Service
+# load-balances across the 2 frontend pods.
+#
+# Traffic flow: Browser → Ingress → Frontend Service → Frontend Pod (nginx)
+#                                                         ↓ (if /api/)
+#                                                    Backend Service → Backend Pod
+# =============================================================================
+
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: frontend
+  namespace: multi-tier-app
+  labels:
+    app: frontend
+    tier: presentation
+
+spec:
+  type: ClusterIP
+
+  selector:
+    app: frontend
+
+  ports:
+      # The Service listens on port 80 and forwards to port 80 on the pods.
+      # When source and target ports are the same, you can omit targetPort,
+      # but being explicit is clearer.
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http

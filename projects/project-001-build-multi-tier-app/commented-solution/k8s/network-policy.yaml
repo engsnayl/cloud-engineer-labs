@@ -1,0 +1,63 @@
+# =============================================================================
+# NETWORK POLICY — Firewall rules inside the cluster
+# =============================================================================
+# By default, Kubernetes allows ALL pods to talk to ALL other pods — there are
+# no restrictions. This is convenient but terrible for security. If an attacker
+# compromises your frontend pod, they could directly access the database.
+#
+# NetworkPolicies act like firewall rules: they restrict which pods can
+# communicate with which other pods. Our policy says:
+#   "Only pods labelled 'app: backend' can connect to the database on port 5432."
+#   Everything else is blocked.
+#
+# This is the "principle of least privilege" — give each component only the
+# access it needs, nothing more.
+#
+# IMPORTANT: NetworkPolicies only work if your cluster's network plugin
+# supports them (Calico, Cilium, Weave — yes. Flannel — no, by default).
+# In minikube, enable Calico: "minikube start --network-plugin=cni --cni=calico"
+# =============================================================================
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+  name: database-access-policy
+  namespace: multi-tier-app
+  labels:
+    app: postgres
+    tier: database
+
+spec:
+  # "podSelector" determines which pods this policy APPLIES TO (protects).
+  # Here, it applies to any pod with the label "app: postgres" — our database.
+  podSelector:
+    matchLabels:
+      app: postgres
+
+  # "policyTypes" specifies which direction of traffic this policy controls.
+  # "Ingress" here means INCOMING traffic to the database pods.
+  # (Don't confuse this "Ingress" with the Ingress resource for external traffic —
+  # in NetworkPolicy context, "Ingress" just means "inbound connections".)
+  policyTypes:
+    - Ingress
+
+  # "ingress" defines the rules for allowed incoming traffic.
+  # If this section were empty ([]), ALL incoming traffic would be blocked.
+  ingress:
+    - # "from" specifies WHO is allowed to connect.
+      from:
+        - podSelector:
+            matchLabels:
+              # Only pods with the label "app: backend" can connect.
+              # Our backend Deployment's pods have this label, so they're allowed.
+              # The frontend pods (labelled "app: frontend") are NOT matched,
+              # so they CANNOT connect to the database — exactly what we want.
+              app: backend
+
+      # "ports" specifies WHICH ports the allowed pods can connect to.
+      # Even though the backend is allowed, it can ONLY connect on port 5432.
+      # If the backend tried to connect on any other port, it would be blocked.
+      ports:
+        - protocol: TCP
+          port: 5432

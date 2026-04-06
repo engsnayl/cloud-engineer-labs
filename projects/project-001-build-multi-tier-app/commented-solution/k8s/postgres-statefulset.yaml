@@ -1,0 +1,168 @@
+# =============================================================================
+# STATEFULSET — Like a Deployment, but for apps that need stable identity
+# =============================================================================
+# Why StatefulSet instead of a Deployment for the database?
+#
+# Deployments are great for "stateless" apps (like web servers) where any pod
+# can be replaced by any other pod and nobody notices. But databases are
+# "stateful" — they store data on disk, and that data must survive pod restarts.
+#
+# StatefulSets give you:
+#   1. Stable pod names (postgres-0, postgres-1, ...) instead of random suffixes
+#   2. Stable storage — each pod gets its own PersistentVolume that sticks around
+#   3. Ordered startup/shutdown — important for database clusters
+#
+# For our single-instance PostgreSQL, the key benefit is #2: the data on disk
+# survives even if the pod crashes and gets recreated.
+# =============================================================================
+
+apiVersion: apps/v1
+kind: StatefulSet
+
+metadata:
+  name: postgres
+  namespace: multi-tier-app
+  labels:
+    app: postgres
+    tier: database
+
+spec:
+  # "serviceName" must match the name of the headless Service we create.
+  # This is how the StatefulSet knows which Service manages DNS for its pods.
+  serviceName: postgres
+
+  # We only want ONE database instance. Running multiple PostgreSQL pods
+  # would require replication setup (like Patroni), which is beyond this project.
+  replicas: 1
+
+  # "selector" tells the StatefulSet which pods it owns.
+  # It matches pods using labels — here, any pod with "app: postgres".
+  selector:
+    matchLabels:
+      app: postgres
+
+  # "template" is the blueprint for each pod the StatefulSet creates.
+  template:
+    metadata:
+      # These labels get applied to every pod created from this template.
+      # They MUST match the selector above, or Kubernetes will reject this.
+      labels:
+        app: postgres
+        tier: database
+
+    spec:
+      # "containers" is a list because a pod CAN hold multiple containers,
+      # but most of the time you'll only have one (like here).
+      containers:
+        - name: postgres
+
+          # Use the official PostgreSQL 15 image from Docker Hub.
+          # Pinning to a major version (15) gives you patch updates
+          # while avoiding surprise breaking changes from version 16+.
+          image: postgres:15
+
+          # The port PostgreSQL listens on inside the container.
+          # This doesn't "expose" it externally — it just documents what
+          # the container expects and allows K8s Services to find it.
+          ports:
+            - containerPort: 5432
+              # Naming the port lets us reference it by name elsewhere
+              # instead of remembering the number.
+              name: postgres
+
+          # =================================================================
+          # ENVIRONMENT VARIABLES — Pulled from our Secret
+          # =================================================================
+          # Instead of hardcoding passwords here, we reference the Secret
+          # we created earlier. Kubernetes injects these as environment
+          # variables when the container starts.
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  # The name of the Secret resource.
+                  name: postgres-secret
+                  # The key within that Secret to pull the value from.
+                  key: POSTGRES_USER
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+
+            # PGDATA tells PostgreSQL WHERE to store its data files.
+            # We point it to a subdirectory inside our mounted volume.
+            # The /var/lib/postgresql/data directory might have filesystem
+            # artifacts (like "lost+found") that confuse PostgreSQL —
+            # using a subdirectory avoids this known gotcha.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+
+          # =================================================================
+          # VOLUME MOUNTS — Attach storage and config into the container
+          # =================================================================
+          volumeMounts:
+            # Mount our persistent storage at PostgreSQL's data directory.
+            # "subPath: pgdata" means we use a subdirectory within the volume,
+            # matching the PGDATA environment variable above.
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+
+            # Mount our init SQL script into the magic directory that
+            # PostgreSQL checks on first startup.
+            - name: init-script
+              mountPath: /docker-entrypoint-initdb.d
+
+          # =================================================================
+          # RESOURCE LIMITS — How much CPU and memory this container can use
+          # =================================================================
+          # "requests" = the minimum guaranteed resources (used for scheduling).
+          # "limits" = the maximum allowed (container gets killed if it exceeds memory).
+          resources:
+            requests:
+              memory: "256Mi"    # 256 megabytes minimum
+              cpu: "250m"        # 250 millicores = 0.25 of one CPU core
+            limits:
+              memory: "512Mi"    # 512 megabytes maximum
+              cpu: "500m"        # Half a CPU core maximum
+
+      # =====================================================================
+      # VOLUMES — Define where the storage comes from
+      # =====================================================================
+      # This section defines volumes that containers can mount (above).
+      # Think of it as "plugging in a USB drive" — volumes are defined here,
+      # then mounted at a specific path inside the container.
+      volumes:
+        # This volume pulls its contents from our ConfigMap.
+        # The key "init.sql" becomes a file inside the mounted directory.
+        - name: init-script
+          configMap:
+            name: postgres-init-script
+
+  # ===========================================================================
+  # VOLUME CLAIM TEMPLATES — Persistent storage that survives pod restarts
+  # ===========================================================================
+  # This is unique to StatefulSets (Deployments don't have this).
+  # It automatically creates a PersistentVolumeClaim (PVC) for each pod.
+  # Even if the pod dies and gets recreated, the PVC (and its data) persists.
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-storage
+      spec:
+        # "ReadWriteOnce" means only one pod can mount this volume at a time.
+        # Other modes: ReadWriteMany (multiple pods) and ReadOnlyMany.
+        # For a single database instance, ReadWriteOnce is what we want.
+        accessModes: ["ReadWriteOnce"]
+
+        resources:
+          requests:
+            # Request 1 gigabyte of storage. In a cloud provider, this would
+            # provision an actual disk (like an AWS EBS volume).
+            storage: 1Gi

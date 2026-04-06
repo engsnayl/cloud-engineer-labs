@@ -1,0 +1,319 @@
+<!--
+  =============================================================================
+  FRONTEND HTML — The user-facing page of our multi-tier application
+  =============================================================================
+  This is a simple single-page application that:
+    1. Shows a welcome message and architecture diagram
+    2. Calls our backend API to check health status
+    3. Fetches and displays items from the database
+    4. Lets you add new items via a form
+
+  In a real app, you'd use a framework like React, Vue, or Angular.
+  For this project, plain HTML + vanilla JavaScript keeps things simple
+  and shows exactly what's happening without framework magic.
+  =============================================================================
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- "charset=UTF-8" ensures special characters display correctly -->
+    <meta charset="UTF-8">
+
+    <!-- This meta tag makes the page scale properly on mobile devices.
+         Without it, mobile browsers zoom out to show the "desktop" version. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Multi-Tier App — Kubernetes Capstone Project</title>
+
+    <!-- Inline CSS — In a real project, this would be in a separate .css file.
+         We're keeping everything in one file for simplicity. -->
+    <style>
+        /* ---------- Base Styles ---------- */
+        /* The * selector applies to ALL elements on the page.
+           box-sizing: border-box makes padding/borders included in element widths,
+           which prevents layout headaches. */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;   /* Dark navy background */
+            color: #e2e8f0;         /* Light grey text */
+            line-height: 1.6;       /* Spacing between lines of text */
+        }
+
+        /* ---------- Layout ---------- */
+        .container {
+            max-width: 900px;       /* Don't stretch wider than 900px */
+            margin: 0 auto;         /* Center horizontally on the page */
+            padding: 2rem;          /* 2rem = 32px of inner spacing */
+        }
+
+        header {
+            text-align: center;
+            padding: 2rem 0;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        h1 { color: #38bdf8; font-size: 2rem; }  /* Sky blue heading */
+        h2 { color: #7dd3fc; margin: 1.5rem 0 0.5rem; }
+
+        /* ---------- Status Badge ---------- */
+        .status {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;     /* Rounded pill shape */
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin: 0.5rem;
+        }
+        .status.healthy { background: #065f46; color: #6ee7b7; }
+        .status.unhealthy { background: #7f1d1d; color: #fca5a5; }
+        .status.checking { background: #1e3a5f; color: #93c5fd; }
+
+        /* ---------- Architecture Diagram ---------- */
+        .architecture {
+            background: #1e293b;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-family: monospace;   /* Monospace font for the ASCII diagram */
+            white-space: pre;          /* Preserve spacing and line breaks */
+            overflow-x: auto;          /* Allow horizontal scrolling if needed */
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        /* ---------- Items List ---------- */
+        .item-card {
+            background: #1e293b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+            border-left: 3px solid #38bdf8;  /* Blue left accent bar */
+        }
+        .item-card .name { color: #38bdf8; font-weight: bold; }
+        .item-card .desc { color: #94a3b8; font-size: 0.9rem; }
+
+        /* ---------- Form Styles ---------- */
+        .form-group { margin: 0.5rem 0; }
+
+        input, button {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: #e2e8f0;
+            font-size: 1rem;
+        }
+
+        input { width: 100%; margin-bottom: 0.5rem; }
+        input:focus { outline: none; border-color: #38bdf8; }
+
+        button {
+            background: #0284c7;
+            border: none;
+            cursor: pointer;       /* Show hand cursor on hover */
+            font-weight: bold;
+        }
+        button:hover { background: #0369a1; }
+
+        /* ---------- Utility Classes ---------- */
+        .section { margin: 2rem 0; }
+        .error { color: #fca5a5; }
+        .muted { color: #64748b; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- ===== HEADER ===== -->
+        <header>
+            <h1>Multi-Tier Kubernetes Application</h1>
+            <p class="muted">Cloud Engineering Capstone Project 001</p>
+
+            <!-- Health status badge — updated by JavaScript -->
+            <div id="health-status">
+                <span class="status checking">Checking health...</span>
+            </div>
+        </header>
+
+        <!-- ===== ARCHITECTURE OVERVIEW ===== -->
+        <div class="section">
+            <h2>Architecture</h2>
+            <!-- ASCII art diagram showing how the three tiers connect.
+                 The "pre"-like styling preserves all the spacing. -->
+            <div class="architecture">
+    Browser
+       |
+   [ Ingress ]
+       |
+  +---------+      +-----------+      +------------+
+  | Frontend | ---> |  Backend  | ---> | PostgreSQL |
+  |  nginx   |      |   Flask   |      | StatefulSet|
+  | (port 80)|      | (port 5000)|     | (port 5432)|
+  +---------+      +-----------+      +------------+
+   2 replicas       2 replicas        1 replica + PVC
+   Deployment       Deployment        Persistent Data</div>
+        </div>
+
+        <!-- ===== DATA SECTION ===== -->
+        <div class="section">
+            <h2>Items from Database</h2>
+            <!-- This div gets populated by JavaScript with data from the API -->
+            <div id="items-list">
+                <p class="muted">Loading items...</p>
+            </div>
+        </div>
+
+        <!-- ===== ADD ITEM FORM ===== -->
+        <div class="section">
+            <h2>Add New Item</h2>
+            <div class="form-group">
+                <!-- "placeholder" shows grey hint text inside the empty input -->
+                <input type="text" id="item-name" placeholder="Item name (required)">
+                <input type="text" id="item-desc" placeholder="Description (optional)">
+                <!-- "onclick" calls our JavaScript function when the button is clicked -->
+                <button onclick="addItem()">Add Item</button>
+            </div>
+            <!-- Feedback message area (shows success or error after submission) -->
+            <div id="form-message"></div>
+        </div>
+
+        <!-- ===== FOOTER ===== -->
+        <footer class="section muted" style="text-align: center; border-top: 1px solid #1e293b; padding-top: 1rem;">
+            <p>Built as part of the Cloud Engineer Labs project</p>
+        </footer>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- JAVASCRIPT — Client-side logic                                     -->
+    <!-- ================================================================= -->
+    <!-- This script runs in the user's browser, NOT on the server.
+         It makes HTTP requests (API calls) to our backend through nginx. -->
+    <script>
+        // ---------------------------------------------------------------
+        // CHECK HEALTH — Calls GET /api/health and updates the status badge
+        // ---------------------------------------------------------------
+        async function checkHealth() {
+            // getElementById finds the HTML element with that id attribute,
+            // so we can change its contents dynamically.
+            const statusEl = document.getElementById('health-status');
+
+            try {
+                // "fetch" makes an HTTP request from the browser.
+                // "/api/health" is a relative URL — the browser sends it to
+                // the same host it loaded the page from (our nginx frontend),
+                // which then proxies it to the Flask backend.
+                const response = await fetch('/api/health');
+
+                // response.json() parses the JSON body of the response
+                // into a JavaScript object.
+                const data = await response.json();
+
+                // Update the badge based on the response.
+                if (data.status === 'healthy') {
+                    statusEl.innerHTML = `
+                        <span class="status healthy">Backend: Healthy</span>
+                        <span class="status healthy">Database: ${data.database}</span>
+                    `;
+                } else {
+                    statusEl.innerHTML = '<span class="status unhealthy">Backend: Unhealthy</span>';
+                }
+            } catch (error) {
+                // If the fetch fails entirely (network error, backend down),
+                // show an error state.
+                statusEl.innerHTML = '<span class="status unhealthy">Backend: Unreachable</span>';
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // LOAD ITEMS — Calls GET /api/data and renders the items list
+        // ---------------------------------------------------------------
+        async function loadItems() {
+            const listEl = document.getElementById('items-list');
+
+            try {
+                const response = await fetch('/api/data');
+                const data = await response.json();
+
+                // If no items exist yet, show a helpful message.
+                if (data.items.length === 0) {
+                    listEl.innerHTML = '<p class="muted">No items yet. Add one below!</p>';
+                    return;
+                }
+
+                // Build HTML for each item using .map() (transforms each item
+                // in the array into an HTML string) and .join('') (combines
+                // all the strings into one).
+                listEl.innerHTML = data.items.map(item => `
+                    <div class="item-card">
+                        <div class="name">${item.name}</div>
+                        <div class="desc">${item.description || 'No description'}</div>
+                        <div class="muted">Created: ${new Date(item.created_at).toLocaleString()}</div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                listEl.innerHTML = '<p class="error">Failed to load items. Is the backend running?</p>';
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // ADD ITEM — Sends a POST request to create a new item
+        // ---------------------------------------------------------------
+        async function addItem() {
+            // Read the values from the input fields.
+            const name = document.getElementById('item-name').value.trim();
+            const description = document.getElementById('item-desc').value.trim();
+            const messageEl = document.getElementById('form-message');
+
+            // Basic client-side validation — don't even send the request
+            // if the name is empty.
+            if (!name) {
+                messageEl.innerHTML = '<p class="error">Name is required.</p>';
+                return;
+            }
+
+            try {
+                // Send a POST request with a JSON body.
+                const response = await fetch('/api/data', {
+                    method: 'POST',
+                    headers: {
+                        // Tell the server we're sending JSON (not form data).
+                        'Content-Type': 'application/json',
+                    },
+                    // JSON.stringify converts a JavaScript object into a
+                    // JSON string for sending over the network.
+                    body: JSON.stringify({ name, description }),
+                });
+
+                if (response.ok) {
+                    // Clear the form inputs after successful submission.
+                    document.getElementById('item-name').value = '';
+                    document.getElementById('item-desc').value = '';
+                    messageEl.innerHTML = '<p style="color: #6ee7b7;">Item added!</p>';
+
+                    // Refresh the items list to show the newly added item.
+                    loadItems();
+                } else {
+                    const error = await response.json();
+                    messageEl.innerHTML = `<p class="error">Error: ${error.error}</p>`;
+                }
+            } catch (error) {
+                messageEl.innerHTML = '<p class="error">Failed to add item. Is the backend running?</p>';
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // INITIALIZATION — Run these functions when the page first loads
+        // ---------------------------------------------------------------
+        // Call both functions immediately to populate the page.
+        checkHealth();
+        loadItems();
+
+        // Refresh the health check every 30 seconds (30000 milliseconds)
+        // so the status badge stays up to date without manual page refreshes.
+        setInterval(checkHealth, 30000);
+    </script>
+</body>
+</html>
