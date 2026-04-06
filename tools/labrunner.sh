@@ -334,8 +334,11 @@ cmd_start() {
     echo ""
 
     # Print the scenario and objectives sections (everything up to "What You're Practising")
-    sed -n '/^## Scenario/,/^## What You/{/^## What You/d; p;}' "$challenge_file"
-    echo ""
+    # Skip for projects — they print the full brief in their own branch below
+    if [[ "$lab_path" != projects/* ]]; then
+        sed -n '/^## Scenario/,/^## What You/{/^## What You/d; p;}' "$challenge_file"
+        echo ""
+    fi
 
     echo -e "${BLUE}──────────────────────────────────────────────────${NC}"
 
