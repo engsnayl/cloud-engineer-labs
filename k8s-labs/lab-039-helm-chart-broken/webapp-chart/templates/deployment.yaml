@@ -16,9 +16,7 @@ spec:
     spec:
       containers:
       - name: webapp
-        # BUG 7: Template function syntax wrong — missing closing braces
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }"
-        # BUG 8: References .Values.image.imagePullPolicy but values.yaml has pullPolicy
         imagePullPolicy: {{ .Values.image.imagePullPolicy }}
         ports:
         - containerPort: 80
