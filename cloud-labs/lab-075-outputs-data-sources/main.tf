@@ -29,12 +29,6 @@ resource "aws_subnet" "app" {
   cidr_block = "10.0.1.0/24"
 }
 
-# Missing outputs — other modules need these
-# output "vpc_id" { }
-# output "subnet_id" { }
-# output "instance_id" { }
-# output "instance_private_ip" { }
-
 output "app_public_ip" {
   value = aws_instance.app.private_ip  
   description = "The public IP of the app server"
