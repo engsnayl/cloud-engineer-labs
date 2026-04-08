@@ -9,6 +9,31 @@ set -e
 
 REGION="eu-west-2"
 
+# --- Preflight: confirm AWS CLI is pointed at the right region ---
+echo ""
+echo "=============================================="
+echo "  Lab 071 — Preflight checks"
+echo "=============================================="
+echo ""
+
+CLI_REGION=$(aws configure get region 2>/dev/null || echo "not set")
+echo "  AWS CLI default region : $CLI_REGION"
+echo "  Lab target region      : $REGION"
+
+if [[ "$CLI_REGION" != "$REGION" ]]; then
+  echo ""
+  echo "  ⚠️   Your AWS CLI default region ($CLI_REGION) doesn't match"
+  echo "       the lab region ($REGION)."
+  echo "       This won't cause a problem — the setup script always"
+  echo "       passes --region $REGION explicitly — but when you run"
+  echo "       AWS CLI commands manually during the lab, you'll need"
+  echo "       to either pass --region $REGION or run:"
+  echo ""
+  echo "         export AWS_DEFAULT_REGION=$REGION"
+  echo ""
+  echo "  Continuing setup in $REGION..."
+fi
+
 echo ""
 echo "=============================================="
 echo "  Lab 071 — Creating manual AWS resources"
@@ -25,7 +50,7 @@ VPC_ID=$(aws ec2 create-vpc \
 
 aws ec2 modify-vpc-attribute \
   --vpc-id "$VPC_ID" \
-  --enable-dns-hostnames "{\"Value\":true}" \
+  --enable-dns-hostnames '{"Value":true}' \
   --region "$REGION"
 
 aws ec2 create-tags \
@@ -65,13 +90,13 @@ aws ec2 authorize-security-group-ingress \
   --group-id "$SG_ID" \
   --protocol tcp --port 80 \
   --cidr 0.0.0.0/0 \
-  --region "$REGION"
+  --region "$REGION" > /dev/null
 
 aws ec2 authorize-security-group-ingress \
   --group-id "$SG_ID" \
   --protocol tcp --port 443 \
   --cidr 0.0.0.0/0 \
-  --region "$REGION"
+  --region "$REGION" > /dev/null
 
 aws ec2 create-tags \
   --resources "$SG_ID" \
@@ -85,6 +110,7 @@ cat > .lab-resource-ids << EOF
 VPC_ID=$VPC_ID
 SUBNET_ID=$SUBNET_ID
 SG_ID=$SG_ID
+REGION=$REGION
 EOF
 
 echo ""
@@ -94,8 +120,13 @@ echo ""
 echo "  VPC:            $VPC_ID"
 echo "  Subnet:         $SUBNET_ID"
 echo "  Security Group: $SG_ID"
+echo "  Region:         $REGION"
 echo ""
-echo "  These exist in AWS but Terraform has no state file."
+echo "  ⚠️   If your AWS CLI default region is not eu-west-2, run:"
+echo "       export AWS_DEFAULT_REGION=eu-west-2"
+echo "       before running any manual AWS CLI commands in this lab."
+echo ""
+echo "  These resources exist in AWS but Terraform has no state file."
 echo "  Your job is to import them."
 echo "=============================================="
 echo ""
