@@ -1,8 +1,15 @@
 #!/bin/bash
 # =============================================================================
 # Lab 071 — Teardown Script
-# Destroys the manually-created AWS resources and resets lab state.
-# Run this after completing the lab to avoid ongoing AWS charges.
+# Emergency reset — use this if you abandoned the lab before completing
+# the imports, or if Terraform state is broken/missing.
+#
+# If you completed the lab successfully (imports done, plan is clean),
+# use `terraform destroy` instead — Terraform owns the resources and
+# should be the one to clean them up.
+#
+# This script deletes resources directly via the AWS CLI, bypassing
+# Terraform state entirely.
 # =============================================================================
 
 set -e
