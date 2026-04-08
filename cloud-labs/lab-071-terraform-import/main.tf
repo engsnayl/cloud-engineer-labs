@@ -1,6 +1,6 @@
 # Terraform Import Lab
 provider "aws" {
-  region = "eu-west-2"
+  region = "eu-west-1"
 }
 
 # These resources already exist in AWS (created manually)
