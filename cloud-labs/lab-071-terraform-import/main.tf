@@ -20,8 +20,9 @@ resource "aws_subnet" "public" {
 }
 
 resource "aws_security_group" "web" {
-  name   = "web-sg"
-  vpc_id = aws_vpc.main.id
+  name        = "web-sg"
+  description = "Web security group"
+  vpc_id      = aws_vpc.main.id
   
   ingress {
     from_port   = 80
