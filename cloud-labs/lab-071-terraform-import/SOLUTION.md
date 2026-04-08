@@ -79,14 +79,6 @@ You'll see three resource blocks — `aws_vpc.main`, `aws_subnet.public`, and `a
 
 **Why does this matter?** These resource blocks are your targets for import. When you run `terraform import`, the first argument is the resource address from this file (e.g. `aws_vpc.main`). You need to know the exact type and name before you can import anything.
 
-Now confirm there is no state file:
-
-```bash
-ls -la terraform.tfstate 2>/dev/null || echo "No state file — confirmed"
-```
-
-**What you're confirming:** There is no state file. Terraform knows nothing about the resources that were just created. This is exactly the problem the ticket describes.
-
 ---
 
 ### Step 3 — Confirm the Resources Exist in AWS
@@ -294,19 +286,33 @@ You need all checks green before this lab is complete.
 
 ## Cleanup / Reset
 
-Run the teardown script to delete the AWS resources and reset the lab:
+### Happy path — lab completed successfully
+
+Once the imports are done and the plan is clean, Terraform owns the resources. Use Terraform to destroy them:
+
+```bash
+terraform destroy
+```
+
+This is the correct approach when the lab has been completed properly. Terraform knows about the resources, so let it clean them up. It also handles deletion order automatically — security group before subnet before VPC.
+
+### Bail-out path — abandoned mid-lab or state is broken
+
+If you exit the lab before completing the imports, Terraform can't destroy what it doesn't know about. Use the teardown script instead:
 
 ```bash
 bash teardown.sh
 ```
 
-This deletes the VPC, subnet, and security group from AWS, removes the Terraform state file, and clears `.lab-resource-ids`. Run `setup.sh` again to start from scratch.
+This uses the AWS CLI directly to delete the resources and wipe the state file, regardless of what Terraform does or doesn't know. It's the reset button.
 
-**Deletion order matters:** The security group must be deleted before the VPC (it depends on it). The teardown script handles this automatically.
+After either path, run `setup.sh` to start from scratch.
 
 ---
 
 ## Common Mistakes
+
+**Drift on security group description** — if `main.tf` doesn't specify a `description` on `aws_security_group`, Terraform defaults to `"Managed by Terraform"`. If the real resource has a different description (e.g. `"Web security group"`), the plan will show a replacement — not just an update — because `description` is immutable on a security group. Always explicitly set `description` in your config to match what was created manually.
 
 **Running `terraform apply` before importing** — Terraform plans to create duplicates. Import first. Run `terraform plan` after init to see the problem, then import to fix it.
 
