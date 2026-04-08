@@ -7,7 +7,7 @@
 
 set -e
 
-REGION="eu-west-2"
+REGION="eu-west-1"
 
 echo ""
 echo "=============================================="
