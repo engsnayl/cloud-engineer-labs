@@ -7,7 +7,7 @@
 
 set -e
 
-REGION="eu-west-2"
+REGION="eu-west-1"
 
 # --- Preflight: confirm AWS CLI is pointed at the right region ---
 echo ""
@@ -122,8 +122,8 @@ echo "  Subnet:         $SUBNET_ID"
 echo "  Security Group: $SG_ID"
 echo "  Region:         $REGION"
 echo ""
-echo "  ⚠️   If your AWS CLI default region is not eu-west-2, run:"
-echo "       export AWS_DEFAULT_REGION=eu-west-2"
+echo "  ⚠️   If your AWS CLI default region is not eu-west-1, run:"
+echo "       export AWS_DEFAULT_REGION=eu-west-1"
 echo "       before running any manual AWS CLI commands in this lab."
 echo ""
 echo "  These resources exist in AWS but Terraform has no state file."
