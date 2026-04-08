@@ -3,7 +3,6 @@ provider "aws" {
   region = "eu-west-2"
 }
 
-# BUG 1: Hardcoded AMI that doesn't exist in eu-west-2
 resource "aws_instance" "app" {
   ami           = "ami-0123456789abcdef0"
   instance_type = "t3.micro"
@@ -30,14 +29,13 @@ resource "aws_subnet" "app" {
   cidr_block = "10.0.1.0/24"
 }
 
-# BUG 2: Missing outputs — other modules need these
+# Missing outputs — other modules need these
 # output "vpc_id" { }
 # output "subnet_id" { }
 # output "instance_id" { }
 # output "instance_private_ip" { }
 
-# BUG 3: This output references wrong attribute
 output "app_public_ip" {
-  value = aws_instance.app.private_ip  # Should be public if needed
+  value = aws_instance.app.private_ip  
   description = "The public IP of the app server"
 }
