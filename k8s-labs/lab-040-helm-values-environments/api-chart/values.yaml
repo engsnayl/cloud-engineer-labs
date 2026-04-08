@@ -1,4 +1,3 @@
-# Base defaults — staging-like by default (safe)
 replicaCount: 1
 
 image:
