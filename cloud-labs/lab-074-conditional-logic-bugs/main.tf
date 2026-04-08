@@ -26,7 +26,7 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_subnet" "app" {
-  for_each   = var.subnet_cidrs  # Should be toset()
+  for_each   = var.subnet_cidrs  
   vpc_id     = aws_vpc.main.id
   cidr_block = each.value
 }
@@ -38,8 +38,8 @@ resource "aws_security_group" "app" {
   dynamic "ingress" {
     for_each = [80, 443, 8080]
     content {
-      from_port   = ingress.key      # Should be ingress.value
-      to_port     = ingress.key      # Should be ingress.value
+      from_port   = ingress.key     
+      to_port     = ingress.key      
       protocol    = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
     }
@@ -47,7 +47,7 @@ resource "aws_security_group" "app" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "cpu" {
-  count               = var.enable_monitoring ? 0 : 1  # Inverted!
+  count               = var.enable_monitoring ? 0 : 1 
   alarm_name          = "high-cpu"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
