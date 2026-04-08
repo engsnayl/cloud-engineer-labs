@@ -1,4 +1,3 @@
-# Conditional Logic Lab
 provider "aws" {
   region = "eu-west-2"
 }
@@ -11,7 +10,6 @@ variable "enable_monitoring" {
   default = true
 }
 
-# BUG 1: Condition is inverted — creates bastion in production, not staging
 resource "aws_instance" "bastion" {
   count         = var.environment == "production" ? 1 : 0
   ami           = "ami-0c76bd4bd302b30ec"
@@ -19,7 +17,6 @@ resource "aws_instance" "bastion" {
   tags = { Name = "bastion-host" }
 }
 
-# BUG 2: for_each on a list without toset()
 variable "subnet_cidrs" {
   default = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
 }
@@ -34,7 +31,6 @@ resource "aws_subnet" "app" {
   cidr_block = each.value
 }
 
-# BUG 3: Dynamic block with wrong iterator reference
 resource "aws_security_group" "app" {
   name   = "app-sg"
   vpc_id = aws_vpc.main.id
@@ -50,7 +46,6 @@ resource "aws_security_group" "app" {
   }
 }
 
-# BUG 4: Wrong conditional for monitoring
 resource "aws_cloudwatch_metric_alarm" "cpu" {
   count               = var.enable_monitoring ? 0 : 1  # Inverted!
   alarm_name          = "high-cpu"
