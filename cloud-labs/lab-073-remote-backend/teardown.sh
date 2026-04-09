@@ -17,7 +17,7 @@
 
 set -e
 
-BUCKET_NAME="terraform-state-lab"
+BUCKET_NAME="terraform-state-340752829546"
 REGION="eu-west-2"
 
 echo ""
