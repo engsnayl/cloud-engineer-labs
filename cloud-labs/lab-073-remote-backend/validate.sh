@@ -62,14 +62,34 @@ grep -q 'aws_s3_bucket_public_access_block' main.tf 2>/dev/null
 check "Public access block resource present in main.tf" "$?" \
     "aws_s3_bucket_public_access_block not found in main.tf"
 
-# --- Check 6: No local state file present ------------------------------------
+# --- Check 6: Local state is not the active backend --------------------------
+# After terraform init -migrate-state, Terraform may leave terraform.tfstate
+# behind as a safety backup — this is expected and correct behaviour.
+# What matters is that state exists in S3, not that the local file is gone.
 
 echo ""
 echo "[ State Migration Checks ]"
 
-[[ ! -f "terraform.tfstate" ]]
-check "No local terraform.tfstate file present (state has been migrated)" "$?" \
-    "terraform.tfstate still exists locally — did you run terraform init -migrate-state?"
+STATE_IN_S3=$(aws s3api head-object \
+    --bucket "$BUCKET_NAME" \
+    --key "production/terraform.tfstate" \
+    --region "$REGION" \
+    &>/dev/null; echo $?)
+
+if [[ -f "terraform.tfstate" && "$STATE_IN_S3" == "0" ]]; then
+    result=0
+elif [[ ! -f "terraform.tfstate" && "$STATE_IN_S3" == "0" ]]; then
+    result=0
+else
+    result=1
+fi
+
+check "State migration completed (S3 is the active backend)" "$result" \
+    "State not found in S3 — did you run terraform init -migrate-state and confirm with 'yes'?"
+
+if [[ -f "terraform.tfstate" ]]; then
+    echo -e "       ℹ️  Local terraform.tfstate retained as backup — this is normal and safe to leave"
+fi
 
 # --- Check 7: State file exists in S3 ----------------------------------------
 
