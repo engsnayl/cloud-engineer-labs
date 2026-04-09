@@ -20,7 +20,7 @@
 set -e
 
 REGION="eu-west-2"
-BUCKET_NAME="terraform-state-lab"
+BUCKET_NAME="terraform-state-340752829546"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo ""
@@ -74,10 +74,10 @@ cat > "$SCRIPT_DIR/terraform.tfstate" <<'EOF'
         {
           "schema_version": 0,
           "attributes": {
-            "bucket": "terraform-state-lab",
+            "bucket": "terraform-state-340752829546",
             "region": "eu-west-2",
-            "arn": "arn:aws:s3:::terraform-state-lab",
-            "id": "terraform-state-lab"
+            "arn": "arn:aws:s3:::terraform-state-340752829546",
+            "id": "terraform-state-340752829546"
           }
         }
       ]
