@@ -4,7 +4,6 @@ provider "aws" {
 }
 
 resource "aws_instance" "app" {
-  # Should be t3.micro for staging, t3.large for production
   ami           = "ami-0c76bd4bd302b30ec"
   instance_type = "t3.micro"
   
