@@ -8,7 +8,7 @@ provider "aws" {
 # TASK: Add a terraform backend block for S3
 # terraform {
 #   backend "s3" {
-#     bucket         = "terraform-state-ACCOUNT_ID"
+#     bucket         = "terraform-state-340752829546"
 #     key            = "production/terraform.tfstate"
 #     region         = "eu-west-2"
 #     dynamodb_table = "terraform-locks"
@@ -17,7 +17,7 @@ provider "aws" {
 # }
 
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "terraform-state-lab"
+  bucket = "terraform-state-340752829546"
 }
 
 resource "aws_s3_bucket_versioning" "terraform_state" {
