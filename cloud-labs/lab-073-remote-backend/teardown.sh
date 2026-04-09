@@ -60,41 +60,38 @@ terraform destroy -auto-approve
 echo "      Resources destroyed."
 
 # --- Step 4: Empty and delete the S3 bucket ----------------------------------
-# S3 buckets with versioning cannot be deleted until all versions are removed.
+# S3 buckets with versioning cannot be deleted until all versions and delete
+# markers are removed. terraform destroy will error on this step if run manually.
 
 echo "[4/5] Emptying and deleting S3 bucket: $BUCKET_NAME..."
 
-# Delete all current object versions
-aws s3api list-object-versions \
+# Build the list of all versions and delete markers, then delete in one call
+VERSIONS=$(aws s3api list-object-versions \
   --bucket "$BUCKET_NAME" \
-  --query 'Versions[].{Key:Key,VersionId:VersionId}' \
-  --output json 2>/dev/null | \
-  jq -c '.[] // empty' | \
-  while read -r obj; do
-    KEY=$(echo "$obj" | jq -r '.Key')
-    VERSION=$(echo "$obj" | jq -r '.VersionId')
-    aws s3api delete-object \
-      --bucket "$BUCKET_NAME" \
-      --key "$KEY" \
-      --version-id "$VERSION" \
-      --region "$REGION" > /dev/null
-  done
+  --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' \
+  --output json 2>/dev/null)
 
-# Delete all delete markers
-aws s3api list-object-versions \
+if [[ "$VERSIONS" != "null" && "$VERSIONS" != '{"Objects": null}' && -n "$VERSIONS" ]]; then
+  aws s3api delete-objects \
+    --bucket "$BUCKET_NAME" \
+    --delete "$VERSIONS" \
+    --region "$REGION" > /dev/null
+  echo "      Object versions deleted."
+fi
+
+# Delete markers
+MARKERS=$(aws s3api list-object-versions \
   --bucket "$BUCKET_NAME" \
-  --query 'DeleteMarkers[].{Key:Key,VersionId:VersionId}' \
-  --output json 2>/dev/null | \
-  jq -c '.[] // empty' | \
-  while read -r obj; do
-    KEY=$(echo "$obj" | jq -r '.Key')
-    VERSION=$(echo "$obj" | jq -r '.VersionId')
-    aws s3api delete-object \
-      --bucket "$BUCKET_NAME" \
-      --key "$KEY" \
-      --version-id "$VERSION" \
-      --region "$REGION" > /dev/null
-  done
+  --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}' \
+  --output json 2>/dev/null)
+
+if [[ "$MARKERS" != "null" && "$MARKERS" != '{"Objects": null}' && -n "$MARKERS" ]]; then
+  aws s3api delete-objects \
+    --bucket "$BUCKET_NAME" \
+    --delete "$MARKERS" \
+    --region "$REGION" > /dev/null
+  echo "      Delete markers removed."
+fi
 
 # Now delete the bucket itself
 aws s3api delete-bucket \
