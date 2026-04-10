@@ -225,6 +225,49 @@ This is what over-provisioning looks like in CloudWatch. A machine capable of su
 
 ---
 
+## Step 5b — Stop the Instances While You Wait
+
+This is not optional — it is a cost management step, which is appropriate given the subject matter of this lab.
+
+The five instances in this lab cost approximately **$1.34/hour combined** while running. Compute Optimizer can take up to 12 hours to process the CloudWatch data. Leaving instances running during that wait would cost up to $16 — and it is completely unnecessary. Compute Optimizer analyses CloudWatch metric history, not live instance behaviour. The instances only need to exist in a stopped state.
+
+Stop all instances now:
+
+```bash
+# Get all instance IDs into a variable
+ALL_IDS=$(terraform output -json all_instance_ids \
+  | python3 -c "import sys,json; print(' '.join(json.load(sys.stdin)))")
+
+echo "Stopping: $ALL_IDS"
+
+aws ec2 stop-instances \
+  --region eu-west-2 \
+  --instance-ids $ALL_IDS
+
+aws ec2 wait instance-stopped \
+  --region eu-west-2 \
+  --instance-ids $ALL_IDS
+
+echo "All instances stopped. Compute costs paused."
+```
+
+**Command Breakdown:**
+
+| Part | What It Does |
+|------|-------------|
+| `terraform output -json all_instance_ids` | Reads the list of all instance IDs from Terraform state as a JSON array |
+| `python3 -c "... ' '.join(...)"` | Converts the JSON array into a space-separated string that the AWS CLI can accept as multiple arguments |
+| `aws ec2 stop-instances` | Sends the stop signal to all instances. Billing for compute stops within seconds. EBS volumes continue to accrue a small storage charge |
+| `aws ec2 wait instance-stopped` | Blocks until all instances confirm they have reached the `stopped` state |
+
+**Lab vs Real Life:**
+
+In a real cost optimisation engagement, stopping non-production instances overnight and at weekends is itself a cost-saving measure — one of the findings from Lab 090. You are practising it here as a natural part of the workflow.
+
+When you come back to apply the recommendation in Step 8, you will start the specific instance you want to resize before modifying it.
+
+---
+
 ## Step 6 — Wait for Compute Optimizer
 
 This is the genuine wait. Compute Optimizer processes CloudWatch data in batches and typically generates initial recommendations within a few hours — sometimes up to 12.
@@ -348,36 +391,19 @@ DEV_WEB_ID=$(terraform output -raw dev_web_instance_id)
 echo "Target instance: $DEV_WEB_ID"
 ```
 
-Confirm its current type:
+Confirm its current type and state:
 
 ```bash
 aws ec2 describe-instances \
   --region eu-west-2 \
   --instance-ids "$DEV_WEB_ID" \
-  --query "Reservations[0].Instances[0].InstanceType" \
-  --output text
+  --query "Reservations[0].Instances[0].{Type:InstanceType,State:State.Name}" \
+  --output table
 ```
 
-Expected: `m5.xlarge`. If you see something else, double-check the output.
+Expected: `m5.xlarge`, state `stopped` — because you stopped all instances in Step 5b. It is already in the correct state to modify. You do not need to stop it again.
 
-Stop the instance:
-
-```bash
-aws ec2 stop-instances \
-  --instance-ids "$DEV_WEB_ID" \
-  --region eu-west-2
-```
-
-Wait for it to fully stop before changing the type:
-
-```bash
-aws ec2 wait instance-stopped \
-  --instance-ids "$DEV_WEB_ID" \
-  --region eu-west-2
-echo "Instance stopped."
-```
-
-**Why wait?** AWS will reject the type change if the instance has not finished stopping. The `wait` command polls the API every 15 seconds until the `stopped` state is confirmed, then exits. This prevents race conditions.
+**Why must an instance be stopped to change its type?** AWS does not support live instance type changes — the underlying hardware needs to change, which requires the VM to be fully shut down first. This is the same reason you cannot change a physical server's CPU while it is powered on.
 
 Change the instance type:
 
