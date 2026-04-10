@@ -34,7 +34,6 @@ resource "aws_eip" "nat" {
 
 resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.nat.id
-  # BUG 1: NAT Gateway is in the PRIVATE subnet (should be public)
   subnet_id     = aws_subnet.private.id
   tags = { Name = "lab-nat" }
 }
@@ -52,7 +51,6 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
   route {
     cidr_block = "0.0.0.0/0"
-    # BUG 2: Private route table points to IGW instead of NAT
     gateway_id = aws_internet_gateway.igw.id
   }
   tags = { Name = "private-rt" }
@@ -72,7 +70,6 @@ resource "aws_security_group" "app" {
   name   = "app-sg"
   vpc_id = aws_vpc.main.id
 
-  # BUG 3: No egress rules — blocks all outbound traffic
   ingress {
     from_port   = 22
     to_port     = 22
@@ -85,7 +82,6 @@ resource "aws_security_group" "app" {
 resource "aws_instance" "app" {
   ami                    = "ami-0c76bd4bd302b30ec"
   instance_type          = "t3.micro"
-  # BUG 4: Instance in public subnet instead of private
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.app.id]
   tags = { Name = "app-server" }
