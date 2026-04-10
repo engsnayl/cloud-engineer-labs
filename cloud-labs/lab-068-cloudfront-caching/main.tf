@@ -1,6 +1,6 @@
 # CloudFront Caching Lab
 provider "aws" {
-  region = "us-east-1"
+  region = "eu-west-1"
 }
 
 resource "aws_s3_bucket" "website" {
@@ -14,7 +14,6 @@ resource "aws_s3_bucket_website_configuration" "website" {
 
 resource "aws_cloudfront_distribution" "website" {
   origin {
-    # BUG 1: Using S3 bucket domain instead of website endpoint
     domain_name = aws_s3_bucket.website.bucket_regional_domain_name
     origin_id   = "S3-website"
   }
@@ -33,7 +32,6 @@ resource "aws_cloudfront_distribution" "website" {
     }
 
     viewer_protocol_policy = "redirect-to-https"
-    # BUG 2: Very long TTL means stale content
     min_ttl     = 86400
     default_ttl = 604800
     max_ttl     = 31536000
