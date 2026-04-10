@@ -1,9 +1,9 @@
 # Lab 092: Live Right-Sizing with AWS Compute Optimizer
 
-**Difficulty:** ⭐⭐⭐⭐ (Advanced)
-**Time:** 45–60 minutes active work + up to 12 hours waiting for Compute Optimizer
-**Category:** Terraform / AWS / Cost Management / Observability
-**Skills:** EC2 right-sizing, CloudWatch metrics, AWS Compute Optimizer, CLI-driven change management
+Title: Live Right-Sizing with AWS Compute Optimizer
+Difficulty: ⭐⭐⭐⭐ (Advanced)
+Time: 45–60 minutes active + up to 12 hours waiting for Compute Optimizer
+Category: Terraform / AWS / Cost Management
 
 ---
 
@@ -54,6 +54,14 @@ No RDS or S3 is deployed here — those were covered in Lab 090 and do not requi
 7. Apply one recommendation manually via the CLI
 8. Destroy all infrastructure with `terraform destroy`
 
+## What You'll Practise
+
+- Reading and interpreting AWS Compute Optimizer recommendations
+- Using `aws cloudwatch put-metric-data` to seed historical metrics
+- Applying a right-sizing change via the AWS CLI
+- Stopping and starting EC2 instances as part of a cost-aware workflow
+- Destroying infrastructure cleanly with `terraform destroy`
+
 ---
 
 ## Validation
@@ -72,9 +80,17 @@ The validator checks:
 
 ## Important — Cost Warning
 
-This lab creates **real AWS resources that bill real money**. Estimated cost if you leave instances running for 2 hours before destroying: approximately $0.60–$1.20 depending on region.
+This lab creates **real AWS resources that bill real money**.
 
-**Always run `terraform destroy` when finished.**
+The five instances in this lab cost approximately **$1.34/hour combined** while running:
+- 2× `m5.2xlarge` at $0.384/hour each = $0.768/hour
+- 3× `m5.xlarge` at $0.192/hour each = $0.576/hour
+
+Compute Optimizer can take up to 12 hours to generate recommendations. **Do not leave instances running while you wait.** After the seeding script completes, stop all instances — stopped instances do not bill for compute. The solution file walks you through this.
+
+Estimated total cost for the full lab (instances running only during deploy/seed and the final apply step, stopped in between): **under $0.75**.
+
+**Always run `terraform destroy` when completely finished.**
 
 ---
 
