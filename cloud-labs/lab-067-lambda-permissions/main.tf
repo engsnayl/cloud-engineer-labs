@@ -10,7 +10,6 @@ resource "aws_s3_bucket" "uploads" {
 resource "aws_iam_role" "lambda_role" {
   name = "lambda-processor-role"
 
-  # BUG 1: Trust policy doesn't allow Lambda service
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -25,7 +24,6 @@ resource "aws_iam_role_policy" "lambda_policy" {
   name = "lambda-policy"
   role = aws_iam_role.lambda_role.id
 
-  # BUG 2: Missing CloudWatch Logs permissions
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -44,9 +42,6 @@ resource "aws_lambda_function" "processor" {
   runtime          = "python3.11"
   source_code_hash = filebase64sha256("lambda.zip")
 }
-
-# BUG 3: Missing S3 bucket notification and Lambda permission
-# The S3 bucket can't invoke the Lambda without these
 
 resource "random_id" "suffix" {
   byte_length = 4
