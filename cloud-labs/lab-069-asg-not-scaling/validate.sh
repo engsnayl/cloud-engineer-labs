@@ -1,9 +1,8 @@
 #!/bin/bash
 # =============================================================================
-# Validation: Cloud Lab — Terraform Plan Check
+# Validation: Lab 069 — ASG Not Scaling
 # =============================================================================
-
-echo "Running terraform validation..."
+echo "Validating Lab 069..."
 echo ""
 
 PASS=0
@@ -21,16 +20,47 @@ check() {
     fi
 }
 
-# Check 1: terraform validate passes
+# Check 1: terraform validate passes (syntax sanity)
 terraform validate &>/dev/null
-check "Terraform configuration is valid" "$?"
+check "Terraform configuration is syntactically valid" "$?"
 
-# Check 2: terraform plan doesn't error
-terraform plan -detailed-exitcode &>/dev/null
-plan_exit=$?
-# Exit code 0 = no changes, 1 = error, 2 = changes present
-[[ "$plan_exit" -ne 1 ]]
-check "Terraform plan completes without errors" "$?"
+# Check 2: max_size has been raised above 1
+# Pull the max_size value from the aws_autoscaling_group block
+max_size=$(awk '/resource "aws_autoscaling_group"/,/^}/' main.tf \
+    | grep -E '^\s*max_size\s*=' \
+    | head -1 \
+    | grep -oE '[0-9]+')
+
+if [[ -n "$max_size" && "$max_size" -gt 1 ]]; then
+    check "ASG max_size raised above 1 (found: $max_size)" "0"
+else
+    check "ASG max_size raised above 1 (found: ${max_size:-none})" "1"
+fi
+
+# Check 3: adjustment_type is ChangeInCapacity, not ExactCapacity
+adjustment_type=$(awk '/resource "aws_autoscaling_policy"/,/^}/' main.tf \
+    | grep -E '^\s*adjustment_type\s*=' \
+    | head -1 \
+    | grep -oE '"[^"]+"' \
+    | tr -d '"')
+
+if [[ "$adjustment_type" == "ChangeInCapacity" ]]; then
+    check "Scaling policy adjustment_type set to ChangeInCapacity" "0"
+else
+    check "Scaling policy adjustment_type set to ChangeInCapacity (found: ${adjustment_type:-none})" "1"
+fi
+
+# Check 4: max_size strictly greater than desired_capacity (real headroom)
+desired=$(awk '/resource "aws_autoscaling_group"/,/^}/' main.tf \
+    | grep -E '^\s*desired_capacity\s*=' \
+    | head -1 \
+    | grep -oE '[0-9]+')
+
+if [[ -n "$max_size" && -n "$desired" && "$max_size" -gt "$desired" ]]; then
+    check "ASG has headroom (max_size > desired_capacity)" "0"
+else
+    check "ASG has headroom (max_size=${max_size:-?}, desired=${desired:-?})" "1"
+fi
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
