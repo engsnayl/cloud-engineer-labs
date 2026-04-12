@@ -26,7 +26,6 @@ resource "aws_autoscaling_group" "app" {
 
 resource "aws_autoscaling_policy" "scale_up" {
   name                   = "scale-up"
-  # BUG 3: Wrong scaling type
   scaling_adjustment     = 1
   adjustment_type        = "ExactCapacity"
   cooldown               = 300
