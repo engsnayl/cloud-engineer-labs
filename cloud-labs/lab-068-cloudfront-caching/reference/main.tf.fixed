@@ -1,1 +1,220 @@
+# =============================================================================
+# Lab 068 — CloudFront Caching: REFERENCE FIXED VERSION
+# =============================================================================
+# This file is the worked-out fix for the lab's broken state. It is stored
+# OUTSIDE the lab's working directory so Terraform never reads it during
+# `terraform init/plan/apply`. It exists purely as a reference document for
+# learners who want to compare their own fix against a known-good version.
+#
+# Three bugs are addressed in this file:
+#   Bug 1 — CloudFront origin pointed at the S3 REST API endpoint instead of
+#           the website endpoint. Fixed by switching domain_name and adding a
+#           custom_origin_config block.
+#   Bug 2 — Cache TTLs absurdly long (1 day / 7 days / 1 year). Fixed by
+#           dropping to 0 / 1 hour / 1 day.
+#   Bug 3 — Bucket not publicly readable, so the website endpoint returned
+#           403 even after the origin fix. Fixed by adding a public access
+#           block override and a public-read bucket policy.
+#
+# In production you would generally NOT use this pattern. The modern AWS
+# recommendation is to keep the bucket fully private and use Origin Access
+# Control (OAC) so only CloudFront can read from it. The website-endpoint
+# pattern used here is simpler to teach but it has trade-offs: HTTP-only
+# between CloudFront and S3, and the bucket is internet-facing.
+# =============================================================================
 
+# -----------------------------------------------------------------------------
+# Provider — points Terraform at AWS in the eu-west-1 (Ireland) region.
+# CloudFront is a global service so the region setting only affects S3.
+# -----------------------------------------------------------------------------
+provider "aws" {
+  region = "eu-west-1"
+}
+
+# -----------------------------------------------------------------------------
+# S3 bucket — the origin where website content lives. The bucket name uses
+# a random suffix because S3 bucket names are globally unique across all
+# AWS accounts and we'd otherwise collide with other learners.
+# -----------------------------------------------------------------------------
+resource "aws_s3_bucket" "website" {
+  bucket = "website-${random_id.suffix.hex}"
+}
+
+# -----------------------------------------------------------------------------
+# Website hosting configuration — turns this bucket into a static website.
+# This enables the second "door" on the bucket: the website endpoint, which
+# behaves like a basic web server (translates / to /index.html, serves errors
+# as HTML, etc). It is HTTP-only — no HTTPS support.
+#
+# Note: enabling website hosting does NOT make the bucket publicly readable.
+# That requires a separate bucket policy (see below). This is one of the most
+# common S3 gotchas — the two concerns look related but are completely
+# independent.
+# -----------------------------------------------------------------------------
+resource "aws_s3_bucket_website_configuration" "website" {
+  bucket = aws_s3_bucket.website.id
+  index_document { suffix = "index.html" }
+}
+
+# -----------------------------------------------------------------------------
+# Public access block override (Bug 3 fix, part 1)
+#
+# By default, every new S3 bucket has all four "Block Public Access" settings
+# turned on. This is AWS protecting customers from accidentally exposing data —
+# a default that exists because of a string of high-profile data leaks in
+# 2017–2018. With these defaults in place, ANY attempt to apply a public-read
+# bucket policy will be rejected by the S3 API.
+#
+# Because this lab needs the bucket to be publicly readable (so the S3 website
+# endpoint can serve content to anonymous CloudFront requests), all four
+# shutters must be explicitly set to false.
+#
+# In production, the better pattern is to KEEP these set to true and use
+# Origin Access Control (OAC) instead. See file header for details.
+# -----------------------------------------------------------------------------
+resource "aws_s3_bucket_public_access_block" "website" {
+  bucket = aws_s3_bucket.website.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+# -----------------------------------------------------------------------------
+# Bucket policy granting public read (Bug 3 fix, part 2)
+#
+# This policy allows anyone (Principal: "*", which includes anonymous callers)
+# to perform s3:GetObject on every object in the bucket. Without this, the
+# website endpoint will return 403 Forbidden for every request.
+#
+# The depends_on declaration is important: it forces Terraform to apply the
+# public_access_block resource above BEFORE this policy. Without it, Terraform
+# might apply them in parallel and the policy would be rejected because Block
+# Public Access was still in effect at the time. depends_on is the explicit
+# escape hatch when there's a real ordering dependency that isn't captured by
+# attribute references.
+# -----------------------------------------------------------------------------
+resource "aws_s3_bucket_policy" "website" {
+  bucket = aws_s3_bucket.website.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "PublicReadGetObject"
+        Effect    = "Allow"
+        Principal = "*"
+        Action    = "s3:GetObject"
+        Resource  = "${aws_s3_bucket.website.arn}/*"
+      }
+    ]
+  })
+
+  depends_on = [aws_s3_bucket_public_access_block.website]
+}
+
+# -----------------------------------------------------------------------------
+# CloudFront distribution — the CDN serving content to end users.
+# CloudFront has ~600 edge locations worldwide. When a user requests a URL,
+# they're routed to the nearest edge, which either serves a cached copy or
+# fetches fresh content from the origin (S3) and caches it for next time.
+# -----------------------------------------------------------------------------
+resource "aws_cloudfront_distribution" "website" {
+
+  # ---------------------------------------------------------------------------
+  # Origin (Bug 1 fix)
+  #
+  # This is where CloudFront fetches content from on a cache miss. There are
+  # two ways to point CloudFront at an S3 bucket:
+  #
+  #   1. REST API endpoint (bucket_regional_domain_name) — treats S3 as a
+  #      key-value store. Doesn't understand website features like default
+  #      documents or HTML error pages. Used with OAC for private buckets.
+  #
+  #   2. Website endpoint (website_endpoint, from the website_configuration
+  #      resource) — treats S3 as a basic web server. Supports default docs,
+  #      HTML errors, and redirect rules. HTTP-only.
+  #
+  # The broken version of this lab pointed at the REST endpoint, which caused
+  # all requests to fail because the bucket wasn't authenticated for direct
+  # API access AND lacked the file structure the REST endpoint expected.
+  #
+  # The fix is to point at the website endpoint AND add a custom_origin_config
+  # block, which tells CloudFront to treat the origin as a generic HTTP server
+  # rather than a native S3 bucket.
+  # ---------------------------------------------------------------------------
+  origin {
+    domain_name = aws_s3_bucket_website_configuration.website.website_endpoint
+    origin_id   = "S3-website"
+
+    # The presence of this block is what tells CloudFront to use "custom
+    # origin" mode rather than "S3 origin" mode. The website endpoint cannot
+    # be used in S3 origin mode because it speaks plain HTTP, not the S3 API.
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only"      # Website endpoint is HTTP-only
+      origin_ssl_protocols   = ["TLSv1.2"]      # Required by schema, unused with http-only
+    }
+  }
+
+  enabled             = true
+  default_root_object = "index.html"   # CloudFront translates / to /index.html
+
+  # ---------------------------------------------------------------------------
+  # Default cache behavior (Bug 2 fix)
+  #
+  # The TTL fields control how long CloudFront caches responses before
+  # revalidating against the origin:
+  #
+  #   min_ttl     — the floor. CloudFront will cache for AT LEAST this long
+  #                 regardless of what the origin's Cache-Control header says.
+  #                 Setting this to 0 hands cache control back to the origin.
+  #
+  #   default_ttl — the fallback. Used when the origin doesn't send a
+  #                 Cache-Control header (which S3 doesn't, by default).
+  #                 This is the most important value for static S3 hosting.
+  #
+  #   max_ttl     — the ceiling. Even if the origin asks for a longer cache,
+  #                 CloudFront caps it here.
+  #
+  # The broken version had these set to 1 day / 7 days / 1 year — meaning
+  # any update to S3 would take up to a week to appear to customers.
+  #
+  # The fixed values give: minimum nothing, default 1 hour, maximum 1 day.
+  # Worst-case staleness is 1 hour, which is acceptable for a pricing page.
+  # ---------------------------------------------------------------------------
+  default_cache_behavior {
+    allowed_methods  = ["GET", "HEAD"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = "S3-website"
+
+    forwarded_values {
+      query_string = false
+      cookies { forward = "none" }
+    }
+
+    viewer_protocol_policy = "redirect-to-https"
+    min_ttl     = 0       # Origin controls caching
+    default_ttl = 3600    # 1 hour fallback
+    max_ttl     = 86400   # 1 day ceiling
+  }
+
+  restrictions {
+    geo_restriction { restriction_type = "none" }
+  }
+
+  viewer_certificate {
+    cloudfront_default_certificate = true
+  }
+}
+
+# -----------------------------------------------------------------------------
+# Random ID — generates a 4-byte (8 hex character) suffix used to make the
+# bucket name globally unique. Persists in Terraform state so the bucket name
+# stays consistent across applies.
+# -----------------------------------------------------------------------------
+resource "random_id" "suffix" {
+  byte_length = 4
+}
