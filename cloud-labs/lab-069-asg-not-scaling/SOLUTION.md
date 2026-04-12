@@ -1,39 +1,118 @@
-# Solution Walkthrough — ASG Not Scaling
+# Lab 069 — Solution Walkthrough: ASG Not Scaling
 
-## The Problem
+## TLDR (Plain English)
 
-An Auto Scaling Group (ASG) should scale up when CPU exceeds 70%, but it stays stuck at 1 instance despite high CPU. The CloudWatch alarm is firing, the scaling policy exists, but the ASG won't add instances. There are **two key bugs** (plus a best-practice issue):
+Someone set up an Auto Scaling Group that's supposed to add more servers when the CPU gets busy. It isn't working. The CPU is hot, the alarm is screaming, but no new servers appear.
 
-1. **`max_size` equals `min_size`** — both are set to 1. The ASG physically cannot add instances because its maximum capacity is 1. Even if the scaling policy triggers, the ASG can't exceed its max_size.
-2. **Wrong scaling adjustment type** — `adjustment_type = "ExactCapacity"` with `scaling_adjustment = 1` means "set the desired count to exactly 1." Since it's already at 1, nothing happens. It should be `"ChangeInCapacity"` so that `scaling_adjustment = 1` means "add 1 more instance."
-3. **Health check type** — using `"EC2"` health checks only monitors the instance's system status. If the ASG is behind a load balancer, `"ELB"` health checks would also check whether the application is responding.
+Two things are wrong:
 
-## Thought Process
+1. **The ASG is told it can never have more than 1 server.** So even when it's asked to add one, it can't — there's no room.
+2. **The scaling rule is written wrong.** Instead of saying "add one more server," it says "make sure there is exactly 1 server." There already is 1. So it does nothing.
 
-When an ASG isn't scaling despite CloudWatch alarms, an experienced cloud engineer checks:
+The fix is to raise the ceiling so the ASG is allowed to grow, and rewrite the scaling rule so it actually adds a server instead of re-stating the current count.
 
-1. **ASG capacity limits** — if `max_size == desired_capacity`, the ASG can't scale up. Check `min_size`, `max_size`, and `desired_capacity`.
-2. **Scaling policy configuration** — what does the policy actually do? `ExactCapacity` sets a fixed count, `ChangeInCapacity` adds/removes, `PercentChangeInCapacity` scales by percentage.
-3. **Alarm → Policy link** — is the CloudWatch alarm's `alarm_actions` pointing to the correct scaling policy ARN?
-4. **Cooldown period** — after a scaling action, the ASG ignores further triggers for the cooldown period. If cooldown is very long, it may appear stuck.
+---
 
-## Step-by-Step Solution
+## The Ticket
 
-### Step 1: Fix Bug 1 — Increase max_size
+> **INC-2047** — Production ASG `app-asg` not scaling under load. CPU sustained above 90% for the last hour. CloudWatch alarm `app-high-cpu` is in ALARM state. Still only 1 instance running. Please investigate and resolve.
+
+That's all you've got. No one told you what's broken. You're the engineer on call. Let's walk in cold.
+
+---
+
+## Step 1 — Orient Yourself: What Are We Actually Looking At?
+
+Before touching any code, confirm the facts in the ticket. Don't trust the reporter — trust the AWS API.
+
+### 1a. Is the alarm really firing?
+
+```bash
+aws cloudwatch describe-alarms --alarm-names app-high-cpu
+```
+
+**Command breakdown:**
+
+| Part | Meaning |
+|---|---|
+| `aws cloudwatch` | The CloudWatch service namespace in the AWS CLI |
+| `describe-alarms` | Read-only API call — lists alarms and their current state |
+| `--alarm-names app-high-cpu` | Filter to just the alarm we care about |
+
+Look at `StateValue` in the output. If it says `ALARM`, the ticket is accurate — something *should* be happening and isn't.
+
+### 1b. What does the ASG currently look like?
+
+```bash
+aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names app-asg
+```
+
+**Command breakdown:**
+
+| Part | Meaning |
+|---|---|
+| `aws autoscaling` | The Auto Scaling service namespace |
+| `describe-auto-scaling-groups` | Read-only — returns full config of the ASG |
+| `--auto-scaling-group-names app-asg` | Filter to our one ASG |
+
+Three fields to eyeball immediately: `MinSize`, `MaxSize`, `DesiredCapacity`.
+
+**This is the moment the first bug should jump out at you.** If you see `MinSize: 1, MaxSize: 1, DesiredCapacity: 1` — stop. That's your first clue. An ASG whose `MaxSize` equals its `DesiredCapacity` has nowhere to grow into. It is physically incapable of adding an instance, no matter how loud the alarm screams. The ceiling and the floor are the same board.
+
+But don't fix it yet. Keep reading. There might be more.
+
+### 1c. What does the scaling policy say to do?
+
+```bash
+aws autoscaling describe-policies --auto-scaling-group-name app-asg
+```
+
+Look at two fields in the output: `AdjustmentType` and `ScalingAdjustment`.
+
+If you see `AdjustmentType: ExactCapacity` and `ScalingAdjustment: 1` — stop again. Read that out loud: *"When triggered, set the capacity to exactly 1."* The ASG is already at 1. The policy is telling it to become what it already is. Even if we fixed `MaxSize`, this policy would still be a no-op.
+
+**That's bug two, found by reading, not guessing.**
+
+---
+
+## Step 2 — Find the Terraform That Defines This
+
+You now know *what* is wrong in AWS. You need to find *where* it's declared in code so the fix survives the next `terraform apply`.
+
+```bash
+cd ~/cloud-engineer-labs/labs/terraform-aws/069-asg-not-scaling
+ls
+```
+
+You should see `main.tf`, maybe `variables.tf`, `outputs.tf`. Open `main.tf`:
+
+```bash
+vi main.tf
+```
+
+Search for the ASG block — in `vi`, type `/aws_autoscaling_group` and press Enter. This jumps to the resource definition.
+
+You're looking for the same two things you just saw in the AWS API:
+- `min_size`, `max_size`, `desired_capacity` — are they all 1?
+- In the `aws_autoscaling_policy` block, what is `adjustment_type`?
+
+If the Terraform matches what AWS reported, good — you've confirmed the drift isn't someone having clicked in the console. The code is the source of truth, and the code is wrong.
+
+---
+
+## Step 3 — Reason About the First Fix (max_size)
+
+**Question:** What should `max_size` be?
+
+**Thought process:** `max_size` is the hard ceiling — the ASG will never exceed it. You need headroom above `desired_capacity` for scaling to have anywhere to go. How much headroom? That depends on expected peak load. For a lab, 4 is a sensible round number that proves scaling works without spinning up a fleet. In production you'd base this on load testing.
+
+**Where do I change it?** In the `aws_autoscaling_group` block in `main.tf`. Not in the AWS console — console changes get overwritten on the next `terraform apply`.
 
 ```hcl
-# BROKEN
-resource "aws_autoscaling_group" "app" {
-  min_size         = 1
-  max_size         = 1    # Can't scale beyond 1!
-  desired_capacity = 1
-}
-
-# FIXED
 resource "aws_autoscaling_group" "app" {
   name                = "app-asg"
   min_size            = 1
-  max_size            = 4     # Now can scale up to 4 instances
+  max_size            = 4    # was 1 — gives the policy room to scale
   desired_capacity    = 1
   vpc_zone_identifier = [aws_subnet.app.id]
   health_check_type   = "EC2"
@@ -45,65 +124,107 @@ resource "aws_autoscaling_group" "app" {
 }
 ```
 
-**Why this matters:** `max_size` is a hard ceiling. The ASG will never exceed this number, regardless of what scaling policies say. Setting `max_size = 1` means the ASG is locked at 1 instance forever. Increasing it to 4 (or higher) gives the scaling policy room to add instances.
+---
 
-### Step 2: Fix Bug 2 — Change adjustment type to ChangeInCapacity
+## Step 4 — Reason About the Second Fix (adjustment_type)
+
+**Question:** Which adjustment type do I actually want?
+
+There are three options. Read them slowly:
+
+| Type | What `scaling_adjustment = 1` means |
+|---|---|
+| `ExactCapacity` | "Set the desired count to exactly 1." |
+| `ChangeInCapacity` | "Add 1 to the current count." |
+| `PercentChangeInCapacity` | "Add 1% more instances (rounded)." |
+
+The intent of a scale-up policy is *"when CPU is hot, give me one more box."* That's `ChangeInCapacity`. `ExactCapacity` is for rare cases where you want to force a specific number — for example, a scheduled action that resets the fleet to 3 every morning.
 
 ```hcl
-# BROKEN
 resource "aws_autoscaling_policy" "scale_up" {
   name                   = "scale-up"
   scaling_adjustment     = 1
-  adjustment_type        = "ExactCapacity"    # Sets count to exactly 1
-  cooldown               = 300
-  autoscaling_group_name = aws_autoscaling_group.app.name
-}
-
-# FIXED
-resource "aws_autoscaling_policy" "scale_up" {
-  name                   = "scale-up"
-  scaling_adjustment     = 1
-  adjustment_type        = "ChangeInCapacity"  # Adds 1 instance
+  adjustment_type        = "ChangeInCapacity"   # was ExactCapacity
   cooldown               = 300
   autoscaling_group_name = aws_autoscaling_group.app.name
 }
 ```
 
-**Why this matters:** The three adjustment types work differently:
-- **`ExactCapacity`** — sets desired count to the exact value. `scaling_adjustment = 1` means "set to 1 instance" (useless for scale-up when already at 1).
-- **`ChangeInCapacity`** — adds or removes the value. `scaling_adjustment = 1` means "add 1 more instance" (correct for scale-up).
-- **`PercentChangeInCapacity`** — scales by percentage. `scaling_adjustment = 50` means "add 50% more instances."
+---
 
-For simple scale-up, `ChangeInCapacity` is the most common choice.
-
-### Step 3: Validate
+## Step 5 — Validate Before Applying
 
 ```bash
 terraform validate
 terraform plan
 ```
 
-**What this does:** Confirms the configuration is valid. The plan should show the ASG with `max_size = 4` and the scaling policy with `adjustment_type = "ChangeInCapacity"`.
+**Command breakdown:**
 
-## Docker Lab vs Real Life
+| Part | Meaning |
+|---|---|
+| `terraform validate` | Checks syntax and internal references. No AWS calls. Fast. |
+| `terraform plan` | Compares your code to real AWS state and shows what will change. Read-only against AWS. |
 
-- **Target tracking policies:** In production, target tracking scaling policies are preferred over simple step policies. For example: `target_tracking_configuration { predefined_metric_specification { predefined_metric_type = "ASGAverageCPUUtilization" } target_value = 70 }` automatically manages scale-up and scale-down to maintain 70% CPU.
-- **Scale-down policies:** This lab only has a scale-up policy. In production, you also need a scale-down policy (or use target tracking, which handles both directions).
-- **Warm pools:** For applications with slow startup times, ASG warm pools keep pre-initialized instances ready to launch instantly when scaling up.
-- **Instance refresh:** When updating the launch template, use instance refresh to gradually replace old instances with new ones without downtime.
-- **Predictive scaling:** For workloads with predictable patterns (like daily traffic peaks), predictive scaling pre-warms capacity based on historical data.
+In the plan output, look for:
+- `max_size: 1 -> 4` on the ASG
+- `adjustment_type: "ExactCapacity" -> "ChangeInCapacity"` on the policy
 
-## Key Concepts Learned
+If you see those two diffs and nothing else surprising, you're good.
 
-- **`max_size` is a hard ceiling** — the ASG cannot exceed this value. If `max_size == desired_capacity`, no scale-up is possible.
-- **`ExactCapacity` vs `ChangeInCapacity`** — ExactCapacity sets an absolute count; ChangeInCapacity adds/removes from the current count. Using the wrong one makes scaling policies useless.
-- **CloudWatch alarms trigger scaling policies** — the alarm's `alarm_actions` must reference the scaling policy ARN. The alarm evaluates the metric, and when it enters ALARM state, it triggers the policy.
-- **Cooldown prevents rapid scaling** — after a scaling action, the ASG waits for the cooldown period before responding to more alarms. 300 seconds (5 minutes) is a common default.
+```bash
+terraform apply
+```
 
-## Common Mistakes
+---
 
-- **Setting max_size too low** — this is the most common ASG issue. If max equals desired, the ASG can't scale up. Always set max_size higher than your expected peak capacity.
-- **Using ExactCapacity for scale-up** — ExactCapacity with value 1 means "set to 1" — not "add 1." This is the exact mistake in this lab.
-- **Forgetting to create a scale-down policy** — without scale-down, instances added during traffic spikes never get removed. You keep paying for them even when load is low.
-- **Not testing scaling in staging** — scaling policies should be tested under load before production. Use tools like `stress` or AWS Fault Injection Simulator.
-- **Very long cooldown periods** — a 30-minute cooldown means the ASG can only add one instance every 30 minutes. For sudden traffic spikes, this is too slow.
+## Step 6 — Prove It Worked
+
+Don't just trust `apply` saying "Apply complete." Go back to the AWS API and check:
+
+```bash
+aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names app-asg \
+  --query 'AutoScalingGroups[0].[MinSize,MaxSize,DesiredCapacity]'
+```
+
+**New command part:**
+
+| Part | Meaning |
+|---|---|
+| `--query '...'` | JMESPath filter — pulls only the fields you want instead of the full blob |
+| `AutoScalingGroups[0]` | First (only) ASG in the result list |
+| `[MinSize,MaxSize,DesiredCapacity]` | Return just these three fields as an array |
+
+You should now see `[1, 4, 1]`. The ceiling has been lifted. Next time the alarm fires, the policy will add an instance and `DesiredCapacity` will climb.
+
+---
+
+## The Diagnostic Pathway (Memorise This Shape)
+
+For any "ASG not scaling" ticket, the order is always:
+
+1. **Confirm the alarm is actually in ALARM state.** (Ticket could be wrong.)
+2. **Check `min/max/desired` on the ASG.** If `max == desired`, stop — that's your bug.
+3. **Read the scaling policy.** `ExactCapacity` + small number is almost always wrong for scale-up.
+4. **Check the alarm's `alarm_actions`** points at the right policy ARN. (Not broken in this lab, but check it anyway.)
+5. **Check cooldown.** A 1-hour cooldown will look like "nothing is happening" for 59 minutes.
+6. **Find the Terraform, fix it there, validate, plan, apply, re-verify against AWS.**
+
+---
+
+## Lab vs Real Life
+
+- **Target tracking is the modern default.** In production, you'd use `target_tracking_configuration` with `ASGAverageCPUUtilization` at 70. AWS manages scale-up *and* scale-down automatically. Step policies like this lab are older-style and more fiddly.
+- **You need a scale-down policy too.** This lab only scales up. Without a matching scale-down, you'll pay for instances forever after the spike passes.
+- **`health_check_type = "EC2"` only checks the hypervisor.** Behind an ALB, use `"ELB"` so the app being broken also triggers replacement.
+- **Warm pools** help when instance boot is slow (heavy AMIs, long user-data scripts).
+- **Don't test scaling in prod.** Use `stress-ng` or AWS Fault Injection Simulator in staging.
+
+---
+
+## Key Concepts
+
+- `max_size` is a hard ceiling. The ASG will never exceed it. If `max == desired`, scaling up is impossible.
+- `ExactCapacity` sets an absolute number. `ChangeInCapacity` adds/removes relative to current. They are not interchangeable.
+- CloudWatch alarms don't scale anything themselves — they trigger *policies*, which act on the ASG.
+- The AWS API is the source of truth for current state. Terraform is the source of truth for desired state. When they disagree, one of them is wrong — figure out which before you fix anything.
