@@ -118,6 +118,56 @@ else
     check "min_ttl too high — origin cannot control caching (found: ${MIN_TTL}s)" 1
 fi
 
+# -----------------------------------------------------------------------------
+# Check 5 (Bug 3): Public access block exists and allows public access
+# -----------------------------------------------------------------------------
+PAB=$(jq -r '
+    .planned_values.root_module.resources[]
+    | select(.type == "aws_s3_bucket_public_access_block")
+' "$PLAN_JSON" 2>/dev/null)
+
+if [[ -z "$PAB" ]]; then
+    check "aws_s3_bucket_public_access_block resource present (Bug 3 fix)" 1
+else
+    check "aws_s3_bucket_public_access_block resource present (Bug 3 fix)" 0
+
+    BLOCK_POLICY=$(echo "$PAB" | jq -r '.values.block_public_policy')
+    RESTRICT=$(echo "$PAB" | jq -r '.values.restrict_public_buckets')
+
+    if [[ "$BLOCK_POLICY" == "false" ]]; then
+        check "block_public_policy disabled (allows bucket policy to take effect)" 0
+    else
+        check "block_public_policy is still true — bucket policy will be rejected" 1
+    fi
+
+    if [[ "$RESTRICT" == "false" ]]; then
+        check "restrict_public_buckets disabled (allows public access)" 0
+    else
+        check "restrict_public_buckets is still true — public access will be denied" 1
+    fi
+fi
+
+# -----------------------------------------------------------------------------
+# Check 6 (Bug 3): Bucket policy grants public read
+# -----------------------------------------------------------------------------
+POLICY=$(jq -r '
+    .planned_values.root_module.resources[]
+    | select(.type == "aws_s3_bucket_policy")
+    | .values.policy
+' "$PLAN_JSON" 2>/dev/null)
+
+if [[ -z "$POLICY" ]]; then
+    check "aws_s3_bucket_policy resource present (Bug 3 fix)" 1
+else
+    check "aws_s3_bucket_policy resource present (Bug 3 fix)" 0
+
+    if echo "$POLICY" | grep -q '"s3:GetObject"' && echo "$POLICY" | grep -q '"\*"'; then
+        check "Bucket policy grants s3:GetObject to public principal" 0
+    else
+        check "Bucket policy does not grant public s3:GetObject" 1
+    fi
+fi
+
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 [[ "$FAIL" -eq 0 ]]
