@@ -11,7 +11,6 @@ resource "aws_launch_template" "app" {
 
 resource "aws_autoscaling_group" "app" {
   name                = "app-asg"
-  # BUG 1: max_size equals min_size — can't scale up
   min_size            = 1
   max_size            = 1
   desired_capacity    = 1
@@ -22,7 +21,6 @@ resource "aws_autoscaling_group" "app" {
     version = "$Latest"
   }
 
-  # BUG 2: Health check type should be ELB if behind a load balancer
   health_check_type = "EC2"
 }
 
