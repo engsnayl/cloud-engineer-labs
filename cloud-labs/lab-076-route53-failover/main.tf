@@ -8,8 +8,8 @@ resource "aws_route53_zone" "main" {
 }
 
 resource "aws_route53_health_check" "primary" {
-  fqdn              = "primary.example-internal.com"
-  port               = 8080  # App is on port 80
+  fqdn               = "primary.example-internal.com"
+  port               = 8080  
   type               = "HTTP"
   resource_path      = "/health"
   failure_threshold  = 3
