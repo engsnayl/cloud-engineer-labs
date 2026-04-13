@@ -21,12 +21,6 @@ resource "aws_route53_record" "primary" {
   name    = "app.example-internal.com"
   type    = "A"
   ttl     = 300
-
-  # Missing failover routing policy
-  # Should have: failover_routing_policy { type = "PRIMARY" }
-  # set_identifier = "primary"
-  # health_check_id = aws_route53_health_check.primary.id
-  
   records = ["10.0.1.100"]
 }
 
