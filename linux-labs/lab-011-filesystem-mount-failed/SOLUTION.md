@@ -221,9 +221,32 @@ The device doesn't exist. That's why nothing mounted — the system looked for `
 
 ---
 
-### Step 3b — Hunt for the real data source
+### Step 3b — Where does the application expect its data to be?
 
-In real life nobody tells you the filename. You need to find it yourself. Search for large files in common storage locations — a filesystem image will always be a substantial file:
+The fstab points to a device that doesn't exist. Before hunting blindly around the filesystem, ask a more useful question first: *where does the application itself think its data should be?*
+
+In real life you'd check the application config — a Postgres config file, a `.env`, a docker-compose, a runbook. Something will tell you what path the application is expecting. Check the app environment file:
+
+```bash
+cat /etc/app.env
+```
+
+**Expected output:**
+```
+PGDATA=/data/pgdata
+```
+
+This tells you the database expects its data at `/data/pgdata`. You now know with certainty that `/data` should be a mounted volume containing a `pgdata/` directory — and it isn't. That confirms your fault. The ticket makes complete sense now.
+
+> **In real life, always check application config before hunting the filesystem.** Your first moves would be: check the app's config files, check environment variables, check docker-compose or Terraform, check the runbook. Someone documented where the data lives — find that first.
+
+---
+
+### Step 3c — Now find the actual data source
+
+You know `/data` should be mounted and isn't. The fstab device doesn't exist. So the volume must be somewhere else on this system — you need to find it.
+
+Since fstab had a wrong device path rather than a missing entry entirely, the volume was likely always file-based. Search for filesystem image files:
 
 ```bash
 find / -name "*.img" 2>/dev/null
@@ -235,18 +258,9 @@ find / -name "*.img" 2>/dev/null
 | `-name "*.img"` | Look for files with a `.img` extension |
 | `2>/dev/null` | Suppress permission errors so they don't clutter your output |
 
-If you weren't sure of the extension, cast a wider net:
-
-```bash
-find /opt /var /mnt /srv -type f -size +10M 2>/dev/null
-```
-
-| Part | What it does |
-|------|-------------|
-| `-type f` | Files only (not directories) |
-| `-size +10M` | Larger than 10MB — filesystem images are always chunky files |
-
 **Expected output:** `/opt/fake-volume.img`
+
+> **Why `find` here and not `lsblk`?** Because the data source in this lab is a regular file, not a block device. `lsblk` only shows block devices — it won't surface a `.img` file sitting in `/opt`. In production you'd reach for `lsblk` or `blkid` first because the data would be on a real disk. Here, `find` is the right tool precisely because the volume is file-based. This is a lab construct — in production, file-based volumes like this are rare.
 
 ---
 
