@@ -305,15 +305,17 @@ Now verify:
 
 ```bash
 ls -la /data/
-cat /data/db-data.conf
+ls -la /data/pgdata/
 ```
 
 | Part | What it does |
 |------|-------------|
-| `ls -la` | Lists directory contents in long format including hidden files |
-| `cat` | Prints file contents to the terminal |
+| `ls -la /data/` | Confirms the volume isn't empty and the expected top-level structure is there |
+| `ls -la /data/pgdata/` | Confirms the database data directory exists and has content |
 
-**Expected output:** `db-data.conf` and `pgdata/` are visible and readable. You'll also see `lost+found` — this is completely normal on every ext4 filesystem. It's created automatically when the filesystem is formatted and is used by `fsck` to store orphaned files during a repair. Not a problem.
+**What you expect to see:** `pgdata/` is present inside `/data/`, and it contains files. You'll also see `lost+found` — this is completely normal on every ext4 filesystem. It's created automatically when the filesystem is formatted and is used by `fsck` to store orphaned files during a repair. Not a problem.
+
+You don't need to read specific files — you just need to confirm the volume isn't empty and the structure the database expects (`/data/pgdata`) is there. That's enough to confirm the data is intact.
 
 **The data was never gone. Confirmed.**
 
