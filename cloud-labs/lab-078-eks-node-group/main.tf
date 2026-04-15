@@ -15,7 +15,6 @@ resource "aws_eks_cluster" "main" {
 resource "aws_eks_node_group" "workers" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "workers"
-  # BUG 1: Wrong IAM role (using cluster role instead of node role)
   node_role_arn   = aws_iam_role.cluster.arn
   subnet_ids      = [aws_subnet.a.id, aws_subnet.b.id]
 
@@ -24,8 +23,6 @@ resource "aws_eks_node_group" "workers" {
     max_size     = 3
     min_size     = 1
   }
-
-  # BUG 2: Missing instance types
 }
 
 resource "aws_iam_role" "cluster" {
@@ -39,12 +36,6 @@ resource "aws_iam_role" "cluster" {
     }]
   })
 }
-
-# BUG 3: Missing node IAM role entirely
-# Nodes need their own role with EC2 trust policy and specific managed policies:
-# - AmazonEKSWorkerNodePolicy
-# - AmazonEKS_CNI_Policy
-# - AmazonEC2ContainerRegistryReadOnly
 
 resource "aws_vpc" "main" { cidr_block = "10.0.0.0/16" }
 resource "aws_subnet" "a" { vpc_id = aws_vpc.main.id; cidr_block = "10.0.1.0/24"; availability_zone = "eu-west-2a" }
