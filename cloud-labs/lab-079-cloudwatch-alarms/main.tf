@@ -1,6 +1,19 @@
-# CloudWatch Alarms Lab
+# Lab 079 — CloudWatch Alarms Misconfigured
+# This file intentionally contains four bugs. Do not fix before running setup.sh.
+
 provider "aws" {
   region = "eu-west-2"
+}
+
+# Fetch the latest Amazon Linux 2023 AMI for eu-west-2
+data "aws_ssm_parameter" "al2023" {
+  name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
+}
+
+resource "aws_instance" "app" {
+  ami           = data.aws_ssm_parameter.al2023.value
+  instance_type = "t3.micro"
+  tags = { Name = "app-server" }
 }
 
 resource "aws_sns_topic" "alerts" {
@@ -9,7 +22,7 @@ resource "aws_sns_topic" "alerts" {
 
 resource "aws_cloudwatch_metric_alarm" "cpu" {
   alarm_name          = "high-cpu"
-  comparison_operator = "LessThanThreshold" 
+  comparison_operator = "LessThanThreshold"
   evaluation_periods  = 2
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
@@ -24,17 +37,11 @@ resource "aws_cloudwatch_metric_alarm" "status_check" {
   evaluation_periods  = 1
   metric_name         = "StatusCheckFailed"
   namespace           = "AWS/EC2"
-  period              = 3600  
+  period              = 3600
   statistic           = "Maximum"
   threshold           = 0
   alarm_actions       = [aws_sns_topic.alerts.arn]
   dimensions = {
     InstanceId = "i-placeholder"
   }
-}
-
-resource "aws_instance" "app" {
-  ami           = "ami-0c76bd4bd302b30ec"
-  instance_type = "t3.micro"
-  tags = { Name = "app-server" }
 }
