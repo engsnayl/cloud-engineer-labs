@@ -23,7 +23,7 @@ echo ""
 
 # Confirm AWS credentials are available
 echo "Checking AWS credentials..."
-if ! aws sts get-caller-identity --region eu-west-1 &>/dev/null; then
+if ! aws sts get-caller-identity --region eu-west-2 &>/dev/null; then
   echo ""
   echo "ERROR: AWS credentials not found or not working."
   echo "Make sure your AWS CLI is configured (aws configure) before running setup."
@@ -31,7 +31,7 @@ if ! aws sts get-caller-identity --region eu-west-1 &>/dev/null; then
 fi
 
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-echo "  ✅  Authenticated as account: $ACCOUNT_ID (eu-west-1)"
+echo "  ✅  Authenticated as account: $ACCOUNT_ID (eu-west-2)"
 echo ""
 
 # Initialise Terraform
@@ -64,5 +64,5 @@ echo "  CloudWatch alarms exist but did not fire during last night's incident."
 echo "  Investigate and remediate."
 echo ""
 echo "Start with:"
-echo "  aws cloudwatch describe-alarms --region eu-west-1"
+echo "  aws cloudwatch describe-alarms --region eu-west-2"
 echo ""
