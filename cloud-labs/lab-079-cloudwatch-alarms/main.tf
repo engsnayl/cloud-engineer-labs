@@ -9,21 +9,13 @@ resource "aws_sns_topic" "alerts" {
 
 resource "aws_cloudwatch_metric_alarm" "cpu" {
   alarm_name          = "high-cpu"
-  # BUG 1: Wrong comparison operator
-  comparison_operator = "LessThanThreshold"  # Should be GreaterThan for high CPU
+  comparison_operator = "LessThanThreshold" 
   evaluation_periods  = 2
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
   period              = 300
   statistic           = "Average"
   threshold           = 80
-  # BUG 2: No alarm actions — won't notify anyone
-  # alarm_actions       = [aws_sns_topic.alerts.arn]
-  
-  # BUG 3: Missing dimensions — alarm applies to nothing
-  # dimensions = {
-  #   InstanceId = aws_instance.app.id
-  # }
 }
 
 resource "aws_cloudwatch_metric_alarm" "status_check" {
@@ -32,8 +24,7 @@ resource "aws_cloudwatch_metric_alarm" "status_check" {
   evaluation_periods  = 1
   metric_name         = "StatusCheckFailed"
   namespace           = "AWS/EC2"
-  # BUG 4: Period too long — won't catch brief failures
-  period              = 3600  # 1 hour — should be 60 seconds
+  period              = 3600  
   statistic           = "Maximum"
   threshold           = 0
   alarm_actions       = [aws_sns_topic.alerts.arn]
