@@ -1,4 +1,5 @@
 # Security Hub & GuardDuty Lab
+
 provider "aws" {
   region = "eu-west-2"
 }
@@ -9,7 +10,6 @@ data "aws_region" "current" {}
 # --- GuardDuty ---
 
 resource "aws_guardduty_detector" "main" {
-  # BUG 1: GuardDuty is not enabled — enable must be true
   enable = false
 
   datasources {
@@ -18,7 +18,6 @@ resource "aws_guardduty_detector" "main" {
     }
     kubernetes {
       audit_logs {
-        # BUG 2: Kubernetes audit logs not enabled
         enable = false
       }
     }
@@ -30,9 +29,6 @@ resource "aws_guardduty_detector" "main" {
 # --- Security Hub ---
 
 resource "aws_securityhub_account" "main" {}
-
-# BUG 3: GuardDuty integration not enabled in Security Hub
-# Missing: aws_securityhub_product_subscription for GuardDuty
 
 # --- EventBridge Rule for Critical Findings ---
 
@@ -47,7 +43,6 @@ resource "aws_cloudwatch_event_rule" "critical_findings" {
       findings = {
         Severity = {
           Label = [
-            # BUG 4: Only matching INFORMATIONAL — should match CRITICAL and HIGH
             "INFORMATIONAL"
           ]
         }
@@ -75,8 +70,7 @@ resource "aws_sns_topic_policy" "security_alerts" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect    = "Allow"
-        # BUG 5: Wrong principal — should be events.amazonaws.com for EventBridge
+        Effect = "Allow"
         Principal = {
           Service = "s3.amazonaws.com"
         }
