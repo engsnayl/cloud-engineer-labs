@@ -4,7 +4,7 @@
 # =============================================================================
 # This script verifies that the security monitoring pipeline is correctly
 # configured end-to-end. It queries AWS directly rather than just checking
-# Terraform syntax, because all five bugs in this lab produce valid HCL.
+# Terraform syntax, because all bugs in this lab produce valid HCL.
 # =============================================================================
 
 echo "Running Lab 082 validation..."
@@ -77,8 +77,6 @@ fi
 # -----------------------------------------------------------------------------
 # Check 3: Security Hub is subscribed to GuardDuty findings
 # -----------------------------------------------------------------------------
-GUARDDUTY_PRODUCT_ARN="arn:aws:securityhub:${REGION}::product/aws/guardduty"
-
 aws securityhub list-enabled-products-for-import \
     --region "$REGION" \
     --query "ProductSubscriptions[?contains(@, 'guardduty')]" \
@@ -122,15 +120,15 @@ fi
 # -----------------------------------------------------------------------------
 SNS_TOPIC_ARN=$(aws sns list-topics \
     --region "$REGION" \
-    --query "Topics[?contains(TopicArn, 'security-alerts')].TopicArn | [0]" \
+    --query "Topics[?contains(TopicArn, 'security-hub-critical-alerts')].TopicArn | [0]" \
     --output text 2>/dev/null)
 
 if [[ -z "$SNS_TOPIC_ARN" ]] || [[ "$SNS_TOPIC_ARN" == "None" ]]; then
-    check "SNS topic 'security-alerts' exists" "1"
+    check "SNS topic 'security-hub-critical-alerts' exists" "1"
     check "SNS topic policy allows events.amazonaws.com" "1"
-    check "SNS topic policy does NOT use s3.amazonaws.com principal" "1"
+    check "SNS topic policy does NOT use wrong service principal" "1"
 else
-    check "SNS topic 'security-alerts' exists" "0"
+    check "SNS topic 'security-hub-critical-alerts' exists" "0"
 
     SNS_POLICY=$(aws sns get-topic-attributes \
         --topic-arn "$SNS_TOPIC_ARN" \
