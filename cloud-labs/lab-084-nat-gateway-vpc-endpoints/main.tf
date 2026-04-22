@@ -181,6 +181,64 @@ resource "aws_instance" "private" {
   tags = { Name = "lab-084-private-instance" }
 }
 
+# ---------------------------------------------------------------------------
+# SSM Interface Endpoints — management-plane access independent of NAT.
+# These let the SSM agent register and Session Manager work even when the
+# NAT / internet path is broken (which is the whole point of this lab).
+# ---------------------------------------------------------------------------
+
+resource "aws_security_group" "ssm_endpoints" {
+  name        = "lab-084-ssm-endpoints-sg"
+  description = "Allow HTTPS from the VPC to SSM Interface Endpoints"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.main.cidr_block]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = { Name = "lab-084-ssm-endpoints-sg" }
+}
+
+resource "aws_vpc_endpoint" "ssm" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.eu-west-2.ssm"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = [aws_subnet.private.id]
+  security_group_ids  = [aws_security_group.ssm_endpoints.id]
+  private_dns_enabled = true
+  tags                = { Name = "ssm-endpoint" }
+}
+
+resource "aws_vpc_endpoint" "ssmmessages" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.eu-west-2.ssmmessages"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = [aws_subnet.private.id]
+  security_group_ids  = [aws_security_group.ssm_endpoints.id]
+  private_dns_enabled = true
+  tags                = { Name = "ssmmessages-endpoint" }
+}
+
+resource "aws_vpc_endpoint" "ec2messages" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.eu-west-2.ec2messages"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = [aws_subnet.private.id]
+  security_group_ids  = [aws_security_group.ssm_endpoints.id]
+  private_dns_enabled = true
+  tags                = { Name = "ec2messages-endpoint" }
+}
+
 # Outputs the engineer will use during investigation
 output "instance_id" {
   description = "Private EC2 instance ID — connect via: aws ssm start-session --target <id>"
