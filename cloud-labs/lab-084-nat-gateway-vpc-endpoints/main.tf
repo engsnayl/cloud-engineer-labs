@@ -148,6 +148,29 @@ resource "aws_iam_role_policy_attachment" "ssm_core" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+# Inline policy granting the instance just enough S3 access to test the
+# VPC Endpoint end-to-end. Scoped to the lab bucket only.
+resource "aws_iam_role_policy" "s3_test_access" {
+  name = "lab-084-s3-test-access"
+  role = aws_iam_role.ssm.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:ListBucket"]
+        Resource = aws_s3_bucket.test.arn
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+        Resource = "${aws_s3_bucket.test.arn}/*"
+      }
+    ]
+  })
+}
+
 resource "aws_iam_instance_profile" "ssm" {
   name = "lab-084-ssm-profile"
   role = aws_iam_role.ssm.name
