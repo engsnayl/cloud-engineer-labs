@@ -153,9 +153,11 @@ check "S3 VPC Endpoint policy Effect is Allow for s3 actions" "$?"
 ENDPOINT_ID=$(echo "$ENDPOINT_JSON" | jq -r '.VpcEndpointId // empty')
 
 if [[ -n "$ENDPOINT_ID" ]]; then
+  # Note: AWS stores the VPC Endpoint ID in the route's GatewayId field
+  # for prefix-list (Gateway endpoint) routes, not a separate VpcEndpointId field.
   PREFIX_ROUTE=$(aws ec2 describe-route-tables --region "$REGION" \
     --route-table-ids "$PRIVATE_RT_ID" \
-    --query "RouteTables[0].Routes[?VpcEndpointId=='$ENDPOINT_ID'] | [0].DestinationPrefixListId" \
+    --query "RouteTables[0].Routes[?GatewayId=='$ENDPOINT_ID'] | [0].DestinationPrefixListId" \
     --output text 2>/dev/null)
   [[ "$PREFIX_ROUTE" == pl-* ]]
 else
