@@ -24,7 +24,6 @@ Resources:
       EnableDnsHostnames: true
       Tags:
         - Key: Name
-          # BUG 1: Wrong intrinsic function syntax — should use !Sub not !Ref for string interpolation
           Value: !Ref "${EnvironmentName}-vpc"
 
   InternetGateway:
@@ -43,7 +42,6 @@ Resources:
   PublicSubnet:
     Type: AWS::EC2::Subnet
     Properties:
-      # BUG 2: Using GetAtt where Ref is needed — VPC ID comes from !Ref, not !GetAtt
       VpcId: !GetAtt VPC.VpcId
       CidrBlock: 10.0.1.0/24
       MapPublicIpOnLaunch: true
@@ -88,7 +86,6 @@ Resources:
           ToPort: 22
           CidrIp: 0.0.0.0/0
       SecurityGroupEgress:
-        # BUG 3: Protocol -1 (all traffic) doesn't use FromPort/ToPort — remove them
         - IpProtocol: "-1"
           FromPort: 0
           ToPort: 65535
@@ -98,7 +95,6 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: !Ref InstanceType
-      # BUG 4: ImageId is missing — CloudFormation requires an AMI ID
       SubnetId: !Ref PublicSubnet
       SecurityGroupIds:
         - !Ref WebSecurityGroup
@@ -121,7 +117,6 @@ Outputs:
 
   PublicIP:
     Description: Public IP address
-    # BUG 5: Wrong attribute name — should be PublicIp not IpAddress
     Value: !GetAtt WebInstance.IpAddress
 
   VPCId:
