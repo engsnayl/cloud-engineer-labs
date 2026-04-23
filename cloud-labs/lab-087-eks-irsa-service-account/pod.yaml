@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-pod
+  namespace: default
+spec:
+  serviceAccountName: default
+  restartPolicy: Never
+  containers:
+    - name: app
+      image: amazon/aws-cli:latest
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          while true; do
+            echo "=== $(date) ==="
+            echo "--- Testing S3 ---"
+            aws s3 ls s3://${S3_BUCKET}/ --region ${AWS_REGION} || echo "S3 call failed"
+            echo "--- Testing DynamoDB ---"
+            aws dynamodb get-item \
+              --table-name ${DYNAMO_TABLE} \
+              --key '{"id":{"S":"test-id"}}' \
+              --region ${AWS_REGION} || echo "DynamoDB call failed"
+            sleep 30
+          done
+      env:
+        - name: S3_BUCKET
+          value: "REPLACE_WITH_BUCKET_NAME"
+        - name: DYNAMO_TABLE
+          value: "REPLACE_WITH_TABLE_NAME"
+        - name: AWS_REGION
+          value: "eu-west-2"
