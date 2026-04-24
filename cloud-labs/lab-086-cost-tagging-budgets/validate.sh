@@ -1,5 +1,5 @@
 #!/bin/bash
-# Validates all 5 bug fixes for Lab 086 — Cost Tagging & Budgets
+# Validates all 6 bug fixes for Lab 086 — Cost Tagging & Budgets
 # Tests actual config state, not just terraform syntax
 
 echo "Running Lab 086 validation..."
@@ -38,27 +38,23 @@ for tag in Environment Project Team CostCentre ManagedBy; do
 done
 
 # --- Bug 2: Individual resources must reference local.common_tags ---
-# VPC
 grep -Pzo '(?s)resource\s+"aws_vpc"\s+"main"\s*\{[^}]*tags\s*=\s*local\.common_tags' main.tf &>/dev/null
 check "aws_vpc.main has tags = local.common_tags" "$?"
 
-# Subnet
 grep -Pzo '(?s)resource\s+"aws_subnet"\s+"public"\s*\{[^}]*tags\s*=\s*local\.common_tags' main.tf &>/dev/null
 check "aws_subnet.public has tags = local.common_tags" "$?"
 
-# S3 bucket
-grep -Pzo '(?s)resource\s+"aws_s3_bucket"\s+"app_assets"\s*\{[^}]*tags\s*=\s*local\.common_tags' main.tf &>/dev/null
+# S3 bucket — use awk-style block extraction since S3 name has ${...} interpolation
+awk '/resource "aws_s3_bucket" "app_assets"/,/^}/' main.tf | grep -q "tags[[:space:]]*=[[:space:]]*local\.common_tags"
 check "aws_s3_bucket.app_assets has tags = local.common_tags" "$?"
 
 # --- Bug 3: Budget must have at least one notification block ---
 grep -Pzo '(?s)resource\s+"aws_budgets_budget"\s+"monthly"\s*\{.*?notification\s*\{' main.tf &>/dev/null
 check "aws_budgets_budget.monthly has notification block" "$?"
 
-# Confirm notification has an email subscriber
 grep -Pzo '(?s)notification\s*\{[^}]*subscriber_email_addresses' main.tf &>/dev/null
 check "Budget notification has subscriber_email_addresses" "$?"
 
-# Check for both 80% and 100% thresholds (progressive alerting)
 grep -Pzo '(?s)notification\s*\{[^}]*threshold\s*=\s*80' main.tf &>/dev/null
 check "Budget has 80% threshold notification" "$?"
 
@@ -74,7 +70,6 @@ else
     check "Billing alarm threshold is non-zero (got: ${alarm_threshold:-unset})" "1"
 fi
 
-# Confirm alarm threshold matches budget limit (10000)
 if [[ "$alarm_threshold" == "10000" ]]; then
     check "Billing alarm threshold matches budget limit (10000)" "0"
 else
@@ -84,6 +79,47 @@ fi
 # --- Bug 5: SNS topic must be tagged ---
 grep -Pzo '(?s)resource\s+"aws_sns_topic"\s+"billing_alerts"\s*\{[^}]*tags\s*=\s*local\.common_tags' main.tf &>/dev/null
 check "aws_sns_topic.billing_alerts has tags = local.common_tags" "$?"
+
+# --- Bug 6: Billing alarm must be in us-east-1 (AWS/Billing metrics only publish there) ---
+
+# Config check: aliased provider for us-east-1 must exist
+grep -Pzo '(?s)provider\s+"aws"\s*\{[^}]*alias\s*=\s*"us_east_1"[^}]*region\s*=\s*"us-east-1"' main.tf &>/dev/null
+check "Aliased provider aws.us_east_1 exists with region us-east-1" "$?"
+
+# Config check: billing alarm references the aliased provider
+grep -Pzo '(?s)resource\s+"aws_cloudwatch_metric_alarm"\s+"billing"\s*\{[^}]*provider\s*=\s*aws\.us_east_1' main.tf &>/dev/null
+check "Billing alarm references provider = aws.us_east_1" "$?"
+
+# Live state checks: only run if AWS credentials are available
+if aws sts get-caller-identity &>/dev/null; then
+    # Check alarm exists in us-east-1
+    alarm_in_use=$(aws cloudwatch describe-alarms \
+        --alarm-names monthly-billing-alarm \
+        --region us-east-1 \
+        --query 'MetricAlarms[*].AlarmName' \
+        --output text 2>/dev/null)
+
+    if [[ -n "$alarm_in_use" ]]; then
+        check "[LIVE] Billing alarm deployed in us-east-1" "0"
+    else
+        check "[LIVE] Billing alarm deployed in us-east-1 (not found — did you apply?)" "1"
+    fi
+
+    # Check alarm is NOT in eu-west-2 (should have moved)
+    alarm_in_euw2=$(aws cloudwatch describe-alarms \
+        --alarm-names monthly-billing-alarm \
+        --region eu-west-2 \
+        --query 'MetricAlarms[*].AlarmName' \
+        --output text 2>/dev/null)
+
+    if [[ -z "$alarm_in_euw2" ]]; then
+        check "[LIVE] Billing alarm no longer exists in eu-west-2" "0"
+    else
+        check "[LIVE] Billing alarm still in eu-west-2 (should have been destroyed)" "1"
+    fi
+else
+    echo "  ℹ️   AWS credentials not configured — skipping live state checks"
+fi
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
