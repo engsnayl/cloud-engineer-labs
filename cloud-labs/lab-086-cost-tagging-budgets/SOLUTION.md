@@ -15,7 +15,7 @@
 5. SNS topic isn't tagged either — even the alerting infrastructure lacks cost attribution.
 6. Billing alarm is in `eu-west-2`, but `AWS/Billing` metrics only publish to `us-east-1` — the alarm can never evaluate and sits inert.
 
-**What we're going to do:** Add `default_tags` to the provider as a safety net. Add explicit `tags = local.common_tags` to every resource (belt-and-braces). Wire notifications into the budget at 80% and 100%. Raise the alarm threshold to match the budget ceiling (10,000 USD). Tag the SNS topic. Add a second aliased AWS provider pointing to `us-east-1` and move the billing alarm to reference it, because that's the only region where billing metrics exist.
+**What we're going to do:** Add `default_tags` to the provider as a safety net. Add explicit `tags = local.common_tags` to every resource (belt-and-braces). Wire notifications into the budget at 80% and 100%. Raise the alarm threshold to match the budget ceiling (10,000 USD). Tag the SNS topic. And crucially — use AWS provider v6's per-resource `region` attribute to place the billing alarm in `us-east-1`, because the more "obvious" approach (aliased provider) has a long-standing Terraform provider bug that silently ignores the provider override on this resource type.
 
 **Why `default_tags` AND explicit resource tags?** Belt-and-braces. `default_tags` catches resources a developer forgot; explicit tags make intent visible in the code review.
 
@@ -46,16 +46,14 @@ cd ~/cloud-engineer-labs/cloud-labs/lab-086-cost-tagging-budgets
 ls -la
 ```
 
-**What you're looking at:**
-
 | Component | Purpose |
 |---|---|
 | `cd` | Change directory to the lab folder — puts you in the Terraform working directory |
 | `ls -la` | Lists all files including hidden ones (`-l` long format, `-a` all files) |
 
-You see: `main.tf`, `CHALLENGE.md`, `validate.sh`, and a `.terraform/` lock directory if someone's already run `terraform init` here.
+You see: `main.tf`, `CHALLENGE.md`, `validate.sh`.
 
-**Next question:** What does the Terraform actually describe? You read `main.tf` top to bottom — not to fix anything yet, just to build a mental model.
+**Next question:** What does the Terraform actually describe? Read `main.tf` top to bottom — not to fix anything yet, just to build a mental model.
 
 ```bash
 cat main.tf
@@ -64,12 +62,23 @@ cat main.tf
 Your mental model after reading:
 - A VPC with one subnet.
 - An S3 bucket with a random suffix.
-- An AWS Budget called `monthly-account-budget` with a 10,000 USD monthly limit.
+- An AWS Budget with a 10,000 USD monthly limit.
 - A CloudWatch billing alarm.
 - An SNS topic with one email subscriber (`finance@example.com`).
-- A `locals` block defining `common_tags` — but you make a mental note: *is this local actually being used anywhere?*
+- A `locals` block defining `common_tags` — mental note: *is this local actually being used anywhere?*
 
-That last thought is the first thread you pull.
+### Apply the broken Terraform first
+
+Because the infrastructure doesn't exist yet on your Pi, apply the broken state so you can investigate live AWS state the way a real engineer would:
+
+```bash
+terraform init
+terraform apply
+```
+
+Type `yes`. You should see `Apply complete! Resources: 8 added, 0 changed, 0 destroyed.`
+
+Now you have a live environment that exactly mirrors the real-world scenario — broken cost governance, sitting in production, waiting for you to diagnose.
 
 ---
 
@@ -79,7 +88,7 @@ Finance said "I can't tell who's responsible." That's a tagging problem. So you 
 
 ### Step 2a: Does `common_tags` actually get applied?
 
-You already noticed the `locals` block defines `common_tags`. A local that's defined but never referenced is dead code. Let's check:
+You noticed the `locals` block defines `common_tags`. A local that's defined but never referenced is dead code. Let's check:
 
 ```bash
 grep -n "common_tags" main.tf
@@ -92,15 +101,15 @@ grep -n "common_tags" main.tf
 | `"common_tags"` | The literal string to search for |
 | `main.tf` | The file to search |
 
-**Expected if everything is wired correctly:** You'd see the `locals { ... }` definition plus one `tags = local.common_tags` reference per resource.
+**Expected if everything is wired correctly:** the `locals { ... }` definition plus one `tags = local.common_tags` reference per resource.
 
-**What you actually see:** Just the `locals` block definition. **Zero resources reference it.**
+**What you actually see:** Just the `locals` block definition. Zero resources reference it.
 
-That's your first confirmed finding. The `common_tags` local is dead code. Nothing is tagged.
+First finding confirmed. The `common_tags` local is dead code. Nothing is tagged.
 
 ### Step 2b: Is there a `default_tags` safety net in the provider?
 
-Before you conclude "nothing is tagged," check one more thing. AWS Terraform has a feature where you can set `default_tags` inside the provider block — these get applied to every resource automatically, even if the resource doesn't specify tags. If that's in place, resources might still be getting tagged via that route.
+AWS Terraform has a feature where you can set `default_tags` inside the provider block — these get applied to every resource automatically, even if the resource doesn't specify tags. If that's in place, resources might still be getting tagged via that route.
 
 ```bash
 grep -A 10 'provider "aws"' main.tf
@@ -108,10 +117,8 @@ grep -A 10 'provider "aws"' main.tf
 
 | Component | Purpose |
 |---|---|
-| `grep` | Text search |
-| `-A 10` | After — also print 10 lines *after* each match (so we see the provider block body) |
+| `-A 10` | After — also print 10 lines *after* each match |
 | `'provider "aws"'` | Single-quoted so the double quotes are literal |
-| `main.tf` | File to search |
 
 **What you see:**
 
@@ -121,11 +128,11 @@ provider "aws" {
 }
 ```
 
-That's it. Just a region. **No `default_tags` block.** So nothing is being tagged via that route either.
+Just a region. No `default_tags` block. So nothing is being tagged via that route either.
 
 ### Step 2c: Confirm in live AWS state
 
-You're going to change things, so verify your read of the code by checking what's actually deployed. Engineers who only read code and never check live state miss drift.
+Engineers who only read code and never check live state miss drift. Verify your read:
 
 ```bash
 aws ec2 describe-vpcs --region eu-west-2 --query 'Vpcs[*].[VpcId,Tags]' --output table
@@ -136,13 +143,11 @@ aws ec2 describe-vpcs --region eu-west-2 --query 'Vpcs[*].[VpcId,Tags]' --output
 | `aws ec2 describe-vpcs` | Lists all VPCs in the region |
 | `--region eu-west-2` | London region — matches the provider config |
 | `--query 'Vpcs[*].[VpcId,Tags]'` | JMESPath expression — pull VpcId and Tags for every VPC |
-| `--output table` | Human-readable tabular format (vs default JSON) |
+| `--output table` | Human-readable tabular format |
 
-**What you see:** Two VPCs (the default AWS VPC and yours), both with `None` in the Tags column.
+**What you see:** Two VPCs (the default AWS VPC and yours), both with `None` in the Tags column. You can't even tell which one is yours from this output alone. That's exactly finance's problem.
 
-You can't even tell which one is yours from this output alone. That's exactly finance's problem.
-
-Same check for the S3 bucket:
+Same for the S3 bucket:
 
 ```bash
 aws s3api get-bucket-tagging --bucket $(aws s3 ls | grep app-assets | awk '{print $3}') --region eu-west-2
@@ -153,23 +158,21 @@ aws s3api get-bucket-tagging --bucket $(aws s3 ls | grep app-assets | awk '{prin
 | `aws s3api get-bucket-tagging` | Fetches the tag set on an S3 bucket |
 | `--bucket $(...)` | Command substitution — the `$(...)` runs first, result becomes the bucket name |
 | `aws s3 ls` | Lists all S3 buckets |
-| `grep app-assets` | Filter down to the lab's bucket |
-| `awk '{print $3}'` | Print the third field (which is the bucket name in `aws s3 ls` output) |
+| `grep app-assets` | Filter to the lab's bucket |
+| `awk '{print $3}'` | Print the third field (bucket name in `aws s3 ls` output) |
 
-**What you see:** An error — `NoSuchTagSet: The TagSet does not exist`. That's S3's way of saying "this bucket has no tags at all."
+**What you see:** `NoSuchTagSet: The TagSet does not exist`. S3's way of saying "this bucket has no tags at all."
 
-> **Note:** If you're running this lab fresh and haven't applied yet, `aws s3 ls | grep app-assets` returns nothing and the command fails with a different error (`--bucket: expected one argument`). That just means the bucket doesn't exist yet. Apply the broken Terraform first (`terraform apply`) to create the resources, then continue.
-
-At this point you've confirmed three things from three different angles:
+Three confirmations from three angles:
 - `common_tags` local is dead code (grep)
 - No `default_tags` safety net (grep)
-- Live AWS resources are genuinely untagged (AWS CLI)
+- Live AWS resources genuinely untagged (AWS CLI)
 
-**That's bug #1 (missing `default_tags`) AND bug #2 (resources not tagged via local).** The root cause is the same — nobody wired tagging up when this was built. The fix is both: add `default_tags` *and* explicit `tags = local.common_tags` on each resource.
+**That's bug #1 AND bug #2.** Same root cause — nobody wired tagging up when this was built. Fix is both: add `default_tags` *and* explicit `tags = local.common_tags` on each resource.
 
 ### Step 2d: Now look at the Budget
 
-Finance said "no visibility." You know the budget exists because you read it in `main.tf`. But does it actually alert anyone?
+Finance said "no visibility." The budget exists. But does it actually alert anyone?
 
 ```bash
 aws budgets describe-budgets \
@@ -181,10 +184,10 @@ aws budgets describe-budgets \
 |---|---|
 | `aws budgets describe-budgets` | List budgets (Budgets API is per-account, not per-region) |
 | `--account-id $(...)` | Budgets API requires the account ID explicitly |
-| `aws sts get-caller-identity --query Account` | Get *your* account ID from the current credentials |
+| `aws sts get-caller-identity --query Account` | Get *your* account ID from current credentials |
 | `--output text` | Plain text so it can be used directly as a parameter value |
 
-**What you see:** The `monthly-account-budget` exists with a 10,000 USD limit. Good — it's real. You may also see pre-existing budgets in your account (e.g. a personal safety budget you set up yourself). Ignore those.
+**What you see:** The `monthly-account-budget` exists with a 10,000 USD limit. Real. You may also see pre-existing budgets (your own personal safety budget, for example) — ignore those.
 
 Now the notifications:
 
@@ -201,25 +204,25 @@ aws budgets describe-notifications-for-budget \
 { "Notifications": [] }
 ```
 
-**Bug #3 confirmed.** The budget is a number sitting in a dashboard. It notifies nobody.
+**Bug #3 confirmed.** The budget is a number in a dashboard that notifies nobody.
 
-You go back to `main.tf` and confirm the code matches:
+Confirm against code:
 
 ```bash
 grep -A 10 "aws_budgets_budget" main.tf
 ```
 
-You see a resource block with name, budget_type, limit_amount, limit_unit, time_unit — and then it closes. **No `notification { ... }` block.** Matches AWS state.
+Resource block has name, budget_type, limit_amount, limit_unit, time_unit — then closes. No `notification { ... }` block. Matches AWS state.
 
 ---
 
 ## Step 3 — Act Two: The Alarm Noise (INCIDENT-COST-001)
 
-Finance thread is diagnosed. Now the PagerDuty ticket — the billing alarm firing 47 times. You already saw the alarm in `main.tf`. Let's check its live state.
+Finance thread is diagnosed. Now the PagerDuty ticket.
 
 ### Step 3a: Start where the metric actually lives
 
-Here's an AWS fact you need to have in your head: **the `AWS/Billing` namespace only publishes metrics in `us-east-1`.** Doesn't matter that your whole estate is in London. Billing data is in N. Virginia. Full stop. So that's where any billing alarm *should* live.
+Key AWS fact: **the `AWS/Billing` namespace only publishes metrics in `us-east-1`.** Doesn't matter where your estate is. Billing data is in N. Virginia. Full stop. So that's where any billing alarm *should* live.
 
 ```bash
 aws cloudwatch describe-alarms \
@@ -231,7 +234,7 @@ aws cloudwatch describe-alarms \
 
 **What you see:** Nothing. Empty output. The alarm doesn't exist in `us-east-1`.
 
-That's immediately weird. The PagerDuty ticket said the alarm is firing, so it has to exist somewhere. Maybe someone created it in the wrong region?
+That's immediately weird. The ticket said the alarm is firing, so it has to exist somewhere.
 
 ### Step 3b: Check the region the provider actually points to
 
@@ -249,25 +252,23 @@ aws cloudwatch describe-alarms \
 | monthly-billing-alarm | 0.0 | INSUFFICIENT_DATA | Unchecked: Initial alarm creation |
 ```
 
-Now you have two findings at once:
+Two findings at once:
 
 **Bug #4 — Threshold is 0.0.** If it could fire, it would fire constantly at any spend above zero. Classic alert-fatigue cause.
 
-**Bug #6 — The alarm is in eu-west-2, but StateValue is `INSUFFICIENT_DATA`.** This is the bigger problem. The alarm was created in London, but billing metrics only publish in N. Virginia. So the alarm has nothing to evaluate against. It's been sitting in `INSUFFICIENT_DATA` since it was created. It has *never* fired.
+**Bug #6 — The alarm is in eu-west-2, and StateValue is `INSUFFICIENT_DATA`.** This is the bigger problem. The alarm was created in London but billing metrics only publish in N. Virginia. The alarm has nothing to evaluate. It's been sitting in `INSUFFICIENT_DATA` since creation. It has *never* fired.
 
-**Wait — but the PagerDuty ticket said it's firing 47 times?** Re-read the ticket. Sometimes the ticket reflects a perception, not reality ("the alarm channel is noisy" → assumed to be this alarm, but actually noise from something else, or the ticket is wrong). This is a useful real-world lesson: your tickets are hypotheses, not facts. Verify before you act.
-
-Either way — the alarm is broken in two independent ways. It needs both the threshold fixed *and* to be deployed in the correct region.
+**But the ticket said it's firing 47 times?** Re-read the ticket. Tickets reflect perceptions, not always reality ("the alarm channel is noisy" → assumed to be this alarm, but actually noise from something else, or the ticket is wrong). Real-world lesson: tickets are hypotheses, not facts. Verify before you act.
 
 ### Why does `AWS/Billing` only live in `us-east-1`?
 
-Historical. AWS consolidated billing data publication to `us-east-1` for simplicity and global rollups. This predates the multi-region service patterns that came later, and it's never changed. It applies to:
+Historical. AWS consolidated billing data publication to `us-east-1` for simplicity and global rollups. It applies to:
 - `AWS/Billing` metrics
 - CloudWatch billing alarms (because they consume those metrics)
 - Cost allocation tag activation (console only, no regional endpoint)
 - AWS Budgets (per-account, no regional endpoint at all)
 
-**Rule of thumb:** anything cost/billing-related in AWS, assume `us-east-1` or global until proven otherwise.
+**Rule of thumb:** anything cost/billing-related in AWS → assume `us-east-1` or global until proven otherwise.
 
 ### Why have both a Budget AND a Billing Alarm?
 
@@ -282,8 +283,6 @@ Defence in depth. Budgets are your normal governance; the billing alarm is your 
 
 ### Step 3c: Final check — is the SNS topic tagged?
 
-The alarm routes to `aws_sns_topic.billing_alerts`. You've got tagging on your mind from Act One. Let's be thorough:
-
 ```bash
 aws sns list-tags-for-resource \
   --resource-arn $(aws sns list-topics --region eu-west-2 --query 'Topics[?contains(TopicArn, `billing-alerts`)].TopicArn' --output text) \
@@ -292,18 +291,15 @@ aws sns list-tags-for-resource \
 
 | Component | Purpose |
 |---|---|
-| `aws sns list-tags-for-resource` | SNS uses the generic "list-tags-for-resource" pattern, not a topic-specific command |
-| `--resource-arn $(...)` | The ARN of the topic, looked up dynamically |
-| `aws sns list-topics` | Lists all SNS topics |
-| `--query 'Topics[?contains(TopicArn,` `billing-alerts`\`)].TopicArn'` | JMESPath filter for topics containing "billing-alerts" in the ARN |
+| `aws sns list-tags-for-resource` | SNS uses the generic "list-tags-for-resource" pattern |
+| `--resource-arn $(...)` | The ARN looked up dynamically |
+| `--query 'Topics[?contains(TopicArn,` `billing-alerts`\`)].TopicArn'` | JMESPath filter for topics containing "billing-alerts" |
 
-**What you see:** `{ "Tags": [] }`. **Bug #5 confirmed.** Even the alerting infrastructure itself isn't contributing to cost attribution. If someone later asks "what does our alerting cost us?", nobody will be able to answer.
+**What you see:** `{ "Tags": [] }`. **Bug #5 confirmed.**
 
 ---
 
 ## Step 4 — Summary Of Findings (Before You Fix)
-
-Before writing any code, you summarise what you've found. This is what you'd paste back into Slack as a status update:
 
 > **Finding summary:**
 > 1. No `default_tags` in AWS provider — resources don't auto-inherit tags.
@@ -311,21 +307,25 @@ Before writing any code, you summarise what you've found. This is what you'd pas
 > 3. AWS Budget has no notification block — silent number.
 > 4. Billing alarm threshold is `$0` — would fire constantly if it could.
 > 5. SNS topic untagged — meta-infra missing cost attribution.
-> 6. Billing alarm is in eu-west-2, but `AWS/Billing` metrics only publish to us-east-1 — alarm is stuck in INSUFFICIENT_DATA and has never actually evaluated.
+> 6. Billing alarm is in eu-west-2, but `AWS/Billing` metrics only publish to us-east-1 — alarm stuck in INSUFFICIENT_DATA, has never actually evaluated.
 >
-> **Proposed fix:** Add `default_tags` to provider (safety net), add explicit `tags = local.common_tags` on every resource (visibility), add 80% + 100% notifications to budget, raise alarm threshold to 10000, add aliased `us-east-1` provider and move billing alarm to it, tag SNS topic.
+> **Proposed fix:** Add `default_tags` to provider. Add explicit `tags = local.common_tags` on every resource. Add 80% + 100% notifications to budget. Raise alarm threshold to 10000. Use AWS provider v6's `region` attribute to place the alarm in us-east-1. Tag SNS topic.
 >
-> **Impact of fix on live state:** The alarm will be destroyed in eu-west-2 and recreated in us-east-1. No other destroy operations expected.
+> **Impact on live state:** The alarm will be destroyed in eu-west-2 and recreated in us-east-1. No other destroys expected.
 >
 > ETA 30 minutes including terraform apply.
-
-This is what separates mid-level engineers from juniors — communicating a clear diagnosis *before* changing anything.
 
 ---
 
 ## Step 5 — The Fix
 
-Open `main.tf` in your editor. `vi main.tf` is the assumed workflow; `nano main.tf` is fine too (`Ctrl+O` → `Enter` → `Ctrl+X` to save and exit).
+Open `main.tf`:
+
+```bash
+vi main.tf
+```
+
+(`nano` works too — `Ctrl+O`, `Enter`, `Ctrl+X` to save and exit.)
 
 ### Fix 1 — Add `default_tags` to the provider
 
@@ -351,7 +351,7 @@ provider "aws" {
 
 ### Fix 2 — Add explicit tags to each resource
 
-Despite `default_tags`, you still add explicit tags per resource. Two reasons: (1) explicit tags override defaults if a resource needs a different value; (2) a reviewer reading the code sees tagging intent directly rather than having to trace it back to the provider block.
+Despite `default_tags`, add explicit tags per resource. Two reasons: (1) explicit tags override defaults if a resource needs a different value; (2) a reviewer reading the code sees tagging intent directly rather than tracing it back to the provider block.
 
 ```hcl
 resource "aws_vpc" "main" {
@@ -408,45 +408,24 @@ resource "aws_budgets_budget" "monthly" {
 | `comparison_operator = "GREATER_THAN"` | Fire when spend crosses above the threshold |
 | `threshold = 80` | Percentage of the budget limit (so 80% of 10,000 = 8,000 USD) |
 | `threshold_type = "PERCENTAGE"` | Threshold is interpreted as a percentage, not an absolute dollar amount |
-| `notification_type = "ACTUAL"` | Fire on actual spend (alternative is `FORECASTED` — fires on projected spend) |
+| `notification_type = "ACTUAL"` | Fire on actual spend (alternative is `FORECASTED`) |
 | `subscriber_email_addresses` | List of emails — can be multiple |
 
-### Fix 4 & 6 — Add aliased us-east-1 provider and move the billing alarm
+### Fix 4 & 6 — Move the alarm to us-east-1 and raise the threshold
 
-This is two fixes in one because they're inseparable — you can't fix the region without adding a provider, and there's no point fixing the threshold if the alarm can't evaluate.
+This is the tricky one. The "textbook" Terraform pattern for multi-region resources is **aliased providers** — declare a second provider with `alias = "us_east_1"` and point the alarm at it. Tempting, and logically correct.
 
-**Step 4/6a: Add a second provider block**
+**But there's a long-standing bug in the AWS Terraform provider** affecting `aws_cloudwatch_metric_alarm` specifically: the provider meta-argument is not reliably honoured, and the alarm creation request can get sent to the default provider's region anyway — where AWS rejects it with a validation error:
 
-Underneath your first provider block, add:
+> `Invalid region eu-west-2 specified. Only us-east-1 is supported.`
 
-```hcl
-provider "aws" {
-  alias  = "us_east_1"
-  region = "us-east-1"
+This has been open for years (GitHub issues #7371, #1553) and still catches people out in provider v6.
 
-  default_tags {
-    tags = {
-      Environment = "production"
-      Project     = "web-platform"
-      Team        = "platform-engineering"
-      CostCentre  = "CC-4521"
-      ManagedBy   = "terraform"
-    }
-  }
-}
-```
-
-| Component | Purpose |
-|---|---|
-| `alias = "us_east_1"` | Names this provider configuration so resources can opt in to it |
-| `region = "us-east-1"` | The region this provider targets |
-| `default_tags` | Duplicated — provider configurations don't share this; each needs its own |
-
-**Step 4/6b: Modify the billing alarm to reference the aliased provider**
+**Use v6's per-resource `region` attribute instead.** It's a feature AWS provider v6 added specifically to work around issues like this — you can tell a single resource to target a different region than its provider, without needing a second provider at all.
 
 ```hcl
 resource "aws_cloudwatch_metric_alarm" "billing" {
-  provider = aws.us_east_1
+  region = "us-east-1"
 
   alarm_name          = "monthly-billing-alarm"
   comparison_operator = "GreaterThanThreshold"
@@ -466,12 +445,12 @@ resource "aws_cloudwatch_metric_alarm" "billing" {
 ```
 
 **Two changes:**
-- Added `provider = aws.us_east_1` at the top of the resource — this tells Terraform to use the aliased provider instead of the default.
-- Changed `threshold = 0` to `threshold = 10000` (matching the budget ceiling).
+- `region = "us-east-1"` at the top — places this specific resource in us-east-1, while the rest of the config stays in eu-west-2.
+- `threshold = 0` → `threshold = 10000` (matching the budget ceiling).
 
-**Expected plan behaviour:** When you run `terraform plan`, you'll see the alarm marked for replacement: `-/+ resource "aws_cloudwatch_metric_alarm" "billing"` with the cause being the provider change. **This is expected.** CloudWatch alarms cannot be moved between regions in place — they have to be destroyed and recreated.
+**Cross-region SNS works fine:** the alarm in us-east-1 can publish to an SNS topic in eu-west-2 via `alarm_actions = [aws_sns_topic.billing_alerts.arn]`. AWS handles the cross-region delivery internally.
 
-**Heads up about the SNS topic reference:** The alarm's `alarm_actions` references `aws_sns_topic.billing_alerts.arn`. The SNS topic lives in eu-west-2 (default provider). **Cross-region SNS from a CloudWatch alarm is supported** — the alarm in us-east-1 will successfully publish to an SNS topic in eu-west-2. AWS handles the cross-region delivery internally.
+**Expected plan behaviour:** The alarm will be marked for replacement: `-/+ resource "aws_cloudwatch_metric_alarm" "billing"`. CloudWatch alarms can't be moved between regions in place — they have to be destroyed and recreated.
 
 ### Fix 5 — Tag the SNS topic
 
@@ -484,37 +463,62 @@ resource "aws_sns_topic" "billing_alerts" {
 
 ---
 
+## Real-World Gotcha Log — Worth Reading
+
+One of the genuinely valuable things to come out of this lab is the debugging experience if you try the aliased-provider approach first (which is what Terraform docs and most tutorials point you to). Here's the sequence of frustrations to expect and what they teach:
+
+1. **You add a second aliased provider block and `provider = aws.us_east_1` to the alarm.** Run `terraform plan`. Plan looks clean. Apply. Apply succeeds. Feels like you're done.
+
+2. **You run the validator.** Live state check fails: alarm is still in eu-west-2. But Terraform said apply succeeded? Check `terraform state show aws_cloudwatch_metric_alarm.billing` — state still says `region = "eu-west-2"`. Terraform did the in-place update (threshold, tags) but didn't recognise the provider change as forcing a region move.
+
+3. **You run `terraform apply -replace="aws_cloudwatch_metric_alarm.billing"` to force it.** Plan shows `-/+` (destroy + recreate). Good. Apply. Destroy succeeds. Create fails with `Invalid region eu-west-2 specified. Only us-east-1 is supported.` Now you have **zero alarms** because the destroy worked but the create didn't.
+
+4. **You check everything.** `terraform validate` says success. `terraform providers` only shows one AWS provider (expected — aliased providers are configurations of the same provider). You run `terraform init -upgrade`. You re-plan, re-apply. Same error.
+
+5. **You search the issue.** Turns out it's a known bug in the provider, open since 2016. The `provider` meta-argument on `aws_cloudwatch_metric_alarm` isn't reliably honoured.
+
+6. **You switch to `region = "us-east-1"` on the resource.** It just works.
+
+**The lesson:** Terraform's "correct" abstraction (aliased providers) has a leaky implementation for some resource types. Knowing workarounds — and knowing when to stop fighting the framework and use a different pattern — is what separates a mid-level engineer from a junior. AWS provider v6 added the per-resource `region` attribute specifically because this class of problem is common enough to warrant a first-class workaround.
+
+Keep this pattern in mind for:
+- CloudWatch billing alarms (this lab)
+- CloudWatch alarms on global services (Route 53 health checks, CloudFront)
+- ACM certificates for CloudFront (must be us-east-1)
+- WAFv2 with global scope (us-east-1)
+
+---
+
 ## Step 6 — Apply The Fix
 
 ```bash
+terraform init
 terraform plan
 ```
 
 | Component | Purpose |
 |---|---|
-| `terraform plan` | Calculate and show the changes Terraform *would* make, without applying them |
+| `terraform init` | Re-run if config structure has changed |
+| `terraform plan` | Preview changes without applying |
 
-**What to look for in the plan output:**
-- `~` (tilde) next to resources — in-place updates. Expect these for VPC, subnet, S3 bucket, budget, SNS topic.
-- `-/+` (destroy and recreate) for the **billing alarm only** — expected, because it's changing region.
-- No other destroys. If you see anything else marked for destroy, stop and investigate.
-- Summary at the bottom: `Plan: 1 to add, N to change, 1 to destroy.` (the add and destroy are both the alarm — it's being recreated in the new region).
+**What to look for:**
+- `~` next to VPC, subnet, S3 bucket, budget, SNS topic — in-place updates adding tags/notifications.
+- `-/+` next to the **billing alarm** — destroy and recreate because the region changed.
+- Summary: `Plan: 1 to add, 5 to change, 1 to destroy.`
 
-Assuming it looks right:
+If you see anything else marked for destroy, stop and read the plan.
 
 ```bash
 terraform apply
 ```
 
-Type `yes` at the prompt.
-
-> **Note on provider initialization:** If you get an error about an unknown provider `aws.us_east_1` during plan, run `terraform init` again. Terraform needs to re-register the aliased provider.
+Type `yes`.
 
 ---
 
 ## Step 7 — Verify The Fix In Live State
 
-Don't trust Terraform's "Apply complete" line alone. Verify AWS actually reflects what you asked for.
+Don't trust "Apply complete" alone.
 
 ### Tags on VPC:
 
@@ -522,7 +526,7 @@ Don't trust Terraform's "Apply complete" line alone. Verify AWS actually reflect
 aws ec2 describe-vpcs --region eu-west-2 --query 'Vpcs[*].[VpcId,Tags]' --output table
 ```
 
-Your VPC should now show the five tags (the default AWS VPC still won't, which is how you tell them apart).
+Your VPC should now show five tags (the default AWS VPC still won't, which is how you tell them apart).
 
 ### Budget notifications:
 
@@ -533,19 +537,23 @@ aws budgets describe-notifications-for-budget \
   --region eu-west-2
 ```
 
-You should see two notifications — one at 80, one at 100.
+Should show two notifications — one at 80, one at 100.
 
-### Alarm is in us-east-1 AND has correct threshold:
+### Alarm is in us-east-1:
 
 ```bash
-# Check us-east-1 — should find the alarm
 aws cloudwatch describe-alarms \
   --alarm-names monthly-billing-alarm \
   --region us-east-1 \
   --query 'MetricAlarms[*].[AlarmName,Threshold,StateValue]' \
   --output table
+```
 
-# Check eu-west-2 — should be empty now
+Alarm exists, threshold `10000.0`, StateValue likely `INSUFFICIENT_DATA` initially (billing metrics take time to populate — check again in 6+ hours, should transition to `OK`).
+
+And confirm it's no longer in eu-west-2:
+
+```bash
 aws cloudwatch describe-alarms \
   --alarm-names monthly-billing-alarm \
   --region eu-west-2 \
@@ -553,9 +561,7 @@ aws cloudwatch describe-alarms \
   --output text
 ```
 
-First command: alarm exists, threshold is `10000.0`. StateValue may be `INSUFFICIENT_DATA` initially (CloudWatch needs one evaluation period to get billing data) — check again in 6+ hours and it should be `OK` assuming spend is well under 10k.
-
-Second command: empty output. The old alarm has been destroyed.
+Should return empty.
 
 ### SNS topic tags:
 
@@ -565,7 +571,7 @@ aws sns list-tags-for-resource \
   --region eu-west-2
 ```
 
-Should now show the five tags.
+Should show five tags.
 
 ### Run the lab validator:
 
@@ -573,24 +579,22 @@ Should now show the five tags.
 ./validate.sh
 ```
 
-All 19 checks should pass (plus 2 live state checks if AWS credentials are configured).
+All config + live state checks should pass.
 
 ---
 
-## Step 8 — One More Thing: Activate Cost Allocation Tags
-
-This is the step most engineers miss, and it's the difference between "we have tags" and "finance can actually slice the bill by them."
+## Step 8 — Activate Cost Allocation Tags (Step Most People Miss)
 
 **Tags on resources are just metadata. They don't appear as dimensions in Cost Explorer until you activate them in the Billing console.**
 
-This is a manual, one-time step per account:
+One-time step per account:
 
-1. Open AWS Console → Billing → Cost allocation tags.
+1. AWS Console → Billing → Cost allocation tags.
 2. Under "User-defined cost allocation tags," find `Environment`, `Project`, `Team`, `CostCentre`, `ManagedBy`.
 3. Select them and click **Activate**.
-4. Wait up to 24 hours. New spend after activation will be sliceable by these tags in Cost Explorer.
+4. Wait up to 24 hours.
 
-**Important limitation:** Activation is not retroactive. The spike last month that finance is worried about won't be broken down by these tags — only spend from this point forward will be.
+**Important:** Activation is not retroactive. Last month's spike won't be broken down by these tags — only spend from this point forward.
 
 Tell finance that. Manage expectations.
 
@@ -600,24 +604,24 @@ Tell finance that. Manage expectations.
 
 | In this lab | In real production |
 |---|---|
-| Five tags defined in code | 10–20+ tags, often including `Owner`, `DataClassification`, `PII`, `BusinessUnit`, `Compliance` |
+| Five tags defined in code | 10–20+ tags, often `Owner`, `DataClassification`, `PII`, `BusinessUnit`, `Compliance` |
 | One account | 20+ accounts under AWS Organizations, tags enforced via SCPs and tag policies |
-| Tags added after the fact | Tagging is enforced at provisioning time — untagged resources get blocked or auto-remediated |
-| Budget notifies one email | Budgets notify distribution lists, post to Slack via SNS → Lambda, and ticket JIRA |
-| One budget | Per-team budgets, per-project budgets, per-environment budgets, consolidated org-level budget |
-| Email subscription | PagerDuty for critical, Slack for warnings, email only for monthly digests |
-| Cost allocation done post-hoc | Finance uses a dedicated FinOps tool (CloudZero, Vantage, CloudHealth) for real-time breakdown |
-| USD budget | Organisation would deal with FX conversion — AWS bills in USD, finance reports in GBP. Real finance team headache. |
-| Email subscription "just works" | Email subscribers must *manually confirm* the SNS subscription by clicking a link. Until they do, no emails arrive. |
+| Tags added after the fact | Tagging enforced at provisioning time — untagged resources blocked or auto-remediated |
+| Budget notifies one email | Distribution lists, Slack via SNS → Lambda, JIRA tickets |
+| One budget | Per-team, per-project, per-environment, consolidated org-level |
+| Email subscription | PagerDuty for critical, Slack for warnings, email only for digests |
+| Cost allocation done post-hoc | FinOps tools (CloudZero, Vantage, CloudHealth) for real-time breakdown |
+| USD budget | Organisation would handle FX conversion — AWS bills USD, finance reports GBP. Real headache. |
+| Email subscription "just works" | SNS email subscribers must *manually confirm* — no emails until they click the link |
 | No drift detection on tagging | AWS Config rules check for required tags; non-compliant resources generate findings |
-| Aliased provider for us-east-1 sitting in main.tf | Billing/cost resources usually extracted into a dedicated `billing/` module, with the aliased provider scoped there |
-| PagerDuty ticket content matched reality | Tickets are hypotheses — "alarm is firing 47 times" may actually mean "someone saw alarm noise and assumed it was this one." Always verify. |
+| PagerDuty ticket content matched reality | Tickets are hypotheses. "Alarm is firing 47 times" may mean "someone saw alarm noise and assumed it was this one." Always verify. |
+| Per-resource `region` for one alarm | Billing/cost resources usually extracted into a dedicated module to centralise the workaround |
 
 ---
 
 ## 🛑 CLEANUP — Destroy All Resources
 
-**Read this section carefully. Leaving resources running costs money. The whole point of this lab is cost awareness.**
+**Read carefully. Leaving resources running costs money. The whole point of this lab is cost awareness.**
 
 ### Pre-cleanup: Empty the S3 bucket
 
@@ -629,9 +633,9 @@ aws s3 rm s3://$(aws s3 ls | grep app-assets | awk '{print $3}') --recursive
 |---|---|
 | `aws s3 rm` | Delete objects |
 | `s3://...` | S3 URI to the bucket |
-| `--recursive` | Delete all objects in the bucket (required if the bucket has anything in it) |
+| `--recursive` | Delete all objects in the bucket |
 
-Terraform cannot destroy an S3 bucket that contains objects. This step is mandatory even if you think the bucket is empty.
+Terraform cannot destroy an S3 bucket that contains objects.
 
 ### Destroy the infrastructure:
 
@@ -639,9 +643,7 @@ Terraform cannot destroy an S3 bucket that contains objects. This step is mandat
 terraform destroy
 ```
 
-Type `yes` at the prompt.
-
-This will destroy across both regions — the CloudWatch alarm in us-east-1 and everything else in eu-west-2. Terraform handles cross-region destroys in a single operation.
+Type `yes`. This destroys across both regions — the alarm in us-east-1 and everything else in eu-west-2 — in a single operation.
 
 ### Reset the repo to broken state for re-runs:
 
@@ -655,18 +657,16 @@ git checkout -- main.tf
 | `--` | Signals "what follows is a filename, not a branch" |
 | `main.tf` | The file to restore |
 
-This throws away your fixes and restores the broken starting state, so you (or someone else) can re-run the lab clean.
-
 ### Confirm nothing is left behind:
 
 ```bash
-# VPC in eu-west-2 (your one, tagged Project=web-platform)
+# Your VPC in eu-west-2
 aws ec2 describe-vpcs --region eu-west-2 --filters "Name=tag:Project,Values=web-platform" --query 'Vpcs[*].VpcId' --output text
 
-# Budget (global)
+# Budget
 aws budgets describe-budgets --account-id $(aws sts get-caller-identity --query Account --output text) --query 'Budgets[?BudgetName==`monthly-account-budget`].BudgetName' --output text
 
-# Alarm in us-east-1 (where we fixed it to)
+# Alarm in us-east-1
 aws cloudwatch describe-alarms --alarm-names monthly-billing-alarm --region us-east-1 --query 'MetricAlarms[*].AlarmName' --output text
 
 # Alarm in eu-west-2 (in case anything lingered)
@@ -685,15 +685,16 @@ All should return empty.
 - **`default_tags` is your safety net** — set it in the provider block so every resource is tagged even if a developer forgets.
 - **Explicit tags on resources are your documentation** — they make tagging intent visible to code reviewers.
 - **Belt and braces** — use both, not either/or.
-- **Cost allocation tags require activation** — they're metadata until you activate them in the Billing console. And activation is not retroactive.
+- **Cost allocation tags require activation** — they're metadata until activated in the Billing console. Activation is not retroactive.
 - **Budgets need notifications** — a budget without alerts is a number nobody sees.
-- **Progressive alerting** — 80% warn, 100% critical. Don't only alert at 100%; it's too late by then.
-- **Billing metrics live in `us-east-1`** — always, regardless of where your resources are. CloudWatch billing alarms must live there too, or they sit in `INSUFFICIENT_DATA` forever.
-- **Aliased providers** — the standard Terraform pattern for multi-region resources within a single configuration. Each alias needs its own `default_tags` since provider configs don't share them.
-- **Cross-region CloudWatch → SNS works** — alarm in us-east-1 can publish to SNS topic in eu-west-2 without issue.
-- **Alert fatigue is a real failure mode** — a $0 threshold alarm that fires constantly gets muted and becomes worse than no alarm at all. (And, ironically, even worse if the alarm is also in the wrong region — then it looks like it's firing but isn't, and you lose trust in the tooling entirely.)
+- **Progressive alerting** — 80% warn, 100% critical. Don't only alert at 100%; too late by then.
+- **Billing metrics live in `us-east-1`** — always, regardless of where your resources are. CloudWatch billing alarms must too.
+- **AWS provider v6 per-resource `region` attribute** — the pragmatic way to handle single-resource region overrides. More reliable than aliased providers for some resource types (notably `aws_cloudwatch_metric_alarm`).
+- **Cross-region CloudWatch → SNS works** — alarm in us-east-1 can publish to SNS topic in eu-west-2.
+- **Alert fatigue is a real failure mode** — a $0 threshold alarm that fires constantly gets muted and becomes worse than no alarm at all.
 - **Tag everything, including meta-infrastructure** — SNS topics, CloudWatch alarms, KMS keys, IAM roles. If it costs anything, it should be attributable.
-- **Verify tickets against reality** — incident tickets describe perceptions, not facts. Always check live state before acting.
+- **Tickets are hypotheses, not facts** — incident tickets describe perceptions. Always verify live state before acting.
+- **Terraform's abstractions can leak** — aliased providers are "correct" but buggy for some resources. Know the workarounds.
 
 ---
 
@@ -701,12 +702,11 @@ All should return empty.
 
 - **Only using `tags = local.common_tags` without `default_tags`** — one missed resource breaks cost allocation.
 - **Only using `default_tags` without explicit `tags`** — code reviewers can't see tagging intent at the resource.
-- **Hardcoding tag values in each resource instead of referencing a `locals` block** — when CostCentre changes, you update 50 places instead of one.
-- **Alerting only at 100%** — too late. 50/80/100 is a typical pattern.
-- **Forgetting to activate cost allocation tags** — tags are applied but Cost Explorer shows nothing.
-- **Setting billing alarm in the wrong region** — if you create it in `eu-west-2` it will never fire. Must be `us-east-1`. The alarm will look "created" in Terraform state but sit in `INSUFFICIENT_DATA` in AWS.
-- **Forgetting to duplicate `default_tags` on the aliased provider** — the aliased provider won't inherit anything from the default provider; you have to set default_tags on each independently.
-- **Running `terraform apply` without re-running `terraform init`** after adding a new aliased provider — init is what registers the new provider instance.
-- **USD vs GBP confusion** — AWS bills in USD. If finance thinks in GBP, make the FX assumption explicit (budget of 10,000 USD ≈ 7,900 GBP at the current rate — but the rate changes).
+- **Hardcoding tag values in each resource instead of a `locals` block** — when CostCentre changes, update 50 places instead of one.
+- **Alerting only at 100%** — too late. 50/80/100 is typical.
+- **Forgetting to activate cost allocation tags** — tags applied but Cost Explorer shows nothing.
+- **Setting billing alarm in the wrong region** — creates in `eu-west-2` will never fire. Must be `us-east-1`.
+- **Using aliased provider for `aws_cloudwatch_metric_alarm`** — known bug, use `region = "us-east-1"` on the resource instead.
+- **USD vs GBP confusion** — AWS bills in USD. If finance thinks in GBP, make the FX assumption explicit.
 - **Not confirming SNS email subscriptions** — email subscribers must click a confirmation link. Until then, no alerts arrive even though Terraform says everything is deployed.
 - **Leaving the bucket non-empty before destroy** — `terraform destroy` will fail and you'll have to clean up manually.
