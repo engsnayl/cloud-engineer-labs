@@ -80,15 +80,11 @@ fi
 grep -Pzo '(?s)resource\s+"aws_sns_topic"\s+"billing_alerts"\s*\{[^}]*tags\s*=\s*local\.common_tags' main.tf &>/dev/null
 check "aws_sns_topic.billing_alerts has tags = local.common_tags" "$?"
 
-# --- Bug 6: Billing alarm must be in us-east-1 (AWS/Billing metrics only publish there) ---
-
-# Config check: aliased provider for us-east-1 must exist
-grep -Pzo '(?s)provider\s+"aws"\s*\{[^}]*alias\s*=\s*"us_east_1"[^}]*region\s*=\s*"us-east-1"' main.tf &>/dev/null
-check "Aliased provider aws.us_east_1 exists with region us-east-1" "$?"
-
-# Config check: billing alarm references the aliased provider
-grep -Pzo '(?s)resource\s+"aws_cloudwatch_metric_alarm"\s+"billing"\s*\{[^}]*provider\s*=\s*aws\.us_east_1' main.tf &>/dev/null
-check "Billing alarm references provider = aws.us_east_1" "$?"
+# --- Bug 6: Billing alarm must target us-east-1 (where AWS/Billing metrics publish) ---
+# Using AWS provider v6 per-resource region attribute (more reliable than aliased provider
+# for aws_cloudwatch_metric_alarm — known issue #7371, #1553 in terraform-provider-aws).
+grep -Pzo '(?s)resource\s+"aws_cloudwatch_metric_alarm"\s+"billing"\s*\{[^}]*region\s*=\s*"us-east-1"' main.tf &>/dev/null
+check "Billing alarm has region = \"us-east-1\" attribute" "$?"
 
 # Live state checks: only run if AWS credentials are available
 if aws sts get-caller-identity &>/dev/null; then
@@ -105,7 +101,7 @@ if aws sts get-caller-identity &>/dev/null; then
         check "[LIVE] Billing alarm deployed in us-east-1 (not found — did you apply?)" "1"
     fi
 
-    # Check alarm is NOT in eu-west-2 (should have moved)
+    # Check alarm is NOT in eu-west-2
     alarm_in_euw2=$(aws cloudwatch describe-alarms \
         --alarm-names monthly-billing-alarm \
         --region eu-west-2 \
@@ -113,9 +109,9 @@ if aws sts get-caller-identity &>/dev/null; then
         --output text 2>/dev/null)
 
     if [[ -z "$alarm_in_euw2" ]]; then
-        check "[LIVE] Billing alarm no longer exists in eu-west-2" "0"
+        check "[LIVE] Billing alarm not in eu-west-2" "0"
     else
-        check "[LIVE] Billing alarm still in eu-west-2 (should have been destroyed)" "1"
+        check "[LIVE] Billing alarm still in eu-west-2" "1"
     fi
 else
     echo "  ℹ️   AWS credentials not configured — skipping live state checks"
