@@ -1,7 +1,6 @@
 #!/bin/bash
 mkdir -p /var/log/app /var/log/infra
 
-# Create simulated logs from multiple services telling a story
 cat > /var/log/infra/system.log << 'EOF'
 2024-01-15 01:45:00 INFO  disk-monitor: /data partition at 78% usage
 2024-01-15 01:55:00 WARN  disk-monitor: /data partition at 85% usage
@@ -50,14 +49,3 @@ cat > /var/log/infra/resolution.log << 'EOF'
 2024-01-15 03:00:00 INFO  engineer: Monitoring - all systems nominal
 2024-01-15 04:30:00 INFO  engineer: Incident resolved. Setting up WAL archival cron job to prevent recurrence
 EOF
-
-# Task: Create /tmp/post-incident-report.txt with:
-# - Timeline of events
-# - Root cause
-# - Impact (duration, affected services, failed requests)
-# - Resolution steps
-# - Action items to prevent recurrence
-
-echo "Post-incident lab set up."
-echo "Review logs in /var/log/app/ and /var/log/infra/"
-echo "Create /tmp/post-incident-report.txt"
