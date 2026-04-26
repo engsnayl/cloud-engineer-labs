@@ -17,8 +17,7 @@
             "legendFormat": "{{method}} {{status}}"
           }
         ],
-        "id": 1,
-        "_comment": "BUG 2: 'rates' is not a function \u2014 should be 'rate'"
+        "id": 1
       },
       {
         "title": "Error Rate (%)",
@@ -35,8 +34,7 @@
             "legendFormat": "Error %"
           }
         ],
-        "id": 2,
-        "_comment": "BUG 3: Label matcher uses single quotes \u2014 PromQL uses double quotes: status=\"500\""
+        "id": 2
       },
       {
         "title": "Request Duration (p95)",
@@ -53,8 +51,7 @@
             "legendFormat": "p95"
           }
         ],
-        "id": 3,
-        "_comment": "BUG 4: histogram_quantile takes 0-1 not percentage \u2014 should be 0.95, not 95"
+        "id": 3
       },
       {
         "title": "Active Connections",
@@ -71,8 +68,7 @@
             "legendFormat": "connections"
           }
         ],
-        "id": 4,
-        "_comment": "BUG 5: Metric name wrong \u2014 should be 'active_connections' (plural)"
+        "id": 4
       }
     ],
     "time": {
