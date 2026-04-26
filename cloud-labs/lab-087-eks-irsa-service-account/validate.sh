@@ -34,8 +34,15 @@ echo ""
 echo "[2/4] IAM / OIDC configuration"
 
 # Check client_id_list contains sts.amazonaws.com (not ec2.amazonaws.com)
-if terraform state show aws_iam_openid_connect_provider.eks 2>/dev/null | grep -q 'client_id_list.*sts.amazonaws.com'; then
-  check "OIDC client_id_list contains sts.amazonaws.com" "0"
+# Query AWS directly rather than parsing terraform state (which formats client_id_list across multiple lines)
+OIDC_ARN=$(aws iam list-open-id-connect-providers --query "OpenIDConnectProviderList[?contains(Arn, 'eks.eu-west-2')].Arn" --output text 2>/dev/null | head -n1)
+if [[ -n "$OIDC_ARN" ]]; then
+  CLIENT_IDS=$(aws iam get-open-id-connect-provider --open-id-connect-provider-arn "$OIDC_ARN" --query 'ClientIDList' --output text 2>/dev/null)
+  if echo "$CLIENT_IDS" | grep -qw 'sts.amazonaws.com'; then
+    check "OIDC client_id_list contains sts.amazonaws.com" "0"
+  else
+    check "OIDC client_id_list contains sts.amazonaws.com" "1"
+  fi
 else
   check "OIDC client_id_list contains sts.amazonaws.com" "1"
 fi
@@ -44,7 +51,7 @@ fi
 ROLE_NAME="eks-app-role"
 TRUST_POLICY=$(aws iam get-role --role-name "$ROLE_NAME" --query 'Role.AssumeRolePolicyDocument' --output json 2>/dev/null)
 if [[ -n "$TRUST_POLICY" ]]; then
-  if echo "$TRUST_POLICY" | grep -q 'oidc.eks.amazonaws.com'; then
+  if echo "$TRUST_POLICY" | grep -qE 'oidc\.eks\.[a-z0-9-]+\.amazonaws\.com'; then
     check "Trust policy uses real OIDC issuer URL" "0"
   else
     check "Trust policy uses real OIDC issuer URL" "1"
