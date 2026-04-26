@@ -6,21 +6,26 @@ Skills: Grafana datasources, Prometheus queries, PromQL, dashboard JSON, panel c
 
 ## Scenario
 
-Grafana is running and dashboards are provisioned, but all panels show "No data". The Prometheus data source is configured but the connection isn't working, and the PromQL queries in the dashboard panels have errors.
+You are on the on-call rota. The following ticket has just been assigned to you. The author of the dashboard is on holiday for the next week.
 
-> **INCIDENT-MON-007**: Grafana dashboards deployed but showing "No data" on all panels. Prometheus is collecting metrics fine but Grafana can't query them. Data source or query configuration issue.
+> **INCIDENT-MON-007** — *Priority: P3*
+>
+> The new "Application Dashboard" deployment finished overnight. Grafana is up and the dashboard is provisioned, but every panel is showing "No data". Prometheus appears to be collecting metrics fine — the SRE team confirmed the app is exposing `/metrics` and Prometheus is scraping it.
+>
+> Something between Prometheus and Grafana — or in the dashboard itself — is broken. Please investigate and resolve. The dashboard needs to be functional before the product review on Friday.
+>
+> **Stack:** Grafana, Prometheus, and the application all run in Docker Compose. Source files for the Grafana provisioning live in `provisioning/datasources/` and `provisioning/dashboards/`.
 
-## Objectives
+## Your Job
 
-1. Get Grafana running and healthy
-2. Fix the Prometheus data source — it must point to `prometheus:9090` (not localhost)
-3. Fix the PromQL queries in the dashboard panels:
-   - Request rate must use `rate()` (not `rates()`)
-   - Label matchers must use correct syntax (double quotes for values)
-   - Histogram quantile must use decimal notation (e.g. `0.95`, not `95`)
-   - Metric names must be correct (e.g. `active_connections` not `active_connection`)
-4. All dashboard panels must show data
+Bring the dashboard back to a working state where every panel renders meaningful data. You have full access to the source files, the running containers, and both the Grafana and Prometheus web UIs.
+
+You're not given a list of what's wrong. Diagnose it.
+
+## Validation
+
+Run `lab validate monitoring/lab-056-grafana-dashboard-broken` once you believe the dashboard is healthy.
 
 ## What You're Practising
 
-Grafana is the standard dashboarding tool paired with Prometheus. Setting up data sources, writing PromQL queries, and debugging empty panels are everyday cloud engineering tasks.
+Grafana paired with Prometheus is the de-facto open-source observability stack. Diagnosing empty panels — distinguishing data source problems from query problems from metric problems — is a daily task for any team running this stack. The diagnostic pathway here (eliminate possibilities by testing each layer in isolation) is the same pathway you'll use for every Grafana incident you ever pick up.
