@@ -1,5 +1,4 @@
 #!/bin/bash
-# Create a simulated alert config with too many noisy alerts
 mkdir -p /opt/monitoring
 
 cat > /opt/monitoring/alerts.json << 'EOF'
@@ -19,7 +18,6 @@ cat > /opt/monitoring/alerts.json << 'EOF'
 }
 EOF
 
-# Create a simulated alert log showing the noise
 cat > /opt/monitoring/alert-log.txt << 'EOF'
 2024-01-15 08:00:01 CRITICAL cpu_above_1_percent - CPU at 3% on web-01
 2024-01-15 08:00:01 CRITICAL memory_above_10_percent - Memory at 45% on web-01
@@ -33,10 +31,3 @@ cat > /opt/monitoring/alert-log.txt << 'EOF'
 2024-01-15 08:01:01 CRITICAL memory_above_10_percent - Memory at 38% on web-02
 ... (repeats 200+ times per day)
 EOF
-
-# Task: Create a fixed alerts config at /opt/monitoring/alerts-fixed.json
-# with proper thresholds and severity levels
-
-echo "Alert fatigue lab set up."
-echo "Review /opt/monitoring/alerts.json and /opt/monitoring/alert-log.txt"
-echo "Create /opt/monitoring/alerts-fixed.json with proper thresholds."
