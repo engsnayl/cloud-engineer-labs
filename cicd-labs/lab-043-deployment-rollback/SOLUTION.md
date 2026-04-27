@@ -120,6 +120,18 @@ Notice that step 2 has to happen before step 3, and step 5 has to happen before 
 
 We'll build the new `deploy.sh` in the order the script will execute, testing the thinking as we go.
 
+> **⚠ Important — these are file contents, not commands to type at the prompt.**
+>
+> The code blocks in this section are pieces of the new `deploy.sh` we're going to write. You **do not** type them into your SSH terminal one line at a time. We're going to assemble them in your head (or on paper) and then write the whole thing into `deploy.sh` in one go at Step 5.
+>
+> This matters because two of the lines we're about to write will actively kill your interactive shell if you paste them at the prompt:
+> - `set -e` tells bash "exit immediately on any error" — applied to your live SSH shell, this means your session terminates the moment anything fails.
+> - `${1:?Usage: ...}` tells bash "fail if the first argument is empty" — at an interactive prompt where there is no `$1`, this fails immediately.
+>
+> Combine the two and pasting them straight into your SSH session will eject you. That behaviour is correct: those safeguards are exactly what we *want* inside a script. They're just not safe to run interactively.
+>
+> So: read Steps 4a through 4e to understand each piece, then go to Step 5 to actually write the file.
+
 ### 4a. Take a version argument and define some constants
 
 ```bash
@@ -127,11 +139,19 @@ We'll build the new `deploy.sh` in the order the script will execute, testing th
 set -e
 
 VERSION=${1:?Usage: ./deploy.sh <version>}
-APP_NAME="myapp"
+IMAGE_NAME="myapp"
+CONTAINER_NAME="app"
 HEALTH_URL="http://localhost:8080/health"
 MAX_RETRIES=10
 RETRY_INTERVAL=3
 ```
+
+**Why two separate variables?** This trips people up the first time. The image and the container are two different things:
+
+- **Image**: `myapp:v1.0.0` — the read-only blueprint. The thing you `docker pull` or `docker build`.
+- **Container**: a running instance of an image. You can run multiple containers from the same image, and you give each one a name with `--name`. Look at the existing `setup.sh` (or the original broken `deploy.sh`) and you'll see `--name app` — so the running container is called `app`, **not** `myapp`.
+
+If we used a single `APP_NAME="myapp"` variable for both, then `docker inspect myapp` (in the next step) would fail to find the container — there is no container called `myapp`, only an image. That would silently break our rollback. Keeping them separate is also closer to real life: one host might run several containers from the same image (e.g. `nginx` image as containers `nginx-frontend` and `nginx-admin`).
 
 **Command breakdown:**
 
@@ -139,7 +159,8 @@ RETRY_INTERVAL=3
 |---|---|
 | `set -e` | If any command in this script fails, stop the script immediately. Without this, errors get silently swallowed. |
 | `${1:?Usage: ...}` | "Take the first command-line argument. If it's missing or empty, exit with this error message." The `?` is what makes it required. |
-| `APP_NAME="myapp"` | Just a variable so we don't have to write `"myapp"` in five places. |
+| `IMAGE_NAME="myapp"` | The Docker image name. Combined with `$VERSION` to give the full tag, e.g. `myapp:v1.0.0`. |
+| `CONTAINER_NAME="app"` | The name of the running container. We use this to find/stop/inspect it. |
 | `HEALTH_URL=...` | The URL we'll poll to check the app is alive. |
 | `MAX_RETRIES=10` | We'll try the health check up to 10 times. |
 | `RETRY_INTERVAL=3` | Wait 3 seconds between attempts. So worst case, 30 seconds before declaring failure — enough time for a slow-starting app. |
@@ -149,16 +170,16 @@ RETRY_INTERVAL=3
 This is the line that didn't exist before and is the whole reason yesterday's recovery was manual.
 
 ```bash
-PREVIOUS=$(docker inspect --format='{{.Config.Image}}' "$APP_NAME" 2>/dev/null || echo "none")
+PREVIOUS=$(docker inspect --format='{{.Config.Image}}' "$CONTAINER_NAME" 2>/dev/null || echo "none")
 echo "Current version: $PREVIOUS"
-echo "Deploying version: $APP_NAME:$VERSION"
+echo "Deploying version: $IMAGE_NAME:$VERSION"
 ```
 
 **Command breakdown:**
 
 | Component | What it means |
 |---|---|
-| `docker inspect <name>` | Returns a giant JSON blob with everything Docker knows about a container. |
+| `docker inspect "$CONTAINER_NAME"` | Returns a giant JSON blob with everything Docker knows about that container. We pass the **container name** (`app`), not the image name — `docker inspect myapp` would fail since `myapp` is the image, not a running thing. |
 | `--format='{{.Config.Image}}'` | Instead of the full JSON, just give me the `Image` field nested inside `Config`. The `{{ }}` is Go template syntax — Docker uses it. |
 | `$( ... )` | "Run this command and capture its output into a variable." |
 | `2>/dev/null` | Throw away any error messages (e.g. if no container exists — first deploy). |
@@ -169,22 +190,24 @@ After this line, `$PREVIOUS` contains either an image tag like `myapp:v1.0.0` or
 ### 4c. Stop the old container, start the new one
 
 ```bash
-docker stop "$APP_NAME" 2>/dev/null || true
-docker rm "$APP_NAME" 2>/dev/null || true
+docker stop "$CONTAINER_NAME" 2>/dev/null || true
+docker rm "$CONTAINER_NAME" 2>/dev/null || true
 
-docker run -d --name "$APP_NAME" -p 8080:8080 "$APP_NAME:$VERSION"
-echo "Started $APP_NAME:$VERSION"
+docker run -d --name "$CONTAINER_NAME" -p 8080:8080 "$IMAGE_NAME:$VERSION" || true
+echo "Started $IMAGE_NAME:$VERSION (or attempted to)"
 ```
 
 **Command breakdown:**
 
 | Component | What it means |
 |---|---|
-| `\|\| true` | Don't fail the script if `docker stop`/`docker rm` errors. They'll error if there's no container to stop, which is fine on a first deploy. Without `\|\| true`, our `set -e` from the top of the script would kill us here. |
+| `\|\| true` on `docker stop`/`docker rm` | Don't fail the script if these error. They'll error if there's no container to stop, which is fine on a first deploy. Without `\|\| true`, our `set -e` from the top of the script would kill us here. |
+| `\|\| true` on `docker run` | **Critical.** If the new image doesn't exist (typo, bad tag, registry down), `docker run` fails. Without `\|\| true` here, `set -e` would kill the script *before* the health check ever runs, meaning the rollback logic below could never trigger. We need this command to be allowed to fail so our error-handling code can do its job. |
 | `docker run -d` | `-d` = detached, run in the background. |
-| `--name "$APP_NAME"` | Name the container consistently so we can find it again next deploy. |
+| `--name "$CONTAINER_NAME"` | Name the container consistently so we can find it again next deploy. |
 | `-p 8080:8080` | Map host port 8080 to container port 8080. |
-| `"$APP_NAME:$VERSION"` | The image tag we want — e.g. `myapp:v1.0.0`. |
+| `"$IMAGE_NAME:$VERSION"` | The image tag we want — e.g. `myapp:v1.0.0`. |
+| `"(or attempted to)"` | Honest wording — the run might have failed silently. The health check is the real verdict on whether we're up. |
 
 ### 4d. Health check loop
 
@@ -219,16 +242,16 @@ done
 
 ```bash
 if [ "$HEALTHY" = true ]; then
-    echo "Deployment successful: $APP_NAME:$VERSION"
+    echo "Deployment successful: $IMAGE_NAME:$VERSION"
 else
     echo "ERROR: Health check failed after $MAX_RETRIES attempts"
     echo "Rolling back to $PREVIOUS..."
 
-    docker stop "$APP_NAME" 2>/dev/null || true
-    docker rm "$APP_NAME" 2>/dev/null || true
+    docker stop "$CONTAINER_NAME" 2>/dev/null || true
+    docker rm "$CONTAINER_NAME" 2>/dev/null || true
 
     if [ "$PREVIOUS" != "none" ]; then
-        docker run -d --name "$APP_NAME" -p 8080:8080 "$PREVIOUS"
+        docker run -d --name "$CONTAINER_NAME" -p 8080:8080 "$PREVIOUS"
         echo "Rolled back to $PREVIOUS"
     else
         echo "No previous version to rollback to"
@@ -241,13 +264,102 @@ fi
 
 ---
 
-## Step 5 — Put it all together
+## Step 5 — Write it into `deploy.sh`
 
-Open `deploy.sh` and replace its contents with the assembled script (sections 4a through 4e in order). Save and make it executable:
+Now we assemble sections 4a through 4e into the actual file.
+
+### 5a. Open `deploy.sh` for editing
+
+```bash
+vi deploy.sh
+```
+
+You'll see the existing broken script. Press `gg` to go to the top, then `dG` to delete everything (or just press `i` and edit as you go — whatever feels natural in vi).
+
+### 5b. Replace the contents
+
+Paste the complete new script below. This is sections 4a → 4b → 4c → 4d → 4e joined together — exactly what should end up in your file:
+
+```bash
+#!/bin/bash
+set -e
+
+VERSION=${1:?Usage: ./deploy.sh <version>}
+IMAGE_NAME="myapp"
+CONTAINER_NAME="app"
+HEALTH_URL="http://localhost:8080/health"
+MAX_RETRIES=10
+RETRY_INTERVAL=3
+
+# Record the currently-running version for rollback
+PREVIOUS=$(docker inspect --format='{{.Config.Image}}' "$CONTAINER_NAME" 2>/dev/null || echo "none")
+echo "Current version: $PREVIOUS"
+echo "Deploying version: $IMAGE_NAME:$VERSION"
+
+# Stop the old container and start the new one
+# Note: || true on docker run lets the script continue if the new image
+# is missing or broken, so the health check + rollback logic can still
+# execute. Without it, set -e would kill the script on a failed pull.
+docker stop "$CONTAINER_NAME" 2>/dev/null || true
+docker rm "$CONTAINER_NAME" 2>/dev/null || true
+
+docker run -d --name "$CONTAINER_NAME" -p 8080:8080 "$IMAGE_NAME:$VERSION" || true
+echo "Started $IMAGE_NAME:$VERSION (or attempted to)"
+
+# Health check loop
+echo "Running health checks..."
+HEALTHY=false
+for i in $(seq 1 $MAX_RETRIES); do
+    if curl -sf "$HEALTH_URL" > /dev/null 2>&1; then
+        HEALTHY=true
+        echo "Health check passed on attempt $i"
+        break
+    fi
+    echo "Health check attempt $i/$MAX_RETRIES failed, retrying in ${RETRY_INTERVAL}s..."
+    sleep "$RETRY_INTERVAL"
+done
+
+# Decide what to do based on the result
+if [ "$HEALTHY" = true ]; then
+    echo "Deployment successful: $IMAGE_NAME:$VERSION"
+else
+    echo "ERROR: Health check failed after $MAX_RETRIES attempts"
+    echo "Rolling back to $PREVIOUS..."
+
+    docker stop "$CONTAINER_NAME" 2>/dev/null || true
+    docker rm "$CONTAINER_NAME" 2>/dev/null || true
+
+    if [ "$PREVIOUS" != "none" ]; then
+        docker run -d --name "$CONTAINER_NAME" -p 8080:8080 "$PREVIOUS"
+        echo "Rolled back to $PREVIOUS"
+    else
+        echo "No previous version to rollback to"
+    fi
+    exit 1
+fi
+```
+
+### 5c. Save and exit
+
+In vi: press `Esc` to make sure you're out of insert mode, then type `:wq` and press Enter. (`:w` writes, `:q` quits, `:wq` does both.)
+
+### 5d. Make sure it's executable
 
 ```bash
 chmod +x deploy.sh
 ```
+
+You only need to do this once. Once a file has the executable bit set, future edits don't need it again.
+
+### 5e. Sanity-check the contents
+
+Before running, glance at what you saved to make sure it took:
+
+```bash
+cat deploy.sh
+```
+
+You should see your new script. If you see the old broken one, the save didn't go through — repeat 5a–5c.
 
 ---
 
@@ -259,7 +371,22 @@ chmod +x deploy.sh
 ./deploy.sh v1.0.0
 ```
 
-Expected: starts `myapp:v1.0.0`, health check passes on the first or second attempt, prints "Deployment successful."
+Expected output:
+
+```
+Current version: myapp:latest
+Deploying version: myapp:v1.0.0
+app
+app
+<container ID>
+Started myapp:v1.0.0 (or attempted to)
+Running health checks...
+Health check attempt 1/10 failed, retrying in 3s...
+Health check passed on attempt 2
+Deployment successful: myapp:v1.0.0
+```
+
+The first health check often fails — the Flask app needs a moment to start. Attempt 2 normally passes. This is exactly why we built the retry loop instead of a single check.
 
 Verify:
 
@@ -273,63 +400,81 @@ You should see `myapp:v1.0.0` is now running and responds.
 
 ### Test 2: A bad deployment (the actual rollback test)
 
-The `setup.sh` built three image tags from the same image, but the app honours an `APP_HEALTHY` env var that defaults to `true`. To simulate a genuinely broken version, we re-run the bad image tag with the env var flipped:
-
-```bash
-# First, manually retag v-bad to be intentionally broken on launch
-# (we'll override APP_HEALTHY at run time inside a wrapper image — easier:
-#  just use a script that always returns 500)
-```
-
-Actually — for the lab to test rollback simply, the cleanest approach is a one-line tweak. Replace the test image tag with a deliberately broken container:
-
-```bash
-# Build a deliberately-broken image
-docker run -d --name broken-test --rm myapp:latest sh -c "exit 1" 2>/dev/null
-docker tag myapp:latest myapp:v-bad
-
-# Trigger a deploy with an environment override that simulates a failing app
-docker stop app 2>/dev/null
-docker rm app 2>/dev/null
-
-# Run the bad version manually with APP_HEALTHY=false to confirm it fails
-docker run -d --name app -p 8080:8080 -e APP_HEALTHY=false myapp:v-bad
-sleep 2
-curl http://localhost:8080/health   # should return 500
-```
-
-Then to test the script's rollback behaviour cleanly, point it at a tag that doesn't exist:
+The simplest way to trigger the rollback path is to ask the script to deploy an image tag that doesn't exist. The `docker run` will fail, no container will be running, the health check will fail all 10 times, and the rollback will kick in.
 
 ```bash
 ./deploy.sh v-does-not-exist
 ```
 
-Expected output:
+Expected output (this is roughly 30 seconds long because of the 10 × 3s retries):
 
-- Records current version as `myapp:v1.0.0` (or whatever's running)
-- Stops the old container
-- `docker run` fails because the image doesn't exist
-- Health check loop runs 10 times, all failing
-- Rollback kicks in, restores the previous version
-- Exits with code 1
-
-Verify the rollback worked:
-
-```bash
-docker inspect --format='{{.Config.Image}}' app
-echo $?
+```
+Current version: myapp:v1.0.0
+Deploying version: myapp:v-does-not-exist
+app
+app
+Unable to find image 'myapp:v-does-not-exist' locally
+docker: Error response from daemon: pull access denied for myapp, ...
+Started myapp:v-does-not-exist (or attempted to)
+Running health checks...
+Health check attempt 1/10 failed, retrying in 3s...
+Health check attempt 2/10 failed, retrying in 3s...
+... (all 10 fail)
+ERROR: Health check failed after 10 attempts
+Rolling back to myapp:v1.0.0...
+<container ID>
+Rolled back to myapp:v1.0.0
 ```
 
-You should see the previous image tag, and the script's exit code should have been 1 (failure correctly signalled to any CI/CD system that ran it).
+Verify the rollback worked **and** that the script signalled failure to its caller:
 
-### Test 3: First-deploy edge case
+```bash
+echo $?    # should print 1
+docker ps
+docker inspect --format='{{.Config.Image}}' app
+curl http://localhost:8080
+```
+
+`echo $?` is critical — it returns the exit code of the most recent command. CI/CD pipelines and monitoring use this exit code to decide whether to alert. The deployment ended in a safe state (old version restored), but it still **failed** as a deployment, so we must `exit 1`.
+
+### ⚠ Gotcha: `set -e` vs `|| true` on `docker run`
+
+If you wrote your script without `|| true` on the `docker run` line in the deploy block, this test would have behaved very differently. Instead of seeing the rollback fire, you'd have seen:
+
+```
+Current version: myapp:v1.0.0
+Deploying version: myapp:v-does-not-exist
+app
+app
+Unable to find image 'myapp:v-does-not-exist' locally
+docker: Error response from daemon: pull access denied...
+$
+```
+
+…and the script would just **exit silently**. No health check, no rollback, no exit code 1, no `app` container running. You'd be left with nothing.
+
+**Why?** Remember `set -e` at the top of the script — "exit immediately on any error." When `docker run` fails, `set -e` kills the script right there, before it ever reaches the health check loop. Our entire rollback design becomes dead code that can never execute.
+
+The fix is `|| true` on the `docker run` line:
+
+```bash
+docker run -d --name "$CONTAINER_NAME" -p 8080:8080 "$IMAGE_NAME:$VERSION" || true
+```
+
+This says "if `docker run` fails, treat that as a non-error so the script continues." Now control flows naturally into the health check loop, which fails (no container is running), which triggers rollback, exactly as designed.
+
+**The lesson:** `set -e` is a defensive default, but it can have surprising interactions. The places where you *expect* a command might fail — and want to handle that failure yourself — must explicitly opt out with `|| true` (or wrap the command in an `if`). Otherwise your error-handling code is unreachable. This is a real-world bug class in production scripts; it tends to lie dormant for months and only surfaces during an incident.
+
+### Test 3 (optional): First-deploy edge case
+
+What if no container is running yet (e.g. brand new server, or you've stopped/removed everything)? The `PREVIOUS` capture should record `none` and the script should proceed without trying to roll back to nothing.
 
 ```bash
 docker stop app && docker rm app
 ./deploy.sh v1.0.0
 ```
 
-Expected: `PREVIOUS` is recorded as `none`. Deployment proceeds. Health check passes. Success.
+Expected: `Current version: none`, deployment proceeds, health check passes, success. The `if [ "$PREVIOUS" != "none" ]` branch in the rollback block is what would protect us if this deploy *also* failed.
 
 ---
 
@@ -375,6 +520,7 @@ The principles you've just implemented (record-before-deploy, health-check-with-
 - `latest` is not a version. Use explicit tags so deploys, rollbacks, and audits all work.
 - Health checks need retries. Apps don't start instantly.
 - Exit codes matter. `exit 1` on failure is how CI/CD pipelines and monitoring know to alert.
+- `set -e` and your error-handling code can fight each other. Where you *intend* to handle failure yourself (rollback, retry, fallback), opt out of `set -e` for that command with `|| true` — otherwise your error-handling code is unreachable.
 
 ## Common mistakes
 
@@ -383,3 +529,4 @@ The principles you've just implemented (record-before-deploy, health-check-with-
 - **Trusting `docker run`'s exit code.** It only tells you the container started. It says nothing about whether the app inside is working.
 - **Rolling back without health-checking the rollback.** The previous version could also have problems. Production rollback scripts re-run the same health-check loop after restoring the old version.
 - **Hard-coding `latest`.** Means you can't deploy or roll back to anything specific. Always parameterise the version.
+- **`set -e` killing the script before rollback can run.** The single most subtle bug class in this lab. If a command is *expected* to potentially fail (like deploying a bad version), you must explicitly tolerate that failure with `|| true`. Otherwise `set -e` kills the script and your rollback logic is dead code.
