@@ -49,7 +49,7 @@ First instinct on any cold ticket: **see what's actually in the working director
 ls -la
 ```
 
-You should see at least these files: `docker-compose.yml`, `nginx.conf`, `switch.sh`, `validate.sh`. Three of them are configuration / source, one's a validator.
+You should see at least these files: `docker-compose.yml`, `nginx.conf`, `switch.sh`, `validate.sh`, `setup.sh`. Three of them are configuration / source, one's a validator, one's a setup helper.
 
 The next move is to read each file in turn. Order matters — start with the thing that orchestrates everything, which is the compose file.
 
@@ -63,13 +63,17 @@ You'll see three services defined: `app-blue`, `app-green`, and `router`.
 
 - `app-blue` runs `myapp:v1` and exposes port **8001** on the host (mapped to **8080** inside the container)
 - `app-green` runs `myapp:v2` and exposes port **8002** on the host (mapped to **8080** inside the container)
-- `router` runs `nginx:alpine`, owns port **80**, and mounts `./nginx.conf` from the host into the container at `/etc/nginx/conf.d/default.conf`
+- `router` runs `nginx:alpine`, owns port **8080** on the host (mapped to **80** inside the container), and mounts `./nginx.conf` from the host into the container at `/etc/nginx/conf.d/default.conf`
+
+You'll also see healthchecks defined on `app-blue` and `app-green`, and a `depends_on` block on `router` that waits for them to be `service_healthy`. We'll come back to why those are there.
 
 **What can we infer just from this?**
 
 - There are **two copies of the same app running at the same time** (different image versions). That's unusual unless someone is doing blue/green or canary deployments.
-- The `router` service depending on both apps and owning port 80 strongly suggests it's the user-facing entry point.
+- The `router` service depending on both apps and owning port 8080 strongly suggests it's the user-facing entry point.
 - The volume mount on the router is significant — it means the nginx config lives on the host filesystem, not baked into the container image. That's important later because it determines where edits need to happen.
+
+> **Why is the router on 8080 and not 80?** Many development hosts run other services that already hold port 80 — Kubernetes ingress controllers (Traefik, nginx-ingress), local HTTP daemons, etc. Binding to 8080 sidesteps those collisions. In production you'd never have your app router bound directly to port 80 anyway — traffic comes in through a load balancer (ALB, NLB) or ingress controller and the app sits on whatever port internally. So 8080 is actually *more* representative of real life.
 
 **Key question to file away:** *"If I edit `./nginx.conf` on the host, does the running router container see the change?"* Yes — because it's a bind mount, the container reads the same file the host writes to. But **the running nginx process won't reload automatically** — we'll come back to that.
 
@@ -94,7 +98,7 @@ server {
 
 Reading this carefully:
 - `upstream app { ... }` defines a backend pool called "app". Right now that pool contains one server: `app-blue` on port 8080.
-- The `server` block listens on port 80 (matching the port mapping in the compose file) and forwards every request to the upstream pool.
+- The `server` block listens on port 80 *inside the container* (which maps to host 8080 per the compose file) and forwards every request to the upstream pool.
 - **There's no mention of `app-green` anywhere.** Nginx has no idea green exists.
 
 **So this is the source of the problem the ticket described.** The infrastructure is "blue/green" in name only — both environments exist, but nginx is hardcoded to one of them. To switch, we need to change `app-blue:8080` to `app-green:8080` (or vice versa) and get nginx to pick up the change.
@@ -141,14 +145,16 @@ Verify they're all running:
 docker compose ps
 ```
 
-You should see `app-blue`, `app-green`, and `router` all in `Up` state. If any are missing or restarting, fix that before going any further — the rest of the lab assumes all three are healthy.
+You should see `app-blue`, `app-green`, and `router` all in `Up` state. The two app containers should show `(healthy)` next to their status. If any are missing or restarting, fix that before going any further — the rest of the lab assumes all three are healthy.
+
+> **What's happening with the healthchecks?** Each app container has a healthcheck defined that runs `wget` against itself every 2 seconds. The router's `depends_on` is configured with `condition: service_healthy`, meaning it won't start until both apps have passed at least one healthcheck. This eliminates a race condition where router-nginx could start, try to resolve `app-blue`/`app-green` hostnames before Docker's DNS has registered them, and exit with `[emerg] host not found in upstream`. The healthcheck gate prevents that race from ever triggering.
 
 ### Sanity check the routing as it stands
 
 Before we change anything, prove the current state matches our reading of the config:
 
 ```bash
-curl http://localhost/
+curl http://localhost:8080/
 curl http://localhost:8001/
 curl http://localhost:8002/
 ```
@@ -157,11 +163,11 @@ Each response is an HTML page. The blue version says "myapp v1 — BLUE" with a 
 
 - `curl http://localhost:8001/` should return the **blue** page (we're hitting blue directly)
 - `curl http://localhost:8002/` should return the **green** page (we're hitting green directly)
-- `curl http://localhost/` should return the **blue** page — because nginx is currently routing to `app-blue` per its config
+- `curl http://localhost:8080/` should return the **blue** page — because nginx is currently routing to `app-blue` per its config
 
-**This is the verification that nginx is doing what we think it's doing.** If `http://localhost/` returned the green page instead, the lab's been set up wrong and we should investigate before continuing.
+**This is the verification that nginx is doing what we think it's doing.** If `http://localhost:8080/` returned the green page instead, the lab's been set up wrong and we should investigate before continuing.
 
-The fact that blue and green are visibly distinguishable is what makes this lab observable — when we run the switch later, we'll see the response on port 80 change from blue to green, which is direct proof that traffic moved.
+The fact that blue and green are visibly distinguishable is what makes this lab observable — when we run the switch later, we'll see the response on port 8080 change from blue to green, which is direct proof that traffic moved.
 
 ---
 
@@ -343,12 +349,12 @@ Done. Traffic is now on green. blue is still running for rollback.
 Now verify the switch actually happened:
 
 ```bash
-curl http://localhost/
+curl http://localhost:8080/
 curl http://localhost:8001/
 curl http://localhost:8002/
 ```
 
-`curl http://localhost/` should now return the **green** page ("myapp v2 — GREEN") instead of the blue page it returned before. Direct hits to port 8001 still return blue, port 8002 still returns green — those didn't move; what changed is which one the router sends traffic to.
+`curl http://localhost:8080/` should now return the **green** page ("myapp v2 — GREEN") instead of the blue page it returned before. Direct hits to port 8001 still return blue, port 8002 still returns green — those didn't move; what changed is which one the router sends traffic to.
 
 Confirm by reading the nginx config:
 
@@ -369,7 +375,7 @@ Run the script again:
 This should switch back to blue. Verify:
 
 ```bash
-curl http://localhost/
+curl http://localhost:8080/
 cat nginx.conf
 ```
 
@@ -386,10 +392,10 @@ bash validate.sh
 Or if `lab validate` is set up:
 
 ```bash
-lab validate fundamentals/lab-044-blue-green-deployment
+lab validate cicd-labs/lab-044-blue-green-deployment
 ```
 
-(adjust path to match the actual lab directory).
+The validator goes well beyond static checks — it actually runs your switch script, verifies traffic on port 8080 changes to match the new backend, runs it again to confirm rollback works, and even stops the target container to confirm your script *refuses* to switch when the target is unhealthy. If all six checks pass, the switch is genuinely working end-to-end.
 
 ---
 
@@ -406,6 +412,70 @@ When you run `nginx -s reload`:
 The net effect: every request gets a complete, valid response. No connection is dropped mid-stream. From a user's perspective, the switch is invisible.
 
 Compare this with `docker compose restart router`, which kills the nginx process and starts a new one — any request mid-flight at that moment would get a connection reset. That's the opposite of zero-downtime.
+
+---
+
+## Real-life environment friction (and how to debug it)
+
+Bringing up a Docker-based dev environment on a host that's already running other services is rarely as clean as the docs suggest. Here are three classes of problem you'll genuinely hit, and the diagnostic patterns for each.
+
+### 1. "Port already in use" on `docker compose up`
+
+```
+failed to bind host port 0.0.0.0:80/tcp: address already in use
+```
+
+Diagnostic chain:
+
+| Step | Command | What it tells you |
+|---|---|---|
+| 1 | `sudo ss -tlnp \| grep ':80 '` | What process holds the port |
+| 2 | If a system service: `systemctl status <name>` | Whether it's systemd-managed and auto-starts |
+| 3 | If a container: `docker ps \| grep ':80'` | Which container has the mapping |
+| 4 | If kubernetes-ish: `sudo kubectl get pods -A` | Whether K3s/k8s is running pods that own the port |
+
+If `ss` shows nothing on the port but you still can't bind to it, suspect **iptables NAT rules** — see point 3 below.
+
+### 2. Container says "Up" but isn't actually working
+
+`docker compose ps` shows a container as `Up X seconds` but requests fail. Don't trust "Up" alone — check:
+
+- The **PORTS column** — is the port mapping actually listed? A blank PORTS column for a service that should have one usually means the container exited and is between restart attempts.
+- **`docker compose logs <service>`** — read what the process actually said. Most container failures leave a trail in the logs.
+- **STATUS column for `(healthy)` / `(unhealthy)`** if a healthcheck is defined.
+
+### 3. Port appears free but traffic doesn't reach the container
+
+Symptom: `docker compose ps` shows your container with the port mapped, `ss -tlnp` shows `docker-proxy` holding the port, but `curl http://localhost:<port>/` returns something else (a 404, a different application's response).
+
+This is almost always **iptables NAT rules from a Kubernetes installation** intercepting traffic before it reaches docker-proxy. K3s and similar distributions install rules into the `nat` table that match traffic on specific ports and DNAT it to a pod inside the cluster network — these rules persist whether or not the pod is doing anything useful.
+
+Diagnostic:
+
+```bash
+sudo iptables -t nat -L -n -v | grep -E "dpt:<port> "
+```
+
+If you see `DNAT` rules redirecting your port to a pod IP (e.g. `10.42.x.x` for K3s default CNI), that's your interceptor. Two ways out:
+- Use a different host port that isn't intercepted (e.g. 8080 instead of 80)
+- Stop the relevant kubernetes service: `sudo systemctl stop k3s`
+
+> **Why doesn't `ss` show this?** `ss` shows socket binds. NAT rules aren't socket binds — they're packet-level rewrites that happen *before* traffic reaches any socket. Something can intercept your traffic without ever showing up in `ss`. Always check iptables when port behaviour seems impossible.
+
+### 4. Nginx in a container can't reach itself via `localhost`
+
+Symptom: container is running, nginx is bound (verified with `netstat -tlnp` inside the container), but a healthcheck or in-container `wget http://localhost:<port>/` returns "connection refused".
+
+Cause: `localhost` resolves to both `127.0.0.1` (IPv4) and `::1` (IPv6) inside the container. Most modern resolvers prefer IPv6. If nginx is bound to IPv4 only (the default for `listen 80;`), wget connects to `[::1]:<port>`, finds nothing listening, and refuses.
+
+Diagnostic:
+
+```bash
+docker exec <container> getent hosts localhost
+docker exec <container> wget -qO- http://127.0.0.1:<port>/ 2>&1 | head
+```
+
+If `127.0.0.1` works and `localhost` doesn't, you've found the IPv4/IPv6 mismatch. Fix in healthcheck definitions: use `127.0.0.1` explicitly rather than `localhost`. (You can see this fix in our `docker-compose.yml` — every healthcheck uses `http://127.0.0.1:8080/` for exactly this reason.)
 
 ---
 
@@ -436,6 +506,9 @@ A few things this lab doesn't capture that bite in production:
 - **Health-check before switching** — the cheapest way to cause an outage during a blue-green deploy is to switch traffic to a broken environment without checking it first.
 - **Idempotent toggle scripts** — making the script "switch to whichever I'm not on" rather than "switch to X" eliminates an entire class of operator error.
 - **Bind mounts vs container internals** — when nginx config is bind-mounted from the host, the host can edit the file but only the container can tell its nginx process to reload.
+- **`depends_on: service_healthy`** — eliminates startup race conditions where one container's process starts before its dependencies' DNS is registered. Pairs with healthchecks defined on the dependencies.
+- **`localhost` is not `127.0.0.1`** — in any container with both IPv4 and IPv6 stacks, the resolver may prefer IPv6 and route around services bound to IPv4 only. Use explicit `127.0.0.1` in healthchecks.
+- **`ss` shows binds, not interception** — if a port appears free but traffic gets redirected anyway, iptables NAT rules are the prime suspect.
 
 ## Common Mistakes
 
