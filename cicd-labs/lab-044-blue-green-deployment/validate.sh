@@ -90,8 +90,8 @@ check "app-blue responds on port 8001" "$?"
 curl -sf --max-time 3 http://localhost:8002/ > /dev/null 2>&1
 check "app-green responds on port 8002" "$?"
 
-curl -sf --max-time 3 http://localhost/ > /dev/null 2>&1
-check "router responds on port 80" "$?"
+curl -sf --max-time 3 http://localhost:8080/ > /dev/null 2>&1
+check "router responds on port 8080" "$?"
 
 # -----------------------------------------------------------------------------
 # Section 4 — Behavioural: run the switch and verify it actually switched
@@ -129,8 +129,7 @@ else
 fi
 check "nginx.conf now points at app-$EXPECTED_AFTER_FIRST_SWITCH after switch" "$NGINX_FLIPPED"
 
-# Verify traffic actually moves — port 80 should now match the target backend's response
-# We compare the response from port 80 with the response from the target backend's direct port
+# Verify traffic actually moves — port 8080 should now match the target backend's response
 if [[ "$EXPECTED_AFTER_FIRST_SWITCH" == "green" ]]; then
     TARGET_PORT=8002
 else
@@ -140,7 +139,7 @@ fi
 # Give nginx a moment to finish reloading
 sleep 1
 
-ROUTER_RESPONSE=$(curl -s --max-time 3 http://localhost/ 2>/dev/null)
+ROUTER_RESPONSE=$(curl -s --max-time 3 http://localhost:8080/ 2>/dev/null)
 TARGET_RESPONSE=$(curl -s --max-time 3 http://localhost:$TARGET_PORT/ 2>/dev/null)
 
 if [[ -n "$ROUTER_RESPONSE" && "$ROUTER_RESPONSE" == "$TARGET_RESPONSE" ]]; then
@@ -148,7 +147,7 @@ if [[ -n "$ROUTER_RESPONSE" && "$ROUTER_RESPONSE" == "$TARGET_RESPONSE" ]]; then
 else
     TRAFFIC_MOVED=1
 fi
-check "Traffic on port 80 now matches app-$EXPECTED_AFTER_FIRST_SWITCH" "$TRAFFIC_MOVED"
+check "Traffic on port 8080 now matches app-$EXPECTED_AFTER_FIRST_SWITCH" "$TRAFFIC_MOVED"
 
 # -----------------------------------------------------------------------------
 # Section 5 — Behavioural: rollback works (running again flips back)
@@ -178,7 +177,7 @@ fi
 
 sleep 1
 
-ROUTER_RESPONSE_AFTER=$(curl -s --max-time 3 http://localhost/ 2>/dev/null)
+ROUTER_RESPONSE_AFTER=$(curl -s --max-time 3 http://localhost:8080/ 2>/dev/null)
 ROLLBACK_RESPONSE=$(curl -s --max-time 3 http://localhost:$ROLLBACK_PORT/ 2>/dev/null)
 
 if [[ -n "$ROUTER_RESPONSE_AFTER" && "$ROUTER_RESPONSE_AFTER" == "$ROLLBACK_RESPONSE" ]]; then
@@ -186,7 +185,7 @@ if [[ -n "$ROUTER_RESPONSE_AFTER" && "$ROUTER_RESPONSE_AFTER" == "$ROLLBACK_RESP
 else
     ROLLBACK_TRAFFIC=1
 fi
-check "Traffic on port 80 returns to app-$START_ENV after rollback" "$ROLLBACK_TRAFFIC"
+check "Traffic on port 8080 returns to app-$START_ENV after rollback" "$ROLLBACK_TRAFFIC"
 
 # -----------------------------------------------------------------------------
 # Section 6 — Safety: aborts when target is unhealthy
