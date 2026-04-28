@@ -4,7 +4,7 @@
 
 **The problem:** Every time the team deploys a new version of the app, the site goes down for 10–30 seconds while the old version stops and the new one starts. Customers see errors during this gap. They want zero-downtime deployments.
 
-**The setup we've inherited:** Two copies of the app are already running side by side — one called "blue" (the live version, v1) and one called "green" (the new version, v2). An nginx router sits in front of both and decides which one users actually reach. Right now, nginx is hardcoded to send everyone to blue. There's a script called `switch.sh` that's supposed to flip traffic between the two, but it's empty — just a placeholder.
+**The setup we've inherited:** Two copies of the app are already running side by side — one called "blue" (the live version, v1) and one called "green" (the new version, v2). They serve visibly different pages so we can tell which one is currently being routed to. An nginx router sits in front of both and decides which one users actually reach. Right now, nginx is hardcoded to send everyone to blue. There's a script called `switch.sh` that's supposed to flip traffic between the two, but it's empty — just a placeholder.
 
 **What we need to do:** Write `switch.sh` so it can flip nginx between pointing at blue and pointing at green, and do it without dropping any user requests in the process. The trick is making the switch *safe* — we need to check the new version is actually working before we send real users to it, and we need nginx to swap over gracefully rather than slamming the door on anyone mid-request.
 
@@ -14,6 +14,20 @@
 3. If healthy, rewrite nginx's config to point at the other environment
 4. Tell nginx to reload its config — this is the actual moment of switchover, and nginx does it gracefully (existing requests finish on the old backend, new requests go to the new one)
 5. Leave the old environment running, so if the new version turns out to be broken under real traffic we can flip back instantly
+
+---
+
+## Lab Setup (One-Time Prerequisite)
+
+Before starting the lab, run the setup script once:
+
+```bash
+./setup.sh
+```
+
+This builds two placeholder application images (`myapp:v1` and `myapp:v2`) locally on the Pi. In real life these images would already exist — they would have been built by a CI pipeline and pushed to a registry like ECR or Docker Hub. We're simulating that "the images already exist" condition so the rest of the lab plays out exactly as it would for a real engineer arriving at this ticket.
+
+You only need to run `setup.sh` once per Pi. After that, forget it exists — the lab itself starts at Step 0 below.
 
 ---
 
@@ -139,9 +153,15 @@ curl http://localhost:8001/
 curl http://localhost:8002/
 ```
 
-The first should hit the router (port 80) and reach blue. The second hits blue directly. The third hits green directly. All three should respond with something — even if it's just an nginx default page or an app error, the point is to confirm all three endpoints are alive.
+Each response is an HTML page. The blue version says "myapp v1 — BLUE" with a blue background; the green version says "myapp v2 — GREEN" with a green background.
 
-**If `curl http://localhost/` gives the same response as `curl http://localhost:8001/`, that confirms the router is forwarding to blue.** If it gives the same response as `:8002`, the lab's been set up wrong and we should investigate before continuing.
+- `curl http://localhost:8001/` should return the **blue** page (we're hitting blue directly)
+- `curl http://localhost:8002/` should return the **green** page (we're hitting green directly)
+- `curl http://localhost/` should return the **blue** page — because nginx is currently routing to `app-blue` per its config
+
+**This is the verification that nginx is doing what we think it's doing.** If `http://localhost/` returned the green page instead, the lab's been set up wrong and we should investigate before continuing.
+
+The fact that blue and green are visibly distinguishable is what makes this lab observable — when we run the switch later, we'll see the response on port 80 change from blue to green, which is direct proof that traffic moved.
 
 ---
 
@@ -328,7 +348,7 @@ curl http://localhost:8001/
 curl http://localhost:8002/
 ```
 
-`curl http://localhost/` should now return the same content as `curl http://localhost:8002/` (green), not `:8001/` (blue).
+`curl http://localhost/` should now return the **green** page ("myapp v2 — GREEN") instead of the blue page it returned before. Direct hits to port 8001 still return blue, port 8002 still returns green — those didn't move; what changed is which one the router sends traffic to.
 
 Confirm by reading the nginx config:
 
@@ -438,3 +458,5 @@ git checkout -- switch.sh nginx.conf
 
 **`docker compose down`** stops and removes the containers (the images are kept).
 **`git checkout -- <file>`** restores the file to whatever's committed in the repo, undoing any edits you made to `switch.sh` and `nginx.conf` so the lab is fresh for the next run.
+
+You don't need to re-run `setup.sh` — the `myapp:v1` and `myapp:v2` images stay on the Pi and will be reused next time you run `docker compose up -d`.
