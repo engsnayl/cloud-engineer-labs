@@ -203,7 +203,22 @@ Edit `nginx.conf` to point the upstream at the other environment, then tell ngin
 
 **5. How do we edit the nginx.conf file from inside the script?**
 
-We need to change `app-blue` to `app-green` (or vice versa). `sed` with in-place editing is the standard tool for this — one line, no temporary files.
+We need to change `app-blue` to `app-green` (or vice versa). The instinct is `sed -i` — in-place editing, one line, no temp files. **But this turns out to be subtly wrong here, and the reason is worth knowing.**
+
+`sed -i` doesn't actually edit files in place. Despite the name, what it does is: read the original, write modified content to a *new* temp file, **delete the original**, then **rename** the temp file to the original name. The end result *looks* identical to "edit in place" — the filename ends up containing modified content — but the **inode has changed**.
+
+Why does that matter? Because the `nginx.conf` is bind-mounted into the router container as a single file. Bind mounts on single files pin to the **inode**, not the path. When `sed -i` swaps the inode, the host has a new file with the same name and the new content; the container is still mounted to the old (now orphaned) inode with the old content. Nginx reloads — into a config that hasn't changed.
+
+We hit this exact bug in this lab. The fix is to **truncate-and-rewrite** the existing file rather than swap inodes:
+
+```bash
+NEW_CONFIG=$(sed "s/app-$CURRENT/app-$TARGET/g" nginx.conf)
+echo "$NEW_CONFIG" > nginx.conf
+```
+
+The `>` redirect opens the existing file with truncate-then-write — same inode, new contents. The container's bind mount stays valid.
+
+> **How would I know this?** You wouldn't, until you'd been bitten. The diagnostic chain is: script reports success, nginx reloads cleanly, but `cat`'ing the config inside the container vs outside shows different content. The inode comparison via `stat -c '%i'` confirms it. Once you've seen it once, you remember forever.
 
 **6. How do we run `nginx -s reload`?**
 
@@ -257,7 +272,12 @@ if [ "$HEALTHY" != "true" ]; then
 fi
 
 # --- 3. Update nginx config to point at the target ---
-sed -i "s/app-$CURRENT/app-$TARGET/g" nginx.conf
+# Note: we cannot use `sed -i` here because it swaps the file's inode,
+# which breaks the bind mount in the router container. The container
+# would keep reading the old (now-orphaned) inode forever.
+# Truncate-and-rewrite preserves the inode.
+NEW_CONFIG=$(sed "s/app-$CURRENT/app-$TARGET/g" nginx.conf)
+echo "$NEW_CONFIG" > nginx.conf
 
 # --- 4. Reload nginx inside the router container ---
 docker compose exec router nginx -s reload
@@ -298,18 +318,29 @@ We use `-q` because we only care *whether* the pattern exists, not what the matc
 
 `-f` is what makes this a real health check. Without it, `curl` returns 0 (success) even if the server returns a 500 error, because curl considers "I successfully delivered the response" as success regardless of what the response said.
 
-**`sed -i "s/app-$CURRENT/app-$TARGET/g" nginx.conf`**
+**`NEW_CONFIG=$(sed "s/app-$CURRENT/app-$TARGET/g" nginx.conf)`**
 
 | Component | Meaning |
 |---|---|
+| `NEW_CONFIG=` | Assigning to a shell variable |
+| `$(...)` | Command substitution — runs the command inside and replaces the whole expression with its stdout |
 | `sed` | Stream editor — text transformation tool |
-| `-i` | In-place — edit the file directly rather than printing to stdout |
 | `"s/.../.../g"` | Substitution: `s/old/new/g` replaces `old` with `new` globally on every matching line |
 | `app-$CURRENT` | The string to search for, with the variable substituted (e.g. `app-blue`) |
 | `app-$TARGET` | The replacement, with the variable substituted (e.g. `app-green`) |
-| `nginx.conf` | The file to edit |
+| `nginx.conf` | The file to read (sed prints the modified content to stdout — note we are *not* using `-i`) |
 
 Note we use double quotes (`"..."`) not single quotes, because we need bash to expand `$CURRENT` and `$TARGET` before sed sees them.
+
+**`echo "$NEW_CONFIG" > nginx.conf`**
+
+| Component | Meaning |
+|---|---|
+| `echo "$NEW_CONFIG"` | Print the variable's contents to stdout |
+| `>` | Redirect stdout to a file. **Crucially, this opens the existing file with `O_TRUNC` — it empties the file's contents but keeps the same inode.** |
+| `nginx.conf` | The destination file |
+
+The two-step pattern (read into variable → write back via redirect) is what preserves the inode. Compare to `sed -i`, which would have written a new file and renamed it on top of the old one — same path, different inode. The bind mount in the router container would have been left pinned to the old (now-orphaned) inode.
 
 **`docker compose exec router nginx -s reload`**
 
@@ -413,6 +444,14 @@ The net effect: every request gets a complete, valid response. No connection is 
 
 Compare this with `docker compose restart router`, which kills the nginx process and starts a new one — any request mid-flight at that moment would get a connection reset. That's the opposite of zero-downtime.
 
+### A subtle consequence: tests immediately after switch can mislead you
+
+The graceful-reload behaviour means there's a brief window (usually sub-second to a few seconds) where **both** old and new workers are running simultaneously. New connections go to new workers; existing connections finish on old workers. If your test methodology is "run the switch, immediately curl the router," the curl might reuse a TCP connection that was established before the switch and is being drained by an old worker. You see the *old* response and conclude the switch didn't work.
+
+It did work. You're just observing the graceful-overlap window.
+
+The fix is testing discipline — wait 2–3 seconds after the reload before testing, or use `curl --no-keepalive` to force a fresh connection. The validator for this lab does the wait approach; in a manual test, either works. If you ever see "switch reported success, container's view of the config is correct, but my curl returns the old content," **wait three seconds and try again** before assuming there's a bug. Most of the time the script is fine and the timing is the trap.
+
 ---
 
 ## Real-life environment friction (and how to debug it)
@@ -477,6 +516,50 @@ docker exec <container> wget -qO- http://127.0.0.1:<port>/ 2>&1 | head
 
 If `127.0.0.1` works and `localhost` doesn't, you've found the IPv4/IPv6 mismatch. Fix in healthcheck definitions: use `127.0.0.1` explicitly rather than `localhost`. (You can see this fix in our `docker-compose.yml` — every healthcheck uses `http://127.0.0.1:8080/` for exactly this reason.)
 
+### 5. Edits to a bind-mounted file aren't visible inside the container
+
+Symptom: you edit a config file on the host, the host `cat` shows the new content, you trigger a reload of the service inside the container, but the service keeps using the old config.
+
+Cause: the bind mount on a single file pins to the **inode**, not the path. Tools like `sed -i`, `mv`, and many editors (vim by default, depending on settings) replace the file by writing a new one and renaming it on top — same path, *different inode*. The container is still mounted to the original (now-orphaned) inode.
+
+Diagnostic — compare inodes:
+
+```bash
+stat -c '%i %n' /path/to/file               # host's view
+docker exec <container> stat -c '%i %n' /path/inside/container   # container's view
+```
+
+If the inodes differ, you've found it. Fix the script that's editing the file to **truncate-and-rewrite** rather than swap inodes:
+
+```bash
+# Bad (swaps inode):
+sed -i 's/old/new/' file.conf
+
+# Good (preserves inode):
+NEW=$(sed 's/old/new/' file.conf)
+echo "$NEW" > file.conf
+```
+
+The `>` redirect operator opens the file with `O_TRUNC` — empties the contents but keeps the same inode.
+
+> **Workaround at the compose level:** mount the *directory* containing the file instead of the file itself. Directory bind mounts watch the directory contents, so file replacement works. But it's a bigger change and means rearranging your config layout. Fixing the editing script is usually simpler.
+
+### 6. Tests right after a graceful reload show stale results
+
+Symptom: your switch script reports success, the container's view of the config is correct, but `curl` immediately afterwards returns the old backend's response.
+
+Cause: nginx's graceful reload starts new workers and tells old workers to drain — both sets are running for a brief window. New connections go to new workers; existing keepalive connections finish on old workers. A curl immediately after reload may reuse an existing TCP connection and get served by an old worker.
+
+Diagnostic — wait, or force a fresh connection:
+
+```bash
+sleep 3 && curl http://localhost:8080/
+# or
+curl --no-keepalive http://localhost:8080/
+```
+
+If either returns the new backend's response, the script is working correctly and the original test was just catching the overlap window. **Don't conclude there's a bug from a single immediate-post-reload curl.**
+
 ---
 
 ## Docker Lab vs Real Life
@@ -509,10 +592,14 @@ A few things this lab doesn't capture that bite in production:
 - **`depends_on: service_healthy`** — eliminates startup race conditions where one container's process starts before its dependencies' DNS is registered. Pairs with healthchecks defined on the dependencies.
 - **`localhost` is not `127.0.0.1`** — in any container with both IPv4 and IPv6 stacks, the resolver may prefer IPv6 and route around services bound to IPv4 only. Use explicit `127.0.0.1` in healthchecks.
 - **`ss` shows binds, not interception** — if a port appears free but traffic gets redirected anyway, iptables NAT rules are the prime suspect.
+- **Bind mounts pin to inodes, not paths.** Tools that swap inodes (`sed -i`, `mv`, vim's default save) silently break single-file bind mounts. Truncate-and-rewrite (`echo "$content" > file`) preserves the inode.
+- **Graceful reload has an overlap window.** New and old workers run simultaneously for a few seconds while connections drain. Tests immediately after reload may catch an old worker's response — that's correct behaviour, not a bug. Wait 2-3 seconds before testing.
 
 ## Common Mistakes
 
 - **Forgetting that nginx caches config in memory.** Editing `nginx.conf` on disk does nothing until you reload. The reload is what actually flips traffic.
+- **Using `sed -i` to edit a bind-mounted file.** Looks like it works (the host file is updated, nginx reloads cleanly), but the container is still bind-mounted to the old inode and never sees the change. Truncate-and-rewrite (`echo "$new" > file`) instead.
+- **Concluding "the switch didn't work" from one immediate-post-reload curl.** Graceful reload's overlap window can serve one or two stale requests on draining old workers. Wait 3 seconds and re-test before debugging.
 - **Running `nginx -s reload` on the host instead of inside the container.** The host probably doesn't have nginx installed at all, or has a different one — the relevant nginx is inside the router container, so the reload command must run there too.
 - **Stopping the old environment immediately after switching.** If the new version turns out to have problems under real traffic, you want the old one still warm and ready to take traffic back. Leave it running for at least 30 minutes after a switch.
 - **Skipping the health check because "it worked locally".** The point of the health gate isn't that it usually catches problems — it's that the *one time* it does, it saves you an outage.
