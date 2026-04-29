@@ -7,7 +7,6 @@ spec:
   project: default
   source:
     repoURL: https://github.com/company/k8s-manifests.git
-    # BUG 1: Wrong path — should be 'apps/web-app/production' not 'apps/web-app/staging'
     path: apps/web-app/staging
     targetRevision: main
   destination:
@@ -15,9 +14,7 @@ spec:
     namespace: production
   syncPolicy:
     automated:
-      # BUG 2: prune is false — orphaned resources won't be cleaned up
       prune: false
-      # BUG 3: selfHeal is false — manual changes in cluster won't be reverted
       selfHeal: false
     syncOptions:
       - CreateNamespace=true
