@@ -136,8 +136,10 @@ else
     TARGET_PORT=8001
 fi
 
-# Give nginx a moment to finish reloading
-sleep 1
+# Give nginx time for graceful reload — old workers must finish draining
+# before new workers fully take over. 3 seconds is generous; 1s is sometimes
+# too tight and the test sees the old worker's response.
+sleep 3
 
 ROUTER_RESPONSE=$(curl -s --max-time 3 http://localhost:8080/ 2>/dev/null)
 TARGET_RESPONSE=$(curl -s --max-time 3 http://localhost:$TARGET_PORT/ 2>/dev/null)
@@ -175,7 +177,7 @@ else
     ROLLBACK_PORT=8002
 fi
 
-sleep 1
+sleep 3
 
 ROUTER_RESPONSE_AFTER=$(curl -s --max-time 3 http://localhost:8080/ 2>/dev/null)
 ROLLBACK_RESPONSE=$(curl -s --max-time 3 http://localhost:$ROLLBACK_PORT/ 2>/dev/null)
