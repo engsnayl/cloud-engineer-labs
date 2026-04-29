@@ -17,7 +17,6 @@ spec:
     spec:
       containers:
         - name: web-app
-          # BUG 4: Using 'latest' tag — not GitOps friendly, causes sync issues
           image: company/web-app:latest
           ports:
             - containerPort: 8080
@@ -27,7 +26,6 @@ spec:
               memory: 128Mi
             limits:
               cpu: 500m
-              # BUG 5: Memory limit of 10Mi is too low — container will OOM immediately
               memory: 10Mi
           readinessProbe:
             httpGet:
@@ -37,7 +35,6 @@ spec:
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              # BUG 6: Liveness probe hitting wrong path — /ready vs /healthz
               path: /ready
               port: 8080
             initialDelaySeconds: 15
