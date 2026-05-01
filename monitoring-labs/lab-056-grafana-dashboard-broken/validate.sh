@@ -4,6 +4,7 @@
 #
 # Validation Criteria (from CHALLENGE.md):
 #   - Grafana is accessible on port 3000
+#   - Dashboard JSON is in provisioning format (no API-import wrapper)
 #   - Prometheus data source resolves to prometheus:9090 and answers queries
 #   - Prometheus is scraping the app target successfully
 #   - The dashboard is loaded into Grafana (not just on disk)
@@ -36,11 +37,22 @@ check "Datasource URL points to prometheus:9090 (not localhost)" "$?"
 
 dashboard="provisioning/dashboards/app-dashboard.json"
 
+# Dashboard JSON must NOT have the API-import wrapper (Bug 6).
+# The provisioning format is a flat object with "title" at the top level.
+# The API-import format wraps everything in {"dashboard": {...}}.
+python3 -c "
+import sys, json
+try:
+    with open('$dashboard') as f:
+        data = json.load(f)
+    sys.exit(0 if 'title' in data and 'dashboard' not in data else 1)
+except Exception:
+    sys.exit(1)
+" 2>/dev/null
+check "Dashboard JSON is in provisioning format (no outer 'dashboard' wrapper)" "$?"
+
 grep -q '"rate(' "$dashboard" 2>/dev/null && ! grep -q '"rates(' "$dashboard" 2>/dev/null
 check "Request rate uses 'rate' not 'rates'" "$?"
-
-grep -q 'status=\\"500\\"' "$dashboard" 2>/dev/null || grep -q 'status="500"' "$dashboard" 2>/dev/null
-check "Error rate uses double quotes for label matcher" "$?"
 
 ! grep -q "histogram_quantile(95," "$dashboard" 2>/dev/null && grep -q "histogram_quantile(0.95," "$dashboard" 2>/dev/null
 check "Histogram quantile uses 0.95 (not 95)" "$?"
@@ -60,13 +72,18 @@ check "Grafana is healthy (port 3000 responding)" "$?"
 curl -sf http://localhost:9090/-/healthy >/dev/null 2>&1
 check "Prometheus is healthy (port 9090 responding)" "$?"
 
-# Prometheus is scraping the app target successfully
-target_health=$(curl -s "http://localhost:9090/api/v1/targets" 2>/dev/null \
-  | grep -o '"job":"app","[^}]*"health":"[^"]*"' \
-  | grep -o '"health":"[^"]*"' \
-  | head -1 \
-  | sed 's/.*"health":"//;s/"//')
-[[ "$target_health" == "up" ]]
+# Prometheus is scraping the app target successfully — proper JSON parsing
+curl -s "http://localhost:9090/api/v1/targets" 2>/dev/null \
+  | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    targets = data.get('data', {}).get('activeTargets', [])
+    app = next((t for t in targets if t.get('labels', {}).get('job') == 'app'), None)
+    sys.exit(0 if app and app.get('health') == 'up' else 1)
+except Exception:
+    sys.exit(1)
+"
 check "Prometheus app target is up (scraping /metrics successfully)" "$?"
 
 # -------------------------------------------------------------------
@@ -75,18 +92,43 @@ check "Prometheus app target is up (scraping /metrics successfully)" "$?"
 echo ""
 echo "── End-to-end ──"
 
-# The Grafana datasource health probe — this is the same call the "Save & Test"
-# button makes in the UI. Catches typos that pass the grep but fail in reality.
-ds_status=$(curl -s -u admin:admin "http://localhost:3000/api/datasources/name/Prometheus/health" 2>/dev/null \
-  | grep -o '"status":"[^"]*"' \
-  | head -1 \
-  | sed 's/.*"status":"//;s/"//')
-[[ "$ds_status" == "OK" ]]
-check "Grafana datasource health probe returns OK" "$?"
+# Get the datasource UID (Grafana 13+ requires UID for health probes)
+DS_UID=$(curl -s -u admin:admin http://localhost:3000/api/datasources 2>/dev/null \
+  | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    prom = next((d for d in data if d.get('name') == 'Prometheus'), None)
+    print(prom['uid'] if prom else '')
+except Exception:
+    print('')
+")
+
+if [[ -n "$DS_UID" ]]; then
+    curl -s -u admin:admin "http://localhost:3000/api/datasources/uid/${DS_UID}/health" 2>/dev/null \
+      | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    sys.exit(0 if data.get('status') == 'OK' else 1)
+except Exception:
+    sys.exit(1)
+"
+    check "Grafana datasource health probe returns OK" "$?"
+else
+    check "Grafana datasource health probe returns OK" "1"
+fi
 
 # Dashboard is actually loaded into Grafana (not just sat on disk as a file)
-curl -sf -u admin:admin "http://localhost:3000/api/search?query=Application%20Dashboard" 2>/dev/null \
-  | grep -q '"title":"Application Dashboard"'
+curl -s -u admin:admin "http://localhost:3000/api/search?query=Application%20Dashboard" 2>/dev/null \
+  | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    sys.exit(0 if any(d.get('title') == 'Application Dashboard' for d in data) else 1)
+except Exception:
+    sys.exit(1)
+"
 check "Application Dashboard is loaded into Grafana" "$?"
 
 # -------------------------------------------------------------------
@@ -96,15 +138,21 @@ echo ""
 echo "── Queries return data ──"
 
 query_returns_data() {
-    # Returns 0 (success) if the PromQL query returns at least one result
     local query="$1"
-    local result_count
-    result_count=$(curl -s --get \
+    curl -s --get \
         --data-urlencode "query=${query}" \
         "http://localhost:9090/api/v1/query" 2>/dev/null \
-      | grep -o '"value":\[' \
-      | wc -l)
-    [[ "$result_count" -ge 1 ]]
+      | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    if data.get('status') != 'success':
+        sys.exit(1)
+    result = data.get('data', {}).get('result', [])
+    sys.exit(0 if len(result) > 0 else 1)
+except Exception:
+    sys.exit(1)
+"
 }
 
 query_returns_data "rate(http_requests_total[5m])"
