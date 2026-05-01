@@ -1,82 +1,80 @@
 {
-  "dashboard": {
-    "title": "Application Dashboard",
-    "panels": [
-      {
-        "title": "Request Rate",
-        "type": "timeseries",
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 0,
-          "y": 0
-        },
-        "targets": [
-          {
-            "expr": "rates(http_requests_total[5m])",
-            "legendFormat": "{{method}} {{status}}"
-          }
-        ],
-        "id": 1
+  "title": "Application Dashboard",
+  "panels": [
+    {
+      "title": "Request Rate",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
       },
-      {
-        "title": "Error Rate (%)",
-        "type": "stat",
-        "gridPos": {
-          "h": 8,
-          "w": 6,
-          "x": 12,
-          "y": 0
-        },
-        "targets": [
-          {
-            "expr": "sum(rate(http_requests_total{status='500'}[5m])) / sum(rate(http_requests_total[5m])) * 100",
-            "legendFormat": "Error %"
-          }
-        ],
-        "id": 2
-      },
-      {
-        "title": "Request Duration (p95)",
-        "type": "timeseries",
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 0,
-          "y": 8
-        },
-        "targets": [
-          {
-            "expr": "histogram_quantile(95, rate(http_request_duration_seconds_bucket[5m]))",
-            "legendFormat": "p95"
-          }
-        ],
-        "id": 3
-      },
-      {
-        "title": "Active Connections",
-        "type": "gauge",
-        "gridPos": {
-          "h": 8,
-          "w": 6,
-          "x": 12,
-          "y": 8
-        },
-        "targets": [
-          {
-            "expr": "active_connection",
-            "legendFormat": "connections"
-          }
-        ],
-        "id": 4
-      }
-    ],
-    "time": {
-      "from": "now-1h",
-      "to": "now"
+      "targets": [
+        {
+          "expr": "rates(http_requests_total[5m])",
+          "legendFormat": "{{method}} {{status}}"
+        }
+      ],
+      "id": 1
     },
-    "refresh": "10s",
-    "schemaVersion": 38,
-    "version": 1
-  }
+    {
+      "title": "Error Rate (%)",
+      "type": "stat",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{status='500'}[5m])) / sum(rate(http_requests_total[5m])) * 100",
+          "legendFormat": "Error %"
+        }
+      ],
+      "id": 2
+    },
+    {
+      "title": "Request Duration (p95)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(95, rate(http_request_duration_seconds_bucket[5m]))",
+          "legendFormat": "p95"
+        }
+      ],
+      "id": 3
+    },
+    {
+      "title": "Active Connections",
+      "type": "gauge",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 8
+      },
+      "targets": [
+        {
+          "expr": "active_connection",
+          "legendFormat": "connections"
+        }
+      ],
+      "id": 4
+    }
+  ],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "version": 1
 }
