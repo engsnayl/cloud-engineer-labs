@@ -72,6 +72,19 @@ Two files: `alerts.json` and `alert-log.txt`. The first is almost certainly the 
 
 > **How would I know to look in `/opt`?** Standard FHS (Filesystem Hierarchy Standard) convention. Vendor-supplied or self-hosted monitoring tools typically install under `/opt/<toolname>/`. If `/opt` was empty, the next places to check would be `/etc/` (config files), `/var/lib/` (state files), or `find / -name "*alert*" 2>/dev/null` to brute-force search.
 
+> ### ⚠️ Stop — first-instinct check before touching anything
+>
+> Your reflex when you find a broken config is going to be **"I'll just edit this file and fix it."** Resist that. The lab brief, and good engineering practice, says you write the fix to a **new file alongside the original**:
+>
+> - Original `alerts.json` stays untouched — preserves the broken state for postmortem, review, comparison
+> - New file `alerts-fixed.json` contains your corrected config
+> - Reviewer or future-you can diff the two files to see exactly what changed and why
+> - Rollback is one command: `mv alerts-fixed.json alerts.json`
+>
+> This generalises far beyond this lab. It's the same instinct that says **never edit production config in place**, **always open a PR rather than committing to main**, and **keep your `terraform plan` output before you `apply`**. The diff is the audit trail. Lose the diff and you've lost half the value of the fix.
+>
+> If you've already edited the original by mistake, see the "Recovering from in-place edits" section near the end of this document.
+
 ### Step 2 — Read the current config
 
 ```bash
@@ -113,6 +126,47 @@ Read this slowly. What do you actually see?
 A normal Linux server idles somewhere between 1-5% CPU. A healthy web app responds in 50-300ms. Most TLS certificates are issued for 90 days. **These thresholds are set at the floor of normal operation — they will fire constantly.**
 
 > **The "everything is critical" smell.** If every alert is critical, no alert is critical. The whole point of severity levels is to tell the on-call engineer "this is the one to wake up for." When the labelling carries no information, it becomes noise.
+
+> ### Detour — "Wait, what's actually reading this JSON?"
+>
+> A good question to ask at this point. **In this lab, nothing is.** The container has no Prometheus, no Alertmanager, no agent. The JSON file is a deliberately stripped-down stand-in for what a production alert config looks like. You can verify this:
+>
+> ```bash
+> ps aux           # no monitoring processes running
+> ls /etc/prometheus 2>/dev/null   # no prometheus config
+> ```
+>
+> So why simulate? Because the lesson here is the **triage skill** — reading a config, spotting bad thresholds, applying severity logic, deciding what to delete. That skill transfers identically whether the consumer is Prometheus, Datadog, or a homegrown shell script. Spinning up a real Prometheus + Alertmanager + node-exporter stack just to demonstrate "1% CPU is a stupid threshold" would be 90% setup, 10% lesson.
+>
+> **In real life, the alert config almost always lives in YAML, read by the monitoring tool itself.** The dominant pattern across the industry:
+>
+> | System | Where the config lives | Format |
+> |---|---|---|
+> | Prometheus + Alertmanager | `prometheus.yml` references `*.rules.yml` files; Alertmanager has a separate `alertmanager.yml` for routing | YAML, with PromQL expressions instead of plain thresholds |
+> | Prometheus on Kubernetes | `PrometheusRule` custom resources managed by the Prometheus Operator | YAML Kubernetes manifests |
+> | Datadog / New Relic | UI or Terraform `datadog_monitor` resources | Terraform / API |
+> | AWS CloudWatch | `aws_cloudwatch_metric_alarm` Terraform resources or console | Terraform / console |
+>
+> A real Prometheus rule for "CPU above 80%" looks like this:
+>
+> ```yaml
+> - alert: HighCPU
+>   expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+>   for: 10m
+>   labels:
+>     severity: warning
+>   annotations:
+>     summary: "CPU above 80% on {{ $labels.instance }}"
+>     runbook: "https://wiki.internal/runbooks/high-cpu"
+> ```
+>
+> Three things in that real-world rule that the simulation doesn't show but matter enormously:
+>
+> 1. **`expr`** — the condition is a PromQL query, not a flat threshold. The query calculates "average CPU usage over 5 minutes," and the threshold (`> 80`) is just the tail end.
+> 2. **`for: 10m`** — the condition must hold *continuously for 10 minutes* before the alert fires. This single field eliminates a huge amount of noise. CPU briefly spikes during a backup? Swallowed. CPU sits at 85% for half an hour? Fires. Our simulated config has no concept of duration.
+> 3. **`labels` and `annotations`** — `severity: warning` is a *label* that drives routing in Alertmanager (criticals page, warnings ticket). Annotations carry runbook URLs so the on-call engineer at 3 AM has a starting point.
+>
+> The four-question triage you're about to do is identical regardless of tool. Once you've made the judgement calls, plugging the result into a real Prometheus rule file is just syntax.
 
 ### Step 3 — Confirm the diagnosis with the alert log
 
@@ -184,81 +238,42 @@ If you can't justify "wake someone up at 3 AM," it isn't critical.
 
 ### Step 5 — Apply the principles, alert by alert
 
-Walk through each of the 10 original alerts and decide its fate. This is the actual triage.
+Walk through each of the 10 original alerts and decide its fate. This is the actual triage. Three possible verdicts: **keep & fix the threshold**, **keep & convert to a rate**, or **delete**.
 
 | # | Original alert | Decision | Reasoning |
 |---|---|---|---|
-| 1 | `cpu_above_1_percent` (1%, critical) | **Keep, fix** | Real metric, broken threshold. Split into warning at 80%, critical at 95%. |
-| 2 | `memory_above_10_percent` (10%, critical) | **Keep, fix** | Same as CPU. Single warning at 85%. |
-| 3 | `disk_above_50_percent` (50%, critical) | **Keep, fix** | Disk is special — when it fills, things break hard. Warning at 85%, critical at 95%. |
-| 4 | `http_5xx_any` (1 error, critical) | **Keep, convert** | Single error is noise. Convert to error-rate alert at 5%, critical. |
-| 5 | `response_time_above_10ms` (10ms, critical) | **Keep, fix** | Real metric, absurd threshold. Warning at 2000ms (P95). |
-| 6 | `container_restart` (1, critical) | **Delete** | Single restarts are normal (rolling deploys, OOM kills, health-check tweaks). Worth a *trend* alert (">10 restarts in 5 minutes") but not a single-event alert. Out of scope here. |
-| 7 | `ssl_cert_expiry_365d` (365 days, critical) | **Keep, fix** | Real concern, broken threshold. Warning at 30 days; certs are usually renewed automatically. |
-| 8 | `log_error_any` (1, critical) | **Delete** | "ERROR" appearing in logs is meaningless without context. Belongs in a log-aggregation tool with rate-based queries, not a paging alert. |
+| 1 | `cpu_above_1_percent` (1%, critical) | **Keep, fix** | Real metric, broken threshold. Split into warning at 80%, critical at 95% — proper severity ladder. |
+| 2 | `memory_above_10_percent` (10%, critical) | **Keep, fix** | Same pattern. Warning at 85%, critical at 95%. Modern Linux uses memory aggressively for caches, so 85% is normal-busy, not yet a problem. |
+| 3 | `disk_above_50_percent` (50%, critical) | **Keep, fix** | Disk is special — when it fills, services hard-fail. Warning at 80%, critical at 95%. |
+| 4 | `http_5xx_any` (1 error, critical) | **Keep, convert** | Single error is noise. Convert to *error-rate* alert at 5% of total requests, critical. The threshold value is now a percentage, not a count — name and description must reflect that. |
+| 5 | `response_time_above_10ms` (10ms, critical) | **Keep, fix and demote** | Real metric, absurd threshold. Warning at 2000ms (P95). **Severity demoted to warning** — slow ≠ down. If you want a critical tier, add a second alert at 5000ms. |
+| 6 | `container_restart` (1, critical) | **Delete** | Single restarts are normal (rolling deploys, OOM kills, health-check tweaks). A *trend* alert (">10 restarts in 5 minutes") would be valid; a single-event alert is not. |
+| 7 | `ssl_cert_expiry_365d` (365 days, critical) | **Keep, fix** | Real concern, broken threshold. Warning at 30 days remaining. Rename to `ssl_cert_expiry_30d` so name, threshold, and description all tell the same story. |
+| 8 | `log_error_any` (1, critical) | **Delete** | "ERROR" appearing in a log line is meaningless without context. Belongs in a log-aggregation tool (Loki, Splunk, ELK) with rate-based queries, not a paging system. |
 | 9 | `network_packet_loss_any` (0.01%, critical) | **Delete** | The internet has packet loss. 0.01% is below the noise floor of any real network. |
-| 10 | `pod_pending_1s` (1s, critical) | **Delete** | Pods pend for several seconds during normal scheduling. A meaningful alert would be "pod pending for >5 minutes" — but this is a Kubernetes-specific concern that should live in cluster monitoring, not the general alert set. |
+| 10 | `pod_pending_1s` (1s, critical) | **Delete** | Pods pend for several seconds during normal scheduling. A meaningful alert would be "pod pending for >5 minutes" — and that belongs in cluster monitoring (`kube_pod_status_phase`), not in the general alert set. |
 
-**Result: 8 alerts down from 10**, with clear severity tiers and realistic thresholds.
+**Result: 9 alerts down from 10** (we added a memory critical tier alongside the CPU and disk ladders), with clear warning/critical severity tiers and realistic thresholds.
 
 > **Why not just raise the thresholds and keep all 10?** Because some of those alerts shouldn't exist at all in this form. Alerting on a single log line containing "ERROR" is fundamentally a category error — that data belongs in a log search interface, not a paging system. Delete is sometimes the right answer.
 
 ### Step 6 — Write the new config
 
-We don't overwrite `alerts.json`. We create `alerts-fixed.json` alongside it, so the broken state is preserved for review and rollback.
+We don't overwrite `alerts.json`. We create `alerts-fixed.json` alongside it, so the broken state is preserved for review and rollback (see the callout earlier on first-instinct file editing).
 
 ```bash
 cat > /opt/monitoring/alerts-fixed.json << 'EOF'
 {
   "alerts": [
-    {
-      "name": "cpu_high",
-      "threshold": 80,
-      "severity": "warning",
-      "description": "CPU usage sustained above 80% — investigate"
-    },
-    {
-      "name": "cpu_critical",
-      "threshold": 95,
-      "severity": "critical",
-      "description": "CPU usage sustained above 95% — immediate action"
-    },
-    {
-      "name": "memory_high",
-      "threshold": 85,
-      "severity": "warning",
-      "description": "Memory usage above 85%"
-    },
-    {
-      "name": "disk_high",
-      "threshold": 85,
-      "severity": "warning",
-      "description": "Disk usage above 85% — plan cleanup"
-    },
-    {
-      "name": "disk_critical",
-      "threshold": 95,
-      "severity": "critical",
-      "description": "Disk usage above 95% — immediate action"
-    },
-    {
-      "name": "http_5xx_rate",
-      "threshold": 5,
-      "severity": "critical",
-      "description": "5xx error rate above 5% of total requests"
-    },
-    {
-      "name": "response_time_p95_high",
-      "threshold": 2000,
-      "severity": "warning",
-      "description": "P95 response time above 2000ms"
-    },
-    {
-      "name": "ssl_cert_expiry",
-      "threshold": 30,
-      "severity": "warning",
-      "description": "SSL certificate expires within 30 days"
-    }
+    {"name": "cpu_above_80_percent", "threshold": 80, "severity": "warning", "description": "CPU usage above 80%"},
+    {"name": "cpu_above_95_percent", "threshold": 95, "severity": "critical", "description": "CPU usage above 95%"},
+    {"name": "memory_above_85_percent", "threshold": 85, "severity": "warning", "description": "Memory above 85%"},
+    {"name": "memory_above_95_percent", "threshold": 95, "severity": "critical", "description": "Memory above 95%"},
+    {"name": "disk_above_80_percent", "threshold": 80, "severity": "warning", "description": "Disk above 80%"},
+    {"name": "disk_above_95_percent", "threshold": 95, "severity": "critical", "description": "Disk above 95%"},
+    {"name": "http_5xx_rate", "threshold": 5, "severity": "critical", "description": "5xx error rate above 5% of total requests"},
+    {"name": "response_time_above_2000ms", "threshold": 2000, "severity": "warning", "description": "P95 response time above 2000ms"},
+    {"name": "ssl_cert_expiry_30d", "threshold": 30, "severity": "warning", "description": "SSL cert expires within 30 days"}
   ]
 }
 EOF
@@ -274,9 +289,51 @@ EOF
 
 > **Why heredoc instead of `vi` or `nano`?** It's reproducible. You can paste the same command into a runbook, a script, or an Ansible playbook and get exactly the same file every time. Editor sessions don't survive being copied into a postmortem.
 
+> ### Common JSON gotchas when hand-editing
+>
+> JSON is unforgiving. Three mistakes you will absolutely make at some point:
+>
+> **1. Trailing commas.** JSON does **not** allow a comma after the last element of an array or object. JavaScript does (since ES2017). Python dicts do. YAML does. JSON does not.
+>
+> ```json
+> // BROKEN — trailing comma after the last alert
+> {
+>   "alerts": [
+>     {"name": "cpu_high", "threshold": 80, "severity": "warning"},
+>     {"name": "ssl_cert_expiry_30d", "threshold": 30, "severity": "warning"},   ← this comma is fatal
+>   ]
+> }
+> ```
+>
+> Always check the last element of every array and the last key-value of every object. The error message you get from a JSON parser is usually helpful — `json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line N column M`.
+>
+> **2. Single quotes instead of double quotes.** JSON requires double quotes around strings *and* keys. `'name'` is invalid. So is `name` (unquoted). Only `"name"` works.
+>
+> **3. Comments.** JSON has no comment syntax. `//` and `/* ... */` are both invalid. If you want comments, either use a description field as data (as we do here) or move to YAML.
+>
+> **The mandatory verification step:** before running the lab validator, always verify the JSON parses cleanly:
+>
+> ```bash
+> python3 -m json.tool /opt/monitoring/alerts-fixed.json
+> ```
+>
+> If it's valid, you'll see the pretty-printed file. If it's not, you'll get a parse error with a line and column number. Treat this as a non-negotiable step — it costs you a second and saves you a confusing validator failure.
+
+
+
+**Command breakdown:**
+
+| Component | What it does |
+|---|---|
+| `cat > <file>` | Take stdin and write it to `<file>` (overwriting if it exists) |
+| `<< 'EOF'` | Heredoc — read stdin until a line containing exactly `EOF`. The single quotes around `'EOF'` prevent shell variable expansion inside the content. Useful when the content contains `$` or backticks you want preserved literally. |
+| `EOF` (closing) | Marker that ends the heredoc input |
+
+> **Why heredoc instead of `vi` or `nano`?** It's reproducible. You can paste the same command into a runbook, a script, or an Ansible playbook and get exactly the same file every time. Editor sessions don't survive being copied into a postmortem.
+
 ### Step 7 — Sanity-check the new config
 
-Before declaring victory, prove to yourself the file is what you think it is.
+Before declaring victory, prove to yourself the file is what you think it is. (This is the same `python3 -m json.tool` step we flagged as mandatory in the JSON gotchas callout — repeating here because if you skip it, the lab validator will fail with a confusing cascade of errors and you'll waste time debugging the wrong layer.)
 
 ```bash
 python3 -m json.tool /opt/monitoring/alerts-fixed.json
@@ -315,36 +372,80 @@ print(f'Severities: {sorted(set(a[\"severity\"] for a in data[\"alerts\"]))}')"
 Expected output:
 
 ```
-warning     cpu_high                        threshold=80
-critical    cpu_critical                    threshold=95
-warning     memory_high                     threshold=85
-warning     disk_high                       threshold=85
-critical    disk_critical                   threshold=95
+warning     cpu_above_80_percent            threshold=80
+critical    cpu_above_95_percent            threshold=95
+warning     memory_above_85_percent         threshold=85
+critical    memory_above_95_percent         threshold=95
+warning     disk_above_80_percent           threshold=80
+critical    disk_above_95_percent           threshold=95
 critical    http_5xx_rate                   threshold=5
-warning     response_time_p95_high          threshold=2000
-warning     ssl_cert_expiry                 threshold=30
+warning     response_time_above_2000ms      threshold=2000
+warning     ssl_cert_expiry_30d             threshold=30
 
-Total: 8 alerts
+Total: 9 alerts
 Severities: ['critical', 'warning']
 ```
 
-8 alerts, two severity levels, no thresholds at the floor. That's a defensible config.
+9 alerts, two severity levels, no thresholds at the floor, no count-based event alerts surviving. That's a defensible config.
 
 ### Step 8 — Run the validator
 
+Exit the container first — `lab validate` runs from the Pi host, not from inside the container:
+
 ```bash
-lab validate monitoring/lab-053-alert-fatigue-triage
+exit
+lab validate 053
 ```
 
 The validator checks:
 - The fixed file exists and is valid JSON
 - The alerts array is non-empty
 - The total alert count is between 4 and 9
-- Every alert has the required fields
+- Every alert has the required fields (`name`, `threshold`, `severity`)
 - CPU and memory thresholds are at least 70%
-- Multiple severity levels including `warning`
-- No more than 60% of alerts are `critical`
+- Multiple severity levels are used, including `warning` specifically
+- No more than 60% of alerts are `critical` (catches "everything is critical" anti-patterns even after a partial fix)
 - Single-event "noisy" alerts (log_error, pod_pending, packet_loss, container_restart) — if kept at all — have thresholds raised above 1
+
+If any check fails, the validator exits non-zero and prints which check failed. **All ten ❌ on the first attempt is the signature of a missing file** — usually because you edited `alerts.json` instead of creating `alerts-fixed.json`. See the recovery section below.
+
+---
+
+## Recovering from in-place edits
+
+If you've edited `alerts.json` directly instead of creating `alerts-fixed.json`, the validator will fail every check (because it looks for `alerts-fixed.json` and finds nothing). Here's how to recover.
+
+### The clean recovery — re-run the setup script
+
+The container's setup script (`/opt/inject-faults.sh`) is idempotent — it uses `cat > file << EOF`, which **overwrites** the file every time. Re-running the script restores the original broken state in seconds:
+
+```bash
+docker exec -it lab053-alert-fatigue-triage bash
+/opt/inject-faults.sh
+cat /opt/monitoring/alerts.json   # confirm the broken config is back
+```
+
+You should see the original 10 alerts with the absurd thresholds. Now write your fix to the **correct** path (`alerts-fixed.json`, not `alerts.json`).
+
+> **Why the script is safe to re-run:** the heredoc-with-`>` pattern always overwrites. There's no append, no prompt, no "are you sure" — it just writes. Many setup scripts in lab environments are written this way deliberately, exactly so they can serve as resets.
+
+### The nuclear option — recreate the container
+
+If for any reason the setup script doesn't restore cleanly (you've modified the script, the container has been in some weird state for a while, you can't be sure of what's been changed), the universal "I've broken everything beyond recognition" lever is to destroy and recreate the container:
+
+```bash
+cd ~/cloud-engineer-labs/cloud-labs/monitoring-labs/lab-053-alert-fatigue-triage
+docker compose down
+docker compose up -d
+docker exec -it lab053-alert-fatigue-triage bash
+```
+
+This wipes the container entirely and rebuilds it from the image, which runs `inject-faults.sh` automatically as part of the container's `CMD`. You're guaranteed a fresh broken state.
+
+### Why not just edit `alerts.json` and rename it?
+
+Tempting, but the validator specifically checks for both files coexisting (or at least, for `alerts-fixed.json` to exist as a standalone file). And in real life, the principle is to preserve the broken state for the postmortem. **The diff between broken and fixed is the audit trail. Lose the diff and you've lost half the value of the fix.**
+
 
 ---
 
@@ -390,6 +491,12 @@ The only Pi-relevant note: the container image is built `FROM ubuntu:22.04`, whi
 
 ## Common Mistakes
 
+- **Editing `alerts.json` in place instead of creating `alerts-fixed.json`.** This is the most common first-attempt failure on this lab. Your reflex when you see a broken config is to fix it in place. Don't. Create a new file alongside, preserve the broken state, leave the diff for review. See the "Recovering from in-place edits" section above if you've already done it.
+- **Trailing commas in JSON.** JSON does not allow a comma after the last element of an array or object. JavaScript and Python do; YAML does. Always check the last element, and always run `python3 -m json.tool <file>` before declaring victory.
+- **Mismatched name, threshold, and description.** If the alert is called `ssl_cert_expiry_365d`, the threshold is `30`, and the description says "expires within 30 days," all three disagree and you've made the file harder to maintain than it needs to be. Rename and renumber so they tell the same story.
+- **Inconsistent severity ladders across metrics.** If CPU has both warning (80%) and critical (95%) tiers, but memory only has critical (85%), that's a smell — either memory needs a warning tier, or you've made memory artificially more urgent than CPU. Be consistent.
+- **Count-based alerts dressed up as rates.** Renaming `http_5xx_any` to `http_5xx_rate` doesn't make it a rate alert if the threshold is still a raw count. The *meaning* of the threshold value has to change too — "5" needs to be "5 percent of total requests," not "5 errors total."
+- **Treating slow as urgent as down.** Response time and error rate are different categories. A slow response is degraded experience (warning); a non-response or 5xx burst is an outage (critical). Don't lump them together.
 - **Raising thresholds without removing dead alerts.** If `log_error_any` shouldn't exist at all, raising its threshold from 1 to 10 doesn't fix it — you still have an unactionable alert, just one that fires less often. Sometimes the right answer is delete.
 - **Keeping everything as critical.** It feels safer ("I don't want to miss anything") but it's the opposite — it guarantees real critical alerts get ignored alongside the noise.
 - **Setting one global threshold for everything.** CPU and disk and response time and SSL all need different thresholds based on what's normal for that metric. Don't blanket everything at 80%.
