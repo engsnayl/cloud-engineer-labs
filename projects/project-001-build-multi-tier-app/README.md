@@ -48,7 +48,7 @@ A production-ready three-tier web application with Terraform infrastructure, Kub
  │  │   Frontend    │  │    Backend    │  │    PostgreSQL      │      │
  │  │   nginx       │  │    Flask      │  │    StatefulSet     │      │
  │  │   2 replicas  │  │   2 replicas  │  │    1 replica + PVC │      │
- │  │   port 80     │  │   port 8080   │  │    port 5432       │      │
+ │  │   port 80     │  │   port 5000   │  │    port 5432       │      │
  │  └───────────────┘  └───────┬───────┘  └────────────────────┘      │
  │                              │ NetworkPolicy: only backend ──▶ DB  │
  │                              │                                      │
@@ -328,7 +328,7 @@ solution/
 │   ├── database-service.yaml           # Headless Service for stable DNS
 │   ├── backend-configmap.yaml          # Non-sensitive DB connection config
 │   ├── backend-deployment.yaml         # Flask Deployment (2 replicas, probes)
-│   ├── backend-service.yaml            # ClusterIP Service on port 8080
+│   ├── backend-service.yaml            # ClusterIP Service on port 5000
 │   ├── frontend-deployment.yaml        # nginx Deployment (2 replicas)
 │   ├── frontend-service.yaml           # ClusterIP Service on port 80
 │   ├── ingress.yaml                    # Path-based routing (/ and /api)
