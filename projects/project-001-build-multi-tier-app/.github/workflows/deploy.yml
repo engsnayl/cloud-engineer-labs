@@ -99,7 +99,7 @@ on:
 # These are available to ALL jobs in the workflow. We define them once here
 # so we don't have to repeat them everywhere.
 env:
-  AWS_REGION: eu-west-2
+  AWS_REGION: eu-west-1
   # ECR repository names -- these match what Terraform provisioned
   FRONTEND_REPO: multi-tier-frontend
   BACKEND_REPO: multi-tier-backend
