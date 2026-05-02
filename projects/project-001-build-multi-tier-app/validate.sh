@@ -26,7 +26,7 @@ check() {
     fi
 }
 
-SOLUTION_DIR="solution"
+SOLUTION_DIR="."
 
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
@@ -180,10 +180,10 @@ echo "  Documentation Checks"
 echo "========================================="
 
 test -f "$SOLUTION_DIR/README.md"
-check "solution/README.md exists" "$?"
+check "README.md exists" "$?"
 
-test -f "SOLUTION.md"
-check "SOLUTION.md exists (walkthrough)" "$?"
+test -f "SOLUTION-LEGACY.md"
+check "SOLUTION-LEGACY.md exists (legacy walkthrough)" "$?"
 
 test -f "README.md"
 check "README.md exists (project root)" "$?"
