@@ -47,7 +47,18 @@ else
 fi
 
 # --- Check 5: Aggregator endpoint is listening on UDP 5514 ---
-docker exec "$CONTAINER" bash -c "ss -ulnp 2>/dev/null | grep -q ':5514'"
+# Try ss first (modern), fall back to netstat (legacy), then to /proc/net/udp (always available).
+# /proc/net/udp lists ports in hex — 5514 = 0x158A.
+docker exec "$CONTAINER" bash -c '
+    if command -v ss >/dev/null 2>&1; then
+        ss -ulnp 2>/dev/null | grep -q ":5514"
+    elif command -v netstat >/dev/null 2>&1; then
+        netstat -ulnp 2>/dev/null | grep -q ":5514"
+    else
+        # /proc/net/udp: 2nd column is local_address:port in hex. 5514 dec = 158A hex.
+        awk "{print \$2}" /proc/net/udp | grep -qi ":158A"
+    fi
+'
 check "Aggregator is listening on UDP port 5514" "$?"
 
 # --- Check 6: End-to-end log forwarding works ---
