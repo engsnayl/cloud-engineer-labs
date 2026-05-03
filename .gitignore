@@ -20,3 +20,33 @@ Thumbs.db
 awscliv2.zip
 terraform_*.zip
 aws/
+
+# Editor swap and backup files
+*.swp
+*.swo
+*~
+.*.swp
+
+# Lambda deployment packages
+*.zip
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+
+# Lab-generated tracking files
+.lab-resource-ids
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# OS noise
+.DS_Store
+Thumbs.db
