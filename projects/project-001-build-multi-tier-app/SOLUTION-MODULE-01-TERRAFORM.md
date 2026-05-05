@@ -112,7 +112,7 @@ This module addresses the following interview questions from `Interview-Prep-Com
 |---|---|---|---|
 | tf-002 | State, remote state, S3+DynamoDB, locking | Step 1d (sidebar) | Delivered the full interview answer at the moment of creating the DynamoDB lock table — covered why state, why remote, why S3+DynamoDB specifically, and the `LockID` hardcoded-name gotcha |
 | tf-001 | Terraform fundamentals — IaC, providers, plan/apply, vs CloudFormation/CDK | Step 2b (sidebar) | Delivered the full fundamentals answer while explaining `providers.tf` — covered HCL, provider model, state, plan-as-safety-mechanism, and when not to use Terraform |
-
+| tf-004 | Variables, validation, locals, tfvars | Step 3a (sidebar) | Delivered the variables answer at the moment of writing `variables.tf` — covered types, validation blocks (KodeKloud-relevant), variable precedence order, and why validation runs at plan time |
 ---
 
 ## Step 1 — Bootstrap the remote state
@@ -270,3 +270,85 @@ provider "aws" {
 ### Why providers come before everything else
 
 Every `.tf` file depends on which provider plugins are loaded. You can't write `resource "aws_vpc"` without the AWS provider being declared and pinned. Providers are the foundation — modules, variables, root composition all build on top.
+
+---
+
+## Step 3 — Root variables and example tfvars
+
+### 3a. variables.tf
+
+Eight inputs declared at root level. Every value that might change between runs is a variable, even seemingly obvious ones like region — hardcoded values become search-and-replace nightmares the moment requirements shift.
+
+```hcl
+variable "aws_region" {
+  description = "AWS region for all resources"
+  type        = string
+  default     = "eu-west-1"
+
+  validation {
+    condition     = can(regex("^[a-z]{2}-[a-z]+-[0-9]$", var.aws_region))
+    error_message = "aws_region must be a valid AWS region identifier (e.g. eu-west-1)."
+  }
+}
+
+variable "environment" {
+  description = "Deployment environment"
+  type        = string
+  default     = "dev"
+
+  validation {
+    condition     = contains(["dev", "staging", "prod"], var.environment)
+    error_message = "environment must be one of: dev, staging, prod."
+  }
+}
+
+# ... (full file in solution/terraform/variables.tf)
+```
+
+### Validation patterns used
+
+| Pattern | Used for | Why |
+|---|---|---|
+| `can(regex(...))` | `aws_region`, `project_name` | Format check — catches typos against a regex |
+| `contains([...], var)` | `environment` | Explicit allowlist — only specific values permitted |
+| `can(cidrnetmask(var))` | `vpc_cidr` | Built-in CIDR validity check via Terraform's CIDR functions |
+| `length(var) >= n` | `availability_zones` | Collection size constraint — multi-AZ requires ≥2 |
+
+The `can()` wrapper is the idiomatic Terraform pattern: `can(expression)` returns `true` if the expression succeeds and `false` if it errors. Wrapping `regex` and `cidrnetmask` in `can` converts errors into clean validation failures.
+
+Validation runs **at plan time**, before any AWS API calls. Bad inputs fail immediately with the configured error message — no half-provisioned resources.
+
+### 3b. terraform.tfvars.example
+
+```bash
+vi terraform.tfvars.example
+```
+
+A template with the same defaults as `variables.tf`. The pattern: copy this to `terraform.tfvars`, edit to override, and Terraform auto-loads `terraform.tfvars` at plan time. The real `terraform.tfvars` is `.gitignore`'d.
+
+### 3c. Verifying the validation actually works
+
+Quick smoke test to prove the validation is wired:
+
+```bash
+terraform init -backend=false   # download providers, skip backend (not configured yet)
+terraform validate              # local syntax + type check, no AWS calls
+terraform plan -var="environment=production"   # should fail validation
+```
+
+Expected error:
+
+```
+Error: Invalid value for variable
+
+  on variables.tf line ...
+   ...
+
+environment must be one of: dev, staging, prod.
+```
+
+Plan stops before any API calls. That's the value of validation — fail fast, fail clearly.
+
+### Why three validation patterns and not all of them?
+
+Validation depth proportional to risk. Region and environment are high-frequency mistakes worth catching at plan time. CIDR is a format-error class problem — easy to typo, hard to debug from AWS error messages. Subnet CIDR lists could be validated with `alltrue` + `for` expressions, but the AWS provider rejects bad CIDRs at apply with reasonable errors, so the marginal value is low. Pick validations that pay back in saved debug time.
