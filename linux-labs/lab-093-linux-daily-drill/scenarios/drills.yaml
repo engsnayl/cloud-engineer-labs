@@ -151,6 +151,7 @@ scenarios:
 
   - id: 12
     tier: 1
+    must_succeed: true
     category: text-processing
     prompt: "Show all lines in 'access.log' that DO NOT contain '<<CODE>>'."
     validate_type: command_pattern
@@ -162,6 +163,7 @@ scenarios:
 
   - id: 13
     tier: 1
+    must_succeed: true
     category: text-processing
     prompt: "Print only the <<COL_ORDINAL>> column of 'access.log' (space-separated)."
     validate_type: command_pattern
@@ -190,6 +192,7 @@ scenarios:
 
   - id: 15
     tier: 1
+    must_succeed: true
     category: text-processing
     prompt: "Sort 'hosts.txt' alphabetically and remove duplicates."
     validate_type: command_pattern
@@ -261,6 +264,7 @@ scenarios:
 
   - id: 22
     tier: 1
+    must_succeed: true
     category: disk-memory
     prompt: "Show the total size of the current directory in human-readable format (just the total, not every file)."
     validate_type: command_pattern
@@ -362,6 +366,7 @@ scenarios:
 
   - id: 32
     tier: 2
+    must_succeed: true
     category: pipelines
     prompt: "List the top <<N>> most frequent IP addresses from 'access.log' (first column). Output sorted by frequency, descending."
     validate_type: command_pattern
@@ -382,6 +387,7 @@ scenarios:
 
   - id: 34
     tier: 2
+    must_succeed: true
     category: text-processing
     prompt: "Print the <<COL_ORDINAL>> field of '/etc/passwd' (colon-separated). Use cut, not awk."
     validate_type: command_pattern
@@ -396,6 +402,7 @@ scenarios:
 
   - id: 35
     tier: 2
+    must_succeed: true
     category: text-processing
     prompt: "Translate all lowercase letters to uppercase in 'config.txt' and print the result."
     validate_type: command_pattern
@@ -405,6 +412,7 @@ scenarios:
 
   - id: 36
     tier: 2
+    must_succeed: true
     category: text-processing
     prompt: "Count the number of lines, words, and characters in 'access.log' (one command, all three counts)."
     validate_type: command_pattern
@@ -414,6 +422,7 @@ scenarios:
 
   - id: 37
     tier: 2
+    must_succeed: true
     category: pipelines
     prompt: "Run 'ls -la' and BOTH show the output on screen AND save it to 'listing.txt' simultaneously."
     validate_type: command_pattern
