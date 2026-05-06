@@ -135,24 +135,58 @@ def build_sandbox():
 
 # ─── Command execution ────────────────────────────────────────────────────────
 def run_user_command(cmd: str, cwd: Path) -> tuple[int, str, str]:
-    """Run user's command with a 5s timeout in the sandbox. Skip blocking ones."""
+    """
+    Run user's command with a 5s timeout in the sandbox. Skip blocking ones.
+
+    Uses Popen with start_new_session=True so we can kill the entire process
+    group on timeout — otherwise pipelines like 'grep | other' can leave
+    orphaned children holding file descriptors that corrupt the next input().
+    """
+    import os
+    import signal
+
     blocking_prefixes = ("top", "htop", "vim", "vi ", "nano", "less", "more", "watch")
     if cmd.strip().startswith(blocking_prefixes) or re.match(r"^tail\s+.*-.*f", cmd.strip()):
         return (0, "[interactive command — not executed in drill]", "")
+
+    proc = None
     try:
-        result = subprocess.run(
+        proc = subprocess.Popen(
             cmd, shell=True, cwd=cwd,
-            capture_output=True, text=True, timeout=5
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            stdin=subprocess.DEVNULL,        # never let the command read from our stdin
+            text=True,
+            start_new_session=True            # put it in its own process group
         )
-        return (result.returncode, result.stdout, result.stderr)
+        stdout, stderr = proc.communicate(timeout=5)
+        return (proc.returncode, stdout, stderr)
     except subprocess.TimeoutExpired:
-        return (124, "", "[timed out after 5s]")
+        # Kill the whole process group, not just the shell
+        try:
+            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            pass
+        try:
+            stdout, stderr = proc.communicate(timeout=1)
+        except subprocess.TimeoutExpired:
+            stdout, stderr = "", ""
+        return (124, stdout, "[timed out after 5s]")
+    except Exception as e:
+        return (1, "", f"[error running command: {e}]")
 
 
 # ─── Validation ───────────────────────────────────────────────────────────────
-def validate(scenario: dict, cmd: str, stdout: str, stderr: str, cwd: Path) -> tuple[bool, str]:
+def validate(scenario: dict, cmd: str, stdout: str, stderr: str, cwd: Path,
+             rc: int = 0) -> tuple[bool, str]:
     vt = scenario["validate_type"]
     expected = scenario["validate"]
+
+    # Optional: require the command to have actually succeeded at runtime.
+    # Used for scenarios where a syntactically-malformed command could still
+    # match the regex (e.g. awk '(print $1)' contains "$1" but is wrong).
+    # Set must_succeed: true on the scenario to enable.
+    if scenario.get("must_succeed") and rc != 0:
+        return (False, f"command exited with error (rc={rc}). Check syntax.")
 
     if vt == "command_pattern":
         if re.search(expected, cmd.strip()):
@@ -213,6 +247,8 @@ def run_scenario(scenario: dict, idx: int, total: int, cwd: Path) -> dict:
 
     while True:
         attempts += 1
+        sys.stdout.flush()
+        sys.stderr.flush()
         try:
             cmd = input(f"{C.CYAN}$ {C.RESET}").strip()
         except (EOFError, KeyboardInterrupt):
@@ -238,11 +274,20 @@ def run_scenario(scenario: dict, idx: int, total: int, cwd: Path) -> dict:
             sys.exit(0)
 
         rc, stdout, stderr = run_user_command(cmd, cwd)
-        passed, reason = validate(scenario, cmd, stdout, stderr, cwd)
+        passed, reason = validate(scenario, cmd, stdout, stderr, cwd, rc)
 
         if passed:
             show_real_output(stdout, stderr)
-            print(f"{C.GREEN}✔ Correct.{C.RESET} {C.DIM}{scenario['teaches']}{C.RESET}")
+            # If the command's runtime failed but its shape was right (e.g. kill
+            # on a fictional PID, systemctl status on a service not running),
+            # be honest about what we verified.
+            shape_only = (scenario["validate_type"] == "command_pattern"
+                          and rc != 0
+                          and not scenario.get("must_succeed"))
+            if shape_only:
+                print(f"{C.GREEN}✔ Command shape correct.{C.RESET} {C.DIM}(runtime failed in sandbox — that's expected here.) {scenario['teaches']}{C.RESET}")
+            else:
+                print(f"{C.GREEN}✔ Correct.{C.RESET} {C.DIM}{scenario['teaches']}{C.RESET}")
             return {
                 "id": scenario["id"], "tier": scenario["tier"],
                 "category": scenario["category"],
