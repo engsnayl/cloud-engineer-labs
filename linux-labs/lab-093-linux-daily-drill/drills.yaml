@@ -1,0 +1,567 @@
+# Lab 093 — Linux Daily Drill
+# 50 scenarios across two tiers. Many are parameterised: prompt and validation
+# values are picked at runtime so you can't memorise the literal answer.
+#
+# Schema per scenario:
+#   id            — stable numeric identifier
+#   tier          — 1 (fundamentals) or 2 (harder, more interview-edge)
+#   category      — for end-of-drill scoring breakdown
+#   prompt        — plain-English goal. May reference {placeholders}
+#   validate_type — output_contains | output_equals | output_regex | command_pattern | side_effect
+#   validate      — what the validator looks for. May reference {placeholders}
+#   answer        — canonical command shown on skip / in --reveal. May reference {placeholders}
+#   teaches       — one-line takeaway shown on success
+#   params        — optional. Either:
+#                     - flat dict of placeholder → list of choices (one picked per run), OR
+#                     - _PAIRED: list of dicts (one whole dict picked per run, used when
+#                       multiple placeholders must vary together coherently)
+
+scenarios:
+
+  # ╔══════════════════════════════════════════════════════════════════════╗
+  # ║  TIER 1 — 30 fundamentals. Drill until clean three runs in a row.    ║
+  # ╚══════════════════════════════════════════════════════════════════════╝
+
+  # ─── FILE OPS ───────────────────────────────────────────────────────────
+  - id: 01
+    tier: 1
+    category: file-ops
+    prompt: "List ALL files in the current directory, including hidden ones, in long format."
+    validate_type: command_pattern
+    validate: "^ls\\s+.*-.*[la].*[la]"
+    answer: "ls -la"
+    teaches: "ls -la — bread and butter. -l for long, -a for hidden."
+
+  - id: 02
+    tier: 1
+    category: file-ops
+    prompt: "Show the first <<N>> lines of the file 'access.log'."
+    validate_type: output_contains
+    validate: ["192.168.1.10"]
+    answer: "head -n <<N>> access.log"
+    teaches: "head -n N — quick peek at the top of any file."
+    params:
+      N: [3, 5, 7, 10]
+
+  - id: 03
+    tier: 1
+    category: file-ops
+    prompt: "Show the LAST <<N>> lines of 'access.log'."
+    validate_type: output_contains
+    validate: ["192.168.1.28"]
+    answer: "tail -n <<N>> access.log"
+    teaches: "tail -n N — last N lines. Add -f to follow live."
+    params:
+      N: [5, 10, 15, 20]
+
+  - id: 04
+    tier: 1
+    category: file-ops
+    prompt: "Follow 'app.log' as new lines are written (live tail). Just type the command — drill won't actually block."
+    validate_type: command_pattern
+    validate: "^tail\\s+.*-.*f.*app\\.log"
+    answer: "tail -f app.log"
+    teaches: "tail -f — live tail. Daily reach for log debugging."
+
+  - id: 05
+    tier: 1
+    category: file-ops
+    prompt: "Copy the file 'app.log' to a new file called '<<DEST>>'."
+    validate_type: side_effect
+    validate: "test -f <<DEST>>"
+    answer: "cp app.log <<DEST>>"
+    teaches: "cp source dest — basic copy. Add -r for directories."
+    params:
+      DEST: ["app.log.bak", "app.log.old", "app.log.copy", "app.log.archive"]
+
+  - id: 06
+    tier: 1
+    category: file-ops
+    prompt: "Create a new empty file called '<<NAME>>'."
+    validate_type: side_effect
+    validate: "test -f <<NAME>>"
+    answer: "touch <<NAME>>"
+    teaches: "touch — creates empty files or updates timestamps."
+    params:
+      NAME: ["deploy.lock", "install.flag", "ready.marker", "build.token"]
+
+  # ─── SEARCH & FIND ──────────────────────────────────────────────────────
+  - id: 07
+    tier: 1
+    category: search
+    prompt: "Find all files in the current directory tree ending in '.<<EXT>>'."
+    validate_type: output_contains
+    validate: ["<<EXPECTED_FILE>>"]
+    answer: "find . -name '*.<<EXT>>'"
+    teaches: "find . -name PATTERN — recursive filename search. Quote the pattern!"
+    params:
+      _PAIRED:
+        - { EXT: "log",  EXPECTED_FILE: "app.log" }
+        - { EXT: "txt",  EXPECTED_FILE: "config.txt" }
+        - { EXT: "dat",  EXPECTED_FILE: "big.dat" }
+        - { EXT: "sh",   EXPECTED_FILE: "deploy.sh" }
+
+  - id: 08
+    tier: 1
+    category: search
+    prompt: "Find all files larger than <<SIZE>> in the current directory tree."
+    validate_type: output_contains
+    validate: ["./big.dat"]
+    answer: "find . -size +<<SIZE>>"
+    teaches: "find . -size +N — k/M/G suffixes; + for greater than, - for smaller."
+    params:
+      SIZE: ["500k", "1M", "1500k"]
+
+  - id: 09
+    tier: 1
+    category: search
+    prompt: "Find all files modified in the last <<DAYS>> day(s)."
+    validate_type: command_pattern
+    validate: "^find\\s+.*-mtime\\s*-\\s*<<DAYS>>"
+    answer: "find . -mtime -<<DAYS>>"
+    teaches: "find -mtime -N — modified in last N days. +N is older than N days."
+    params:
+      DAYS: [1, 2, 3, 7]
+
+  # ─── TEXT PROCESSING ────────────────────────────────────────────────────
+  - id: 10
+    tier: 1
+    category: text-processing
+    prompt: "Search 'app.log' for all lines containing '<<TERM>>' (case-insensitive)."
+    validate_type: output_contains
+    validate: ["<<TERM_UPPER>>"]
+    answer: "grep -i <<TERM>> app.log"
+    teaches: "grep -i — case-insensitive search."
+    params:
+      _PAIRED:
+        - { TERM: "error",   TERM_UPPER: "ERROR" }
+        - { TERM: "warn",    TERM_UPPER: "WARN" }
+        - { TERM: "info",    TERM_UPPER: "INFO" }
+
+  - id: 11
+    tier: 1
+    category: text-processing
+    prompt: "Count how many lines in 'access.log' contain '<<CODE>>'."
+    validate_type: output_regex
+    validate: "^\\s*[0-9]+\\s*$"
+    answer: "grep -c <<CODE>> access.log"
+    teaches: "grep -c — count matching lines. Faster than piping to wc."
+    params:
+      CODE: ["500", "200", "404", "503"]
+
+  - id: 12
+    tier: 1
+    category: text-processing
+    prompt: "Show all lines in 'access.log' that DO NOT contain '<<CODE>>'."
+    validate_type: command_pattern
+    validate: "^grep\\s+.*-.*v.*<<CODE>>"
+    answer: "grep -v <<CODE>> access.log"
+    teaches: "grep -v — invert match. Useful for filtering out noise."
+    params:
+      CODE: ["200", "GET", "192.168"]
+
+  - id: 13
+    tier: 1
+    category: text-processing
+    prompt: "Print only the <<COL_ORDINAL>> column of 'access.log' (space-separated)."
+    validate_type: command_pattern
+    validate: "^awk\\s+.*\\$\\s*<<COL>>"
+    answer: "awk '{{print $<<COL>>}}' access.log"
+    teaches: "awk '{print $N}' — extract column N. The text-processing Swiss army knife."
+    params:
+      _PAIRED:
+        - { COL: 1, COL_ORDINAL: "first" }
+        - { COL: 2, COL_ORDINAL: "second" }
+        - { COL: 7, COL_ORDINAL: "seventh" }
+
+  - id: 14
+    tier: 1
+    category: text-processing
+    prompt: "In 'config.txt', replace every occurrence of '<<OLD>>' with '<<NEW>>' and print the result (don't modify the file)."
+    validate_type: output_contains
+    validate: ["<<NEW>>"]
+    answer: "sed 's/<<OLD>>/<<NEW>>/g' config.txt"
+    teaches: "sed 's/old/new/g' — stream substitution. Add -i to edit in place."
+    params:
+      _PAIRED:
+        - { OLD: "localhost", NEW: "127.0.0.1" }
+        - { OLD: "5432",      NEW: "5433" }
+        - { OLD: "8080",      NEW: "9090" }
+
+  - id: 15
+    tier: 1
+    category: text-processing
+    prompt: "Sort 'hosts.txt' alphabetically and remove duplicates."
+    validate_type: command_pattern
+    validate: "sort.*\\|.*uniq|sort\\s+.*-u"
+    answer: "sort hosts.txt | uniq    # or: sort -u hosts.txt"
+    teaches: "sort | uniq — classic pipeline for deduping. -u shortcut on sort."
+
+  # ─── PROCESSES & SYSTEMD ────────────────────────────────────────────────
+  - id: 16
+    tier: 1
+    category: processes
+    prompt: "Show all running processes on the system in BSD-style long format."
+    validate_type: command_pattern
+    validate: "^ps\\s+.*aux|^ps\\s+.*-ef"
+    answer: "ps aux    # or: ps -ef"
+    teaches: "ps aux — every process, every user. Pipe to grep to find one."
+
+  - id: 17
+    tier: 1
+    category: processes
+    prompt: "Find the process ID(s) of any process with '<<NAME>>' in its command line."
+    validate_type: command_pattern
+    validate: "pgrep.*<<NAME>>|ps.*\\|.*grep.*<<NAME>>"
+    answer: "pgrep <<NAME>>    # or: ps aux | grep <<NAME>>"
+    teaches: "pgrep NAME — cleanest way to find PIDs by name."
+    params:
+      NAME: ["nginx", "sshd", "postgres", "docker"]
+
+  - id: 18
+    tier: 1
+    category: processes
+    prompt: "Show real-time CPU and memory usage for all processes (the interactive one)."
+    validate_type: command_pattern
+    validate: "^(top|htop)$"
+    answer: "top    # or htop if installed"
+    teaches: "top — live process monitor. Press q to quit, M to sort by memory."
+
+  - id: 19
+    tier: 1
+    category: processes
+    prompt: "Forcibly kill the process with PID <<PID>>."
+    validate_type: command_pattern
+    validate: "^kill\\s+.*-9.*<<PID>>|^kill\\s+.*-SIGKILL.*<<PID>>"
+    answer: "kill -9 <<PID>>"
+    teaches: "kill -9 PID — SIGKILL, the nuclear option. Try kill PID (SIGTERM) first."
+    params:
+      PID: [1234, 4571, 9823, 2048]
+
+  - id: 20
+    tier: 1
+    category: systemd
+    prompt: "Check the status of the '<<SVC>>' systemd service."
+    validate_type: command_pattern
+    validate: "^systemctl\\s+status\\s+<<SVC>>"
+    answer: "systemctl status <<SVC>>"
+    teaches: "systemctl status — the first thing you run when something's broken."
+    params:
+      SVC: ["nginx", "sshd", "docker", "k3s"]
+
+  # ─── DISK, MEMORY, NETWORKING ───────────────────────────────────────────
+  - id: 21
+    tier: 1
+    category: disk-memory
+    prompt: "Show disk usage of all mounted filesystems in human-readable format."
+    validate_type: command_pattern
+    validate: "^df\\s+.*-.*h"
+    answer: "df -h"
+    teaches: "df -h — disk free, human-readable. First check when 'no space left on device' hits."
+
+  - id: 22
+    tier: 1
+    category: disk-memory
+    prompt: "Show the total size of the current directory in human-readable format (just the total, not every file)."
+    validate_type: command_pattern
+    validate: "^du\\s+.*-.*sh|^du\\s+.*-.*hs"
+    answer: "du -sh ."
+    teaches: "du -sh — summary, human-readable. Use du -sh * to see what's eating disk."
+
+  - id: 23
+    tier: 1
+    category: disk-memory
+    prompt: "Show free and used memory in human-readable format."
+    validate_type: command_pattern
+    validate: "^free\\s+.*-.*h"
+    answer: "free -h"
+    teaches: "free -h — RAM at a glance. Watch the 'available' column, not 'free'."
+
+  - id: 24
+    tier: 1
+    category: networking
+    prompt: "Show all listening TCP ports on this system (the modern command)."
+    validate_type: command_pattern
+    validate: "^ss\\s+.*-.*[ltn].*[ltn].*[ltn]|^netstat\\s+.*-.*[ltn].*[ltn].*[ltn]"
+    answer: "ss -tlnp    # or legacy: netstat -tlnp"
+    teaches: "ss -tlnp — TCP, listening, numeric, processes. ss replaces netstat."
+
+  - id: 25
+    tier: 1
+    category: networking
+    prompt: "Show this machine's IP addresses (the modern command, not ifconfig)."
+    validate_type: command_pattern
+    validate: "^ip\\s+a|^ip\\s+addr"
+    answer: "ip a    # or: ip addr show"
+    teaches: "ip a — modern replacement for ifconfig. Available everywhere now."
+
+  - id: 26
+    tier: 1
+    category: networking
+    prompt: "Make an HTTP request to https://example.com and show only the response headers."
+    validate_type: command_pattern
+    validate: "^curl\\s+.*-.*[Iv].*example\\.com|^curl\\s+.*--head.*example\\.com"
+    answer: "curl -I https://example.com"
+    teaches: "curl -I — HEAD request, headers only. Bread and butter for API debugging."
+
+  # ─── PERMISSIONS ────────────────────────────────────────────────────────
+  - id: 27
+    tier: 1
+    category: permissions
+    prompt: "Make the script 'deploy.sh' executable."
+    validate_type: side_effect
+    validate: "test -x deploy.sh"
+    answer: "chmod +x deploy.sh"
+    teaches: "chmod +x — make executable. chmod 755 if you need finer control."
+
+  - id: 28
+    tier: 1
+    category: permissions
+    prompt: "Change the owner of 'config.txt' to user '<<USER>>' and group '<<USER>>' (use sudo even though it'll fail in the sandbox — drill validates the command shape)."
+    validate_type: command_pattern
+    validate: "^(sudo\\s+)?chown\\s+.*<<USER>>:<<USER>>.*config\\.txt"
+    answer: "sudo chown <<USER>>:<<USER>> config.txt"
+    teaches: "chown user:group file — change ownership. Almost always needs sudo."
+    params:
+      USER: ["ubuntu", "ec2-user", "admin", "deploy"]
+
+  # ─── ARCHIVES & TRANSFER ────────────────────────────────────────────────
+  - id: 29
+    tier: 1
+    category: archives
+    prompt: "Create a gzipped tarball called '<<ARCHIVE>>' containing the file 'access.log'."
+    validate_type: side_effect
+    validate: "test -f <<ARCHIVE>>"
+    answer: "tar -czf <<ARCHIVE>> access.log"
+    teaches: "tar -czf — Create, gZip, File. Mnemonic: 'See Zee File'. Extract: tar -xzf."
+    params:
+      ARCHIVE: ["logs.tar.gz", "snapshot.tar.gz", "bundle.tar.gz", "archive.tar.gz"]
+
+  - id: 30
+    tier: 1
+    category: archives
+    prompt: "Extract the archive 'sample.tar.gz' into the current directory."
+    validate_type: command_pattern
+    validate: "^tar\\s+.*x.*z.*f.*sample\\.tar\\.gz|^tar\\s+.*-.*x.*z.*f.*sample\\.tar\\.gz"
+    answer: "tar -xzf sample.tar.gz"
+    teaches: "tar -xzf — eXtract, gZip, File. The inverse of -czf."
+
+  # ╔══════════════════════════════════════════════════════════════════════╗
+  # ║  TIER 2 — 20 harder scenarios. Real interview-edge stuff.            ║
+  # ╚══════════════════════════════════════════════════════════════════════╝
+
+  # ─── PIPELINES & XARGS ──────────────────────────────────────────────────
+  - id: 31
+    tier: 2
+    category: pipelines
+    prompt: "Find all files ending in '.bak' under the current directory and delete them in one pipeline using xargs."
+    validate_type: command_pattern
+    validate: "find\\s+.*\\.bak.*\\|\\s*xargs\\s+.*rm|find\\s+.*\\.bak.*-delete"
+    answer: "find . -name '*.bak' | xargs rm    # or: find . -name '*.bak' -delete"
+    teaches: "find | xargs rm — classic pipeline. -delete is the safer modern flag."
+
+  - id: 32
+    tier: 2
+    category: pipelines
+    prompt: "List the top <<N>> most frequent IP addresses from 'access.log' (first column). Output sorted by frequency, descending."
+    validate_type: command_pattern
+    validate: "awk.*\\$1.*sort.*uniq.*-c.*sort.*-r"
+    answer: "awk '{{print $1}}' access.log | sort | uniq -c | sort -rn | head -n <<N>>"
+    teaches: "The classic 'top N from a log' pipeline. Drill it cold — comes up constantly."
+    params:
+      N: [3, 5, 10]
+
+  - id: 33
+    tier: 2
+    category: pipelines
+    prompt: "Run 'df -h' every 2 seconds, refreshing in place (the live monitoring command)."
+    validate_type: command_pattern
+    validate: "^watch\\s+.*-.*n.*2.*df|^watch\\s+.*-n\\s*2.*df"
+    answer: "watch -n 2 df -h"
+    teaches: "watch -n N CMD — repeat a command every N seconds. Underused; great for monitoring non-streaming commands."
+
+  - id: 34
+    tier: 2
+    category: text-processing
+    prompt: "Print the <<COL_ORDINAL>> field of '/etc/passwd' (colon-separated). Use cut, not awk."
+    validate_type: command_pattern
+    validate: "^cut\\s+.*-d.*:.*-f\\s*<<COL>>"
+    answer: "cut -d: -f<<COL>> /etc/passwd"
+    teaches: "cut -d DELIM -f N — lighter than awk for simple column extraction."
+    params:
+      _PAIRED:
+        - { COL: 1, COL_ORDINAL: "first (username)" }
+        - { COL: 3, COL_ORDINAL: "third (UID)" }
+        - { COL: 7, COL_ORDINAL: "seventh (shell)" }
+
+  - id: 35
+    tier: 2
+    category: text-processing
+    prompt: "Translate all lowercase letters to uppercase in 'config.txt' and print the result."
+    validate_type: command_pattern
+    validate: "tr\\s+.*a-z.*A-Z|tr\\s+.*\\[:lower:\\].*\\[:upper:\\]"
+    answer: "tr 'a-z' 'A-Z' < config.txt    # or: cat config.txt | tr 'a-z' 'A-Z'"
+    teaches: "tr — translate or delete characters. Reads from stdin only; use < or pipe in."
+
+  - id: 36
+    tier: 2
+    category: text-processing
+    prompt: "Count the number of lines, words, and characters in 'access.log' (one command, all three counts)."
+    validate_type: command_pattern
+    validate: "^wc\\s+.*access\\.log$|^wc\\s+access\\.log$"
+    answer: "wc access.log"
+    teaches: "wc — word count, but also lines (-l) and chars (-c). Bare wc gives all three."
+
+  - id: 37
+    tier: 2
+    category: pipelines
+    prompt: "Run 'ls -la' and BOTH show the output on screen AND save it to 'listing.txt' simultaneously."
+    validate_type: command_pattern
+    validate: "ls.*\\|\\s*tee\\s+listing\\.txt"
+    answer: "ls -la | tee listing.txt"
+    teaches: "tee — splits stdout to a file AND stdout. -a to append instead of overwrite."
+
+  # ─── JSON & STRUCTURED DATA ─────────────────────────────────────────────
+  - id: 38
+    tier: 2
+    category: json
+    prompt: "From 'data.json', extract the value of the top-level field '<<FIELD>>' using jq."
+    validate_type: output_contains
+    validate: ["<<EXPECTED>>"]
+    answer: "jq '.<<FIELD>>' data.json"
+    teaches: "jq '.field' — base case. jq is the awk of JSON; learn it cold."
+    params:
+      _PAIRED:
+        - { FIELD: "version",     EXPECTED: "2.4.1" }
+        - { FIELD: "environment", EXPECTED: "production" }
+        - { FIELD: "region",      EXPECTED: "eu-west-1" }
+
+  - id: 39
+    tier: 2
+    category: json
+    prompt: "From 'data.json', extract the names of all users (the 'name' field of each item in the 'users' array). One per line, no quotes."
+    validate_type: output_contains
+    validate: ["alice", "bob"]
+    answer: "jq -r '.users[].name' data.json"
+    teaches: "jq -r '.array[].field' — iterate an array and extract a field. -r strips quotes for raw output."
+
+  # ─── PROCESSES & FILES ──────────────────────────────────────────────────
+  - id: 40
+    tier: 2
+    category: processes
+    prompt: "Show all files currently held open by any process whose name contains 'bash'."
+    validate_type: command_pattern
+    validate: "^lsof\\s+.*-c.*bash|^lsof\\s+.*\\|\\s*grep.*bash"
+    answer: "lsof -c bash    # or: lsof | grep bash"
+    teaches: "lsof — LiSt Open Files. -c NAME filters by command. -i for network sockets."
+
+  - id: 41
+    tier: 2
+    category: processes
+    prompt: "Show what process (if any) is listening on port 8080."
+    validate_type: command_pattern
+    validate: "lsof\\s+.*-i.*:8080|ss\\s+.*-.*[ltn].*[ltn].*\\|.*8080|ss\\s+.*sport.*8080"
+    answer: "lsof -i :8080    # or: ss -tlnp | grep 8080"
+    teaches: "lsof -i :PORT — what's bound to this port? Daily reach when 'address already in use'."
+
+  # ─── NETWORKING ─────────────────────────────────────────────────────────
+  - id: 42
+    tier: 2
+    category: networking
+    prompt: "Look up the A record(s) for '<<DOMAIN>>' using dig."
+    validate_type: command_pattern
+    validate: "^dig\\s+.*<<DOMAIN>>"
+    answer: "dig <<DOMAIN>>    # or: dig +short <<DOMAIN>> A"
+    teaches: "dig — DNS lookup. +short for just the answer. dig is the cloud engineer's nslookup."
+    params:
+      DOMAIN: ["example.com", "google.com", "github.com", "amazon.com"]
+
+  - id: 43
+    tier: 2
+    category: networking
+    prompt: "Test whether you can establish a TCP connection to '<<HOST>>' on port <<PORT>> (the verbose, scan-only netcat command)."
+    validate_type: command_pattern
+    validate: "^nc\\s+.*-.*[zv].*[zv].*<<HOST>>.*<<PORT>>|^nc\\s+.*-.*v.*-.*z.*<<HOST>>.*<<PORT>>"
+    answer: "nc -zv <<HOST>> <<PORT>>"
+    teaches: "nc -zv HOST PORT — quick TCP reachability check. -z = scan only, -v = verbose."
+    params:
+      _PAIRED:
+        - { HOST: "example.com", PORT: 443 }
+        - { HOST: "github.com",  PORT: 22 }
+        - { HOST: "google.com",  PORT: 80 }
+
+  # ─── SYNC & TRANSFER ────────────────────────────────────────────────────
+  - id: 44
+    tier: 2
+    category: sync
+    prompt: "Copy the directory 'src/' to 'dst/' efficiently — preserve permissions and show progress."
+    validate_type: command_pattern
+    validate: "^rsync\\s+.*-.*[av].*[av].*src/?\\s+dst/?"
+    answer: "rsync -av src/ dst/"
+    teaches: "rsync -av SRC/ DST/ — archive mode + verbose. Trailing slash on SRC matters!"
+
+  # ─── LOGS (SYSTEMD ERA) ─────────────────────────────────────────────────
+  - id: 45
+    tier: 2
+    category: systemd
+    prompt: "Show the last <<N>> log entries for the systemd unit '<<SVC>>'."
+    validate_type: command_pattern
+    validate: "^journalctl\\s+.*-u\\s+<<SVC>>.*-n\\s*<<N>>|^journalctl\\s+.*-n\\s*<<N>>.*-u\\s+<<SVC>>"
+    answer: "journalctl -u <<SVC>> -n <<N>>"
+    teaches: "journalctl -u UNIT -n N — systemd's log viewer. Add -f to follow, --since '1 hour ago' to scope."
+    params:
+      _PAIRED:
+        - { SVC: "nginx",  N: 50 }
+        - { SVC: "docker", N: 100 }
+        - { SVC: "sshd",   N: 20 }
+
+  # ─── ENVIRONMENT ────────────────────────────────────────────────────────
+  - id: 46
+    tier: 2
+    category: env
+    prompt: "Show the current value of the environment variable '<<VAR>>'."
+    validate_type: command_pattern
+    validate: "^echo\\s+.*\\$<<VAR>>|^printenv\\s+<<VAR>>"
+    answer: "echo $<<VAR>>    # or: printenv <<VAR>>"
+    teaches: "echo $VAR — read a variable. printenv is more explicit. env shows all of them."
+    params:
+      VAR: ["PATH", "HOME", "USER", "SHELL"]
+
+  - id: 47
+    tier: 2
+    category: env
+    prompt: "Set an environment variable 'API_KEY' to 'secret123' so child processes inherit it."
+    validate_type: command_pattern
+    validate: "^export\\s+API_KEY\\s*=\\s*['\"]?secret123"
+    answer: "export API_KEY=secret123"
+    teaches: "export VAR=val — sets and exports. Without export, only the current shell sees it."
+
+  # ─── CONTROL FLOW & EXIT CODES ──────────────────────────────────────────
+  - id: 48
+    tier: 2
+    category: shell-control
+    prompt: "Run 'ls /tmp' and ONLY if it succeeds, then run 'echo done'. One line."
+    validate_type: command_pattern
+    validate: "ls\\s+/tmp\\s*&&\\s*echo\\s+done"
+    answer: "ls /tmp && echo done"
+    teaches: "&& chains commands by success. || chains by failure. Combine for if-then-else without writing a script."
+
+  - id: 49
+    tier: 2
+    category: shell-control
+    prompt: "Show the exit code of the most recently executed command."
+    validate_type: command_pattern
+    validate: "^echo\\s+[\"']?\\$\\?[\"']?$"
+    answer: "echo $?"
+    teaches: "$? — exit code of the last command. 0 = success, anything else = failure."
+
+  - id: 50
+    tier: 2
+    category: shell-control
+    prompt: "Show which executable would actually run when you type '<<CMD>>' (the full path)."
+    validate_type: command_pattern
+    validate: "^which\\s+<<CMD>>|^type\\s+<<CMD>>|^command\\s+-v\\s+<<CMD>>"
+    answer: "which <<CMD>>    # or: type <<CMD>>"
+    teaches: "which CMD — first match in $PATH. type CMD is more thorough — tells you if it's an alias, builtin, or function."
+    params:
+      CMD: ["python3", "git", "docker", "kubectl"]
