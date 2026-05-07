@@ -574,3 +574,118 @@ scenarios:
     teaches: "which CMD — first match in $PATH. type CMD is more thorough — tells you if it's an alias, builtin, or function."
     params:
       CMD: ["python3", "git", "docker", "kubectl"]
+
+  # ╔══════════════════════════════════════════════════════════════════════╗
+  # ║  TIER 2 EXTENSION — 10 more interview-essential scenarios.           ║
+  # ║  Added to close gaps around SSH, cron, network diagnosis,            ║
+  # ║  bash script safety, and file metadata.                              ║
+  # ╚══════════════════════════════════════════════════════════════════════╝
+
+  # ─── SSH ────────────────────────────────────────────────────────────────
+  - id: 51
+    tier: 2
+    category: ssh
+    prompt: "Connect to user '<<USER>>' on host '<<HOST>>' over SSH (just the basic command, no fancy options)."
+    validate_type: command_pattern
+    validate: "^ssh\\s+<<USER>>@<<HOST>>"
+    answer: "ssh <<USER>>@<<HOST>>"
+    teaches: "ssh user@host — base case. Add -i path/to/key.pem to specify a key, -p for non-default port."
+    params:
+      _PAIRED:
+        - { USER: "ubuntu",   HOST: "ec2-3-14-159.compute-1.amazonaws.com" }
+        - { USER: "ec2-user", HOST: "10.0.1.42" }
+        - { USER: "admin",    HOST: "bastion.prod.internal" }
+
+  - id: 52
+    tier: 2
+    category: ssh
+    prompt: "Copy the local file 'app.log' to '/tmp/' on the remote host '<<USER>>@<<HOST>>'."
+    validate_type: command_pattern
+    validate: "^scp\\s+app\\.log\\s+<<USER>>@<<HOST>>:/tmp/?"
+    answer: "scp app.log <<USER>>@<<HOST>>:/tmp/"
+    teaches: "scp local remote — secure copy. -r for directories. For large transfers consider rsync over ssh instead."
+    params:
+      _PAIRED:
+        - { USER: "ubuntu",   HOST: "10.0.1.42" }
+        - { USER: "ec2-user", HOST: "bastion.prod.internal" }
+
+  - id: 53
+    tier: 2
+    category: ssh
+    prompt: "Generate a new SSH key pair using the modern ed25519 algorithm (don't worry about the filename or passphrase prompts — just type the command)."
+    validate_type: command_pattern
+    validate: "^ssh-keygen\\s+.*-t\\s+ed25519"
+    answer: "ssh-keygen -t ed25519"
+    teaches: "ssh-keygen -t ed25519 — modern default. Smaller and faster than RSA. Add -C 'comment' to label the key."
+
+  # ─── CRON ───────────────────────────────────────────────────────────────
+  - id: 54
+    tier: 2
+    category: cron
+    prompt: "List your current user's cron jobs."
+    validate_type: command_pattern
+    validate: "^crontab\\s+.*-l"
+    answer: "crontab -l"
+    teaches: "crontab -l — list. -e to edit, -r to remove (no confirmation, be careful)."
+
+  - id: 55
+    tier: 2
+    category: cron
+    prompt: "Open your crontab in an editor to add a new scheduled job."
+    validate_type: command_pattern
+    validate: "^crontab\\s+.*-e"
+    answer: "crontab -e"
+    teaches: "crontab -e — opens $EDITOR. Syntax: minute hour day-of-month month day-of-week command."
+
+  - id: 56
+    tier: 2
+    category: cron
+    prompt: "Write the cron line that runs '/opt/backup.sh' at 3:00am every weekday (Monday to Friday). Just type the schedule + command, no crontab wrapping."
+    validate_type: command_pattern
+    validate: "^0+\\s+0*3\\s+\\*\\s+\\*\\s+(1-5|MON-FRI|1,2,3,4,5)\\s+/opt/backup\\.sh"
+    answer: "0 3 * * 1-5 /opt/backup.sh"
+    teaches: "Five fields: min hour dom month dow. 1-5 = Mon-Fri (0/7=Sun). Drill this pattern cold — it's a classic interview question."
+
+  # ─── NETWORK DIAGNOSIS ──────────────────────────────────────────────────
+  - id: 57
+    tier: 2
+    category: networking
+    prompt: "Send exactly 4 ICMP ping requests to '<<HOST>>' and then stop."
+    validate_type: command_pattern
+    validate: "^ping\\s+.*-c\\s*4.*<<HOST>>|^ping\\s+.*<<HOST>>.*-c\\s*4"
+    answer: "ping -c 4 <<HOST>>"
+    teaches: "ping -c N — send N packets and stop (otherwise it runs forever). First reach for 'is this host reachable at all?'"
+    params:
+      HOST: ["8.8.8.8", "example.com", "github.com", "1.1.1.1"]
+
+  - id: 58
+    tier: 2
+    category: networking
+    prompt: "Trace the network route packets take from this machine to '<<HOST>>'."
+    validate_type: command_pattern
+    validate: "^(traceroute|tracepath|mtr)\\s+.*<<HOST>>"
+    answer: "traceroute <<HOST>>    # or: mtr <<HOST>> (combines ping + traceroute)"
+    teaches: "traceroute HOST — shows each hop. mtr is the modern alternative; runs continuously. Use for 'where is my packet getting lost?'"
+    params:
+      HOST: ["8.8.8.8", "github.com", "amazon.com"]
+
+  # ─── BASH SCRIPT SAFETY ─────────────────────────────────────────────────
+  - id: 59
+    tier: 2
+    category: shell-control
+    prompt: "Inside a bash script, write the line that makes the script exit immediately if any command returns a non-zero exit code (the 'fail fast' option)."
+    validate_type: command_pattern
+    validate: "^set\\s+-e$|^set\\s+-e[uxo]|^set\\s+-[uxo]*e[uxo]*"
+    answer: "set -e"
+    teaches: "set -e — exit on error. Pair with set -u (error on unset vars) and set -o pipefail (catch failures mid-pipeline). Top of every robust script."
+
+  # ─── FILE METADATA ──────────────────────────────────────────────────────
+  - id: 60
+    tier: 2
+    category: file-ops
+    prompt: "Show detailed metadata (size, permissions, owner, timestamps, inode) for the file 'app.log'."
+    validate_type: command_pattern
+    validate: "^stat\\s+app\\.log"
+    answer: "stat app.log"
+    teaches: "stat FILE — everything ls -la doesn't tell you. Inode, exact byte size, all three timestamps (access/modify/change). Daily reach for 'when did this file actually change?'"
+    must_succeed: true
