@@ -44,3 +44,6 @@ __pycache__/
 # OS noise
 .DS_Store
 Thumbs.db
+
+# Slide build sources (only ship the .pptx)
+projects/project-001-build-multi-tier-app/interview-slides/_build/
