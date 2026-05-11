@@ -47,3 +47,10 @@ Thumbs.db
 
 # Slide build sources (only ship the .pptx)
 projects/project-001-build-multi-tier-app/interview-slides/_build/
+
+# Python virtual environments
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
