@@ -31,6 +31,7 @@ scenarios:
     validate: "^ls\\s+.*-.*[la].*[la]"
     answer: "ls -la"
     teaches: "ls -la — bread and butter. -l for long, -a for hidden."
+    hint: 'The two-letter command for listing files. Two single-letter flags combined: long format and ''all'' (including hidden).'
 
   - id: 02
     tier: 1
@@ -40,6 +41,7 @@ scenarios:
     validate: ["192.168.1.10"]
     answer: "head -n <<N>> access.log"
     teaches: "head -n N — quick peek at the top of any file."
+    hint: 'Opposite of ''tail''. Takes a -n flag for how many lines.'
     params:
       N: [3, 5, 7, 10]
 
@@ -51,6 +53,7 @@ scenarios:
     validate: ["192.168.1.28"]
     answer: "tail -n <<N>> access.log"
     teaches: "tail -n N — last N lines. Add -f to follow live."
+    hint: 'Opposite of ''head''. Takes a -n flag for how many lines.'
     params:
       N: [5, 10, 15, 20]
 
@@ -62,6 +65,7 @@ scenarios:
     validate: "^tail\\s+.*-.*f.*app\\.log"
     answer: "tail -f app.log"
     teaches: "tail -f — live tail. Daily reach for log debugging."
+    hint: 'Same tool as scenario for showing last N lines, but with a flag that means ''follow'' new lines as they appear.'
 
   - id: 05
     tier: 1
@@ -71,6 +75,7 @@ scenarios:
     validate: "test -f <<DEST>>"
     answer: "cp app.log <<DEST>>"
     teaches: "cp source dest — basic copy. Add -r for directories."
+    hint: 'Two-letter command. Source first, destination second.'
     params:
       DEST: ["app.log.bak", "app.log.old", "app.log.copy", "app.log.archive"]
 
@@ -82,6 +87,7 @@ scenarios:
     validate: "test -f <<NAME>>"
     answer: "touch <<NAME>>"
     teaches: "touch — creates empty files or updates timestamps."
+    hint: 'Five-letter command that creates an empty file (also updates timestamps on existing files).'
     params:
       NAME: ["deploy.lock", "install.flag", "ready.marker", "build.token"]
 
@@ -94,6 +100,7 @@ scenarios:
     validate: ["<<EXPECTED_FILE>>"]
     answer: "find . -name '*.<<EXT>>'"
     teaches: "find . -name PATTERN — recursive filename search. Quote the pattern!"
+    hint: 'Recursive search command. Starts with a dot for ''current directory'', then -name with the pattern in quotes.'
     params:
       _PAIRED:
         - { EXT: "log",  EXPECTED_FILE: "app.log" }
@@ -109,6 +116,7 @@ scenarios:
     validate: ["./big.dat"]
     answer: "find . -size +<<SIZE>>"
     teaches: "find . -size +N — k/M/G suffixes; + for greater than, - for smaller."
+    hint: 'Same recursive search tool. Look up the -size flag — uses k/M/G suffix and + means ''greater than''.'
     params:
       SIZE: ["500k", "1M", "1500k"]
 
@@ -120,6 +128,7 @@ scenarios:
     validate: "^find\\s+.*-mtime\\s*-\\s*<<DAYS>>"
     answer: "find . -mtime -<<DAYS>>"
     teaches: "find -mtime -N — modified in last N days. +N is older than N days."
+    hint: 'Same recursive search tool. The flag is -mtime; minus N means ''within the last N days''.'
     params:
       DAYS: [1, 2, 3, 7]
 
@@ -132,6 +141,7 @@ scenarios:
     validate: ["<<TERM_UPPER>>"]
     answer: "grep -i <<TERM>> app.log"
     teaches: "grep -i — case-insensitive search."
+    hint: 'Three-letter pattern matcher. The flag for case-insensitive is one letter.'
     params:
       _PAIRED:
         - { TERM: "error",   TERM_UPPER: "ERROR" }
@@ -146,6 +156,7 @@ scenarios:
     validate: "^\\s*[0-9]+\\s*$"
     answer: "grep -c <<CODE>> access.log"
     teaches: "grep -c — count matching lines. Faster than piping to wc."
+    hint: 'Same pattern matcher. There''s a single-letter flag specifically for counting matches — faster than piping to wc -l.'
     params:
       CODE: ["500", "200", "404", "503"]
 
@@ -158,6 +169,7 @@ scenarios:
     validate: "^grep\\s+.*-.*v.*<<CODE>>"
     answer: "grep -v <<CODE>> access.log"
     teaches: "grep -v — invert match. Useful for filtering out noise."
+    hint: 'Same pattern matcher. There''s a flag that *inverts* the match (returns lines that DON''T contain the pattern).'
     params:
       CODE: ["200", "GET", "192.168"]
 
@@ -170,6 +182,7 @@ scenarios:
     validate: "^awk\\s+.*\\$\\s*<<COL>>"
     answer: "awk '{{print $<<COL>>}}' access.log"
     teaches: "awk '{print $N}' — extract column N. The text-processing Swiss army knife."
+    hint: 'Three-letter command. Inside single quotes, use {print $N} where N is the column number.'
     params:
       _PAIRED:
         - { COL: 1, COL_ORDINAL: "first" }
@@ -184,6 +197,7 @@ scenarios:
     validate: ["<<NEW>>"]
     answer: "sed 's/<<OLD>>/<<NEW>>/g' config.txt"
     teaches: "sed 's/old/new/g' — stream substitution. Add -i to edit in place."
+    hint: 'Three-letter stream editor. The s/old/new/g pattern is what you want — substitute, globally.'
     params:
       _PAIRED:
         - { OLD: "localhost", NEW: "127.0.0.1" }
@@ -199,6 +213,7 @@ scenarios:
     validate: "sort.*\\|.*uniq|sort\\s+.*-u"
     answer: "sort hosts.txt | uniq    # or: sort -u hosts.txt"
     teaches: "sort | uniq — classic pipeline for deduping. -u shortcut on sort."
+    hint: 'Two commands piped together. First arranges in order, second collapses adjacent duplicates.'
 
   # ─── PROCESSES & SYSTEMD ────────────────────────────────────────────────
   - id: 16
@@ -209,6 +224,7 @@ scenarios:
     validate: "^ps\\s+.*aux|^ps\\s+.*-ef"
     answer: "ps aux    # or: ps -ef"
     teaches: "ps aux — every process, every user. Pipe to grep to find one."
+    hint: 'Three-letter command for processes. Two flag styles work: BSD-style ''aux'' (no dash) or System V ''-ef''.'
 
   - id: 17
     tier: 1
@@ -218,6 +234,7 @@ scenarios:
     validate: "pgrep.*<<NAME>>|ps.*\\|.*grep.*<<NAME>>"
     answer: "pgrep <<NAME>>    # or: ps aux | grep <<NAME>>"
     teaches: "pgrep NAME — cleanest way to find PIDs by name."
+    hint: 'Five-letter command starting with ''p'' for finding a process by name (cleaner than ps | grep).'
     params:
       NAME: ["nginx", "sshd", "postgres", "docker"]
 
@@ -229,6 +246,7 @@ scenarios:
     validate: "^(top|htop)$"
     answer: "top    # or htop if installed"
     teaches: "top — live process monitor. Press q to quit, M to sort by memory."
+    hint: 'Three-letter interactive command. Press q to quit, M to sort by memory.'
 
   - id: 19
     tier: 1
@@ -238,6 +256,7 @@ scenarios:
     validate: "^kill\\s+.*-9.*<<PID>>|^kill\\s+.*-SIGKILL.*<<PID>>"
     answer: "kill -9 <<PID>>"
     teaches: "kill -9 PID — SIGKILL, the nuclear option. Try kill PID (SIGTERM) first."
+    hint: 'The signal-sending command. -9 is the ''force'' flag (SIGKILL).'
     params:
       PID: [1234, 4571, 9823, 2048]
 
@@ -249,6 +268,7 @@ scenarios:
     validate: "^systemctl\\s+status\\s+<<SVC>>"
     answer: "systemctl status <<SVC>>"
     teaches: "systemctl status — the first thing you run when something's broken."
+    hint: 'The systemd command for managing services. The verb after it is one word: ''status''.'
     params:
       SVC: ["nginx", "sshd", "docker", "k3s"]
 
@@ -261,6 +281,7 @@ scenarios:
     validate: "^df\\s+.*-.*h"
     answer: "df -h"
     teaches: "df -h — disk free, human-readable. First check when 'no space left on device' hits."
+    hint: 'Two-letter command for *disk free*. Add the flag for human-readable units.'
 
   - id: 22
     tier: 1
@@ -271,6 +292,7 @@ scenarios:
     validate: "^du\\s+.*-.*sh|^du\\s+.*-.*hs"
     answer: "du -sh ."
     teaches: "du -sh — summary, human-readable. Use du -sh * to see what's eating disk."
+    hint: 'Two-letter command for *disk usage*. The flags you want: ''s'' for summary (don''t recurse) and ''h'' for human-readable.'
 
   - id: 23
     tier: 1
@@ -280,6 +302,7 @@ scenarios:
     validate: "^free\\s+.*-.*h"
     answer: "free -h"
     teaches: "free -h — RAM at a glance. Watch the 'available' column, not 'free'."
+    hint: 'Four-letter command for memory stats. Add the flag for human-readable units.'
 
   - id: 24
     tier: 1
@@ -289,6 +312,7 @@ scenarios:
     validate: "^ss\\s+.*-.*[ltn].*[ltn].*[ltn]|^netstat\\s+.*-.*[ltn].*[ltn].*[ltn]"
     answer: "ss -tlnp    # or legacy: netstat -tlnp"
     teaches: "ss -tlnp — TCP, listening, numeric, processes. ss replaces netstat."
+    hint: 'Two-letter modern replacement for netstat. Flags you want: TCP, listening, numeric, with process names.'
 
   - id: 25
     tier: 1
@@ -298,6 +322,7 @@ scenarios:
     validate: "^ip\\s+a|^ip\\s+addr"
     answer: "ip a    # or: ip addr show"
     teaches: "ip a — modern replacement for ifconfig. Available everywhere now."
+    hint: 'The modern replacement for ifconfig. Two-letter command followed by a single letter (or ''addr'').'
 
   - id: 26
     tier: 1
@@ -307,6 +332,7 @@ scenarios:
     validate: "^curl\\s+.*-.*[Iv].*example\\.com|^curl\\s+.*--head.*example\\.com"
     answer: "curl -I https://example.com"
     teaches: "curl -I — HEAD request, headers only. Bread and butter for API debugging."
+    hint: 'The web request tool. The flag for HEAD-only (headers, no body) is a single capital letter.'
 
   # ─── PERMISSIONS ────────────────────────────────────────────────────────
   - id: 27
@@ -317,6 +343,7 @@ scenarios:
     validate: "test -x deploy.sh"
     answer: "chmod +x deploy.sh"
     teaches: "chmod +x — make executable. chmod 755 if you need finer control."
+    hint: 'Five-letter permission command. The shortcut for ''add executable'' is +x.'
 
   - id: 28
     tier: 1
@@ -326,6 +353,7 @@ scenarios:
     validate: "^(sudo\\s+)?chown\\s+.*<<USER>>:<<USER>>.*config\\.txt"
     answer: "sudo chown <<USER>>:<<USER>> config.txt"
     teaches: "chown user:group file — change ownership. Almost always needs sudo."
+    hint: 'Five-letter ownership command. Format is user:group, then the file. Probably needs sudo.'
     params:
       USER: ["ubuntu", "ec2-user", "admin", "deploy"]
 
@@ -338,6 +366,7 @@ scenarios:
     validate: "test -f <<ARCHIVE>>"
     answer: "tar -czf <<ARCHIVE>> access.log"
     teaches: "tar -czf — Create, gZip, File. Mnemonic: 'See Zee File'. Extract: tar -xzf."
+    hint: 'The archive tool. Three flags combined: Create, gZip, File.'
     params:
       ARCHIVE: ["logs.tar.gz", "snapshot.tar.gz", "bundle.tar.gz", "archive.tar.gz"]
 
@@ -349,6 +378,7 @@ scenarios:
     validate: "^tar\\s+.*x.*z.*f.*sample\\.tar\\.gz|^tar\\s+.*-.*x.*z.*f.*sample\\.tar\\.gz"
     answer: "tar -xzf sample.tar.gz"
     teaches: "tar -xzf — eXtract, gZip, File. The inverse of -czf."
+    hint: 'Same archive tool. Three flags combined: eXtract, gZip, File.'
 
   # ╔══════════════════════════════════════════════════════════════════════╗
   # ║  TIER 2 — 20 harder scenarios. Real interview-edge stuff.            ║
@@ -363,6 +393,7 @@ scenarios:
     validate: "find\\s+.*\\.bak.*\\|\\s*xargs\\s+.*rm|find\\s+.*\\.bak.*-delete"
     answer: "find . -name '*.bak' | xargs rm    # or: find . -name '*.bak' -delete"
     teaches: "find | xargs rm — classic pipeline. -delete is the safer modern flag."
+    hint: 'Pipe find''s output to a tool that runs a command per line. Or use find''s built-in -delete flag — safer.'
 
   - id: 32
     tier: 2
@@ -373,6 +404,7 @@ scenarios:
     validate: "awk.*\\$1.*sort.*uniq.*-c.*sort.*-r"
     answer: "awk '{{print $1}}' access.log | sort | uniq -c | sort -rn | head -n <<N>>"
     teaches: "The classic 'top N from a log' pipeline. Drill it cold — comes up constantly."
+    hint: 'Four-stage pipeline: extract the IP column → sort → count uniques → sort by count descending → take the top N.'
     params:
       N: [3, 5, 10]
 
@@ -384,6 +416,7 @@ scenarios:
     validate: "^watch\\s+.*-.*n.*2.*df|^watch\\s+.*-n\\s*2.*df"
     answer: "watch -n 2 df -h"
     teaches: "watch -n N CMD — repeat a command every N seconds. Underused; great for monitoring non-streaming commands."
+    hint: 'Five-letter command starting with ''w'' that re-runs another command on a fixed interval. The interval flag is -n.'
 
   - id: 34
     tier: 2
@@ -394,6 +427,7 @@ scenarios:
     validate: "^cut\\s+.*-d.*:.*-f\\s*<<COL>>"
     answer: "cut -d: -f<<COL>> /etc/passwd"
     teaches: "cut -d DELIM -f N — lighter than awk for simple column extraction."
+    hint: 'Three-letter command for column extraction (lighter than awk). Flags you need: -d for delimiter, -f for field number.'
     params:
       _PAIRED:
         - { COL: 1, COL_ORDINAL: "first (username)" }
@@ -409,6 +443,7 @@ scenarios:
     validate: "tr\\s+.*a-z.*A-Z|tr\\s+.*\\[:lower:\\].*\\[:upper:\\]"
     answer: "tr 'a-z' 'A-Z' < config.txt    # or: cat config.txt | tr 'a-z' 'A-Z'"
     teaches: "tr — translate or delete characters. Reads from stdin only; use < or pipe in."
+    hint: 'Two-letter command — *translate* characters. Reads from stdin only, so use < or pipe in.'
 
   - id: 36
     tier: 2
@@ -419,6 +454,7 @@ scenarios:
     validate: "^wc\\s+.*access\\.log$|^wc\\s+access\\.log$"
     answer: "wc access.log"
     teaches: "wc — word count, but also lines (-l) and chars (-c). Bare wc gives all three."
+    hint: 'Two-letter command that, with no flags, gives you all three counts in one go.'
 
   - id: 37
     tier: 2
@@ -429,6 +465,7 @@ scenarios:
     validate: "ls.*\\|\\s*tee\\s+listing\\.txt"
     answer: "ls -la | tee listing.txt"
     teaches: "tee — splits stdout to a file AND stdout. -a to append instead of overwrite."
+    hint: 'Three-letter command that splits stdout to BOTH a file AND the screen.'
 
   # ─── JSON & STRUCTURED DATA ─────────────────────────────────────────────
   - id: 38
@@ -439,6 +476,7 @@ scenarios:
     validate: ["<<EXPECTED>>"]
     answer: "jq '.<<FIELD>>' data.json"
     teaches: "jq '.field' — base case. jq is the awk of JSON; learn it cold."
+    hint: 'JSON processor — two letters. The filter is a dot followed by the field name, all in single quotes.'
     params:
       _PAIRED:
         - { FIELD: "version",     EXPECTED: "2.4.1" }
@@ -453,6 +491,7 @@ scenarios:
     validate: ["alice", "bob"]
     answer: "jq -r '.users[].name' data.json"
     teaches: "jq -r '.array[].field' — iterate an array and extract a field. -r strips quotes for raw output."
+    hint: 'Same JSON processor. To iterate an array use [], then .field to extract. The -r flag strips quotes.'
 
   # ─── PROCESSES & FILES ──────────────────────────────────────────────────
   - id: 40
@@ -463,6 +502,7 @@ scenarios:
     validate: "^lsof\\s+.*-c.*bash|^lsof\\s+.*\\|\\s*grep.*bash"
     answer: "lsof -c bash    # or: lsof | grep bash"
     teaches: "lsof — LiSt Open Files. -c NAME filters by command. -i for network sockets."
+    hint: 'Five-letter command — LiSt Open Files. Filter by command name with -c.'
 
   - id: 41
     tier: 2
@@ -472,6 +512,7 @@ scenarios:
     validate: "lsof\\s+.*-i.*:8080|ss\\s+.*-.*[ltn].*[ltn].*\\|.*8080|ss\\s+.*sport.*8080"
     answer: "lsof -i :8080    # or: ss -tlnp | grep 8080"
     teaches: "lsof -i :PORT — what's bound to this port? Daily reach when 'address already in use'."
+    hint: 'Same list-open-files tool, but with the -i flag for network sockets. Format: -i :PORT.'
 
   # ─── NETWORKING ─────────────────────────────────────────────────────────
   - id: 42
@@ -482,6 +523,7 @@ scenarios:
     validate: "^dig\\s+.*<<DOMAIN>>"
     answer: "dig <<DOMAIN>>    # or: dig +short <<DOMAIN>> A"
     teaches: "dig — DNS lookup. +short for just the answer. dig is the cloud engineer's nslookup."
+    hint: 'Three-letter DNS lookup tool. Cloud engineer''s nslookup. Just give it the domain.'
     params:
       DOMAIN: ["example.com", "google.com", "github.com", "amazon.com"]
 
@@ -493,6 +535,7 @@ scenarios:
     validate: "^nc\\s+.*-.*[zv].*[zv].*<<HOST>>.*<<PORT>>|^nc\\s+.*-.*v.*-.*z.*<<HOST>>.*<<PORT>>"
     answer: "nc -zv <<HOST>> <<PORT>>"
     teaches: "nc -zv HOST PORT — quick TCP reachability check. -z = scan only, -v = verbose."
+    hint: 'Two-letter Swiss army knife. -z = scan only (don''t transfer data), -v = verbose. Then host then port.'
     params:
       _PAIRED:
         - { HOST: "example.com", PORT: 443 }
@@ -508,6 +551,7 @@ scenarios:
     validate: "^rsync\\s+.*-.*[av].*[av].*src/?\\s+dst/?"
     answer: "rsync -av src/ dst/"
     teaches: "rsync -av SRC/ DST/ — archive mode + verbose. Trailing slash on SRC matters!"
+    hint: 'Five-letter sync tool. -av = archive mode + verbose. Mind the trailing slash on the source!'
 
   # ─── LOGS (SYSTEMD ERA) ─────────────────────────────────────────────────
   - id: 45
@@ -518,6 +562,7 @@ scenarios:
     validate: "^journalctl\\s+.*-u\\s+<<SVC>>.*-n\\s*<<N>>|^journalctl\\s+.*-n\\s*<<N>>.*-u\\s+<<SVC>>"
     answer: "journalctl -u <<SVC>> -n <<N>>"
     teaches: "journalctl -u UNIT -n N — systemd's log viewer. Add -f to follow, --since '1 hour ago' to scope."
+    hint: 'Systemd''s log viewer (one word, starts with ''journal''). -u for unit, -n for last N entries.'
     params:
       _PAIRED:
         - { SVC: "nginx",  N: 50 }
@@ -533,6 +578,7 @@ scenarios:
     validate: "^echo\\s+.*\\$<<VAR>>|^printenv\\s+<<VAR>>"
     answer: "echo $<<VAR>>    # or: printenv <<VAR>>"
     teaches: "echo $VAR — read a variable. printenv is more explicit. env shows all of them."
+    hint: 'The variable''s value lives at $NAME. The simplest command to print something is three letters. Or use ''printenv''.'
     params:
       VAR: ["PATH", "HOME", "USER", "SHELL"]
 
@@ -544,6 +590,7 @@ scenarios:
     validate: "^export\\s+API_KEY\\s*=\\s*['\"]?secret123"
     answer: "export API_KEY=secret123"
     teaches: "export VAR=val — sets and exports. Without export, only the current shell sees it."
+    hint: 'Bash builtin — six letters. Format: VAR=value, prefixed with the keyword that makes child processes inherit it.'
 
   # ─── CONTROL FLOW & EXIT CODES ──────────────────────────────────────────
   - id: 48
@@ -554,6 +601,7 @@ scenarios:
     validate: "ls\\s+/tmp\\s*&&\\s*echo\\s+done"
     answer: "ls /tmp && echo done"
     teaches: "&& chains commands by success. || chains by failure. Combine for if-then-else without writing a script."
+    hint: 'The success-only chain operator is two ampersands. Run command1, then command2 only if the first succeeded.'
 
   - id: 49
     tier: 2
@@ -563,6 +611,7 @@ scenarios:
     validate: "^echo\\s+[\"']?\\$\\?[\"']?$"
     answer: "echo $?"
     teaches: "$? — exit code of the last command. 0 = success, anything else = failure."
+    hint: 'The exit code of the last command is in a special two-character variable starting with $.'
 
   - id: 50
     tier: 2
@@ -572,6 +621,7 @@ scenarios:
     validate: "^which\\s+<<CMD>>|^type\\s+<<CMD>>|^command\\s+-v\\s+<<CMD>>"
     answer: "which <<CMD>>    # or: type <<CMD>>"
     teaches: "which CMD — first match in $PATH. type CMD is more thorough — tells you if it's an alias, builtin, or function."
+    hint: 'Five-letter command that searches $PATH. Or ''type'' for a more thorough check (catches aliases and builtins).'
     params:
       CMD: ["python3", "git", "docker", "kubectl"]
 
@@ -590,6 +640,7 @@ scenarios:
     validate: "^ssh\\s+<<USER>>@<<HOST>>"
     answer: "ssh <<USER>>@<<HOST>>"
     teaches: "ssh user@host — base case. Add -i path/to/key.pem to specify a key, -p for non-default port."
+    hint: 'Three-letter command. Format: user@host. No fancy flags needed for the basic case.'
     params:
       _PAIRED:
         - { USER: "ubuntu",   HOST: "ec2-3-14-159.compute-1.amazonaws.com" }
@@ -604,6 +655,7 @@ scenarios:
     validate: "^scp\\s+app\\.log\\s+<<USER>>@<<HOST>>:/tmp/?"
     answer: "scp app.log <<USER>>@<<HOST>>:/tmp/"
     teaches: "scp local remote — secure copy. -r for directories. For large transfers consider rsync over ssh instead."
+    hint: 'Like cp but for remote — three letters, starts with ''s''. Format: source then user@host:/destination/path.'
     params:
       _PAIRED:
         - { USER: "ubuntu",   HOST: "10.0.1.42" }
@@ -617,6 +669,7 @@ scenarios:
     validate: "^ssh-keygen\\s+.*-t\\s+ed25519"
     answer: "ssh-keygen -t ed25519"
     teaches: "ssh-keygen -t ed25519 — modern default. Smaller and faster than RSA. Add -C 'comment' to label the key."
+    hint: 'Generates SSH keys — two words joined by hyphen. The -t flag picks the key type. The modern algorithm is ed25519.'
 
   # ─── CRON ───────────────────────────────────────────────────────────────
   - id: 54
@@ -627,6 +680,7 @@ scenarios:
     validate: "^crontab\\s+.*-l"
     answer: "crontab -l"
     teaches: "crontab -l — list. -e to edit, -r to remove (no confirmation, be careful)."
+    hint: 'Five-letter command for managing cron tables. Single-letter flag for ''list''.'
 
   - id: 55
     tier: 2
@@ -636,6 +690,7 @@ scenarios:
     validate: "^crontab\\s+.*-e"
     answer: "crontab -e"
     teaches: "crontab -e — opens $EDITOR. Syntax: minute hour day-of-month month day-of-week command."
+    hint: 'Same cron-table command. Single-letter flag for ''edit''.'
 
   - id: 56
     tier: 2
@@ -645,6 +700,7 @@ scenarios:
     validate: "^0+\\s+0*3\\s+\\*\\s+\\*\\s+(1-5|MON-FRI|1,2,3,4,5)\\s+/opt/backup\\.sh"
     answer: "0 3 * * 1-5 /opt/backup.sh"
     teaches: "Five fields: min hour dom month dow. 1-5 = Mon-Fri (0/7=Sun). Drill this pattern cold — it's a classic interview question."
+    hint: 'Five fields separated by spaces, then the command. The fifth field is the day-of-week — Monday-to-Friday is ''1-5''.'
 
   # ─── NETWORK DIAGNOSIS ──────────────────────────────────────────────────
   - id: 57
@@ -655,6 +711,7 @@ scenarios:
     validate: "^ping\\s+.*-c\\s*4.*<<HOST>>|^ping\\s+.*<<HOST>>.*-c\\s*4"
     answer: "ping -c 4 <<HOST>>"
     teaches: "ping -c N — send N packets and stop (otherwise it runs forever). First reach for 'is this host reachable at all?'"
+    hint: 'Four-letter command. The flag to limit packet count (so it doesn''t run forever) is -c.'
     params:
       HOST: ["8.8.8.8", "example.com", "github.com", "1.1.1.1"]
 
@@ -666,6 +723,7 @@ scenarios:
     validate: "^(traceroute|tracepath|mtr)\\s+.*<<HOST>>"
     answer: "traceroute <<HOST>>    # or: mtr <<HOST>> (combines ping + traceroute)"
     teaches: "traceroute HOST — shows each hop. mtr is the modern alternative; runs continuously. Use for 'where is my packet getting lost?'"
+    hint: 'Ten-letter command starting with ''trace''. Just give it the host. Or use ''mtr'' (combines ping + traceroute, runs continuously).'
     params:
       HOST: ["8.8.8.8", "github.com", "amazon.com"]
 
@@ -678,6 +736,7 @@ scenarios:
     validate: "^set\\s+-e$|^set\\s+-e[uxo]|^set\\s+-[uxo]*e[uxo]*"
     answer: "set -e"
     teaches: "set -e — exit on error. Pair with set -u (error on unset vars) and set -o pipefail (catch failures mid-pipeline). Top of every robust script."
+    hint: 'Bash builtin — three letters. The flag is a single dash followed by the first letter of ''error''. Goes at the top of robust scripts.'
 
   # ─── FILE METADATA ──────────────────────────────────────────────────────
   - id: 60
@@ -688,4 +747,5 @@ scenarios:
     validate: "^stat\\s+app\\.log"
     answer: "stat app.log"
     teaches: "stat FILE — everything ls -la doesn't tell you. Inode, exact byte size, all three timestamps (access/modify/change). Daily reach for 'when did this file actually change?'"
+    hint: 'Four-letter command. Just the filename — no flags needed. Tells you size, perms, owner, AND all three timestamps.'
     must_succeed: true
