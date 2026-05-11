@@ -58,7 +58,7 @@ def banner():
     print(f"""{C.CYAN}{C.BOLD}
 ╔══════════════════════════════════════════════════════════════╗
 ║              LAB 093 — LINUX DAILY DRILL                     ║
-║         50 commands. Two tiers. Boot camp mode.              ║
+║         60 commands. Two tiers. Boot camp mode.              ║
 ╚══════════════════════════════════════════════════════════════╝{C.RESET}
 """)
 
@@ -146,7 +146,21 @@ def run_user_command(cmd: str, cwd: Path) -> tuple[int, str, str]:
     import signal
 
     blocking_prefixes = ("top", "htop", "vim", "vi ", "nano", "less", "more", "watch")
-    if cmd.strip().startswith(blocking_prefixes) or re.match(r"^tail\s+.*-.*f", cmd.strip()):
+    cmd_stripped = cmd.strip()
+
+    # Detect commands that open an interactive editor or block on the TTY.
+    # These are validated by command pattern only — never actually executed —
+    # because subprocess can't cleanly tear them down once they have control
+    # of the terminal.
+    interactive_patterns = [
+        r"^tail\s+.*-.*f",          # tail -f
+        r"^crontab\s+.*-e",          # crontab -e (any spacing)
+        r"^visudo",                  # visudo
+        r"^ssh\b",                   # ssh would actually try to connect
+        r"^scp\b",                   # scp same
+    ]
+
+    if cmd_stripped.startswith(blocking_prefixes) or any(re.match(p, cmd_stripped) for p in interactive_patterns):
         return (0, "[interactive command — not executed in drill]", "")
 
     proc = None
@@ -258,7 +272,11 @@ def run_scenario(scenario: dict, idx: int, total: int, cwd: Path) -> dict:
         if not cmd:
             continue
         if cmd in ("?", "help"):
-            print(f"{C.YELLOW}Hint: think about what tool produces the kind of output described.{C.RESET}")
+            hint = scenario.get("hint")
+            if hint:
+                print(f"{C.YELLOW}Hint: {hint}{C.RESET}")
+            else:
+                print(f"{C.YELLOW}Hint: think about what tool produces the kind of output described.{C.RESET}")
             continue
         if cmd == "skip":
             print(f"{C.YELLOW}Answer: {C.BOLD}{scenario['answer']}{C.RESET}")
