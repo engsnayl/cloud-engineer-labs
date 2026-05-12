@@ -1,0 +1,41 @@
+# Git
+.git
+.gitignore
+.gitkeep
+
+# Python build/runtime artifacts
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.coverage
+*.egg-info
+
+# Virtual environments
+.venv
+venv
+
+# Editor / OS noise
+.vscode
+.idea
+*.swp
+.DS_Store
+Thumbs.db
+
+# Tests — they don't belong in the runtime image
+tests/
+
+# Docs and project metadata not needed at runtime
+*.md
+LICENSE
+
+# Local environment files (secrets!)
+.env
+.env.*
+
+# Terraform state (not relevant to this image, but defensive)
+.terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
