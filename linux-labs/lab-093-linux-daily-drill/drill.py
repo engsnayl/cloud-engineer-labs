@@ -323,40 +323,91 @@ def run_scenario(scenario: dict, idx: int, total: int, cwd: Path) -> dict:
 # .mastery.json so it persists. Use --status to see progress; --reset-mastery to clear.
 
 def load_mastery() -> dict:
+    """Load mastery state. Schema:
+    {
+      "tier_1":  {clean_streak, best_streak, total_runs, mastered},
+      "tier_2":  {...},
+      "categories": {
+         "networking": {clean_streak, best_streak, total_runs, mastered},
+         ...
+      }
+    }
+    Older mastery files without 'categories' get auto-upgraded on read.
+    """
     if MASTERY_FILE.exists():
-        return json.loads(MASTERY_FILE.read_text())
-    return {"tier_1": {"clean_streak": 0, "best_streak": 0, "total_runs": 0, "mastered": False},
-            "tier_2": {"clean_streak": 0, "best_streak": 0, "total_runs": 0, "mastered": False}}
+        m = json.loads(MASTERY_FILE.read_text())
+        # Auto-upgrade older files that don't have categories yet
+        if "categories" not in m:
+            m["categories"] = {}
+        return m
+    return {
+        "tier_1": {"clean_streak": 0, "best_streak": 0, "total_runs": 0, "mastered": False},
+        "tier_2": {"clean_streak": 0, "best_streak": 0, "total_runs": 0, "mastered": False},
+        "categories": {}
+    }
 
 
 def save_mastery(m: dict):
     MASTERY_FILE.write_text(json.dumps(m, indent=2))
 
 
-def update_mastery(results: list, tier_filter):
-    """Update mastery only when the user ran a full tier (not a count-limited subset)."""
-    if tier_filter not in ("1", "2"):
-        return None  # mixed tier or partial run; don't track
+def update_mastery(results: list, tier_filter, category_filter=None, count_limited=False):
+    """
+    Update mastery state. Two paths:
 
-    tier_results = [r for r in results if str(r["tier"]) == tier_filter]
-    if not tier_results:
-        return None
+    1. Full tier run (no --category, no --count): updates tier_1 or tier_2 mastery.
+    2. Full category run (--category X, no --count, no --tier OR --tier all):
+       updates that category's mastery. Categories with <2 scenarios are skipped
+       — a single-scenario "clean run streak" devalues the flag.
 
-    # Clean run = every Tier-X scenario solved first-try, no skips
-    clean = all(r["passed"] and r["attempts"] == 1 and not r["skipped"] for r in tier_results)
+    Anything else (--count, mixed scope) returns None — no mastery update.
+    Returns the updated mastery dict for the relevant scope (for display), or None.
+    """
+    if count_limited:
+        return None  # cherry-picking is not mastery
 
-    m = load_mastery()
-    key = f"tier_{tier_filter}"
-    m[key]["total_runs"] += 1
-    if clean:
-        m[key]["clean_streak"] += 1
-        m[key]["best_streak"] = max(m[key]["best_streak"], m[key]["clean_streak"])
-        if m[key]["clean_streak"] >= 3:
-            m[key]["mastered"] = True
-    else:
-        m[key]["clean_streak"] = 0
-    save_mastery(m)
-    return m[key]
+    # Path 1: full single-tier run
+    if category_filter is None and tier_filter in ("1", "2"):
+        tier_results = [r for r in results if str(r["tier"]) == tier_filter]
+        if not tier_results:
+            return None
+        clean = all(r["passed"] and r["attempts"] == 1 and not r["skipped"] for r in tier_results)
+        m = load_mastery()
+        key = f"tier_{tier_filter}"
+        m[key]["total_runs"] += 1
+        if clean:
+            m[key]["clean_streak"] += 1
+            m[key]["best_streak"] = max(m[key]["best_streak"], m[key]["clean_streak"])
+            if m[key]["clean_streak"] >= 3:
+                m[key]["mastered"] = True
+        else:
+            m[key]["clean_streak"] = 0
+        save_mastery(m)
+        return {"scope": "tier", "name": key, "data": m[key]}
+
+    # Path 2: full category run (any tier — including 'all')
+    if category_filter is not None:
+        # Only categories with >=2 scenarios qualify for mastery
+        if len(results) < 2:
+            return None
+        clean = all(r["passed"] and r["attempts"] == 1 and not r["skipped"] for r in results)
+        m = load_mastery()
+        cats = m.setdefault("categories", {})
+        cat = cats.setdefault(category_filter, {
+            "clean_streak": 0, "best_streak": 0, "total_runs": 0, "mastered": False
+        })
+        cat["total_runs"] += 1
+        if clean:
+            cat["clean_streak"] += 1
+            cat["best_streak"] = max(cat["best_streak"], cat["clean_streak"])
+            if cat["clean_streak"] >= 3:
+                cat["mastered"] = True
+        else:
+            cat["clean_streak"] = 0
+        save_mastery(m)
+        return {"scope": "category", "name": category_filter, "data": cat}
+
+    return None
 
 
 # ─── End-of-drill report ──────────────────────────────────────────────────────
@@ -392,23 +443,35 @@ def print_results(results: list, total_elapsed: float, mastery_update):
         print(f"\n  {C.GREEN}{C.BOLD}Clean run.{C.RESET}")
 
     if mastery_update:
-        print(f"\n  {C.BOLD}Mastery:{C.RESET}")
-        if mastery_update["mastered"]:
-            print(f"    {C.GREEN}{C.BOLD}✓ TIER MASTERED{C.RESET} {C.DIM}(after {mastery_update['best_streak']} clean runs in a row){C.RESET}")
-            print(f"    {C.DIM}You can stop drilling this tier. Move on.{C.RESET}")
+        data = mastery_update["data"]
+        scope = mastery_update["scope"]
+        name = mastery_update["name"]
+        label = (
+            f"Tier {name[-1]}" if scope == "tier"
+            else f"Category '{name}'"
+        )
+        print(f"\n  {C.BOLD}Mastery ({label}):{C.RESET}")
+        if data["mastered"]:
+            print(f"    {C.GREEN}{C.BOLD}✓ MASTERED{C.RESET} {C.DIM}(after {data['best_streak']} clean runs in a row){C.RESET}")
+            if scope == "tier":
+                print(f"    {C.DIM}You can stop drilling this tier. Move on.{C.RESET}")
+            else:
+                print(f"    {C.DIM}This category is solid. Time for a different one or a full-tier run.{C.RESET}")
         else:
-            streak = mastery_update["clean_streak"]
-            print(f"    Clean streak: {C.CYAN}{streak}/3{C.RESET}  {C.DIM}(best ever: {mastery_update['best_streak']}){C.RESET}")
+            streak = data["clean_streak"]
+            print(f"    Clean streak: {C.CYAN}{streak}/3{C.RESET}  {C.DIM}(best ever: {data['best_streak']}){C.RESET}")
             if streak == 0:
-                print(f"    {C.DIM}Streak reset. Need 3 clean runs in a row to master this tier.{C.RESET}")
+                print(f"    {C.DIM}Streak reset. Need 3 clean runs in a row to master.{C.RESET}")
             elif streak < 3:
-                print(f"    {C.DIM}{3 - streak} more clean run(s) to master this tier.{C.RESET}")
+                print(f"    {C.DIM}{3 - streak} more clean run(s) to master.{C.RESET}")
     print()
 
 
 def show_status():
     m = load_mastery()
     print(f"\n{C.BOLD}Mastery progress{C.RESET}\n")
+
+    print(f"  {C.BOLD}Tiers:{C.RESET}")
     for tier in ("tier_1", "tier_2"):
         d = m[tier]
         label = "Tier 1 (fundamentals)" if tier == "tier_1" else "Tier 2 (interview-edge)"
@@ -416,8 +479,25 @@ def show_status():
             mark = f"{C.GREEN}✓ MASTERED{C.RESET}"
         else:
             mark = f"streak {C.CYAN}{d['clean_streak']}/3{C.RESET}"
-        print(f"  {label:30s}  {mark}")
-        print(f"    {C.DIM}total runs: {d['total_runs']}, best streak: {d['best_streak']}{C.RESET}")
+        print(f"    {label:30s}  {mark}")
+        print(f"      {C.DIM}total runs: {d['total_runs']}, best streak: {d['best_streak']}{C.RESET}")
+
+    cats = m.get("categories", {})
+    if cats:
+        print(f"\n  {C.BOLD}Categories:{C.RESET}")
+        # Sort: mastered first, then by streak desc, then alphabetically
+        sorted_cats = sorted(cats.items(), key=lambda kv: (
+            not kv[1]["mastered"], -kv[1]["clean_streak"], kv[0]
+        ))
+        for name, d in sorted_cats:
+            if d["mastered"]:
+                mark = f"{C.GREEN}✓ MASTERED{C.RESET}"
+            else:
+                mark = f"streak {C.CYAN}{d['clean_streak']}/3{C.RESET}"
+            print(f"    {name:30s}  {mark}  {C.DIM}(runs: {d['total_runs']}, best: {d['best_streak']}){C.RESET}")
+    else:
+        print(f"\n  {C.DIM}No category drills run yet. Try: start linux drill --category <name>{C.RESET}")
+
     print()
     if m["tier_1"]["mastered"] and m["tier_2"]["mastered"]:
         print(f"  {C.GREEN}{C.BOLD}Both tiers mastered. Linux fundamentals confirmed.{C.RESET}")
@@ -427,7 +507,7 @@ def show_status():
 # ─── Main ─────────────────────────────────────────────────────────────────────
 def main():
     ap = argparse.ArgumentParser(description="Linux Daily Drill")
-    ap.add_argument("--tier", default="1", choices=["1", "2", "all"], help="Tier to drill (default: 1)")
+    ap.add_argument("--tier", default="1", choices=["1", "2", "all"], help="Tier to drill (default: 1, or 'all' when --category is used without --tier)")
     ap.add_argument("--count", type=int, default=None, help="Limit to N scenarios")
     ap.add_argument("--category", type=str, default=None, help="Filter to one category")
     ap.add_argument("--reveal", action="store_true", help="Print all answers and exit")
@@ -435,6 +515,10 @@ def main():
     ap.add_argument("--reset-mastery", action="store_true", help="Zero out mastery tracker")
     ap.add_argument("--no-shuffle", action="store_true", help=argparse.SUPPRESS)  # debug
     args = ap.parse_args()
+
+    # Detect whether --tier was explicitly provided (vs left at default).
+    # Used so that --category alone defaults to all-tier scope, not tier 1.
+    args.tier_explicit = any(a == "--tier" or a.startswith("--tier=") for a in sys.argv[1:])
 
     if args.reset_mastery:
         if MASTERY_FILE.exists():
@@ -450,7 +534,7 @@ def main():
     all_scenarios = data["scenarios"]
 
     if args.reveal:
-        print(f"{C.BOLD}Cheat sheet — all 50 scenarios (canonical answers, before parameterisation):{C.RESET}\n")
+        print(f"{C.BOLD}Cheat sheet — all {len(all_scenarios)} scenarios (canonical answers, before parameterisation):{C.RESET}\n")
         for tier in (1, 2):
             tier_scenarios = [s for s in all_scenarios if s["tier"] == tier]
             print(f"{C.MAGENTA}{C.BOLD}── TIER {tier} ──{C.RESET}")
@@ -459,8 +543,12 @@ def main():
                 print(f"      {C.GREEN}→ {s['answer']}{C.RESET}\n")
         return
 
-    # Filter by tier
-    if args.tier == "1":
+    # Filter by tier. If --category was specified but --tier wasn't explicitly
+    # given, default to "all" — users running a category drill expect ALL
+    # scenarios in that category across both tiers, not just Tier 1.
+    if args.category and not args.tier_explicit:
+        scenarios = list(all_scenarios)
+    elif args.tier == "1":
         scenarios = [s for s in all_scenarios if s["tier"] == 1]
     elif args.tier == "2":
         scenarios = [s for s in all_scenarios if s["tier"] == 2]
@@ -486,7 +574,15 @@ def main():
     banner()
     build_sandbox()
     print(f"{C.DIM}Sandbox: {SANDBOX}{C.RESET}")
-    print(f"{C.DIM}Tier: {args.tier}  •  Scenarios: {len(scenarios)}{C.RESET}")
+
+    # Describe what was actually selected so the user can see the filter at a glance
+    if args.category and not args.tier_explicit:
+        scope_label = f"all (filtered by category: {args.category})"
+    elif args.category:
+        scope_label = f"{args.tier} (filtered by category: {args.category})"
+    else:
+        scope_label = args.tier
+    print(f"{C.DIM}Tier: {scope_label}  •  Scenarios: {len(scenarios)}{C.RESET}")
     print(f"{C.DIM}Type your command at the $ prompt. 'skip' to reveal, 'quit' to abort.{C.RESET}\n")
 
     results = []
@@ -494,10 +590,14 @@ def main():
     for i, s in enumerate(scenarios, start=1):
         results.append(run_scenario(s, i, len(scenarios), SANDBOX))
 
-    # Mastery only updates if the user ran a full single-tier drill (no count limit, no category)
-    mastery_update = None
-    if args.count is None and args.category is None:
-        mastery_update = update_mastery(results, args.tier)
+    # Mastery updates if user ran a full single-tier OR full single-category drill.
+    # Not eligible: --count limit, or mixed/all tiers without a category filter.
+    mastery_update = update_mastery(
+        results,
+        tier_filter=args.tier,
+        category_filter=args.category,
+        count_limited=(args.count is not None)
+    )
 
     print_results(results, time.time() - started, mastery_update)
 
