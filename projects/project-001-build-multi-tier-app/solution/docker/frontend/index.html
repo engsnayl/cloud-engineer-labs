@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Tier App</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; color: #1A2F1B; }
+        h1 { color: #2C5F2D; border-bottom: 3px solid #F2B544; padding-bottom: 0.5rem; }
+        .status { padding: 0.5rem 1rem; border-radius: 4px; margin: 1rem 0; }
+        .ok { background: #E8F5E9; color: #2C5F2D; }
+        .err { background: #FFEBEE; color: #8B4A3F; }
+        ul { list-style: none; padding: 0; }
+        li { background: #F4F1EA; padding: 1rem; margin: 0.5rem 0; border-left: 4px solid #2C5F2D; }
+        .meta { color: #6B7A5E; font-size: 0.85rem; margin-top: 0.25rem; }
+    </style>
+</head>
+<body>
+    <h1>Multi-Tier App</h1>
+    <div id="status" class="status">Loading...</div>
+    <ul id="messages"></ul>
+
+    <script>
+        async function loadMessages() {
+            const status = document.getElementById('status');
+            const list = document.getElementById('messages');
+            try {
+                const res = await fetch('/api/data');
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                status.className = 'status ok';
+                status.textContent = `Loaded ${data.count} messages from the backend.`;
+                list.innerHTML = data.messages.map(m =>
+                    `<li>${m.content}<div class="meta">id: ${m.id} · ${m.created_at}</div></li>`
+                ).join('');
+            } catch (err) {
+                status.className = 'status err';
+                status.textContent = `Failed to load: ${err.message}`;
+            }
+        }
+        loadMessages();
+    </script>
+</body>
+</html>
