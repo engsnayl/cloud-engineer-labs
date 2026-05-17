@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: multi-tier
+  labels:
+    app.kubernetes.io/name: multi-tier
+    app.kubernetes.io/part-of: cloud-engineer-labs

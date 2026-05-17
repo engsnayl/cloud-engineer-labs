@@ -58,3 +58,7 @@ __pycache__/
 # Local secrets — never commit
 .env
 !.env.example
+
+# Kubernetes secrets — never commit real values
+**/k8s/11-secret.yaml
+!**/k8s/11-secret.yaml.example
