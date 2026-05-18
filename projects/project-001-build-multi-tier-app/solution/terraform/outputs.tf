@@ -42,3 +42,29 @@ output "ecr_registry_id" {
   description = "ECR registry ID (AWS account hosting the registry)"
   value       = module.ecr.registry_id
 }
+
+output "secrets_secret_arn" {
+  description = "ARN of the AWS Secrets Manager secret. For audit and operator reference."
+  value       = module.secrets.secret_arn
+}
+
+output "secrets_secret_name" {
+  description = "Name of the AWS Secrets Manager secret. Referenced by the ExternalSecret manifest's remoteRef.key."
+  value       = module.secrets.secret_name
+}
+
+output "secrets_iam_user_name" {
+  description = "Name of the IAM user External Secrets Operator authenticates as."
+  value       = module.secrets.iam_user_name
+}
+
+output "secrets_access_key_id" {
+  description = "Access key ID for the ESO IAM user. Bootstrap into the cluster via the aws-creds K8s Secret. Not sensitive — IDs identify but do not grant access."
+  value       = module.secrets.access_key_id
+}
+
+output "secrets_access_key_secret" {
+  description = "Secret access key for the ESO IAM user. Bootstrap into the cluster via the aws-creds K8s Secret. SENSITIVE — also stored in plain text in the Terraform state file."
+  value       = module.secrets.access_key_secret
+  sensitive   = true
+}

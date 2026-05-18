@@ -24,3 +24,7 @@ module "ecr" {
   environment      = var.environment
   repository_names = var.ecr_repository_names
 }
+
+module "secrets" {
+  source = "./modules/secrets"
+}
