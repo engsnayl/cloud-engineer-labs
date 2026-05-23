@@ -219,25 +219,49 @@ cmd_where() {
     _gd_work_dir "$drill_dir"
 }
 
+cmd_quickfire() {
+    local count="${1:-20}"
+    local qf_script="${GITDRILL_ROOT}/tools/quickfire.sh"
+    [[ -f "$qf_script" ]] || _gd_die "Quickfire not installed: $qf_script missing"
+    export GITDRILL_ROOT
+    bash "$qf_script" session "$count"
+}
+
+cmd_progress() {
+    local qf_script="${GITDRILL_ROOT}/tools/quickfire.sh"
+    [[ -f "$qf_script" ]] || _gd_die "Quickfire not installed: $qf_script missing"
+    export GITDRILL_ROOT
+    bash "$qf_script" progress
+}
+
 cmd_help() {
     cat <<'EOF'
 gitdrill - git practice drill runner
 
 USAGE
-  gitdrill list              List all drills
+  gitdrill list              List all scenario drills
   gitdrill start NNN         Seed and start drill NNN (e.g. gitdrill start 1)
   gitdrill validate          Check whether the current drill is solved
   gitdrill reset             Re-seed the current drill from scratch
   gitdrill show [NNN]        Print the solution walkthrough
   gitdrill where             Print the current drill's working directory
+
+  gitdrill quickfire [N]     Run a rapid-fire session of N questions (default 20)
+  gitdrill quickfire all     Run every quickfire question once, shuffled
+  gitdrill progress          Show quickfire stats and weak spots
+
   gitdrill help              Show this
 
-WORKFLOW
+WORKFLOW (scenario drills)
   $ gitdrill start 1
   $ cd /tmp/gitdrill-001-staging-basics
   ... do real git commands ...
   $ gitdrill validate
   $ gitdrill show            # read the walkthrough
+
+WORKFLOW (quickfire)
+  $ gitdrill quickfire 10    # rapid-fire 10 questions, instant feedback
+  $ gitdrill progress        # see where you're weakest
 EOF
 }
 
@@ -251,6 +275,8 @@ main() {
         reset)    cmd_reset "$@" ;;
         show)     cmd_show "$@" ;;
         where)    cmd_where "$@" ;;
+        quickfire) cmd_quickfire "$@" ;;
+        progress) cmd_progress "$@" ;;
         help|-h|--help) cmd_help ;;
         *)        _gd_die "Unknown command: $cmd. Try 'gitdrill help'." ;;
     esac
