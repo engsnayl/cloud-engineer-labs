@@ -1,0 +1,1668 @@
+[
+  {
+    "id": "aws-002-mcq-1",
+    "domain": "aws",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "What technically distinguishes a public subnet from a private subnet in an AWS VPC?"
+  },
+  {
+    "id": "aws-003-mcq-2",
+    "domain": "aws",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which statement about NACL rule evaluation is correct?"
+  },
+  {
+    "id": "aws-005-mcq-2",
+    "domain": "aws",
+    "bank": 3,
+    "stem_type": "scenario",
+    "flags": [
+      "C_never_correct"
+    ],
+    "notes": [
+      "correct starts with 'Never/No/Essentially never': No \u2014 the Multi-AZ standby is not used to serve reads; it's a..."
+    ],
+    "stem_preview": "A team is hitting CPU saturation on their RDS primary during business hours because of heavy read-heavy reporting querie"
+  },
+  {
+    "id": "aws-007-mcq-1",
+    "domain": "aws",
+    "bank": 2,
+    "stem_type": "match",
+    "flags": [
+      "D_match_style"
+    ],
+    "notes": [
+      "match-style stem (high scramble risk)"
+    ],
+    "stem_preview": "Match the AWS DR strategy to its typical RTO/RPO profile: which strategy offers the shortest RTO and RPO at the highest "
+  },
+  {
+    "id": "aws-007-mcq-2",
+    "domain": "aws",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "An e-commerce site can tolerate at most 15 minutes of downtime and 1 minute of lost orders during a regional outage. The"
+  },
+  {
+    "id": "aws-009-mcq-2",
+    "domain": "aws",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Two EC2 instances need to share an EBS volume with concurrent read/write access. Which combination works?"
+  },
+  {
+    "id": "aws-010-mcq-2",
+    "domain": "aws",
+    "bank": 2,
+    "stem_type": "scenario",
+    "flags": [
+      "C_never_correct"
+    ],
+    "notes": [
+      "correct starts with 'Never/No/Essentially never': No \u2014 cross-account S3 access requires both an identity-based..."
+    ],
+    "stem_preview": "A user in Account A has an IAM policy granting s3:GetObject on a bucket in Account B. The bucket policy in Account B doe"
+  },
+  {
+    "id": "aws-014-mcq-1",
+    "domain": "aws",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which statement correctly captures the directionality of an Internet Gateway and a NAT Gateway?"
+  },
+  {
+    "id": "aws-015-mcq-2",
+    "domain": "aws",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "A SaaS provider wants to expose a single internal service to specific customer VPCs without giving those VPCs any visibi"
+  },
+  {
+    "id": "aws-016-mcq-2",
+    "domain": "aws",
+    "bank": 2,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A: distractor_3 \u2014 Fabricated: failover routing has no cross-region requirement; same-region secondaries are not 'silently disabled'."
+    ],
+    "stem_preview": "You configure a Route 53 failover routing policy with a primary record pointing to a regional ALB and a secondary record"
+  },
+  {
+    "id": "aws-017-mcq-1",
+    "domain": "aws",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which AWS services are accessed via a Gateway endpoint rather than an Interface endpoint?"
+  },
+  {
+    "id": "aws-019-mcq-1",
+    "domain": "aws",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Looking at the EC2 instance family letters (M, C, R, T, G), which one is designed for memory-intensive workloads such as"
+  },
+  {
+    "id": "aws-020-mcq-1",
+    "domain": "aws",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which ASG scaling policy keeps the underlying metric close to a single user-defined value by adding or removing capacity"
+  },
+  {
+    "id": "aws-021-mcq-1",
+    "domain": "aws",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which workload is the WORST fit for EC2 Spot Instances?"
+  },
+  {
+    "id": "aws-022-mcq-1",
+    "domain": "aws",
+    "bank": 2,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A: distractor_1 \u2014 Fabricated: Fargate has no 15-minute task timeout. The fabricated parallel to Lambda's limit is plausible-sounding but wrong."
+    ],
+    "stem_preview": "A team is choosing between ECS Fargate, EKS, and Lambda for a video transcoding service. Individual jobs take 20-90 minu"
+  },
+  {
+    "id": "aws-026-mcq-1",
+    "domain": "aws",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "A Python service running on an EC2 instance needs to read objects from an S3 bucket. Which approach grants access using "
+  },
+  {
+    "id": "aws-026-mcq-2",
+    "domain": "aws",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "What is the fundamental security difference between IAM user access keys and credentials obtained via STS AssumeRole?"
+  },
+  {
+    "id": "aws-027-mcq-2",
+    "domain": "aws",
+    "bank": 3,
+    "stem_type": "scenario",
+    "flags": [
+      "C_never_correct"
+    ],
+    "notes": [
+      "correct starts with 'Never/No/Essentially never': No \u2014 SCPs apply at the account level and form the maximum bo..."
+    ],
+    "stem_preview": "Your organisation uses AWS Organizations with an SCP denying access to all regions except us-east-1 and eu-west-1. A dev"
+  },
+  {
+    "id": "aws-029-mcq-2",
+    "domain": "aws",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "When does Parameter Store make more sense than Secrets Manager?"
+  },
+  {
+    "id": "aws-031-mcq-2",
+    "domain": "aws",
+    "bank": 3,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A: distractor_3 \u2014 Fabricated: Restart does not trigger a 'CloudWatch billing event because of the metric stream interruption'."
+    ],
+    "stem_preview": "An EC2 instance shows 90% CPU. You see one process (java) consuming most of it. The team's first impulse is to restart i"
+  },
+  {
+    "id": "aws-032-mcq-1",
+    "domain": "aws",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Users report 'the app is slow.' The system is a browser \u2192 CloudFront \u2192 ALB \u2192 ECS service \u2192 RDS. What's the most useful f"
+  },
+  {
+    "id": "aws-034-mcq-1",
+    "domain": "aws",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which factor has the BIGGEST impact on Lambda cold start duration?"
+  },
+  {
+    "id": "aws-034-mcq-2",
+    "domain": "aws",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "A Java Lambda function takes 4 seconds to cold-start, which is unacceptable for the user-facing API in front of it. Whic"
+  },
+  {
+    "id": "aws-035-mcq-1",
+    "domain": "aws",
+    "bank": 2,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A: distractor_1 \u2014 Fabricated: HTTP API was not deprecated in 2023 \u2014 it remains AWS-recommended for new builds."
+    ],
+    "stem_preview": "You're choosing between API Gateway REST API and API Gateway HTTP API for a new serverless backend. Which is the more co"
+  },
+  {
+    "id": "aws-035-mcq-2",
+    "domain": "aws",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "API Gateway is forwarding requests to a Lambda function using 'Lambda Proxy Integration.' What does that mean concretely"
+  },
+  {
+    "id": "cicd-001-mcq-1",
+    "domain": "cicd",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "What's the distinction between Continuous Delivery and Continuous Deployment?"
+  },
+  {
+    "id": "cicd-002-mcq-1",
+    "domain": "cicd",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "When designing a CI pipeline, which stage order maximises fast feedback?"
+  },
+  {
+    "id": "cicd-002-mcq-2",
+    "domain": "cicd",
+    "bank": 2,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A: distractor_1 \u2014 Over-stated: CI speed does not scale linearly with runner size; bigger runners help marginally. The 'always' was caught earlier, but the underlying premise is still false enough to be a fabrication."
+    ],
+    "stem_preview": "Your CI pipeline takes 25 minutes \u2014 too slow for the team's rapid commit cadence. Which optimisation gives the biggest r"
+  },
+  {
+    "id": "cicd-003-mcq-1",
+    "domain": "cicd",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Why are long-lived feature branches incompatible with modern CI/CD practices?"
+  },
+  {
+    "id": "cicd-003-mcq-2",
+    "domain": "cicd",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Trunk-based development with rapid merge cadence depends on which mechanism to ship unfinished features safely?"
+  },
+  {
+    "id": "cicd-010-mcq-1",
+    "domain": "cicd",
+    "bank": 1,
+    "stem_type": "match",
+    "flags": [
+      "D_match_style",
+      "B_scrambles"
+    ],
+    "notes": [
+      "match-style stem (high scramble risk)",
+      "B: All three distractors are pure hierarchy inversions \u2014 collapses to 'find the unscrambled answer'. Stephen-flagged example."
+    ],
+    "stem_preview": "In GitHub Actions, what's the hierarchy of workflow / job / step / action?"
+  },
+  {
+    "id": "cicd-010-mcq-2",
+    "domain": "cicd",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Compare GitHub-hosted runners and self-hosted runners. When would you choose self-hosted?"
+  },
+  {
+    "id": "cicd-011-mcq-1",
+    "domain": "cicd",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "When should you reach for a reusable workflow vs a composite action in GitHub Actions?"
+  },
+  {
+    "id": "cicd-013-mcq-2",
+    "domain": "cicd",
+    "bank": 3,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A: distractor_1 \u2014 Fabricated: GitHub Actions does not automatically synchronise BuildKit local caches across runners."
+    ],
+    "stem_preview": "You build a Docker image in CI and want to reuse the layer cache across runs even though each runner is fresh. What patt"
+  },
+  {
+    "id": "cicd-014-mcq-1",
+    "domain": "cicd",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Where do GitHub Actions secrets live, and how do they differ by scope?"
+  },
+  {
+    "id": "cicd-014-mcq-2",
+    "domain": "cicd",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "A production deploy job needs a manual approval and access to prod-only secrets. Which GitHub Actions feature delivers b"
+  },
+  {
+    "id": "cicd-020-mcq-1",
+    "domain": "cicd",
+    "bank": 1,
+    "stem_type": "scenario",
+    "flags": [
+      "C_never_correct"
+    ],
+    "notes": [
+      "correct starts with 'Never/No/Essentially never': No long-lived credential is stored; each run exchanges a sho..."
+    ],
+    "stem_preview": "Your team is migrating GitHub Actions deployments from static AWS IAM access keys (stored as repository secrets) to OIDC"
+  },
+  {
+    "id": "cicd-020-mcq-2",
+    "domain": "cicd",
+    "bank": 2,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A: distractor_3 \u2014 Fabricated: GitHub OIDC JWTs do not include an implicit MFA claim derived from the user's session."
+    ],
+    "stem_preview": "Your OIDC trust policy between GitHub Actions and AWS allows AssumeRole. What condition should you add to prevent any ot"
+  },
+  {
+    "id": "cicd-021-mcq-2",
+    "domain": "cicd",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Push-based and pull-based deployments to EKS differ in which key way?"
+  },
+  {
+    "id": "cicd-031-mcq-1",
+    "domain": "cicd",
+    "bank": 2,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A: distractor_2 \u2014 Over-stated: PostgreSQL/MySQL column rename is not universally a metadata-only operation; this glosses over real locking behaviour."
+    ],
+    "stem_preview": "You need to rename a column in a production database used by 50 web servers, with zero downtime. Which sequence works?"
+  },
+  {
+    "id": "cicd-031-mcq-2",
+    "domain": "cicd",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "During an expand-contract migration, why is the backfill step often the longest and most fragile?"
+  },
+  {
+    "id": "cicd-032-mcq-2",
+    "domain": "cicd",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Why are database changes typically excluded from automated rollback?"
+  },
+  {
+    "id": "cicd-040-mcq-1",
+    "domain": "cicd",
+    "bank": 1,
+    "stem_type": "match",
+    "flags": [
+      "D_match_style",
+      "B_scrambles"
+    ],
+    "notes": [
+      "match-style stem (high scramble risk)",
+      "B: D1 and D2 are full scrambles of the SAST/DAST/SCA/container assignment; only D3 is a different shape."
+    ],
+    "stem_preview": "Match the security scan type to what it catches: SAST, DAST, SCA, container scan."
+  },
+  {
+    "id": "cicd-040-mcq-2",
+    "domain": "cicd",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Where in a CI/CD pipeline should DAST scans run?"
+  },
+  {
+    "id": "cicd-041-mcq-1",
+    "domain": "cicd",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "SonarQube has a 'Quality Gate' configured on a project. What does the Quality Gate evaluate?"
+  },
+  {
+    "id": "cicd-041-mcq-2",
+    "domain": "cicd",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Why does SonarQube focus on 'new code' metrics rather than whole-codebase metrics for Quality Gates?"
+  },
+  {
+    "id": "cicd-050-mcq-2",
+    "domain": "cicd",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "C_not_reversal",
+      "D_definition"
+    ],
+    "notes": [
+      "stem uses 'NOT' or 'which is not'",
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which is NOT a common source of CI flakiness?"
+  },
+  {
+    "id": "cicd-051-mcq-1",
+    "domain": "cicd",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "An experienced pipeline owner is asked to redesign a CI/CD pipeline that takes 40 minutes and ships once a week. Which p"
+  },
+  {
+    "id": "cicd-051-mcq-2",
+    "domain": "cicd",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which lesson would a pipeline owner most likely take from running a CI/CD system through 18 months of production?"
+  },
+  {
+    "id": "docker-001-mcq-1",
+    "domain": "docker",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which best describes the isolation mechanism that makes containers different from virtual machines?"
+  },
+  {
+    "id": "docker-001-mcq-2",
+    "domain": "docker",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "When would you choose a VM over a container?"
+  },
+  {
+    "id": "docker-002-mcq-1",
+    "domain": "docker",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which Dockerfile pattern maximises layer cache hits across builds?"
+  },
+  {
+    "id": "docker-002-mcq-2",
+    "domain": "docker",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition",
+      "A_fabricated"
+    ],
+    "notes": [
+      "stem reads as recall not scenario",
+      "A: distractor_3 \u2014 Anti-pattern no candidate would propose: 'embed SSL/TLS private key in image'. Stephen-flagged example."
+    ],
+    "stem_preview": "Which Dockerfile practice is the strongest security improvement?"
+  },
+  {
+    "id": "docker-003-mcq-1",
+    "domain": "docker",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "What problem do multi-stage Docker builds primarily solve?"
+  },
+  {
+    "id": "docker-003-mcq-2",
+    "domain": "docker",
+    "bank": 3,
+    "stem_type": "scenario",
+    "flags": [
+      "C_never_correct"
+    ],
+    "notes": [
+      "correct starts with 'Never/No/Essentially never': No \u2014 anything in any layer of the build (including ARG value..."
+    ],
+    "stem_preview": "Your Dockerfile passes a private API key as `ARG SECRET_KEY` and uses it in a RUN command. Is the secret safe in the fin"
+  },
+  {
+    "id": "docker-004-mcq-1",
+    "domain": "docker",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which base image choice is the most effective for shrinking a Python service's image?"
+  },
+  {
+    "id": "docker-005-mcq-2",
+    "domain": "docker",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which BuildKit feature lets you share a directory between build runs without baking it into the final image?"
+  },
+  {
+    "id": "docker-006-mcq-1",
+    "domain": "docker",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which Docker network mode shares the host's network namespace, so the container's port bindings appear directly on the h"
+  },
+  {
+    "id": "docker-006-mcq-2",
+    "domain": "docker",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Two containers on the default `bridge` network try to reach each other by container name. What happens?"
+  },
+  {
+    "id": "docker-007-mcq-1",
+    "domain": "docker",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Compare named volumes and bind mounts in Docker."
+  },
+  {
+    "id": "docker-007-mcq-2",
+    "domain": "docker",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "When is `tmpfs` mount the right choice for a container?"
+  },
+  {
+    "id": "docker-008-mcq-1",
+    "domain": "docker",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "What's the recommended scope for Docker Compose?"
+  },
+  {
+    "id": "docker-008-mcq-2",
+    "domain": "docker",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "In a Docker Compose file, `depends_on: db` says what?"
+  },
+  {
+    "id": "docker-009-mcq-1",
+    "domain": "docker",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "How do you authenticate `docker push` to a private ECR repository?"
+  },
+  {
+    "id": "docker-009-mcq-2",
+    "domain": "docker",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition",
+      "A_fabricated"
+    ],
+    "notes": [
+      "stem reads as recall not scenario",
+      "A: distractor_1 \u2014 Fabricated: ECR has no immutable-tag billing tier. Stephen-flagged example."
+    ],
+    "stem_preview": "An ECR lifecycle policy says 'keep only the 10 most recent images, expire the rest.' Why is tag immutability sometimes s"
+  },
+  {
+    "id": "git-001-mcq-1",
+    "domain": "git",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which is the strongest reason to prefer `git merge` over `git rebase` when integrating a feature branch?"
+  },
+  {
+    "id": "git-001-mcq-2",
+    "domain": "git",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Why is rebasing a published branch (one others have pulled) considered dangerous?"
+  },
+  {
+    "id": "git-002-mcq-1",
+    "domain": "git",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which branch protection rule combination is the strongest baseline for a production `main` branch?"
+  },
+  {
+    "id": "git-002-mcq-2",
+    "domain": "git",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Even with branch protection requiring reviews, what's a common bypass that often goes unnoticed?"
+  },
+  {
+    "id": "git-003-mcq-1",
+    "domain": "git",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "What's the difference between `git clone` and a GitHub fork?"
+  },
+  {
+    "id": "git-004-mcq-1",
+    "domain": "git",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "How does `git bisect` work?"
+  },
+  {
+    "id": "git-004-mcq-2",
+    "domain": "git",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "What does `git blame` actually show?"
+  },
+  {
+    "id": "git-005-mcq-1",
+    "domain": "git",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "What does the conflict marker `<<<<<<<` `=======` `>>>>>>>` mean in a file during a merge?"
+  },
+  {
+    "id": "git-006-mcq-2",
+    "domain": "git",
+    "bank": 3,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A: distractor_1 \u2014 Fabricated: GitHub does not automatically purge keys from historical commits within 24 hours."
+    ],
+    "stem_preview": "An API key was committed and pushed to GitHub two weeks ago. What's the right recovery procedure?"
+  },
+  {
+    "id": "k8s-001-mcq-2",
+    "domain": "kubernetes",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "C_never_correct",
+      "D_definition",
+      "A_fabricated"
+    ],
+    "notes": [
+      "correct starts with 'Never/No/Essentially never': Essentially never \u2014 Deployments are the recommended abstract...",
+      "stem reads as recall not scenario",
+      "A: distractor_3 \u2014 Fabricated: Deployments and ReplicaSets share the same container runtime \u2014 no runtime-restriction distinction exists. Stephen-flagged example."
+    ],
+    "stem_preview": "In which situation would you hand-create a ReplicaSet directly instead of using a Deployment?"
+  },
+  {
+    "id": "k8s-003-mcq-1",
+    "domain": "kubernetes",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "What does a failing liveness probe do, and what does a failing readiness probe do?"
+  },
+  {
+    "id": "k8s-003-mcq-2",
+    "domain": "kubernetes",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "A Java app takes 90 seconds to warm up. The team configures a liveness probe with `initialDelaySeconds: 30` and `failure"
+  },
+  {
+    "id": "k8s-004-mcq-2",
+    "domain": "kubernetes",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Kubernetes 1.28 introduced native sidecar containers. How are they declared and how do they differ from regular main con"
+  },
+  {
+    "id": "k8s-010-mcq-1",
+    "domain": "kubernetes",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "A backend microservice will only be called by other services running in the same Kubernetes cluster. It should not be re"
+  },
+  {
+    "id": "k8s-010-mcq-2",
+    "domain": "kubernetes",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "When does an Ingress make sense instead of multiple LoadBalancer Services?"
+  },
+  {
+    "id": "k8s-011-mcq-1",
+    "domain": "kubernetes",
+    "bank": 2,
+    "stem_type": "scenario",
+    "flags": [
+      "C_never_correct",
+      "A_fabricated"
+    ],
+    "notes": [
+      "correct starts with 'Never/No/Essentially never': No Ingress controller is installed \u2014 the Ingress object is j...",
+      "A: distractor_3 \u2014 Fabricated: there is no 'EKS built-in Ingress provider' and ALB provisioning is ~1-3 minutes, not 30-60."
+    ],
+    "stem_preview": "You create an Ingress resource on EKS but external traffic doesn't reach your services. The Ingress shows no Address. Wh"
+  },
+  {
+    "id": "k8s-011-mcq-2",
+    "domain": "kubernetes",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "On EKS with the AWS Load Balancer Controller, what's the difference between annotating an Ingress with `alb.ingress.kube"
+  },
+  {
+    "id": "k8s-012-mcq-1",
+    "domain": "kubernetes",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "By default, what is the network policy applied to pods in a fresh Kubernetes cluster?"
+  },
+  {
+    "id": "k8s-013-mcq-1",
+    "domain": "kubernetes",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Within a Kubernetes cluster, what's the fully-qualified DNS name pattern for a Service?"
+  },
+  {
+    "id": "k8s-014-mcq-1",
+    "domain": "kubernetes",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Why is environment-variable-based service discovery in Kubernetes considered worse than DNS-based discovery?"
+  },
+  {
+    "id": "k8s-020-mcq-1",
+    "domain": "kubernetes",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which Kubernetes workload object is the right fit for a clustered database that needs stable network identity and persis"
+  },
+  {
+    "id": "k8s-021-mcq-2",
+    "domain": "kubernetes",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition",
+      "A_fabricated"
+    ],
+    "notes": [
+      "stem reads as recall not scenario",
+      "A: distractor_2 \u2014 Fabricated: there is no `scheduler.alpha.kubernetes.io/balanced=true` annotation."
+    ],
+    "stem_preview": "A 6-replica Deployment is meant to spread across all 3 AZs evenly for HA. What's the right configuration?"
+  },
+  {
+    "id": "k8s-023-mcq-1",
+    "domain": "kubernetes",
+    "bank": 1,
+    "stem_type": "match",
+    "flags": [
+      "D_match_style",
+      "B_scrambles"
+    ],
+    "notes": [
+      "match-style stem (high scramble risk)",
+      "B: D1 and D3 are scrambles of the autoscaler mapping; only D2 is a different shape. Stephen-flagged example."
+    ],
+    "stem_preview": "Match the autoscaler to what it changes: HPA, VPA, Cluster Autoscaler."
+  },
+  {
+    "id": "k8s-023-mcq-2",
+    "domain": "kubernetes",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "What's the fundamental architectural difference between Karpenter and Cluster Autoscaler?"
+  },
+  {
+    "id": "k8s-030-mcq-1",
+    "domain": "kubernetes",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "How are Kubernetes Secrets encoded in etcd by default on a freshly-installed cluster?"
+  },
+  {
+    "id": "k8s-030-mcq-2",
+    "domain": "kubernetes",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "When should you use a ConfigMap and when should you use a Secret?"
+  },
+  {
+    "id": "k8s-031-mcq-2",
+    "domain": "kubernetes",
+    "bank": 3,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A: distractor_1 \u2014 Fabricated: there is no cluster-wide `ExternalSecretsViewer` ClusterRole shipped with ESO."
+    ],
+    "stem_preview": "Your EKS pod uses External Secrets Operator to fetch a secret from AWS Secrets Manager. The pod gets 'AccessDenied' from"
+  },
+  {
+    "id": "k8s-032-mcq-1",
+    "domain": "kubernetes",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "What's the difference between a Role and a ClusterRole?"
+  },
+  {
+    "id": "k8s-040-mcq-1",
+    "domain": "kubernetes",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "What does AWS manage and what do you manage on EKS?"
+  },
+  {
+    "id": "k8s-041-mcq-1",
+    "domain": "kubernetes",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "What is IRSA in EKS, in one sentence?"
+  },
+  {
+    "id": "k8s-041-mcq-2",
+    "domain": "kubernetes",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition",
+      "A_fabricated"
+    ],
+    "notes": [
+      "stem reads as recall not scenario",
+      "A: distractor_2 \u2014 Fabricated: IRSA is not deprecated nor scheduled for removal in EKS 1.30. Both IRSA and Pod Identity coexist."
+    ],
+    "stem_preview": "What's the practical difference between IRSA and EKS Pod Identity?"
+  },
+  {
+    "id": "k8s-042-mcq-1",
+    "domain": "kubernetes",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Why does the AWS VPC CNI plugin cause 'IP exhaustion' on EKS, and what's the underlying mechanism?"
+  },
+  {
+    "id": "k8s-042-mcq-2",
+    "domain": "kubernetes",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which is the recommended mitigation for VPC CNI IP exhaustion in 2025+ clusters?"
+  },
+  {
+    "id": "k8s-051-mcq-2",
+    "domain": "kubernetes",
+    "bank": 3,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A: distractor_3 \u2014 Wrong by ~50x: real Istio sidecar overhead is 1-10ms per hop, not 450ms. Stephen-flagged example."
+    ],
+    "stem_preview": "A pod's response time spikes from 50ms to 500ms intermittently. CloudWatch shows no CPU, memory, or network saturation. "
+  },
+  {
+    "id": "linux-002-mcq-1",
+    "domain": "linux",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "What's the practical difference between SIGTERM and SIGKILL?"
+  },
+  {
+    "id": "linux-003-mcq-1",
+    "domain": "linux",
+    "bank": 2,
+    "stem_type": "match",
+    "flags": [
+      "D_match_style"
+    ],
+    "notes": [
+      "match-style stem (high scramble risk)"
+    ],
+    "stem_preview": "Match the systemd unit file type to its purpose: `.service`, `.timer`, `.socket`, `.target`."
+  },
+  {
+    "id": "linux-003-mcq-2",
+    "domain": "linux",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which command shows only the logs from the nginx service since 9am this morning?"
+  },
+  {
+    "id": "linux-004-mcq-2",
+    "domain": "linux",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Why is `ss` preferred over `netstat` on modern Linux?"
+  },
+  {
+    "id": "linux-005-mcq-1",
+    "domain": "linux",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "`df -h` reports 95% full but `du -sh /*` totals only 60% of the disk. What's the most likely cause?"
+  },
+  {
+    "id": "linux-005-mcq-2",
+    "domain": "linux",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "`df -h` shows 50% capacity but writes are failing with 'No space left on device'. What's the most likely cause?"
+  },
+  {
+    "id": "linux-006-mcq-1",
+    "domain": "linux",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Which is the most efficient way to find all log entries between 14:00 and 14:30 today across all systemd units?"
+  },
+  {
+    "id": "linux-007-mcq-1",
+    "domain": "linux",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "What does `set -euo pipefail` enable in a bash script?"
+  },
+  {
+    "id": "linux-007-mcq-2",
+    "domain": "linux",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "When should you stop using bash and switch to Python (or another higher-level language)?"
+  },
+  {
+    "id": "tf-001-mcq-1",
+    "domain": "terraform",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "What does `terraform plan` actually do?"
+  },
+  {
+    "id": "tf-001-mcq-2",
+    "domain": "terraform",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Compared to AWS CloudFormation, what's a key advantage of Terraform?"
+  },
+  {
+    "id": "tf-003-mcq-1",
+    "domain": "terraform",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "What's the canonical structure of a well-designed Terraform module?"
+  },
+  {
+    "id": "tf-004-mcq-1",
+    "domain": "terraform",
+    "bank": 1,
+    "stem_type": "match",
+    "flags": [
+      "D_match_style",
+      "B_scrambles"
+    ],
+    "notes": [
+      "match-style stem (high scramble risk)",
+      "B: D1 reverses the precedence order entirely; D3 scrambles it. Only D2 is a different concept ('all sources merged')."
+    ],
+    "stem_preview": "What's the order of precedence for Terraform variable values (highest to lowest)?"
+  },
+  {
+    "id": "tf-004-mcq-2",
+    "domain": "terraform",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "When should you use `locals` rather than `variable`?"
+  },
+  {
+    "id": "tf-005-mcq-1",
+    "domain": "terraform",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition",
+      "A_fabricated"
+    ],
+    "notes": [
+      "stem reads as recall not scenario",
+      "A: distractor_3 \u2014 Fabricated: Terraform did not deprecate or remove workspaces \u2014 they still exist in 1.x. Stephen-flagged example."
+    ],
+    "stem_preview": "Why do experienced Terraform teams avoid using workspaces to model dev/staging/prod environments?"
+  },
+  {
+    "id": "tf-005-mcq-2",
+    "domain": "terraform",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "The recommended modern pattern for dev/staging/prod with Terraform is:"
+  },
+  {
+    "id": "tf-006-mcq-1",
+    "domain": "terraform",
+    "bank": 1,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Why is putting database passwords in `terraform.tfvars` (with the file in .gitignore) still a bad practice?"
+  },
+  {
+    "id": "tf-006-mcq-2",
+    "domain": "terraform",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "The recommended pattern for fetching a secret like an RDS password into Terraform is:"
+  },
+  {
+    "id": "tf-007-mcq-1",
+    "domain": "terraform",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Why does HashiCorp warn against using Terraform provisioners (local-exec, remote-exec)?"
+  },
+  {
+    "id": "tf-007-mcq-2",
+    "domain": "terraform",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Despite the warnings, when is a Terraform `local-exec` provisioner genuinely the right tool?"
+  },
+  {
+    "id": "tf-008-mcq-1",
+    "domain": "terraform",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "What does `terraform refresh` do (now the default behaviour at the start of `terraform plan`)?"
+  },
+  {
+    "id": "tf-008-mcq-2",
+    "domain": "terraform",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "How do you intentionally accept drift in Terraform without losing the resource from state?"
+  },
+  {
+    "id": "tf-009-mcq-1",
+    "domain": "terraform",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition",
+      "A_fabricated"
+    ],
+    "notes": [
+      "stem reads as recall not scenario",
+      "A: distractor_3 \u2014 Over-stated: 'a single terraform apply weekly' isn't a real or accepted pattern \u2014 the distractor invents a process that no team would advocate."
+    ],
+    "stem_preview": "The standard GitOps-style Terraform CI/CD pattern is:"
+  },
+  {
+    "id": "tf-009-mcq-2",
+    "domain": "terraform",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Two Terraform apply jobs are queued in CI against the same state. What happens?"
+  },
+  {
+    "id": "tf-010-mcq-1",
+    "domain": "terraform",
+    "bank": 2,
+    "stem_type": "match",
+    "flags": [
+      "D_match_style"
+    ],
+    "notes": [
+      "match-style stem (high scramble risk)"
+    ],
+    "stem_preview": "Match the tool to its primary job: Terraform vs Packer."
+  },
+  {
+    "id": "tf-012-mcq-2",
+    "domain": "terraform",
+    "bank": 3,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "Compare `terraform state mv` and `terraform import`."
+  },
+  {
+    "id": "tf-013-mcq-2",
+    "domain": "terraform",
+    "bank": 2,
+    "stem_type": "definition",
+    "flags": [
+      "D_definition"
+    ],
+    "notes": [
+      "stem reads as recall not scenario"
+    ],
+    "stem_preview": "How do you enable detailed Terraform logging to debug a hanging apply?"
+  }
+]
