@@ -1,0 +1,444 @@
+[
+  {
+    "id": "linux-001-mcq-1",
+    "source_id": "linux-001",
+    "domain": "linux",
+    "subdomain": "filesystem",
+    "priority": "high",
+    "difficulty": "easy",
+    "bank": 1,
+    "question": "A file has permissions `-rwxr-x---`. What is its octal representation?",
+    "options": {
+      "correct": "750",
+      "distractor_1": "755",
+      "distractor_2": "740",
+      "distractor_3": "770 (rwx for owner and group, --- for other) — typical for shared team directories"
+    },
+    "explanation": "Each triplet is read as binary then converted: owner rwx = 7, group r-x = 5, other --- = 0, giving 750. Distractor 1 (755) sets other to r-x instead of ---. Distractor 2 (740) drops execute from group. Distractor 3 (770) sets group to rwx instead of r-x. The arithmetic is r=4, w=2, x=1 — sum them per triplet. Quick recall of the octal-to-symbolic mapping is essential for daily ops work."
+  },
+  {
+    "id": "linux-001-mcq-2",
+    "source_id": "linux-001",
+    "domain": "linux",
+    "subdomain": "filesystem",
+    "priority": "high",
+    "difficulty": "easy",
+    "bank": 2,
+    "question": "A file `/tmp/data` has permissions `-rwSr--r--` (note capital S in owner's execute position). What does this mean?",
+    "options": {
+      "correct": "The setuid bit is set but the owner has no execute permission — usually a misconfiguration, since setuid is meaningless on a non-executable file",
+      "distractor_1": "The owner has 'special execute' which runs the file with the executor's elevated privileges instead of the owner's",
+      "distractor_2": "The setuid bit is set and the owner has execute permission; the capital S is the standard notation for the combined state",
+      "distractor_3": "The file is marked as system-owned and cannot be modified, deleted, or executed by anyone except the root user with full elevated privileges"
+    },
+    "explanation": "Lowercase `s` in owner-execute means setuid + execute set; uppercase `S` means setuid set but execute NOT set — usually a bug because setuid without execute does nothing. Distractor 1 reverses setuid semantics — setuid runs the file with the OWNER's permissions, not the executor's. Distractor 2 inverts the lowercase/uppercase meaning. Distractor 3 invents a system-owned attribute. The distinction matters when you see this on /usr/bin/sudo (lowercase s) vs an accidental misconfiguration (uppercase S)."
+  },
+  {
+    "id": "linux-002-mcq-1",
+    "source_id": "linux-002",
+    "domain": "linux",
+    "subdomain": "processes",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "What's the practical difference between SIGTERM and SIGKILL?",
+    "options": {
+      "correct": "SIGTERM (15) can be caught or ignored by the process and allows graceful shutdown; SIGKILL (9) is forced by the kernel and cannot be caught, blocked, or handled",
+      "distractor_1": "SIGTERM kills the process immediately; SIGKILL gives the process 30 seconds to clean up before forced termination",
+      "distractor_2": "SIGTERM only works on background processes; SIGKILL is required for foreground processes and shell builtins",
+      "distractor_3": "SIGTERM is the legacy signal name; SIGKILL is its modern replacement and both have identical behaviour in current Linux kernels"
+    },
+    "explanation": "The catchability distinction is the entire reason both exist. Graceful shutdown patterns (drain connections, flush buffers, close DB handles) rely on SIGTERM being catchable. SIGKILL is the no-questions-asked tool of last resort. Distractor 1 reverses the two. Distractor 2 invents a foreground/background distinction. Distractor 3 (modern replacement) is fiction — both signals have been stable since early Unix. Production apps should handle SIGTERM properly so SIGKILL is never needed."
+  },
+  {
+    "id": "linux-002-mcq-2",
+    "source_id": "linux-002",
+    "domain": "linux",
+    "subdomain": "processes",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "A process is in state `D` (uninterruptible sleep) in `ps` output. What does this mean operationally?",
+    "options": {
+      "correct": "The process is blocked in a kernel syscall (usually waiting for I/O) and cannot be killed even with SIGKILL until the syscall returns",
+      "distractor_1": "The process is dead but its parent hasn't reaped it; it will disappear when the parent calls wait()",
+      "distractor_2": "The process is debug-paused via gdb or strace and can be resumed only by detaching the debugger",
+      "distractor_3": "The process is throttled by cgroups and is in a waiting state until its CPU quota resets at the next scheduling boundary, at which point it resumes normal execution"
+    },
+    "explanation": "D-state processes are stuck in a kernel call (typically I/O on a wedged filesystem, a hung NFS mount, a frozen storage driver) and don't respond to signals. The only fix is fixing the underlying I/O or rebooting the host. Distractor 1 describes zombie (Z) state. Distractor 2 describes T (stopped/traced) state. Distractor 3 fabricates a cgroup-throttled state code. D-state processes contributing to high load average is a common 'high load, no CPU usage' diagnostic puzzle."
+  },
+  {
+    "id": "linux-003-mcq-1",
+    "source_id": "linux-003",
+    "domain": "linux",
+    "subdomain": "system",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Match the systemd unit file type to its purpose: `.service`, `.timer`, `.socket`, `.target`.",
+    "options": {
+      "correct": "`.service`: a long-running daemon or one-shot process; `.timer`: schedules service execution; `.socket`: socket activation; `.target`: groups units into a logical state (multi-user, graphical, etc.)",
+      "distractor_1": "`.service`: a daemon; `.timer`: a scheduled task that includes its own commands; `.socket`: a network bind point; `.target`: a desktop environment definition",
+      "distractor_2": "`.service`: any unit file; `.timer`: replaces cron entries; `.socket`: a TCP listener; `.target`: an alias for a specific service unit",
+      "distractor_3": "`.service`: only system-level daemons; `.timer`: schedules .service.in files; `.socket`: inotify file watchers; `.target`: kernel boot stages"
+    },
+    "explanation": "The four core unit types each have a distinct role: service runs, timer schedules other units (no commands of its own), socket activates a service on connection, target groups units. Distractor 1 misrepresents timer (it points at a service, doesn't contain commands) and target (not desktop-specific). Distractor 2 collapses categories incorrectly. Distractor 3 over-restricts each type. Understanding the timer-points-at-service relationship is the most common stumbling block."
+  },
+  {
+    "id": "linux-003-mcq-2",
+    "source_id": "linux-003",
+    "domain": "linux",
+    "subdomain": "system",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Which command shows only the logs from the nginx service since 9am this morning?",
+    "options": {
+      "correct": "`journalctl -u nginx --since 09:00`",
+      "distractor_1": "`journalctl --service nginx --start-time 09:00`",
+      "distractor_2": "`systemctl logs nginx --since today --time 09:00`",
+      "distractor_3": "`journalctl --tag nginx --from 09:00`"
+    },
+    "explanation": "`journalctl -u <unit>` filters by systemd unit, `--since <time>` filters by timestamp; both flags accept relative or absolute times. Distractor 1 invents flags (--service, --start-time) that don't exist. Distractor 2 invents a `systemctl logs` subcommand. Distractor 3 invents --tag and --from. journalctl's filter flags are the daily-driver knowledge that separates 'I know systemd' from 'I've used systemd'."
+  },
+  {
+    "id": "linux-004-mcq-1",
+    "source_id": "linux-004",
+    "domain": "linux",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "A web server seems unreachable. You're SSH'd into the box. What's the right ordered investigation?",
+    "options": {
+      "correct": "DNS (`dig`/`getent hosts`) → routing (`ip route`) → listening port (`ss -lntp`) → packet capture (`tcpdump`) — work from name to packet",
+      "distractor_1": "Packet capture first (`tcpdump`) — capture everything, then filter by what looks wrong",
+      "distractor_2": "Run a port scan with `nmap` against the local interface first to enumerate every open port and pick the offender",
+      "distractor_3": "Restart the systemd service immediately; most network issues are application crashes that clear with a fresh process"
+    },
+    "explanation": "Top-down: confirm the name resolves, confirm the route exists, confirm something is listening on the port, then look at packets if all of those are healthy. Each step eliminates a class of failure. Distractor 1 (tcpdump first) drowns you in noise. Distractor 2 (nmap) is unnecessary when you already know what should be there. Distractor 3 (restart first) discards diagnostic state and trains the wrong reflex."
+  },
+  {
+    "id": "linux-004-mcq-2",
+    "source_id": "linux-004",
+    "domain": "linux",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Why is `ss` preferred over `netstat` on modern Linux?",
+    "options": {
+      "correct": "`ss` reads kernel data structures directly via netlink, which is faster and less I/O-intensive than netstat parsing `/proc`",
+      "distractor_1": "`ss` was rewritten to give cleaner output; `netstat` still uses the same kernel calls, so performance is identical",
+      "distractor_2": "`netstat` requires root privileges to read socket info; `ss` works as any user without elevation",
+      "distractor_3": "`netstat` has been removed from modern Linux distros; running it returns 'command not found' unless installed from a legacy package"
+    },
+    "explanation": "ss uses netlink (a kernel API specifically for sockets); netstat parses /proc/net/tcp etc. On a busy system with 50k sockets, netstat is dramatically slower. Distractor 1 (same kernel calls) collapses the actual implementation difference. Distractor 2 inverts privilege requirements — neither requires root for basic listing. Distractor 3 over-states removal — netstat is still available on most distros, just considered legacy."
+  },
+  {
+    "id": "linux-005-mcq-1",
+    "source_id": "linux-005",
+    "domain": "linux",
+    "subdomain": "operations",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "`df -h` reports 95% full but `du -sh /*` totals only 60% of the disk. What's the most likely cause?",
+    "options": {
+      "correct": "A process has a deleted-but-open file holding inode space — the file is gone from the directory tree (du can't see it) but the inode lives until the process closes the descriptor",
+      "distractor_1": "df reports compressed-on-disk size while du reports uncompressed; the difference is the filesystem's compression overhead",
+      "distractor_2": "df includes the journal and metadata while du only includes user data; the gap is the filesystem's overhead",
+      "distractor_3": "du was run without sudo and missed files in directories the user can't read, accounting for the discrepancy"
+    },
+    "explanation": "Deleted-but-open files are the classic gotcha — a log rotation or unlink while a process holds the descriptor means the file disappears from `ls` but the blocks stay allocated. `lsof +L1` finds these; restarting the process releases the space. Distractor 1 (compression) doesn't apply to default ext4/xfs. Distractor 2 (journal/metadata) is too small to explain a 35% gap. Distractor 3 (permissions) is real but rarely accounts for a 35% gap on a properly-permissioned system."
+  },
+  {
+    "id": "linux-005-mcq-2",
+    "source_id": "linux-005",
+    "domain": "linux",
+    "subdomain": "operations",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "`df -h` shows 50% capacity but writes are failing with 'No space left on device'. What's the most likely cause?",
+    "options": {
+      "correct": "Inode exhaustion — the filesystem has run out of inodes (each file consumes one) even though plenty of space remains; check with `df -i`",
+      "distractor_1": "Disk write quotas — the user account has hit its individual quota even though the filesystem has free space",
+      "distractor_2": "Filesystem reserved blocks — ext4 reserves 5% for root by default, and a non-root user is hitting that ceiling sooner",
+      "distractor_3": "RAID degradation — the underlying array has lost a member, dropping write capacity even though `df` still reports the full original size of the array"
+    },
+    "explanation": "Inode exhaustion happens when you have lots of small files (mail spools, cache directories with many tiny files, container layers). `df -i` shows inode usage separately. Distractor 1 (quota) is real but usually shows a different error message. Distractor 2 (reserved blocks) is real on ext4 but caps at ~5%, so doesn't explain failure at 50% disk usage. Distractor 3 (RAID degradation) doesn't reduce reported size."
+  },
+  {
+    "id": "linux-006-mcq-1",
+    "source_id": "linux-006",
+    "domain": "linux",
+    "subdomain": "operations",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Which is the most efficient way to find all log entries between 14:00 and 14:30 today across all systemd units?",
+    "options": {
+      "correct": "`journalctl --since '14:00' --until '14:30'`",
+      "distractor_1": "`grep '14:0[0-9]\\|14:[12][0-9]' /var/log/messages`",
+      "distractor_2": "`awk '$1 == \"14:00\" || $1 == \"14:30\"' /var/log/syslog`",
+      "distractor_3": "`sed -n '/14:00/,/14:30/p' /var/log/journal/*.journal`"
+    },
+    "explanation": "journalctl's --since and --until are the right tools for journald — they parse times correctly, handle the day boundary, and work on the binary journal format. Distractor 1 attempts text grep on a file that may not even have all journal data (only legacy syslog forwarding does). Distractor 2 is brittle and assumes a specific log format. Distractor 3 attempts to text-process journal binary files, which doesn't work. Knowing journalctl's filter flags saves enormous time."
+  },
+  {
+    "id": "linux-006-mcq-2",
+    "source_id": "linux-006",
+    "domain": "linux",
+    "subdomain": "operations",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "You want to follow logs from nginx in real-time, filtering only entries with priority error or worse. Which command?",
+    "options": {
+      "correct": "`journalctl -u nginx -f -p err`",
+      "distractor_1": "`journalctl -u nginx --follow --severity=error --realtime`",
+      "distractor_2": "`tail -f /var/log/nginx/error.log | grep -E '^[0-9]{4}/'`",
+      "distractor_3": "`systemctl follow nginx --errors-only`"
+    },
+    "explanation": "journalctl uses short flags: `-f` for follow (like tail -f), `-p err` for priority filter (uses syslog priority levels: emerg, alert, crit, err, warning, notice, info, debug). Distractor 1 invents long flags (--severity, --realtime) that don't exist. Distractor 2 reads only nginx's own log file, missing journald-only entries. Distractor 3 fabricates a `systemctl follow` subcommand. Priority filtering is a heavy hitter for noise reduction in incident-response workflows."
+  },
+  {
+    "id": "linux-007-mcq-1",
+    "source_id": "linux-007",
+    "domain": "linux",
+    "subdomain": "shell",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 2,
+    "question": "What does `set -euo pipefail` enable in a bash script?",
+    "options": {
+      "correct": "Exit on any command failure (`-e`), error on unset variables (`-u`), and treat pipe failures as command failures (`-o pipefail`)",
+      "distractor_1": "Exit on any error (`-e`), strict utf-8 encoding (`-u`), and disable shell expansion in pipelines (`-o pipefail`)",
+      "distractor_2": "Enable verbose mode (`-e`), unconditional argument substitution (`-u`), and pipeline output buffering (`-o pipefail`)",
+      "distractor_3": "Set environment variable scope (`-e`), unbuffer stdout (`-u`), and force POSIX pipe semantics that match the behaviour of /bin/sh (`-o pipefail`)"
+    },
+    "explanation": "These three flags transform bash from forgiving (errors silently ignored, undefined variables become empty strings, pipe failures swallowed) to strict (fail fast on everything that could be a bug). They're the first line of any production bash script. Distractor 1, 2, 3 each invent fictional meanings. Real bash flags are well-defined; memorise these three because they catch most defensive-scripting bugs."
+  },
+  {
+    "id": "linux-007-mcq-2",
+    "source_id": "linux-007",
+    "domain": "linux",
+    "subdomain": "shell",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 3,
+    "question": "When should you stop using bash and switch to Python (or another higher-level language)?",
+    "options": {
+      "correct": "When you need data structures (hashmaps, lists), structured error handling, multiple functions calling each other, or testing — bash gets painful past ~100 lines",
+      "distractor_1": "When the script accesses network resources, since bash has no built-in HTTP client and shells out to curl for every request",
+      "distractor_2": "When the script needs to run on multiple platforms, since bash syntax differs between distributions in incompatible ways",
+      "distractor_3": "When the script needs to be sourced from another script, since bash's sourcing semantics break encapsulation for non-trivial code"
+    },
+    "explanation": "The line is usually programmability and testability — once you need maps, structured errors, real testing, or function composition, Python pays for itself. Distractor 1 over-states bash's network limitation (curl is fine for most cases). Distractor 2 over-states cross-platform issues; bash itself is consistent on POSIX systems. Distractor 3 fabricates a sourcing problem. The 100-line heuristic is rough but useful: if you're past it, you're probably reinventing functions and structures."
+  },
+  {
+    "id": "git-001-mcq-1",
+    "source_id": "git-001",
+    "domain": "git",
+    "subdomain": "workflow",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Which is the strongest reason to prefer `git merge` over `git rebase` when integrating a feature branch?",
+    "options": {
+      "correct": "Merge preserves the actual history of when changes happened, which is valuable for archaeology and debugging long after the merge",
+      "distractor_1": "Merge is faster than rebase on large repositories because rebase rewrites every commit individually",
+      "distractor_2": "Merge avoids creating new commit SHAs for existing commits, which makes rebase impossible to use in CI/CD pipelines",
+      "distractor_3": "Merge is the only way to combine two branches; rebase merely moves commits between branches without combining their changes into the target branch's history"
+    },
+    "explanation": "Merge preserves the actual integration story — when each branch's commits were made, who was working in parallel, the genuine concurrent history. Rebase creates a clean linear story at the cost of historical accuracy. Distractor 1 (speed) is a wash and not the main reason. Distractor 2 misstates rebase's effect on CI; rebased branches go through CI normally. Distractor 3 misframes rebase as not combining — rebase does integrate the work, just by re-applying rather than merging."
+  },
+  {
+    "id": "git-001-mcq-2",
+    "source_id": "git-001",
+    "domain": "git",
+    "subdomain": "workflow",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Why is rebasing a published branch (one others have pulled) considered dangerous?",
+    "options": {
+      "correct": "Rebase rewrites commit SHAs; once others have based work on the old SHAs, the rewrite creates two divergent histories that have to be reconciled by force",
+      "distractor_1": "Rebase corrupts the local Git database when applied to remote branches; the rebased branch becomes unfetchable to others",
+      "distractor_2": "Rebase loses commit timestamps; the rebased history appears to be the same author timestamp on every commit",
+      "distractor_3": "Rebase requires GitHub admin privileges when applied to remote branches; non-admins cannot push the result back"
+    },
+    "explanation": "Rewriting history that others have pulled creates a fork: their local branch has the old SHAs, yours has new ones. Pushing the rebase requires --force, and they then have to choose between losing their work and reconciling manually. Distractor 1 fabricates database corruption. Distractor 2 misstates timestamp handling — rebase preserves author timestamps (committer timestamps update). Distractor 3 invents an admin-privilege gate. The rule of thumb: never rebase shared branches."
+  },
+  {
+    "id": "git-002-mcq-1",
+    "source_id": "git-002",
+    "domain": "git",
+    "subdomain": "workflow",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 1,
+    "question": "Which branch protection rule combination is the strongest baseline for a production `main` branch?",
+    "options": {
+      "correct": "Require pull request reviews, require status checks to pass, restrict force pushes, and require linear history (or signed commits) for tighter auditability",
+      "distractor_1": "Require pull request reviews and allow administrators to bypass them — admins need bypass for emergency hotfixes",
+      "distractor_2": "Allow force pushes from CI service accounts so deployment pipelines can rewrite history when promoting commits to main",
+      "distractor_3": "Disable all branch protections during incidents to allow direct commits, then re-enable them after the incident is resolved"
+    },
+    "explanation": "Reviews + status checks + no force push + linear history is the standard production baseline. Distractor 1 (admin bypass) creates a gap large enough to be the actual breach path. Distractor 2 (CI force-push) breaks audit trail and creates the exact pattern that branch protection should prevent. Distractor 3 (disable during incidents) is the path to skipping protections that gets normalised. Defensive defaults > emergency exceptions."
+  },
+  {
+    "id": "git-002-mcq-2",
+    "source_id": "git-002",
+    "domain": "git",
+    "subdomain": "workflow",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 2,
+    "question": "Even with branch protection requiring reviews, what's a common bypass that often goes unnoticed?",
+    "options": {
+      "correct": "Repository admins can usually bypass protections by default — and a compromised admin account is enough to push directly to main",
+      "distractor_1": "Force pushing via GitHub's web UI bypasses branch protection because the web UI uses elevated server-side credentials",
+      "distractor_2": "Commits authored from CODEOWNERS-listed users skip review requirements automatically as a built-in convenience",
+      "distractor_3": "Tags pushed to the repository bypass branch protection because branch protection only applies to branch references and tags have a separate protection mechanism entirely"
+    },
+    "explanation": "The 'include administrators' setting on branch protection rules is opt-in — by default, admins can force-push and skip reviews. Distractor 1 fabricates a web-UI bypass; the web UI honours the same rules. Distractor 2 invents a CODEOWNERS exemption. Distractor 3 conflates branches and tags — tags have their own protection but it's separate. Including administrators in branch protection is one of the highest-leverage hardening steps in repo security."
+  },
+  {
+    "id": "git-003-mcq-1",
+    "source_id": "git-003",
+    "domain": "git",
+    "subdomain": "fundamentals",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 1,
+    "question": "What's the difference between `git clone` and a GitHub fork?",
+    "options": {
+      "correct": "Clone is a git-native command that copies a repo to your local machine; fork is a GitHub feature that creates a server-side copy under your account",
+      "distractor_1": "Clone copies only the latest commit; fork copies the full history including all branches and tags",
+      "distractor_2": "Clone makes a read-only copy; fork makes a writeable copy that allows pull requests back to the original repo",
+      "distractor_3": "Clone and fork are the same operation under different names; GitHub uses 'fork' as the user-facing term for cloning"
+    },
+    "explanation": "Clone is git-native (any remote, downloads to your disk). Fork is GitHub-specific (creates a server-side copy in your namespace, then you typically clone from there). Distractor 1 misstates clone's depth — full history by default; shallow clone is an option. Distractor 2 inverts read/write — both can be writeable; permissions depend on the remote, not on clone vs fork. Distractor 3 collapses two distinct operations into one."
+  },
+  {
+    "id": "git-003-mcq-2",
+    "source_id": "git-003",
+    "domain": "git",
+    "subdomain": "fundamentals",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 3,
+    "question": "You've forked an open-source repo on GitHub and cloned your fork locally. What remote setup lets you keep your fork in sync with upstream changes?",
+    "options": {
+      "correct": "Add the original repo as a second remote (commonly called `upstream`); `git fetch upstream` pulls its changes, which you merge or rebase into your fork's branches",
+      "distractor_1": "Configure your fork's webhook to mirror upstream; GitHub will auto-sync your fork on every upstream commit",
+      "distractor_2": "Use `git pull --fork` which is GitHub's specialised pull command that pulls from upstream when the local repo is a fork",
+      "distractor_3": "Push from upstream to your fork as the origin remote; GitHub automatically reroutes the push to your fork"
+    },
+    "explanation": "Two-remote setup is the standard fork workflow: `origin` is your fork, `upstream` is the original. Pull from upstream, push to origin, open PRs from origin to upstream. Distractor 1 invents a webhook-based mirroring. Distractor 2 fabricates a `--fork` flag. Distractor 3 confuses push direction; you don't push from upstream, you fetch from it. GitHub's UI does have a 'Sync fork' button now, but knowing the underlying remote setup matters."
+  },
+  {
+    "id": "git-004-mcq-1",
+    "source_id": "git-004",
+    "domain": "git",
+    "subdomain": "investigation",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "How does `git bisect` work?",
+    "options": {
+      "correct": "Binary search over commit history: you mark a known-good and known-bad commit, then iteratively test the midpoint until git narrows it to the single bad commit",
+      "distractor_1": "Linear search over commit history: git checks each commit from oldest to newest and reports the first one that fails the test command",
+      "distractor_2": "AI-driven search: git uses commit-message analysis to guess which commits are likely to contain the bug and tests those first",
+      "distractor_3": "Parallel search: git tests every commit in the range simultaneously across multiple worktrees and reports all bad ones together"
+    },
+    "explanation": "Bisect's binary search makes it O(log n) — for 1000 commits, that's ~10 tests instead of 1000. Pair it with a test command (`git bisect run ./test.sh`) and it's fully automatic. Distractor 1 (linear search) would be impractical for any non-trivial history. Distractor 2 fabricates AI ranking. Distractor 3 fabricates parallel testing; bisect is strictly sequential because it uses results to pick the next midpoint."
+  },
+  {
+    "id": "git-004-mcq-2",
+    "source_id": "git-004",
+    "domain": "git",
+    "subdomain": "investigation",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "What does `git blame` actually show?",
+    "options": {
+      "correct": "For each line, the commit that LAST touched it — not the original author or the full chain of edits, just the most recent change",
+      "distractor_1": "For each line, the original author who first added it — historical commits remain visible regardless of later edits",
+      "distractor_2": "For each line, every commit that ever modified it, with the most recent change at the top of a per-line stack",
+      "distractor_3": "For each line, the commit that introduced the line's current bug, identified by static analysis of the line's edit history and weighted by commit timestamp recency"
+    },
+    "explanation": "blame shows the most-recent-edit view, which is sometimes counterintuitive: trivial changes (formatting, comment edits) can mask the historical author of the code. To trace further, use `git log -L :<func>:<file>` or `git log -p` of the line range. Distractor 1 misstates blame's semantics — original author is invisible without `--show-root`. Distractor 2 invents a stack-of-edits view. Distractor 3 fabricates bug-identifying analysis."
+  },
+  {
+    "id": "git-005-mcq-1",
+    "source_id": "git-005",
+    "domain": "git",
+    "subdomain": "workflow",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "What does the conflict marker `<<<<<<<` `=======` `>>>>>>>` mean in a file during a merge?",
+    "options": {
+      "correct": "Content above `=======` is from HEAD (your current branch); content below is from the branch being merged in; markers must be removed and the file edited to resolve",
+      "distractor_1": "Content above `=======` is the older version; content below is the newer version regardless of branch direction",
+      "distractor_2": "Content above `=======` is the change being merged in; content below is HEAD — opposite order from rebase",
+      "distractor_3": "Content above `=======` is read-only and reflects the lockfile state; content below is the editor's working copy"
+    },
+    "explanation": "Standard conflict format: `<<<<<<< HEAD` to `=======` is your side, `=======` to `>>>>>>> branch-name` is theirs. Three-way merges add `|||||||` showing the common ancestor too. Distractor 1 (older/newer) ignores branch direction. Distractor 2 reverses the convention. Distractor 3 invents a lockfile/working-copy semantics. Knowing the layout is muscle memory for any production code reviewer."
+  },
+  {
+    "id": "git-005-mcq-2",
+    "source_id": "git-005",
+    "domain": "git",
+    "subdomain": "workflow",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Your team has frequent merge conflicts on shared files. Which practice reduces them most effectively?",
+    "options": {
+      "correct": "Smaller, more frequent merges to main (trunk-based dev) so divergence between branches stays small",
+      "distractor_1": "Switch to `git pull --rebase` by default; rebasing automatically resolves conflicts without manual intervention",
+      "distractor_2": "Enforce file-level ownership: only one person at a time can hold the right to edit any given file in the repo",
+      "distractor_3": "Use `git merge -X theirs` strategy by default to silently take the incoming branch's changes whenever conflict arises"
+    },
+    "explanation": "Conflict frequency is a function of branch divergence — short-lived branches diverge less, so merge surface is smaller. Distractor 1 misstates rebase capability — rebase still has the same conflicts as merge, it just sequences them differently. Distractor 2 (file-level ownership) creates artificial bottlenecks. Distractor 3 (-X theirs) silently throws away work; useful in specific cases but not as a default. The trunk-based pattern is the structural answer."
+  },
+  {
+    "id": "git-006-mcq-1",
+    "source_id": "git-006",
+    "domain": "git",
+    "subdomain": "workflow",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 2,
+    "question": "You add `secrets.json` to `.gitignore` AFTER having already committed and pushed the file. What happens?",
+    "options": {
+      "correct": ".gitignore only affects untracked files; secrets.json is already tracked, so it stays in the repo and continues to be committed on changes",
+      "distractor_1": "Git automatically retroactively removes the file from history once it's added to .gitignore",
+      "distractor_2": "The next push fails because Git refuses to push a file that's now in .gitignore until you delete it from disk",
+      "distractor_3": "Future commits will exclude the file silently; the historical commits remain but new versions stop being tracked"
+    },
+    "explanation": "`.gitignore` is for UNTRACKED files. Once a file is tracked, `.gitignore` is ignored for it. You need `git rm --cached secrets.json` to stop tracking, then commit. Distractor 1 invents retroactive removal. Distractor 2 invents a push failure. Distractor 3 invents auto-exclusion of future modifications; Git keeps tracking until you explicitly stop it. This is the #1 gotcha behind 'I gitignored the file, why is it still appearing in PRs?'"
+  },
+  {
+    "id": "git-006-mcq-2",
+    "source_id": "git-006",
+    "domain": "git",
+    "subdomain": "workflow",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 3,
+    "question": "An API key was committed and pushed to GitHub two weeks ago. What's the right recovery procedure?",
+    "options": {
+      "correct": "Rotate the key immediately (it's already exposed); then use git filter-repo or BFG to scrub history; then force-push and notify collaborators of the rewrite",
+      "distractor_1": "Delete the file from the latest commit and push; GitHub automatically purges the key from historical commits within 24 hours",
+      "distractor_2": "Rotate the key only — there's no need to scrub history because Git history is private and only repo collaborators can see it",
+      "distractor_3": "Run `git reset --hard HEAD~10` to roll the repo back past the bad commit, then re-apply later legitimate changes manually"
+    },
+    "explanation": "The order matters: ROTATE first (it's already public, the key is compromised), then clean up to prevent the historical commit being re-exposed. Distractor 1 invents GitHub auto-purge. Distractor 2 misunderstands repo visibility — even private repos have backups, forks, and clones that retain the history. Distractor 3 (git reset) doesn't remove the commit from remote history without a force push, and rewriting recent history breaks collaborators' work."
+  }
+]
