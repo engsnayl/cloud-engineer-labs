@@ -1,0 +1,342 @@
+[
+  {
+    "id": "docker-001-mcq-1",
+    "source_id": "docker-001",
+    "domain": "docker",
+    "subdomain": "fundamentals",
+    "priority": "high",
+    "difficulty": "easy",
+    "bank": 1,
+    "question": "Which best describes the isolation mechanism that makes containers different from virtual machines?",
+    "options": {
+      "correct": "Containers share the host kernel and use Linux namespaces and cgroups for isolation; VMs each run their own kernel under a hypervisor",
+      "distractor_1": "Containers and VMs both use hypervisors, but containers use a lightweight hypervisor (containerd) instead of the full one (KVM, Hyper-V)",
+      "distractor_2": "Containers use software-based memory protection (SELinux, AppArmor) for isolation; VMs use hardware-based isolation only (VT-x, AMD-V)",
+      "distractor_3": "Containers create a virtualised kernel per container; VMs share the host's kernel via paravirtualisation drivers (virtio, vhost)"
+    },
+    "explanation": "The defining shape: containers = same kernel + namespaces/cgroups; VMs = separate kernels + hypervisor. This explains why containers are smaller and faster but share an attack surface (kernel exploits affect all containers on a host). Distractor 1 invents a containerd-as-hypervisor mental model. Distractor 2 conflates security overlays (SELinux/AppArmor) with the primary isolation mechanism. Distractor 3 inverts the kernel relationship — VMs have their own kernels, containers share the host's."
+  },
+  {
+    "id": "docker-001-mcq-2",
+    "source_id": "docker-001",
+    "domain": "docker",
+    "subdomain": "fundamentals",
+    "priority": "high",
+    "difficulty": "easy",
+    "bank": 2,
+    "question": "When would you choose a VM over a container?",
+    "options": {
+      "correct": "When you need strong kernel-level isolation (multi-tenant, hostile workloads) or need to run a different OS kernel than the host",
+      "distractor_1": "When the workload requires more than 4 GB of memory, since containers have a 4 GB memory ceiling per container by default",
+      "distractor_2": "When you need persistent storage, since containers are ephemeral by design and cannot retain data across restarts",
+      "distractor_3": "When the workload needs network connectivity, since containers run in an isolated network namespace with no external network access"
+    },
+    "explanation": "VMs win on cross-tenant security boundaries (the kernel attack surface is much smaller) and on running a non-Linux kernel on a Linux host (Windows containers on a Linux host, etc.). Distractor 1 invents a 4 GB container memory ceiling. Distractor 2 conflates default-ephemeral semantics with capability — containers absolutely support persistent storage via volumes. Distractor 3 misstates default networking; containers get network connectivity through bridge or host networking out of the box."
+  },
+  {
+    "id": "docker-002-mcq-1",
+    "source_id": "docker-002",
+    "domain": "docker",
+    "subdomain": "images",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Which Dockerfile pattern maximises layer cache hits across builds?",
+    "options": {
+      "correct": "Copy dependency manifests (package.json, requirements.txt) and install dependencies BEFORE copying source code, so source changes don't invalidate the deps layer",
+      "distractor_1": "Copy the entire source tree first as a single COPY, then install dependencies — fewer layers means fewer cache invalidation points",
+      "distractor_2": "Use `--no-cache` on every build to ensure clean state; predictable rebuilds matter more than cache hit rate",
+      "distractor_3": "Combine all RUN commands into one mega-RUN with chained `&&`, so the entire build is a single cacheable layer"
+    },
+    "explanation": "Order layers from least-frequently-changed to most-frequently-changed: dependencies first (lock file), source code last. Distractor 1 inverts the order so source changes bust the deps install layer every time. Distractor 2 (--no-cache always) discards the cache benefit entirely. Distractor 3 combines layers, which does reduce image size, but doesn't help cache reuse — a single mega-layer is invalidated by any change to any file in it."
+  },
+  {
+    "id": "docker-002-mcq-2",
+    "source_id": "docker-002",
+    "domain": "docker",
+    "subdomain": "images",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Which Dockerfile practice is the strongest security improvement?",
+    "options": {
+      "correct": "Run the application as a non-root user via `USER appuser` after creating the user, so a container compromise doesn't run as root inside the namespace",
+      "distractor_1": "Run the application as root for predictable behaviour, then constrain the host's docker daemon via SELinux profiles to make root-in-container safe",
+      "distractor_2": "Pin base images to `:latest` so security patches are picked up automatically on every rebuild without operator intervention",
+      "distractor_3": "Embed the SSL/TLS private key in the image so it doesn't need to be fetched from secret stores at runtime, eliminating that network round-trip"
+    },
+    "explanation": "Non-root user is the single biggest container hardening step — even with namespace isolation, root-in-container is one CVE away from being root on the host. Distractor 1 reverses the priority (host-side hardening is in addition to, not instead of, non-root containers). Distractor 2 advocates `:latest`, which is the worst image-pinning practice (unpredictable, breaks reproducibility). Distractor 3 promotes embedding secrets in images — an extreme anti-pattern (image layers persist secrets forever)."
+  },
+  {
+    "id": "docker-003-mcq-1",
+    "source_id": "docker-003",
+    "domain": "docker",
+    "subdomain": "images",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "What problem do multi-stage Docker builds primarily solve?",
+    "options": {
+      "correct": "Keeping build-time tooling (compilers, build deps) out of the final runtime image, dramatically reducing image size",
+      "distractor_1": "Parallelising the build by running multiple stages on different machines simultaneously",
+      "distractor_2": "Allowing multiple developers to contribute different stages without conflicts in version control",
+      "distractor_3": "Avoiding the 127-layer hard limit by splitting builds across multiple FROM statements"
+    },
+    "explanation": "Multi-stage lets you build in one stage (with full toolchain) and COPY only artefacts to a minimal runtime stage — final image carries no build tools. Distractor 1 invents a cross-machine parallelism. Distractor 2 misframes multi-stage as a collaboration feature. Distractor 3 invents a 127-layer hard limit (the actual limit was 127 in older Docker, now 256, but multi-stage doesn't exist to dodge it). The size reduction can be 10x for compiled-language builds."
+  },
+  {
+    "id": "docker-003-mcq-2",
+    "source_id": "docker-003",
+    "domain": "docker",
+    "subdomain": "images",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Your Dockerfile passes a private API key as `ARG SECRET_KEY` and uses it in a RUN command. Is the secret safe in the final image?",
+    "options": {
+      "correct": "No — anything in any layer of the build (including ARG values consumed by RUN) is recoverable from the image; use BuildKit `--secret` or fetch the secret in an earlier multi-stage stage that gets discarded",
+      "distractor_1": "Yes — ARG values are only available during build and are stripped from the final image before push",
+      "distractor_2": "Yes — Docker automatically encrypts ARG values in image layers, decrypting them only at container runtime within the container",
+      "distractor_3": "No — but only the LAST layer's contents persist; if the secret is used in a non-final RUN, it's automatically purged from history"
+    },
+    "explanation": "Image layers are immutable and inspectable — `docker history` and `docker save` recover the contents of every layer, including any file/env touched by RUN. BuildKit secrets mount the secret only for the RUN command without persisting it; multi-stage discards intermediate stages entirely. Distractor 1 invents an automatic stripping. Distractor 2 invents encryption. Distractor 3 over-claims — Docker doesn't purge non-final layers; they all ship in the image."
+  },
+  {
+    "id": "docker-004-mcq-1",
+    "source_id": "docker-004",
+    "domain": "docker",
+    "subdomain": "images",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Which base image choice is the most effective for shrinking a Python service's image?",
+    "options": {
+      "correct": "Use `python:3.12-slim` (Debian minimal) or a distroless Python image; avoid `python:3.12` (full Debian) which carries unnecessary OS packages",
+      "distractor_1": "Use `python:3.12-alpine`; Alpine is the smallest option and avoids the C-extension compatibility issues that plague Debian-based images for Python",
+      "distractor_2": "Use `scratch` as the base and copy the Python binary in, since scratch is the absolute minimum at zero bytes",
+      "distractor_3": "Use `ubuntu:latest`; Ubuntu's package manager is more efficient and produces smaller layers than Debian's"
+    },
+    "explanation": "Slim variants (or distroless) hit the sweet spot: small enough, glibc-compatible, well-supported. Distractor 1 over-states Alpine — its musl libc breaks many Python wheels (numpy, pandas, cryptography), forcing source builds. Distractor 2 (scratch) means no shell, no libc, no Python runtime to invoke. Distractor 3 (Ubuntu) is usually LARGER than Debian-slim for the same package set. The right answer depends on the workload, but slim is the safe default."
+  },
+  {
+    "id": "docker-004-mcq-2",
+    "source_id": "docker-004",
+    "domain": "docker",
+    "subdomain": "images",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Your team is building images in CI but the resulting images include node_modules from local development, plus .git and various .env files. What's missing?",
+    "options": {
+      "correct": "A `.dockerignore` file excluding node_modules, .git, .env, and other build-irrelevant files from the build context",
+      "distractor_1": "A `RUN rm -rf node_modules` step at the end of the Dockerfile to clean up artefacts after they've been added to the image",
+      "distractor_2": "A `--no-context` flag on the docker build command to skip uploading the working directory entirely",
+      "distractor_3": "A symbolic link from /docker-build to a clean directory so the build only sees the explicitly-staged files"
+    },
+    "explanation": "`.dockerignore` is the answer — it acts like `.gitignore` for `docker build`, preventing the named files from being uploaded to the daemon as build context. Distractor 1 (RUN rm) doesn't shrink the image — the files are already in earlier layers. Distractor 2 invents a --no-context flag. Distractor 3 invents a symlink-staging convention. Without .dockerignore, every file in the build directory gets uploaded and potentially baked in."
+  },
+  {
+    "id": "docker-005-mcq-1",
+    "source_id": "docker-005",
+    "domain": "docker",
+    "subdomain": "images",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "You change a single line in your application's source code. Which Dockerfile instructions are guaranteed to be re-executed (not cached)?",
+    "options": {
+      "correct": "The first COPY/ADD that includes the changed file, plus every instruction after it in the Dockerfile",
+      "distractor_1": "Only the specific RUN commands that reference the changed file in their command-line invocation",
+      "distractor_2": "Every instruction in the Dockerfile, because any source change invalidates the entire build for safety",
+      "distractor_3": "Only the FROM and CMD instructions; intermediate instructions remain cached as long as they don't reference the changed file directly"
+    },
+    "explanation": "Cache invalidation in Dockerfile builds is positional: the moment a layer is invalidated, everything after it is re-run too. So COPY changing busts that COPY layer and every subsequent one. Distractor 1 (only specific RUNs) misses cascade. Distractor 2 (everything) over-states — earlier layers (FROM, RUN apt-get) stay cached if their inputs didn't change. Distractor 3 inverts the model — intermediate instructions are exactly the ones that re-run."
+  },
+  {
+    "id": "docker-005-mcq-2",
+    "source_id": "docker-005",
+    "domain": "docker",
+    "subdomain": "images",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Which BuildKit feature lets you share a directory between build runs without baking it into the final image?",
+    "options": {
+      "correct": "`RUN --mount=type=cache,target=...` — caches like `~/.npm` or `~/.cache/pip` persist across builds without ending up in image layers",
+      "distractor_1": "`RUN --persist=true` — instructs Docker to retain the directory in subsequent builds while excluding it from the final image",
+      "distractor_2": "`VOLUME` directive in the Dockerfile — the directory is mounted at build time and stripped before commit",
+      "distractor_3": "`ENV BUILDKIT_INLINE_CACHE=1` — enables Docker to store the entire build cache in a hidden top-level layer that is read-only at runtime"
+    },
+    "explanation": "BuildKit cache mounts are the right answer — they keep the package cache hot across builds without ending up in image layers, hugely speeding up rebuilds. Distractor 1 invents a --persist=true flag. Distractor 2 misuses VOLUME, which has nothing to do with build-time caching. Distractor 3 (BUILDKIT_INLINE_CACHE) is a real flag but does something different (embeds cache metadata in pushed images so other builds can use it as a remote cache)."
+  },
+  {
+    "id": "docker-006-mcq-1",
+    "source_id": "docker-006",
+    "domain": "docker",
+    "subdomain": "networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Which Docker network mode shares the host's network namespace, so the container's port bindings appear directly on the host's interfaces?",
+    "options": {
+      "correct": "`host` — the container uses the host's network stack directly with no NAT or port mapping",
+      "distractor_1": "`bridge` — the default network mode in which container ports are exposed directly on the host without translation",
+      "distractor_2": "`overlay` — used for multi-host networking; exposes container ports on the host's interfaces by routing across nodes",
+      "distractor_3": "`none` — disables the container's network namespace, falling back to the host's stack for all traffic"
+    },
+    "explanation": "`host` mode skips container network isolation entirely — container port 8080 is host port 8080, no `-p` mapping. Distractor 1 (bridge) is the default but uses NAT/port mapping. Distractor 2 (overlay) is for swarm-style multi-host networking and doesn't directly share the host's stack. Distractor 3 inverts none mode — none disables networking entirely, doesn't fall back to host. Host mode is faster but loses isolation, often used for performance-sensitive monitoring/proxy workloads."
+  },
+  {
+    "id": "docker-006-mcq-2",
+    "source_id": "docker-006",
+    "domain": "docker",
+    "subdomain": "networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Two containers on the default `bridge` network try to reach each other by container name. What happens?",
+    "options": {
+      "correct": "DNS resolution by container name fails on the default bridge network — name-based discovery only works on user-defined networks",
+      "distractor_1": "Container name resolution works because Docker registers all containers in a global DNS pool regardless of network",
+      "distractor_2": "Container name resolution works only when both containers are started with `--link` flags pointing at each other",
+      "distractor_3": "Container name resolution fails because containers must be in the same compose project to share DNS"
+    },
+    "explanation": "The default `bridge` network is a legacy mode without embedded DNS — containers can reach each other by IP but not by name. User-defined networks (created with `docker network create`) include DNS-based name resolution natively. Distractor 1 over-states default behaviour. Distractor 2 (--link) is the very-old way that's been deprecated; user-defined networks replaced it. Distractor 3 misattributes the requirement to compose projects; it's the network type that matters."
+  },
+  {
+    "id": "docker-007-mcq-1",
+    "source_id": "docker-007",
+    "domain": "docker",
+    "subdomain": "storage",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Compare named volumes and bind mounts in Docker.",
+    "options": {
+      "correct": "Bind mounts couple the container directory to a specific host path; named volumes are Docker-managed and portable across hosts running the same Docker daemon setup",
+      "distractor_1": "Bind mounts persist across container restarts; named volumes are ephemeral and are deleted when the container stops",
+      "distractor_2": "Bind mounts and named volumes behave identically; the syntax difference is purely cosmetic for readability of docker run commands",
+      "distractor_3": "Bind mounts are read-only by default; named volumes are read-write by default"
+    },
+    "explanation": "The portability difference is the practical one: a bind mount embeds `/home/dev/data` (works on dev's laptop, doesn't on a Pi); a named volume is an abstraction Docker manages, portable wherever Docker runs. Distractor 1 inverts persistence (named volumes are persistent; bind mounts persist as long as the host path persists). Distractor 2 collapses real differences. Distractor 3 invents a read-only default that doesn't apply to either type. Bind mounts shine for dev environments; named volumes shine for portability and lifecycle management."
+  },
+  {
+    "id": "docker-007-mcq-2",
+    "source_id": "docker-007",
+    "domain": "docker",
+    "subdomain": "storage",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "When is `tmpfs` mount the right choice for a container?",
+    "options": {
+      "correct": "When you need fast, ephemeral storage that doesn't persist after the container stops — useful for secrets, scratch space, or sensitive temp files",
+      "distractor_1": "When you need persistent storage that survives container restarts but doesn't need to be backed up to disk",
+      "distractor_2": "When the host disk is full and you need to redirect container writes to network-attached storage transparently",
+      "distractor_3": "When you need cross-container shared storage; tmpfs is the only mount type that supports multiple containers reading from one source"
+    },
+    "explanation": "tmpfs lives in RAM, dies with the container — perfect for secrets at runtime (never hit disk) or fast scratch space. Distractor 1 inverts persistence (tmpfs is by definition non-persistent). Distractor 2 invents a network-attached fallback. Distractor 3 confuses tmpfs with shared volumes (tmpfs is single-container; volumes can be shared). The 'secrets at runtime' use case is the most common production reason to reach for tmpfs."
+  },
+  {
+    "id": "docker-008-mcq-1",
+    "source_id": "docker-008",
+    "domain": "docker",
+    "subdomain": "compose",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 1,
+    "question": "What's the recommended scope for Docker Compose?",
+    "options": {
+      "correct": "Local development and simple single-host deployments — Compose orchestrates multiple containers on one host with no clustering",
+      "distractor_1": "Production multi-host clusters at any scale — Compose is the cluster scheduler that replaced Docker Swarm in 2022",
+      "distractor_2": "Standalone development only — Compose cannot deploy to remote hosts and isn't suitable for any kind of production use",
+      "distractor_3": "Single-container deployments — Compose is the modern replacement for `docker run` with friendlier YAML configuration"
+    },
+    "explanation": "Compose is single-host, multi-container — perfect for local dev stacks (app + db + cache) and small production deployments where one host is enough. Distractor 1 over-extends Compose to clustering territory it doesn't occupy (Kubernetes/Nomad do that). Distractor 2 under-states Compose; small production deployments on a single host are fine. Distractor 3 misframes Compose as a single-container tool — its whole point is multi-container coordination."
+  },
+  {
+    "id": "docker-008-mcq-2",
+    "source_id": "docker-008",
+    "domain": "docker",
+    "subdomain": "compose",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 3,
+    "question": "In a Docker Compose file, `depends_on: db` says what?",
+    "options": {
+      "correct": "Start the dependent service after `db` has been started (started, not yet healthy) — useful for ordering but not for guaranteeing the db is ready",
+      "distractor_1": "Wait until the `db` container is fully healthy (according to its healthcheck) before starting the dependent service",
+      "distractor_2": "Build the `db` image before building the dependent service's image; networking is unaffected",
+      "distractor_3": "Restart the dependent service automatically if `db` ever crashes during runtime, treating db as a hard dependency"
+    },
+    "explanation": "Basic `depends_on` is start-order only — the db container has been started, but the database process inside may still be initialising. To wait for actual readiness, use `depends_on: db: condition: service_healthy` with a healthcheck on db. Distractor 1 describes the healthy-condition form, which isn't the default. Distractor 2 confuses runtime ordering with build ordering. Distractor 3 invents a restart-cascade behaviour that doesn't exist."
+  },
+  {
+    "id": "docker-009-mcq-1",
+    "source_id": "docker-009",
+    "domain": "docker",
+    "subdomain": "registry",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "How do you authenticate `docker push` to a private ECR repository?",
+    "options": {
+      "correct": "`aws ecr get-login-password | docker login --username AWS --password-stdin <account>.dkr.ecr.<region>.amazonaws.com` — generates a 12-hour token",
+      "distractor_1": "`docker login --username ECR_USER --password $ECR_PASSWORD <registry>` using a static long-lived password stored in IAM",
+      "distractor_2": "ECR doesn't require explicit login when called from an EC2 instance with an attached IAM role; the docker CLI auto-authenticates via IMDS",
+      "distractor_3": "`docker login` is not used with ECR; instead, `aws ecr push` uploads images directly using the AWS CLI"
+    },
+    "explanation": "ECR uses temporary tokens via STS — `get-login-password` returns a 12-hour bearer token that docker login then exchanges for daemon credentials. Distractor 1 invents a long-lived ECR password. Distractor 2 over-states implicit behaviour — docker doesn't auto-authenticate; the ecr-login credential helper exists for this but isn't the default. Distractor 3 invents an `aws ecr push` subcommand. The credential helper (amazon-ecr-credential-helper) is the production setup, but the explicit get-login-password is what every interview question is testing."
+  },
+  {
+    "id": "docker-009-mcq-2",
+    "source_id": "docker-009",
+    "domain": "docker",
+    "subdomain": "registry",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "An ECR lifecycle policy says 'keep only the 10 most recent images, expire the rest.' Why is tag immutability sometimes set alongside this?",
+    "options": {
+      "correct": "Tag immutability prevents the same tag (e.g. `:v1`) from being overwritten — so when lifecycle deletes 'older' images, the tag-to-digest mapping that callers rely on is stable",
+      "distractor_1": "Tag immutability is a billing optimisation — ECR charges less for immutable tags because they don't require write tracking",
+      "distractor_2": "Tag immutability is required by lifecycle policies — without it, the policy cannot determine which images are 'more recent'",
+      "distractor_3": "Tag immutability rotates tags automatically — the policy uses it to renumber tags so the oldest expires and the newest becomes `:latest`"
+    },
+    "explanation": "Immutable tags + lifecycle policy together give predictable image history: each tag refers to one immutable digest, lifecycle expires by age, and consumers always know what `:v1` means. Distractor 1 invents a billing tier. Distractor 2 over-states the dependency — lifecycle works without immutability, but `:latest` becomes a moving target. Distractor 3 fabricates tag-rotation; ECR doesn't rename tags. Immutable + lifecycle is a strong combination for production registries."
+  },
+  {
+    "id": "docker-010-mcq-1",
+    "source_id": "docker-010",
+    "domain": "docker",
+    "subdomain": "operations",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "A container exits with code 137 immediately. What's the most likely cause?",
+    "options": {
+      "correct": "OOMKilled — the container exceeded its memory limit and the kernel sent SIGKILL (137 = 128 + signal 9)",
+      "distractor_1": "The container exited normally with code 137 as its application-defined success indicator",
+      "distractor_2": "Network unreachable — the container couldn't reach its configured endpoints and exited with the standard 137 network failure code",
+      "distractor_3": "Permission denied — exit code 137 indicates a filesystem permission error from running as non-root"
+    },
+    "explanation": "Exit code 137 is the convention for SIGKILL (kernel forced termination): 128 + signal number 9. The most common cause in containers is the OOM killer when the container's cgroup memory limit is exceeded. Distractor 1 invents an application convention for 137. Distractor 2 fabricates a network failure code. Distractor 3 fabricates a permission code. Other useful codes: 139 = SIGSEGV (segfault), 130 = SIGINT (Ctrl+C), 143 = SIGTERM (graceful)."
+  },
+  {
+    "id": "docker-010-mcq-2",
+    "source_id": "docker-010",
+    "domain": "docker",
+    "subdomain": "operations",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "A container starts and exits immediately. `docker logs` shows nothing. What's the next diagnostic step?",
+    "options": {
+      "correct": "Run `docker inspect <container>` and look at State (exit code, error) plus run with `-it --entrypoint=sh` to get an interactive shell instead of executing the original entrypoint",
+      "distractor_1": "Run `docker exec -it <container> sh` to drop into the exited container and inspect its filesystem state",
+      "distractor_2": "Increase the container's stop timeout to 60 seconds, which gives docker logs more time to capture output before exit",
+      "distractor_3": "Restart Docker daemon to flush log buffers; transient containers often lose stdout to a kernel buffer that the daemon doesn't drain"
+    },
+    "explanation": "`docker inspect` shows the exit code and any error message; running with `--entrypoint=sh -it` lets you start the container manually and explore — bypassing the failing entrypoint. Distractor 1 (docker exec on exited) fails: exec requires a running container. Distractor 2 misunderstands stop timeout (it controls graceful shutdown waits, not log capture). Distractor 3 invents a daemon-restart fix. The entrypoint override is the most useful technique when the container fails before producing usable output."
+  }
+]
