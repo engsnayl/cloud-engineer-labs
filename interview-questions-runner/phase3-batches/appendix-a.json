@@ -1,0 +1,53 @@
+[
+  {
+    "id": "aws-002-mcq-1",
+    "source_id": "aws-002",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "easy",
+    "bank": 1,
+    "question": "What technically distinguishes a public subnet from a private subnet in an AWS VPC?",
+    "options": {
+      "correct": "The subnet has a route in its route table sending 0.0.0.0/0 to an Internet Gateway",
+      "distractor_1": "The subnet's CIDR block is within the VPC's public IP range",
+      "distractor_2": "Instances launched in the subnet automatically receive a public IP address",
+      "distractor_3": "The subnet is associated with a security group that allows inbound traffic from 0.0.0.0/0"
+    },
+    "explanation": "Nothing about a subnet is intrinsically 'public' or 'private' — the distinction is purely the route table. Auto-assign public IP (distractor 2) is a real, separate setting (MapPublicIpOnLaunch) but an instance needs BOTH the IGW route AND a public IP to be reachable. CIDR blocks within a VPC aren't categorised as public or private. Security groups operate at the instance level and never define subnet type."
+  },
+  {
+    "id": "k8s-005-mcq-1",
+    "source_id": "k8s-005",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "A pod has cpu requests: 200m, limits: 500m and memory requests: 256Mi, limits: 512Mi. The pod tries to use 600m of CPU and 600Mi of memory. What happens?",
+    "options": {
+      "correct": "The pod is throttled on CPU and OOMKilled on memory",
+      "distractor_1": "The pod is OOMKilled immediately on both CPU and memory",
+      "distractor_2": "The pod is throttled on CPU and throttled on memory",
+      "distractor_3": "The pod is allowed to burst on both since the node has spare capacity"
+    },
+    "explanation": "CPU is a compressible resource — exceeding the limit results in throttling, not termination. Memory is incompressible — exceeding the limit results in the kernel OOM-killing the container. Distractor 1 is the half-remembered 'limits = killed' rule without nuance. Distractor 2 is symmetric but wrong (memory doesn't throttle). Distractor 3 describes how requests behave when the node has spare capacity, not limits — a real concept, wrong context."
+  },
+  {
+    "id": "tf-002-mcq-1",
+    "source_id": "tf-002",
+    "domain": "terraform",
+    "subdomain": "state",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Two engineers run terraform apply simultaneously against the same S3 remote backend. State locking via DynamoDB is configured. What happens?",
+    "options": {
+      "correct": "The second apply fails immediately with a state lock error",
+      "distractor_1": "Both applies succeed; Terraform merges the resulting state files",
+      "distractor_2": "The second apply waits for the first to complete, then proceeds",
+      "distractor_3": "Both applies succeed but the second silently overwrites the first's state"
+    },
+    "explanation": "DynamoDB state locking is advisory and fail-fast, not a queue. The second apply attempts to acquire the lock, sees it's held, and exits with an error. Distractor 1: Terraform never merges state files — that's a deliberate design choice. Distractor 2: it doesn't queue (some CI systems do, Terraform doesn't). Distractor 3 is literally what happens WITHOUT locking — the question is testing what locking actually prevents."
+  }
+]
