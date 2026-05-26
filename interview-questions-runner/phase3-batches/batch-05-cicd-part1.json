@@ -1,0 +1,274 @@
+[
+  {
+    "id": "cicd-001-mcq-1",
+    "source_id": "cicd-001",
+    "domain": "cicd",
+    "subdomain": "fundamentals",
+    "priority": "high",
+    "difficulty": "easy",
+    "bank": 1,
+    "question": "What's the distinction between Continuous Delivery and Continuous Deployment?",
+    "options": {
+      "correct": "Continuous Delivery makes every change deployable to production; Continuous Deployment automatically deploys every successful build to production",
+      "distractor_1": "Continuous Delivery deploys to staging only; Continuous Deployment deploys to staging and then production with a manual promotion step",
+      "distractor_2": "Continuous Delivery refers to deploying compiled artifacts; Continuous Deployment refers to deploying source code or containers directly",
+      "distractor_3": "Continuous Delivery deploys on a fixed schedule; Continuous Deployment deploys whenever the engineer manually triggers a release"
+    },
+    "explanation": "The gap is the production deployment step: Delivery stops at 'deployable artifact, ready when you press the button'; Deployment automates pressing the button. Distractor 1 invents a staging-vs-production split that conflates with environments. Distractor 2 invents an artifact-type distinction. Distractor 3 reverses both terms — neither has a fixed schedule, and Continuous Deployment is automatic, not manual. The boundary matters because most teams claim 'CD' meaning Delivery while saying it like Deployment."
+  },
+  {
+    "id": "cicd-001-mcq-2",
+    "source_id": "cicd-001",
+    "domain": "cicd",
+    "subdomain": "fundamentals",
+    "priority": "high",
+    "difficulty": "easy",
+    "bank": 2,
+    "question": "A team's pipeline runs: lint → unit tests → build container → push to registry → deploy to dev → run smoke tests. After smoke tests pass, a human approves a button before the prod deploy runs. Which maturity stage does this fit?",
+    "options": {
+      "correct": "Continuous Delivery — automated through to a deploy-ready state, with a human approval gate before production",
+      "distractor_1": "Continuous Deployment — every successful commit reaches production after smoke tests pass, regardless of the approval step",
+      "distractor_2": "Continuous Integration only — the pipeline runs tests and builds, but deployment to dev isn't part of CI",
+      "distractor_3": "Manual deployment with CI sprinkled on top — the human approval step disqualifies it from being any form of CD"
+    },
+    "explanation": "Continuous Delivery is exactly this: full automation through to a ready-to-promote state, with a human gate before production. Distractor 1 ignores the human gate that makes this Delivery, not Deployment. Distractor 2 misses that deploying to dev is part of CD pipelines. Distractor 3 over-tightens the definition; an approval gate is compatible with Continuous Delivery. The pattern is the dominant industry default — most production systems require human sign-off for prod."
+  },
+  {
+    "id": "cicd-002-mcq-1",
+    "source_id": "cicd-002",
+    "domain": "cicd",
+    "subdomain": "fundamentals",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "When designing a CI pipeline, which stage order maximises fast feedback?",
+    "options": {
+      "correct": "Fast checks first (lint, format, security scan), then unit tests, then integration tests, then build/deploy — fail fast on cheap stages",
+      "distractor_1": "Build the container first, then run all tests against the built image to ensure tests reflect production behaviour",
+      "distractor_2": "Integration tests first because they catch the highest-impact bugs; unit tests are a secondary check after integration passes",
+      "distractor_3": "Deploy to dev first, then run all tests against the deployed environment to catch infrastructure-related issues early"
+    },
+    "explanation": "Fail-fast ordering: run the cheapest, fastest checks before expensive ones. A lint catch in 5 seconds saves 5 minutes of integration test waste. Distractor 1 inverts ordering (build before test) — you waste build time on changes that fail trivial checks. Distractor 2 inverts the test pyramid — integration tests are slower and less precise; running them first throws away fast unit signal. Distractor 3 confuses CI with CD — running tests post-deploy is the slowest possible feedback loop."
+  },
+  {
+    "id": "cicd-002-mcq-2",
+    "source_id": "cicd-002",
+    "domain": "cicd",
+    "subdomain": "fundamentals",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Your CI pipeline takes 25 minutes — too slow for the team's rapid commit cadence. Which optimisation gives the biggest realistic speedup?",
+    "options": {
+      "correct": "Parallelise independent stages (lint, unit tests, security scan) and shard slow test suites across multiple runners",
+      "distractor_1": "Increase the runner's CPU and memory to the maximum tier; CI speed scales linearly with resource size",
+      "distractor_2": "Skip the integration test stage on every PR and run it only on main branch merges, since it's the slowest stage",
+      "distractor_3": "Switch from GitHub-hosted runners to a larger third-party runner provider with faster network throughput between runners"
+    },
+    "explanation": "Parallelisation and sharding give 3-5x speedups on most pipelines because stages and tests are I/O-bound rather than CPU-bound. Distractor 1 over-promises — bigger runners help marginally if at all; serial test runs don't speed up with more CPU beyond a point. Distractor 2 reduces signal coverage (PRs would merge with integration failures) — wrong trade-off. Distractor 3 adds infrastructure cost without addressing the fundamental serial-vs-parallel issue."
+  },
+  {
+    "id": "cicd-003-mcq-1",
+    "source_id": "cicd-003",
+    "domain": "cicd",
+    "subdomain": "fundamentals",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Why are long-lived feature branches incompatible with modern CI/CD practices?",
+    "options": {
+      "correct": "Long-lived branches drift from main, so integration is deferred until merge — the longer the branch lives, the more painful and risky the merge",
+      "distractor_1": "Long-lived branches cannot run CI pipelines because GitHub Actions automatically disables workflows on branches that haven't been pushed in 7 days",
+      "distractor_2": "Long-lived branches duplicate Git storage because each commit is copied to main's history, doubling repository disk usage",
+      "distractor_3": "Long-lived branches break semantic versioning because every commit must increment the major version when the branch merges to main"
+    },
+    "explanation": "Trunk-based development integrates small commits to main constantly so conflicts and integration bugs surface immediately. Long-lived branches defer that signal, accumulating risk silently. Distractor 1 invents a GitHub Actions auto-disable behaviour. Distractor 2 misunderstands Git's content-addressed storage; commits aren't duplicated. Distractor 3 invents a semver-major-on-merge rule that has no basis. The merge pain is the core argument — and feature flags exist specifically to keep branches short."
+  },
+  {
+    "id": "cicd-003-mcq-2",
+    "source_id": "cicd-003",
+    "domain": "cicd",
+    "subdomain": "fundamentals",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Trunk-based development with rapid merge cadence depends on which mechanism to ship unfinished features safely?",
+    "options": {
+      "correct": "Feature flags — code paths for incomplete features are merged to main behind flags that gate execution at runtime",
+      "distractor_1": "Code comments — TODO markers and `// disabled` blocks ensure unfinished code is identified by reviewers before merge",
+      "distractor_2": "Branch protection rules — strict required approvals ensure no unfinished feature reaches main without a maintainer's review",
+      "distractor_3": "Squash commits on merge — squashing combines partial commits into one atomic merge, hiding unfinished state from main's history"
+    },
+    "explanation": "Feature flags decouple deploy from release: unfinished code can merge to main and ship to production as long as the flag is off; turning the flag on releases the feature. Distractor 1 confuses code review with runtime gating — comments don't prevent execution. Distractor 2 (branch protection) gates what merges, not what runs. Distractor 3 (squash commits) is purely about commit history shape, not about runtime behaviour of partial features. Without feature flags, trunk-based devs are stuck shipping only complete features, which breaks the small-PR loop."
+  },
+  {
+    "id": "cicd-010-mcq-1",
+    "source_id": "cicd-010",
+    "domain": "cicd",
+    "subdomain": "github-actions",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "In GitHub Actions, what's the hierarchy of workflow / job / step / action?",
+    "options": {
+      "correct": "Workflow contains one or more jobs; each job contains one or more steps; each step runs either a shell command or an action",
+      "distractor_1": "Action contains one or more workflows; each workflow contains one or more jobs; each job contains one or more steps",
+      "distractor_2": "Workflow contains one or more steps; each step contains one or more jobs; each job runs one or more actions",
+      "distractor_3": "Job contains one or more workflows; each workflow contains one or more steps; each step runs an action or a shell script"
+    },
+    "explanation": "The hierarchy is workflow → job → step, with actions being reusable units a step can call. Distractor 1 inverts: actions are the smallest unit, called by steps, not containers of workflows. Distractor 2 swaps job and step (jobs are bigger). Distractor 3 inverts job and workflow. Getting this hierarchy wrong is the most common GHA confusion — you can't write a working workflow file without knowing which keyword nests inside which."
+  },
+  {
+    "id": "cicd-010-mcq-2",
+    "source_id": "cicd-010",
+    "domain": "cicd",
+    "subdomain": "github-actions",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Compare GitHub-hosted runners and self-hosted runners. When would you choose self-hosted?",
+    "options": {
+      "correct": "When you need access to private network resources, special hardware (GPUs, ARM, large memory), or want to amortise compute across many jobs at lower marginal cost",
+      "distractor_1": "When you need workflows to run faster — self-hosted runners are 5-10x faster than GitHub-hosted due to dedicated hardware",
+      "distractor_2": "When you want guaranteed isolation — GitHub-hosted runners share state across workflow runs, while self-hosted runners are ephemeral",
+      "distractor_3": "When you need the workflow to run on Linux — GitHub-hosted runners only support Windows and macOS, with Linux being self-hosted only"
+    },
+    "explanation": "Self-hosted runners fit network-locked resources (internal artifact stores, on-prem APIs) and special hardware needs. Cost can also be lower for high-volume teams. Distractor 1 reverses isolation — GitHub-hosted runners are ephemeral by default; self-hosted require deliberate ephemeral setup. Distractor 2 inverts isolation entirely. Distractor 3 fabricates OS support — GitHub-hosted offers Linux, Windows, and macOS. Self-hosted is a real choice but the trade-off is maintenance burden vs flexibility, not raw speed."
+  },
+  {
+    "id": "cicd-011-mcq-1",
+    "source_id": "cicd-011",
+    "domain": "cicd",
+    "subdomain": "github-actions",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "When should you reach for a reusable workflow vs a composite action in GitHub Actions?",
+    "options": {
+      "correct": "Reusable workflow when you need a full pipeline (multiple jobs, env, secrets); composite action when you want to bundle a sequence of steps inside a single job",
+      "distractor_1": "Reusable workflow for self-hosted runners, composite action for GitHub-hosted runners — they target different runner types",
+      "distractor_2": "Reusable workflow for public open-source projects, composite action for private internal projects — the visibility model differs",
+      "distractor_3": "Reusable workflow when written in JavaScript, composite action when written in shell — the language drives the choice"
+    },
+    "explanation": "Reusable workflows are entire workflow files called via `uses:` at the workflow level — they have their own jobs, can call secrets, can target environments. Composite actions are smaller — a bundle of steps that look like one action inside a job. Distractor 1 invents a runner-type targeting. Distractor 2 fabricates a visibility distinction; both types can be public or private. Distractor 3 confuses JavaScript actions (a third action type) with composite actions. Composite is shell/uses; JS is Node-based action code."
+  },
+  {
+    "id": "cicd-011-mcq-2",
+    "source_id": "cicd-011",
+    "domain": "cicd",
+    "subdomain": "github-actions",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Your composite action needs access to a secret stored at the repository level. What's true about secrets and composite actions?",
+    "options": {
+      "correct": "Composite actions can read secrets passed as inputs from the calling workflow but cannot directly access repository secrets without explicit passthrough",
+      "distractor_1": "Composite actions inherit all repository and organization secrets automatically without any explicit passing required",
+      "distractor_2": "Composite actions cannot use secrets at all; secrets are restricted to job-level steps written directly in the workflow file",
+      "distractor_3": "Composite actions can access secrets only when they're stored in the calling workflow's environment with name prefixed COMPOSITE_"
+    },
+    "explanation": "Composite actions are sandboxed from secrets — the calling workflow must pass secrets as inputs explicitly (with `secrets:` context in a reusable workflow, or as input values for composite actions). Distractor 1 inverts the access model. Distractor 2 over-tightens — composite actions can use secrets, just via explicit passthrough. Distractor 3 invents a prefix convention that doesn't exist. This is the most common composite-action gotcha for teams refactoring from inline steps."
+  },
+  {
+    "id": "cicd-012-mcq-1",
+    "source_id": "cicd-012",
+    "domain": "cicd",
+    "subdomain": "github-actions",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 2,
+    "question": "A matrix strategy declares: `os: [ubuntu, macos, windows]` and `node: [18, 20]`. How many job runs does this create?",
+    "options": {
+      "correct": "Six — the matrix is the cross product of all dimensions: 3 OS values × 2 Node versions",
+      "distractor_1": "Five — GitHub Actions adds one extra job for the matrix coordinator that aggregates results from the others",
+      "distractor_2": "Three — the matrix runs one job per OS, with Node versions iterated inside each job sequentially",
+      "distractor_3": "Two — the matrix runs one job per Node version, with OS values iterated inside each job in parallel"
+    },
+    "explanation": "Matrix expansion is the cross-product: every combination becomes a separate job, all running in parallel by default. Three OS × two Node = six. Distractor 1 invents a coordinator job; GHA doesn't add one. Distractor 2 treats the matrix as a one-dimensional iteration. Distractor 3 inverts the dimension that drives parallelism — Node, not OS, but still wrong because both dimensions multiply. You can prune the cross-product with `exclude:` or extend it with `include:` for targeted combinations."
+  },
+  {
+    "id": "cicd-012-mcq-2",
+    "source_id": "cicd-012",
+    "domain": "cicd",
+    "subdomain": "github-actions",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 3,
+    "question": "Your matrix has `os: [ubuntu, macos, windows]` and `node: [18, 20]` but you don't want the macos+node18 combination because it's flaky. How do you skip it?",
+    "options": {
+      "correct": "Use `exclude:` in the strategy with `{os: macos, node: 18}` to remove that one combination while keeping all others",
+      "distractor_1": "Set `continue-on-error: true` on the specific matrix combination so its failures don't fail the workflow",
+      "distractor_2": "Use `if: ${{ !(matrix.os == 'macos' && matrix.node == 18) }}` on every step inside the matrix job to make all steps no-ops for that combo",
+      "distractor_3": "Add `skip-matrix:` to the workflow YAML with the combination key, which tells GitHub to not even queue that job run"
+    },
+    "explanation": "The native solution is `exclude:` (and `include:` adds combinations beyond the cross-product). Distractor 1 keeps the job running and silences failures — wasteful and noisy. Distractor 2 keeps the job queued and runs through every step as a no-op — extreme overhead for skipping. Distractor 3 invents a `skip-matrix:` key that doesn't exist. Matrix pruning matters at scale — a 3×3×3 cross-product is 27 jobs, and `exclude:` keeps the bill in check."
+  },
+  {
+    "id": "cicd-013-mcq-1",
+    "source_id": "cicd-013",
+    "domain": "cicd",
+    "subdomain": "github-actions",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Your CI uses `actions/cache@v4` with `key: deps-${{ hashFiles('package-lock.json') }}`. What does this cache?",
+    "options": {
+      "correct": "A cache entry keyed by the hash of package-lock.json — the cache hits when the lock file hasn't changed and misses (invalidating) when it has",
+      "distractor_1": "A cache entry keyed by the commit SHA — each commit gets its own cache entry, with no sharing across commits regardless of dependencies",
+      "distractor_2": "A cache entry keyed by branch name — the main branch and feature branches each get their own dependency cache",
+      "distractor_3": "A cache entry keyed by the action version (v4) — all workflows using actions/cache@v4 share the same cache pool"
+    },
+    "explanation": "`hashFiles()` computes a SHA of the named file, so the cache key changes exactly when the file changes. This is the gold-standard pattern: stable when deps are stable, invalidates automatically on lockfile change. Distractor 1 confuses key strategies — commit SHA gives no reuse. Distractor 2 ignores the hashFiles expression. Distractor 3 invents an action-version-keyed shared pool that would mix data across unrelated workflows. Composite cache keys with `restore-keys:` add a fallback chain."
+  },
+  {
+    "id": "cicd-013-mcq-2",
+    "source_id": "cicd-013",
+    "domain": "cicd",
+    "subdomain": "github-actions",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "You build a Docker image in CI and want to reuse the layer cache across runs even though each runner is fresh. What pattern works?",
+    "options": {
+      "correct": "BuildKit with a registry-backed cache (`--cache-to type=registry --cache-from type=registry`) — layers live in a remote registry and are pulled on subsequent runs",
+      "distractor_1": "BuildKit local cache (`--cache-to type=local`) — local caches are automatically synchronised across runners by GitHub Actions",
+      "distractor_2": "Docker Hub's persistent layer storage — every image tag pushed to Docker Hub seeds the layer cache for all future builds in the same org",
+      "distractor_3": "Compressed tar of the Docker daemon storage directory uploaded as a build artifact — restored at the start of each subsequent run"
+    },
+    "explanation": "Registry cache is the standard pattern: BuildKit pushes the build cache to a registry (often the same one as the image), and pulls it on the next run. The runner can be fresh because the cache lives remotely. Distractor 1 invents synchronisation across runners for local cache. Distractor 2 fabricates an org-wide layer-seeding behaviour. Distractor 3 (tar of daemon storage) was a pre-BuildKit hack — slow, fragile, and not how modern BuildKit works."
+  },
+  {
+    "id": "cicd-014-mcq-1",
+    "source_id": "cicd-014",
+    "domain": "cicd",
+    "subdomain": "github-actions",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Where do GitHub Actions secrets live, and how do they differ by scope?",
+    "options": {
+      "correct": "Secrets can be set at repository, organization, or environment level — environment secrets are exposed only to jobs targeting that environment",
+      "distractor_1": "All secrets live at the repository level only; organization and environment configurations point back to the same repo storage",
+      "distractor_2": "Secrets live in the runner's filesystem at /etc/gha/secrets and are pre-mounted into every step before execution",
+      "distractor_3": "Secrets live in the workflow's YAML file as encrypted values that GitHub decrypts at runtime using the repo's deploy key"
+    },
+    "explanation": "Three scopes: repo (visible to all workflows in the repo), org (visible to selected repos), environment (visible only when a job declares `environment: <name>`). Environment scope is the strongest gate. Distractor 1 collapses all three scopes incorrectly. Distractor 2 fabricates a filesystem path; secrets are injected as env vars at step time. Distractor 3 invents an in-YAML encrypted store; secrets are out-of-band in GitHub's metadata, never in the workflow file."
+  },
+  {
+    "id": "cicd-014-mcq-2",
+    "source_id": "cicd-014",
+    "domain": "cicd",
+    "subdomain": "github-actions",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "A production deploy job needs a manual approval and access to prod-only secrets. Which GitHub Actions feature delivers both?",
+    "options": {
+      "correct": "Environment with required reviewers — the job pauses for the named reviewer's approval, and the environment's secrets become available only after approval",
+      "distractor_1": "Branch protection rules — required reviewers on the protected branch act as the deploy approval and unlock the secret store",
+      "distractor_2": "Workflow concurrency groups — by setting concurrency on the deploy workflow, the second pending run waits for human approval to proceed",
+      "distractor_3": "Repository ruleset 'production' — when a workflow runs against a tag matching the ruleset, secrets become available conditionally"
+    },
+    "explanation": "Environments combine secret scoping with deployment protection rules (required reviewers, wait timers, branch restrictions). The deploy job pauses on environment entry until approved. Distractor 1 conflates branch protection (governs merges) with deployment approval (governs running). Distractor 2 misuses concurrency, which serialises but doesn't add approval gates. Distractor 3 invents a 'production' ruleset that doesn't natively exist. Environments + reviewers is the recommended production-deploy gate."
+  }
+]
