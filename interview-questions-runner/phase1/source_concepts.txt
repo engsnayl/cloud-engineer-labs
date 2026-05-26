@@ -1,0 +1,733 @@
+
+===== AWS =====
+
+aws-001 | critical | medium
+  Q: Design a highly available, scalable multi-tier application on AWS
+  - Multi-tier architecture separation (web, app, data)
+  - VPC design with public and private subnets across AZs
+  - Load balancing strategy and placement
+  - Database high availability (Multi-AZ, read replicas)
+  - Defence-in-depth security layering
+
+aws-002 | high | easy
+  Q: What's the difference between a public and private subnet, and when do you use each?
+  - Route table behaviour as the actual differentiator
+  - Internet Gateway vs NAT Gateway role
+  - Practical workload placement
+  - Common architecture patterns
+
+aws-003 | critical | easy
+  Q: What's the difference between NACLs and Security Groups, and when would you use each?
+  - Stateful vs stateless firewalling
+  - VPC layered security model
+  - Practical placement of each control
+  - Default behaviours
+
+aws-005 | high | medium
+  Q: Explain the difference between RDS Multi-AZ and Read Replicas — when do you use each?
+  - High availability vs read scaling — different problems
+  - Synchronous vs asynchronous replication
+  - Failover behaviour
+  - Cost and architectural trade-offs
+
+aws-007 | high | hard
+  Q: Design a disaster recovery strategy for an e-commerce site that can't have downtime but needs to be cost-effective
+  - The four standard DR strategies and their trade-offs
+  - RTO/RPO terminology
+  - Cost vs availability balancing
+  - Multi-region patterns and pitfalls
+
+aws-008 | medium | easy
+  Q: Walk me through S3 storage classes and when you'd use lifecycle policies
+  - S3 storage class trade-offs (cost vs access latency)
+  - Lifecycle policy mechanics
+  - Cost optimisation through tiering
+  - Retrieval cost awareness
+
+aws-009 | medium | easy
+  Q: Compare EBS, EFS, and FSx — when do you use each?
+  - Storage type fundamentals (block vs file vs object)
+  - Single-attach vs multi-attach access patterns
+  - Performance characteristics
+  - Use case fit
+
+aws-010 | high | medium
+  Q: How do you secure an S3 bucket? Walk me through the layers
+  - Defence-in-depth thinking
+  - Bucket policy vs IAM policy interaction
+  - Encryption options
+  - Practical security operational concerns
+
+aws-012 | high | medium
+  Q: Walk me through the AWS load balancer types — which have you used and what are the others for?
+  - ALB vs NLB vs GWLB use cases
+  - OSI layer awareness
+  - Real-world placement decisions
+  - Trade-offs (latency, features, cost)
+
+aws-013 | medium | medium
+  Q: What is connection draining (deregistration delay) and why does it matter?
+  - Graceful shutdown patterns
+  - ALB target lifecycle
+  - Practical impact on deployments and scaling
+
+aws-014 | high | easy
+  Q: Explain Internet Gateway, NAT Gateway, and NAT Instance — when do you use each?
+  - Inbound vs outbound internet access
+  - Managed vs self-managed services
+  - Cost implications
+  - Practical placement
+
+aws-015 | high | hard
+  Q: How do you connect VPCs together? Compare VPC Peering, Transit Gateway, and PrivateLink
+  - Multi-VPC connectivity patterns
+  - Scaling characteristics of each option
+  - Trade-offs in cost, complexity, and access control
+  - When each is appropriate
+
+aws-016 | medium | medium
+  Q: Walk me through Route 53 routing policies — when do you use each?
+  - DNS-based traffic management
+  - Failover and multi-region patterns
+  - Health check integration
+  - Practical use cases
+
+aws-017 | high | medium
+  Q: Explain VPC endpoints — Gateway vs Interface, and when do you use them?
+  - Private connectivity to AWS services
+  - Cost optimisation via NAT avoidance
+  - Security via keeping traffic off the public internet
+  - Differences between endpoint types
+
+aws-019 | medium | easy
+  Q: How do you choose an EC2 instance type for a workload?
+  - Understanding of instance family naming
+  - Workload-to-resource matching
+  - Right-sizing methodology
+  - Cost vs performance trade-offs
+
+aws-020 | high | medium
+  Q: Walk me through Auto Scaling Group strategies — target tracking, step scaling, scheduled scaling
+  - Auto-scaling decision logic
+  - Metric selection
+  - Practical use cases
+  - Cooldowns and scaling protection
+
+aws-021 | high | medium
+  Q: Compare Spot, On-Demand, Reserved Instances, and Savings Plans — when do you use each?
+  - Pricing model trade-offs
+  - Workload characteristics that drive pricing choice
+  - Practical cost optimisation
+  - Risk management
+
+aws-022 | critical | medium
+  Q: When would you choose ECS vs EKS vs Lambda for a workload?
+  - Trade-offs between container orchestration options
+  - Operational overhead and cost considerations
+  - When serverless is the right answer
+  - Practical workload-fit reasoning
+
+aws-024 | high | medium
+  Q: Your AWS bill needs to come down by 30%. Walk me through your approach
+  - Systematic cost analysis methodology
+  - Knowledge of cost levers across compute, storage, networking
+  - Understanding of pricing models (RI, Savings Plans, Spot)
+  - Practical operational changes vs architectural changes
+
+aws-026 | critical | easy
+  Q: Explain IAM users, groups, and roles — when do you use each?
+  - Identity vs entity distinction
+  - Long-term credentials vs temporary credentials
+  - Best practices for human and service access
+  - Federation patterns
+
+aws-027 | medium | easy
+  Q: Explain AWS managed, customer managed, and inline IAM policies — when do you use each?
+  - Policy types and their lifecycles
+  - Reusability vs specificity
+  - Best practices for managing permissions at scale
+
+aws-028 | medium | medium
+  Q: How do you set up cross-account access in AWS?
+  - Multi-account architecture awareness
+  - Trust policies and permission policies
+  - Practical patterns for shared resources
+  - AWS Organizations integration
+
+aws-029 | high | medium
+  Q: Compare Secrets Manager and Parameter Store — when do you use each?
+  - Secret management options on AWS
+  - Cost vs feature trade-offs
+  - Rotation and integration patterns
+  - Practical decision-making
+
+aws-030 | high | medium
+  Q: Walk me through CloudWatch — metrics, logs, alarms — and how you'd build observability for an application
+  - CloudWatch service architecture
+  - Practical observability patterns
+  - Alarm design and noise management
+  - Cost awareness
+
+aws-031 | critical | medium
+  Q: CloudWatch alerts an EC2 instance at 90% CPU. Walk me through your debugging
+  - Systematic troubleshooting methodology
+  - Linux process inspection commands
+  - Distinguishing symptom from cause
+  - Practical operational experience
+
+aws-032 | critical | hard
+  Q: Users report the application is slow. Walk me through your debugging approach
+  - Top-down troubleshooting methodology
+  - Awareness of where latency can hide
+  - Distributed system thinking
+  - Communication during incidents
+
+aws-034 | medium | medium
+  Q: What's a Lambda cold start and how do you mitigate it?
+  - Lambda execution model
+  - Cold start causes and impact
+  - Mitigation strategies and trade-offs
+  - When to care vs when not to
+
+aws-035 | medium | medium
+  Q: Walk me through API Gateway — the types and integration patterns
+  - API Gateway types (REST, HTTP, WebSocket)
+  - Integration patterns
+  - When to use API Gateway vs alternatives
+
+===== KUBERNETES =====
+
+k8s-001 | critical | easy
+  Q: Explain the relationship between Pods, ReplicaSets, and Deployments
+  - Kubernetes object hierarchy
+  - Why each abstraction exists
+  - Practical day-to-day usage
+  - What manages what
+
+k8s-002 | high | medium
+  Q: Walk me through the pod lifecycle and what each phase means
+  - Pod state machine
+  - Where pods get stuck and why
+  - Practical troubleshooting hooks
+  - Container vs pod state distinction
+
+k8s-003 | high | medium
+  Q: Explain liveness, readiness, and startup probes — when do you use each?
+  - Three probe types and their distinct purposes
+  - Common misconfigurations that cause real production issues
+  - Practical configuration of timeouts and thresholds
+
+k8s-004 | medium | medium
+  Q: What are init containers and sidecars, and when would you use each?
+  - Multi-container pod patterns
+  - Initialisation vs runtime separation of concerns
+  - Practical use cases in real systems
+  - Sidecar lifecycle awareness (1.28+ native support)
+
+k8s-005 | critical | medium
+  Q: Explain resource requests vs limits, and what happens if you set them wrong
+  - Scheduling vs runtime resource semantics
+  - CPU vs memory enforcement differences
+  - QoS classes and eviction
+  - Real production failure modes
+
+k8s-010 | critical | easy
+  Q: Walk me through Kubernetes Service types — ClusterIP, NodePort, LoadBalancer, ExternalName
+  - Service abstraction and pod discovery
+  - Trade-offs between exposure mechanisms
+  - AWS-specific behaviour (LoadBalancer = NLB/CLB)
+  - When to use Ingress instead
+
+k8s-011 | high | medium
+  Q: Explain Ingress in Kubernetes — what it is, how it works on EKS, and why use it over LoadBalancer Services
+  - Ingress object vs Ingress controller
+  - AWS Load Balancer Controller specifically
+  - Multi-service exposure patterns
+  - TLS, host-based, and path-based routing
+
+k8s-012 | medium | medium
+  Q: What are Network Policies and how do they work on EKS?
+  - Pod-to-pod traffic restrictions
+  - CNI plugin requirements
+  - AWS VPC CNI Network Policy support
+  - Practical security patterns
+
+k8s-013 | medium | medium
+  Q: How does DNS work in Kubernetes?
+  - CoreDNS architecture
+  - Service discovery via DNS
+  - Pod DNS resolution flow
+  - Common DNS issues
+
+k8s-014 | medium | medium
+  Q: How does service discovery work in Kubernetes? What are the trade-offs?
+  - DNS-based vs environment variable discovery
+  - Service mesh awareness
+  - External service integration
+  - Real production patterns
+
+k8s-020 | critical | medium
+  Q: Compare Deployments, StatefulSets, DaemonSets, and Jobs — when do you use each?
+  - Workload type selection
+  - Stateful vs stateless requirements
+  - Practical use case fit
+
+k8s-021 | high | medium
+  Q: Walk me through how to control where pods get scheduled — affinity, taints, tolerations, node selectors
+  - Scheduler hints vs hard constraints
+  - Use cases for each mechanism
+  - Practical application (GPU nodes, dedicated workloads, anti-affinity)
+
+k8s-022 | high | medium
+  Q: What's a Pod Disruption Budget and how do you ensure graceful shutdown during deployments?
+  - Voluntary vs involuntary disruption
+  - PDB semantics
+  - Pre-stop hooks and termination grace period
+  - Coordinated cluster operations
+
+k8s-023 | critical | medium
+  Q: Walk me through Kubernetes autoscaling — HPA, VPA, Cluster Autoscaler, Karpenter
+  - Three autoscaling dimensions (pod count, pod size, node count)
+  - Karpenter vs Cluster Autoscaler differences
+  - Practical configuration for production
+  - Cost optimisation through autoscaling
+
+k8s-030 | high | easy
+  Q: Compare ConfigMaps and Secrets — when do you use each, and how secure are Kubernetes Secrets really?
+  - Configuration vs sensitive data
+  - Encoding vs encryption
+  - External secret stores
+  - Real security posture
+
+k8s-031 | medium | medium
+  Q: How would you integrate AWS Secrets Manager with EKS for application secrets?
+  - External secret integration patterns
+  - ESO vs Secrets Store CSI Driver trade-offs
+  - IAM and IRSA setup
+  - Production patterns for secret rotation
+
+k8s-032 | high | medium
+  Q: Walk me through RBAC in Kubernetes — the objects and how they fit together
+  - The four RBAC objects and their relationships
+  - Cluster-scoped vs namespace-scoped permissions
+  - Service account integration
+  - Practical least-privilege patterns
+
+k8s-040 | critical | medium
+  Q: Walk me through EKS architecture — the control plane, node options, and how it differs from self-managed Kubernetes
+  - EKS shared responsibility model
+  - Three compute options for pods (managed nodes, Fargate, Karpenter)
+  - AWS-specific integrations
+  - Practical architectural choices
+
+k8s-041 | critical | medium
+  Q: What's IRSA and how does it work?
+  - IAM-to-Kubernetes identity federation
+  - OIDC and projected tokens
+  - Practical setup and use cases
+  - EKS Pod Identity as the newer alternative
+
+k8s-042 | high | hard
+  Q: Explain EKS networking with the AWS VPC CNI — and what IP exhaustion is
+  - VPC CNI plugin behaviour
+  - Pod IP allocation and ENI usage
+  - Real production scaling problem
+  - Mitigations (custom networking, prefix delegation, IPv6)
+
+k8s-050 | critical | medium
+  Q: Pod is stuck — Pending, CrashLoopBackOff, or ImagePullBackOff. Walk me through your debugging
+  - Systematic troubleshooting methodology
+  - Distinct causes for each state
+  - Practical kubectl commands
+  - Root cause vs symptom
+
+k8s-051 | high | hard
+  Q: A service in your Kubernetes cluster is responding slowly. Walk me through your debugging
+  - Top-down troubleshooting in a distributed environment
+  - Awareness of where latency hides in K8s specifically
+  - CNI, DNS, scheduling considerations
+  - Practical investigation methodology
+
+===== CICD =====
+
+cicd-001 | high | easy
+  Q: Explain the difference between Continuous Integration, Continuous Delivery, and Continuous Deployment
+  - The three terms and their actual meanings
+  - Where the boundary sits between Delivery and Deployment
+  - Practical maturity progression
+  - Real-world considerations
+
+cicd-002 | critical | medium
+  Q: What makes a good CI/CD pipeline? Walk me through what you'd build for a typical web service
+  - Pipeline design principles
+  - Stage ordering and parallelisation
+  - Speed vs thoroughness trade-offs
+  - Practical end-to-end thinking
+
+cicd-003 | medium | medium
+  Q: Compare trunk-based development with GitFlow / feature branch workflows. Which fits modern CI/CD?
+  - Branching strategies and their trade-offs
+  - Why long-lived branches hurt CI/CD
+  - Feature flags as the bridge
+  - Practical adoption patterns
+
+cicd-010 | critical | medium
+  Q: Walk me through GitHub Actions architecture — workflows, jobs, steps, runners
+  - GitHub Actions execution model
+  - Where each layer of abstraction sits
+  - Runner types and their trade-offs
+  - Practical syntax knowledge
+
+cicd-011 | high | medium
+  Q: Explain reusable workflows and composite actions in GitHub Actions — when do you use each?
+  - DRY principle in pipeline design
+  - Two reuse mechanisms with different semantics
+  - When each is the right tool
+  - Practical organisational patterns
+
+cicd-012 | medium | easy
+  Q: Explain matrix builds in GitHub Actions and when you'd use them
+  - Parallelisation patterns
+  - Matrix syntax and semantics
+  - Cost vs speed trade-offs
+  - Practical use cases
+
+cicd-013 | high | medium
+  Q: How do you speed up CI pipelines with caching? Walk through the patterns
+  - Multiple cache layers (deps, build, Docker)
+  - Cache key strategy and invalidation
+  - Practical impact on pipeline time
+  - Docker-specific patterns (BuildKit, registry caching)
+
+cicd-014 | critical | medium
+  Q: Walk me through GitHub Actions secrets, environments, and approval gates
+  - Secret scoping and security
+  - Environment protection rules
+  - Approval workflow patterns
+  - OIDC vs static secrets
+
+cicd-020 | critical | medium
+  Q: Walk me through setting up OIDC authentication between GitHub Actions and AWS
+  - Federated identity fundamentals
+  - Practical OIDC setup steps
+  - Trust policy security details
+  - Why this beats static credentials
+
+cicd-021 | high | medium
+  Q: Walk me through deploying an application to EKS from GitHub Actions
+  - End-to-end deployment pipeline
+  - Push vs pull deployment models (GitOps)
+  - Helm vs kubectl
+  - Practical EKS auth and image management
+
+cicd-022 | high | medium
+  Q: Walk me through deploying to ECS or Fargate from GitHub Actions
+  - ECS deployment mechanics
+  - Task definition versioning
+  - Rolling update vs blue-green
+  - CodeDeploy integration
+
+cicd-030 | critical | medium
+  Q: Compare deployment strategies — rolling, blue-green, canary, feature flags. When do you use each?
+  - Trade-offs between deploy strategies
+  - Risk vs cost vs complexity
+  - Practical use cases
+  - Combination patterns
+
+cicd-031 | high | hard
+  Q: How do you handle database migrations in CI/CD without downtime?
+  - Expand-contract migration pattern
+  - Backwards-compatible deploys
+  - Coordination between code and schema changes
+  - Real-world operational discipline
+
+cicd-032 | high | medium
+  Q: How do you handle rollbacks in CI/CD? When automated, when manual?
+  - Rollback mechanisms across platforms
+  - Automated vs manual rollback triggers
+  - Rollback constraints (database, irreversible changes)
+  - Pragmatic operational thinking
+
+cicd-040 | high | medium
+  Q: Walk me through security scanning in CI/CD pipelines — SAST, DAST, SCA, container scanning
+  - Different scan types and what each catches
+  - Where in the pipeline each runs
+  - Practical tooling (open-source and commercial)
+  - Shift-left security thinking
+
+cicd-041 | medium | medium
+  Q: Walk me through a code quality workflow with SonarQube — what does it do and how do you integrate it?
+  - Code quality gating
+  - SonarQube specifically (KodeKloud focus)
+  - PR-level quality enforcement
+  - Practical integration with GitHub Actions
+
+cicd-050 | critical | medium
+  Q: A CI/CD pipeline keeps failing intermittently. Walk me through your debugging approach
+  - Systematic pipeline troubleshooting
+  - Distinguishing flaky tests from real failures
+  - Tooling for investigating pipeline issues
+  - Practical incident response
+
+cicd-051 | critical | medium
+  Q: Tell me about a CI/CD pipeline you owned end-to-end
+  - Personal ownership and depth
+  - STAR-format storytelling
+  - Real production decisions and trade-offs
+  - Honesty about what worked and what didn't
+
+===== TERRAFORM =====
+
+tf-001 | critical | easy
+  Q: What is Terraform and how does it work? Why use it over CloudFormation or the AWS CLI?
+  - IaC fundamentals
+  - Terraform's architecture (state, providers, plan/apply)
+  - Trade-offs vs alternatives
+  - Multi-cloud awareness
+
+tf-002 | critical | medium
+  Q: Walk me through Terraform state — what it is, why remote state, and how do you manage it on AWS?
+  - State's purpose and content
+  - Remote state backends
+  - State locking
+  - Practical setup with S3 + DynamoDB
+
+tf-003 | high | medium
+  Q: What are Terraform modules and how do you structure them?
+  - DRY in IaC
+  - Module structure and interfaces
+  - Public vs private module patterns
+  - Practical organisation
+
+tf-004 | medium | medium
+  Q: How do you handle variables, validation, and locals in Terraform?
+  - Variable types and defaults
+  - Validation blocks (KodeKloud-specific content)
+  - Locals for derived values
+  - tfvars files for environment overrides
+
+tf-005 | high | medium
+  Q: How do you manage multiple environments (dev, staging, prod) in Terraform?
+  - Multi-environment patterns
+  - Workspaces vs separate states
+  - Practical organisation
+  - The honest workspaces caveat
+
+tf-006 | medium | medium
+  Q: How do you handle secrets in Terraform — integrating with Vault or AWS Secrets Manager?
+  - Why secrets shouldn't be in tfvars
+  - Data source pattern for fetching secrets
+  - Vault and Secrets Manager integration
+  - State sensitivity considerations
+
+tf-007 | low | medium
+  Q: What are Terraform provisioners and why does HashiCorp warn against using them?
+  - What provisioners are
+  - Why they're considered an antipattern
+  - When they're genuinely the right tool
+  - Better alternatives
+
+tf-008 | medium | medium
+  Q: What is drift in Terraform and how do you handle it?
+  - Drift causes and detection
+  - Refresh vs apply behaviour
+  - Practical reconciliation strategies
+  - Prevention via process
+
+tf-009 | high | medium
+  Q: How do you run Terraform in CI/CD with GitHub Actions?
+  - Plan-on-PR / apply-on-merge pattern
+  - OIDC for AWS auth
+  - Multi-environment promotion
+  - Production safeguards
+
+tf-010 | low | medium
+  Q: Compare Terraform and Packer — when do you use each?
+  - Provisioning vs image building
+  - Golden image / immutable infrastructure pattern
+  - Tool composition
+  - Real-world workflow integration
+
+tf-011 | medium | medium
+  Q: Compare `count` and `for_each` in Terraform — when do you use each?
+  - Two iteration mechanisms
+  - Index vs key addressing
+  - Practical implications for stability
+  - The classic "count problem"
+
+tf-012 | medium | hard
+  Q: How do you refactor Terraform code without destroying and recreating resources?
+  - State surgery techniques
+  - The `moved` block (Terraform 1.1+)
+  - Practical refactoring patterns
+  - Risk management
+
+tf-013 | high | medium
+  Q: Tell me about a time you debugged a Terraform issue end-to-end
+  - Personal ownership story (STAR format)
+  - Build → Break → Fix methodology
+  - Troubleshooting depth
+  - Honest reflection
+
+===== DOCKER =====
+
+docker-001 | high | easy
+  Q: Explain the difference between containers and VMs
+  - Isolation mechanisms
+  - Resource overhead
+  - When each fits
+  - Practical implications
+
+docker-002 | critical | medium
+  Q: What are Dockerfile best practices? Walk me through writing a good one
+  - Layer caching strategy
+  - Image size optimisation
+  - Security considerations
+  - Practical Dockerfile structure
+
+docker-003 | high | medium
+  Q: Walk me through multi-stage Docker builds — what problem do they solve?
+  - Build environment vs runtime environment separation
+  - Image size reduction
+  - Practical multi-stage patterns
+  - Trade-offs
+
+docker-004 | medium | medium
+  Q: How do you optimise Docker image size? Walk through the techniques
+  - Why image size matters
+  - Base image choices
+  - Build vs runtime separation
+  - Practical reductions
+
+docker-005 | medium | medium
+  Q: How does Docker layer caching work and how do you exploit it?
+  - Layer model and immutability
+  - Cache invalidation rules
+  - Practical Dockerfile structuring for cache hits
+  - BuildKit improvements
+
+docker-006 | medium | medium
+  Q: Walk me through Docker networking — bridge, host, none, custom networks
+  - Network mode trade-offs
+  - Container-to-container communication
+  - DNS in Docker networks
+  - Practical use cases
+
+docker-007 | medium | medium
+  Q: Compare Docker volumes, bind mounts, and tmpfs — when do you use each?
+  - Storage options and their semantics
+  - When containers need persistence
+  - Practical use cases
+  - Container lifecycle and data
+
+docker-008 | medium | easy
+  Q: What is Docker Compose and when do you use it?
+  - Multi-container orchestration on a single host
+  - Compose file structure
+  - Use case scope (dev, simple prod)
+  - vs Kubernetes / production orchestration
+
+docker-009 | high | medium
+  Q: How does ECR work and how do you authenticate to it?
+  - Container registry mechanics
+  - ECR authentication patterns
+  - Cross-account ECR access
+  - Lifecycle policies and cost
+
+docker-010 | high | medium
+  Q: A Docker container won't start or keeps crashing. Walk me through your debugging
+  - Systematic container troubleshooting
+  - Common failure modes (OOM, exit codes, networking)
+  - Practical debugging commands
+  - Personal lab experience
+
+===== LINUX =====
+
+linux-001 | high | easy
+  Q: Explain Linux file permissions and how chmod, chown work
+  - Permission model (user/group/other × read/write/execute)
+  - Octal and symbolic notation
+  - Special bits (setuid, setgid, sticky)
+  - Practical security implications
+
+linux-002 | high | medium
+  Q: Walk me through Linux processes and signals — ps, kill, signal handling
+  - Process lifecycle and states
+  - Signal types and their semantics
+  - Practical commands
+  - Graceful shutdown patterns
+
+linux-003 | high | medium
+  Q: Walk me through systemd — what it is and the commands you use daily
+  - systemd's role as init and service manager
+  - Unit files and their structure
+  - Practical operational commands
+  - journalctl for log inspection
+
+linux-004 | high | medium
+  Q: Walk me through Linux networking commands you'd use to debug connectivity issues
+  - Practical network troubleshooting
+  - Modern tools (ss) vs legacy (netstat)
+  - Layered investigation (DNS, routing, ports, packets)
+  - Real diagnostic methodology
+
+linux-005 | high | medium
+  Q: "Disk is full" — walk me through investigating and fixing it
+  - df vs du semantics
+  - The deleted-but-open-file gotcha
+  - Practical disk investigation
+  - Inode exhaustion
+
+linux-006 | medium | medium
+  Q: Walk me through Linux log analysis — finding what you need fast
+  - journalctl vs traditional log files
+  - Practical grep/awk patterns
+  - Timestamp filtering
+  - Real diagnostic workflow
+
+linux-007 | medium | easy
+  Q: What shell scripting basics do you reach for in ops work?
+  - Practical bash patterns
+  - Defensive scripting (set -euo pipefail)
+  - Common idioms
+  - When to use bash vs Python
+
+===== GIT =====
+
+git-001 | high | medium
+  Q: Rebase vs merge — when do you use each?
+  - Git history models
+  - Rebase mechanics and risks
+  - Practical team patterns
+
+git-002 | medium | easy
+  Q: What are branch protection rules and what would you configure for production?
+  - Repository governance
+  - GitHub-specific protection mechanics
+  - Practical production settings
+
+git-003 | medium | easy
+  Q: What's the difference between fork and clone? When do you use each?
+  - Repository copy mechanisms
+  - Github-specific fork concept vs git-native clone
+  - Practical use cases (open source contribution, internal copies)
+
+git-004 | medium | medium
+  Q: How do you use `git blame` and `git bisect` to find when a bug was introduced?
+  - Investigation tools for "when did this break?"
+  - Practical bisect workflow
+  - blame's limitations and complementary tools
+
+git-005 | medium | medium
+  Q: How do you resolve merge conflicts?
+  - Practical conflict resolution workflow
+  - The conflict marker format
+  - Tools that help (mergetool, IDE integration)
+  - Strategies for avoiding conflicts
+
+git-006 | medium | easy
+  Q: What's `.gitignore` and how do you handle accidentally committed secrets?
+  - gitignore basics
+  - The hard reality of secrets in git history
+  - Recovery procedures
+  - Prevention strategies
