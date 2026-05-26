@@ -78,11 +78,11 @@
     "question": "A pod has cpu requests: 100m, limits: 200m and memory requests: 128Mi, limits: 128Mi. Which QoS class does Kubernetes assign it?",
     "options": {
       "correct": "Burstable — because at least one resource (CPU here) has its request and limit set to different values",
-      "distractor_1": "Guaranteed — because memory request equals memory limit, and Kubernetes only requires one matching pair for the Guaranteed class",
+      "distractor_1": "Burstable — because CPU has different request and limit values, but only the CPU side is evaluated for QoS class assignment",
       "distractor_2": "Guaranteed — because every resource has both a request and a limit explicitly set",
       "distractor_3": "BestEffort — because the limits are low enough that the kubelet treats the pod as opportunistic"
     },
-    "explanation": "Guaranteed requires every container to have requests equal to limits for both CPU and memory. Here CPU 100m vs 200m breaks that, so the pod falls to Burstable. Distractor 1 catches candidates who think any single matching pair qualifies. Distractor 2 conflates 'requests and limits set' with 'requests equal limits' — having both isn't enough. Distractor 3 misuses BestEffort, which applies only when no requests or limits are set anywhere. QoS class drives eviction order under node memory pressure (BestEffort first, then Burstable, Guaranteed last), so it matters in production."
+    "explanation": "Guaranteed requires every container to have requests equal to limits for both CPU and memory; here CPU 100m vs 200m breaks that, so the pod falls to Burstable. Distractor 1 lands on the right class for the wrong reason — QoS evaluates CPU and memory together, not the CPU side in isolation. Distractor 2 conflates 'requests and limits set' with 'requests equal limits' — having both isn't enough. Distractor 3 misuses BestEffort, which applies only when no requests or limits are set anywhere. QoS class drives eviction order under node memory pressure (BestEffort first, then Burstable, Guaranteed last), so it matters in production."
   },
   {
     "id": "k8s-010-mcq-1",
@@ -128,12 +128,12 @@
     "bank": 1,
     "question": "You manage 5 AWS IAM users with `resource \"aws_iam_user\" \"team\" { count = length(var.usernames) ... }`, where var.usernames is a list. You remove the username at index 2 from the list and run terraform apply. What happens?",
     "options": {
-      "correct": "Terraform recreates the IAM users at indices 2, 3, and 4 — their addresses now resolve to different usernames",
+      "correct": "Terraform recreates the IAM users at indices 2, 3, and 4 because count addresses by position — the resource at team[2] now refers to a different username, so Terraform destroys the old one and creates a new one in its place",
       "distractor_1": "Terraform destroys only the IAM user at index 2 and leaves the remaining users untouched in place",
       "distractor_2": "Terraform refuses to apply because count cannot shrink after the first apply without a terraform state mv first",
       "distractor_3": "Terraform destroys the IAM user at index 4 since count drops from 5 to 4, treating the change as a tail removal"
     },
-    "explanation": "count addresses resources by positional index, so aws_iam_user.team[2] through [4] now point to different usernames than before. Terraform diffs by address, sees the names have changed, and recreates each of those resources — which for IAM users means dropping access keys, MFA devices, and group memberships. Distractor 1 assumes Terraform tracks identity rather than index. Distractor 2 invents a constraint that doesn't exist. Distractor 3 assumes intuitive tail-removal semantics that count does not provide. The fix is to use for_each with a set or map keyed on the username, so each resource address is stable across list edits."
+    "explanation": "The correct option spells out why count's positional addressing causes the cascade. Distractor 1 assumes Terraform tracks identity (the username) rather than address (the index). Distractor 2 invents a count-can't-shrink constraint that doesn't exist. Distractor 3 assumes tail-removal semantics — natural-sounding, but count doesn't behave that way. The fix is to switch to for_each with a set or map keyed on the username, so each address (team[\"alice\"]) stays stable across list edits. For IAM specifically the recreation is destructive: access keys, MFA devices, and group memberships rebuild from scratch."
   },
   {
     "id": "cicd-020-mcq-1",
