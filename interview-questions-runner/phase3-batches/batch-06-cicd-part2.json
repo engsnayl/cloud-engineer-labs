@@ -1,0 +1,308 @@
+[
+  {
+    "id": "cicd-020-mcq-2",
+    "source_id": "cicd-020",
+    "domain": "cicd",
+    "subdomain": "aws-integration",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Your OIDC trust policy between GitHub Actions and AWS allows AssumeRole. What condition should you add to prevent any other repo or branch from using the role?",
+    "options": {
+      "correct": "A StringEquals or StringLike condition on `token.actions.githubusercontent.com:sub` that pins the role to your repo and a specific branch or environment",
+      "distractor_1": "An IP-allow condition restricting the AssumeRole call to GitHub's published runner IP ranges so only their infrastructure can assume the role",
+      "distractor_2": "A MaxSessionDuration of 600 seconds, so even if another workflow assumed the role the session would expire before damage could be done",
+      "distractor_3": "An MFA-required condition (`aws:MultiFactorAuthPresent: true`) on the role, since GitHub-issued JWTs include an implicit MFA claim derived from the user's authenticated GitHub session at workflow start"
+    },
+    "explanation": "The `sub` claim is what makes OIDC trust scoped — without a condition on it, any repo with an OIDC connection to the same AWS account could assume the role. Pin to `repo:org/repo:ref:refs/heads/main` or environment-specific sub formats. Distractor 1 (IP) drifts every time GitHub adds runners and is brittle. Distractor 2 (short duration) limits damage but doesn't prevent assumption. Distractor 3 invents an MFA claim in GitHub OIDC tokens that doesn't exist."
+  },
+  {
+    "id": "cicd-021-mcq-1",
+    "source_id": "cicd-021",
+    "domain": "cicd",
+    "subdomain": "aws-integration",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Your GHA workflow deploys to EKS by running `kubectl apply -f manifests/`. What's the main downside compared to using Helm or kustomize?",
+    "options": {
+      "correct": "kubectl apply has no native concept of releases, rollbacks, or templating across environments — you end up scripting around it for non-trivial deploys",
+      "distractor_1": "kubectl apply is rate-limited at 10 manifest operations per minute, while Helm batches its calls into a single API call",
+      "distractor_2": "kubectl apply doesn't support secrets at all; Helm has a `helm secrets` subcommand that handles them natively",
+      "distractor_3": "kubectl apply runs synchronously and cannot return until every resource is healthy, blocking the workflow indefinitely"
+    },
+    "explanation": "Raw kubectl is fine for simple deploys but lacks release management — each apply is independent, with no built-in template-per-environment, no `helm history`, no `helm rollback`. Distractor 1 invents an API rate limit on kubectl. Distractor 2 fabricates a `helm secrets` subcommand (it's a third-party plugin) and misstates kubectl secret support. Distractor 3 inverts the behaviour — `kubectl apply` returns immediately by default; `--wait` is opt-in. Most teams pick Helm or kustomize specifically for the templating + release-management combination."
+  },
+  {
+    "id": "cicd-021-mcq-2",
+    "source_id": "cicd-021",
+    "domain": "cicd",
+    "subdomain": "aws-integration",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Push-based and pull-based deployments to EKS differ in which key way?",
+    "options": {
+      "correct": "Push pushes manifests from CI into the cluster (kubectl from GHA); pull has an in-cluster agent (Argo CD, Flux) that watches a Git repo and applies changes itself",
+      "distractor_1": "Push deploys are HTTP-based; pull deploys use a long-polling WebSocket connection from CI to the cluster",
+      "distractor_2": "Push deploys require kubectl on the runner; pull deploys require the runner to have a Kubernetes ServiceAccount with cluster-admin",
+      "distractor_3": "Push deploys are restricted to managed EKS; pull deploys are the only model that works for self-managed Kubernetes clusters"
+    },
+    "explanation": "The architectural shift in pull (GitOps): the cluster is the source of authority and watches Git, so CI's role is just to commit manifests, not to authenticate to the cluster. Distractor 1 invents a transport-protocol distinction; both are just kubectl-equivalent API calls. Distractor 2 inverts auth — push needs runner-side cluster credentials (which is the problem GitOps solves); pull doesn't. Distractor 3 fabricates a managed-only restriction; both models work on any cluster."
+  },
+  {
+    "id": "cicd-022-mcq-1",
+    "source_id": "cicd-022",
+    "domain": "cicd",
+    "subdomain": "aws-integration",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "An ECS service is updated via `aws ecs update-service --task-definition new-revision`. What does ECS do by default?",
+    "options": {
+      "correct": "A rolling update: starts new tasks with the new revision, deregisters and stops old tasks once new ones are healthy, respecting minimumHealthyPercent and maximumPercent",
+      "distractor_1": "A blue/green deployment: keeps the old revision running, brings up the new one in parallel, and switches the ALB target group when complete",
+      "distractor_2": "An immediate replacement: stops all old tasks first, then starts the new revision; brief downtime is expected during the transition",
+      "distractor_3": "A queued deployment: starts no new tasks until the operator runs `aws ecs deploy-now` to advance the deployment to active state"
+    },
+    "explanation": "The ECS default deployment controller is rolling update via the service scheduler — it overlaps old and new tasks per the percent settings. Distractor 1 describes the CodeDeploy blue/green pattern, which is opt-in via `deploymentController: CODE_DEPLOY`. Distractor 2 describes a Recreate strategy ECS doesn't default to. Distractor 3 invents a queued deploy state. Knowing the default matters for understanding how rolling deploy behaviour interacts with task definition revisions."
+  },
+  {
+    "id": "cicd-022-mcq-2",
+    "source_id": "cicd-022",
+    "domain": "cicd",
+    "subdomain": "aws-integration",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Your ECS rolling update is too risky for production releases. You want one-cut traffic switching with automated rollback. What setup fits?",
+    "options": {
+      "correct": "Switch the service's deploymentController to CODE_DEPLOY and configure a CodeDeploy blue/green deployment group with the ALB target groups",
+      "distractor_1": "Increase minimumHealthyPercent to 200 on the ECS rolling update, which causes ECS to run double capacity during the deploy and switch all at once",
+      "distractor_2": "Configure an external load balancer that ECS doesn't know about, then manually shift weights between target groups to simulate blue/green",
+      "distractor_3": "Set ECS service `desiredCount` to zero before the deploy, then ramp it back up with the new task definition to ensure clean traffic switching with no overlap between revisions"
+    },
+    "explanation": "ECS supports two deployment controllers: ECS (rolling, default) and CODE_DEPLOY (blue/green via two target groups). The blue/green flow brings up the new revision in a 'replacement' target group, runs validation, and shifts traffic in one cut with automated rollback support. Distractor 1 invents a 200% setting behaviour that doesn't replicate blue/green. Distractor 2 (external LB) is a workaround that defeats integration. Distractor 3 introduces downtime — the opposite of what's wanted."
+  },
+  {
+    "id": "cicd-030-mcq-2",
+    "source_id": "cicd-030",
+    "domain": "cicd",
+    "subdomain": "deployment-strategies",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Your team uses feature flags. How does this change the role of deployment strategies (rolling, blue/green, canary)?",
+    "options": {
+      "correct": "Deploy is decoupled from release — code can ship to production safely (any strategy works) while the feature stays off until the flag is toggled for users",
+      "distractor_1": "Feature flags eliminate the need for any deployment strategy; just deploy with `kubectl apply` because the flag handles all risk",
+      "distractor_2": "Feature flags force you to use blue/green specifically because flags require both versions running simultaneously to evaluate",
+      "distractor_3": "Feature flags require canary deployment so the small percentage of users seeing the flag's effect matches the canary's traffic-split percentage exactly"
+    },
+    "explanation": "The deploy-vs-release distinction is the whole point of flags: code arrives in prod without exposing the feature, and exposure is a separate, run-time control. Distractor 1 dismisses deployment strategy entirely — you still need safe deploys for the code itself. Distractor 2 fabricates a blue/green requirement; flags work fine with rolling. Distractor 3 conflates flag-based gradual exposure (LaunchDarkly-style) with infrastructure-level canary (traffic-splitting at LB). They're complementary, not the same mechanism."
+  },
+  {
+    "id": "cicd-031-mcq-1",
+    "source_id": "cicd-031",
+    "domain": "cicd",
+    "subdomain": "deployment-strategies",
+    "priority": "high",
+    "difficulty": "hard",
+    "bank": 2,
+    "question": "You need to rename a column in a production database used by 50 web servers, with zero downtime. Which sequence works?",
+    "options": {
+      "correct": "Expand-contract: add the new column, deploy code that writes both columns, backfill, deploy code that reads only the new column, then drop the old column",
+      "distractor_1": "Coordinate a maintenance window, take a snapshot, run the rename, and redeploy all 50 servers from the new schema in one cutover",
+      "distractor_2": "Run the rename online using ALTER TABLE; PostgreSQL/MySQL handle column renames as metadata-only operations with no downtime",
+      "distractor_3": "Use a feature flag to gate the column reference in the app; switch the flag at the same instant as running the ALTER TABLE"
+    },
+    "explanation": "Expand-contract is the canonical no-downtime schema-change pattern: schema and code change in small, backwards-compatible steps so old and new code can coexist. Distractor 1 requires downtime (maintenance window). Distractor 2 over-promises ALTER TABLE — column rename varies by database engine and version, can take locks, and breaks any in-flight queries referencing the old name. Distractor 3 ignores the 50-server rolling-update window during which some servers reference the old name and some the new."
+  },
+  {
+    "id": "cicd-031-mcq-2",
+    "source_id": "cicd-031",
+    "domain": "cicd",
+    "subdomain": "deployment-strategies",
+    "priority": "high",
+    "difficulty": "hard",
+    "bank": 3,
+    "question": "During an expand-contract migration, why is the backfill step often the longest and most fragile?",
+    "options": {
+      "correct": "Backfilling a large table means running an UPDATE across millions of rows, which can lock tables, drive replication lag, or saturate I/O bandwidth on the primary",
+      "distractor_1": "Backfills require taking the database offline because the schema isn't yet aware of the new column's data type",
+      "distractor_2": "Backfills must be run from inside a Lambda function because RDS doesn't support large UPDATE operations from regular client connections",
+      "distractor_3": "Backfills require the application code to be in maintenance mode so that no writes happen during the data migration"
+    },
+    "explanation": "Backfilling at production scale is the operationally hard part — it touches every row, runs for hours, contends with live traffic, and can cause replication lag if not chunked. Common practice: batch the UPDATE in chunks of 10k-100k rows with short transactions. Distractor 1 invents an offline requirement; the column already exists from expand. Distractor 2 fabricates an RDS limitation that doesn't exist. Distractor 3 misses the point of expand-contract — the new code writes to both columns, so live traffic continues during backfill."
+  },
+  {
+    "id": "cicd-032-mcq-1",
+    "source_id": "cicd-032",
+    "domain": "cicd",
+    "subdomain": "deployment-strategies",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Your CD pipeline auto-rolls-back when health checks fail. What trigger condition makes this safe and effective?",
+    "options": {
+      "correct": "Sustained health check failure rate over a defined window (e.g., 5% errors for 2 minutes), not single failures — to avoid rolling back on transient noise",
+      "distractor_1": "Any single 5xx response from any new instance triggers immediate rollback to ensure prompt detection",
+      "distractor_2": "Rollback fires only when the user-reported tickets exceed the daily average, since synthetic checks miss real-world impact",
+      "distractor_3": "Rollback runs at fixed intervals (every 15 minutes) checking the current deployment's health and reverting if any error is detected"
+    },
+    "explanation": "Autorollback works on sustained signal (rate × duration), not single events — single 5xx spikes happen during any deploy and rolling back on them would create rollback-loops. Distractor 1 over-triggers — every deploy would roll back on the first stray request. Distractor 2 delays detection too long for fast rollback to matter. Distractor 3 invents a periodic check pattern that doesn't match how rollback triggers work in real deploy tools (CodeDeploy, Argo Rollouts, etc.)."
+  },
+  {
+    "id": "cicd-032-mcq-2",
+    "source_id": "cicd-032",
+    "domain": "cicd",
+    "subdomain": "deployment-strategies",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Why are database changes typically excluded from automated rollback?",
+    "options": {
+      "correct": "DB migrations are often forward-only and may have written data the old schema can't read — rolling back the code without a forward-compatible DB risks data loss",
+      "distractor_1": "Database changes are atomic; rolling back the code automatically rolls back the database via transaction logs",
+      "distractor_2": "Database changes are too slow to roll back inside a deploy window; the rollback would exceed the SLA target",
+      "distractor_3": "Database changes are versioned separately and the deploy pipeline has no awareness of which DB version is current"
+    },
+    "explanation": "Forward-only migrations are the norm because reversing arbitrary DDL/DML safely is hard — once production data has been written in the new shape, rolling back the schema loses or corrupts it. The discipline is expand-contract for risky changes and forward-fix for everything else. Distractor 1 invents an auto-rollback-via-transaction-logs feature that doesn't exist. Distractor 2 (too slow) is sometimes true but isn't the root concern. Distractor 3 misstates the cause — pipelines do track DB versions; the issue is data integrity."
+  },
+  {
+    "id": "cicd-040-mcq-1",
+    "source_id": "cicd-040",
+    "domain": "cicd",
+    "subdomain": "security",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Match the security scan type to what it catches: SAST, DAST, SCA, container scan.",
+    "options": {
+      "correct": "SAST: source code vulnerabilities; DAST: runtime/web vulnerabilities; SCA: vulnerable dependencies; container: OS package and image-layer CVEs",
+      "distractor_1": "SAST: source secrets in code; DAST: dependency vulnerabilities; SCA: runtime exploits; container: code linting on Dockerfile syntax",
+      "distractor_2": "SAST: runtime exploits; DAST: source-level code smells; SCA: container vulnerabilities; container: dependency tree vulnerabilities",
+      "distractor_3": "All four catch overlapping classes of issue; the difference is the vendor (Snyk vs SonarQube vs Trivy) rather than what's actually analysed at each stage of the pipeline"
+    },
+    "explanation": "Each scan type has a distinct target. SAST = static analysis of code (logic flaws, hardcoded secrets, dangerous patterns). DAST = running the app and probing it from the outside. SCA = analysing the dependency manifest for known-vulnerable libraries. Container = scanning image layers for CVEs in OS packages. Distractor 1 mixes up SAST and SCA. Distractor 2 fully scrambles. Distractor 3 collapses the categories into a vendor question, ignoring real methodological differences."
+  },
+  {
+    "id": "cicd-040-mcq-2",
+    "source_id": "cicd-040",
+    "domain": "cicd",
+    "subdomain": "security",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Where in a CI/CD pipeline should DAST scans run?",
+    "options": {
+      "correct": "After deploy to a non-production environment (staging or pre-prod), so the scanner can probe a running application instance from the outside",
+      "distractor_1": "During the build stage, before the container image is created — DAST analyses the code's runtime behaviour at compile time",
+      "distractor_2": "After deploy to production only — DAST results are only meaningful when probing real user traffic patterns",
+      "distractor_3": "Before any code commit — DAST runs locally on the developer's machine to catch runtime issues before they ever reach the pipeline or remote environments"
+    },
+    "explanation": "DAST is dynamic: it needs a running app to test, but you don't want to test in production. Staging or a dedicated security-test environment is the right place. Distractor 1 confuses DAST with SAST (compile-time). Distractor 2 (production only) creates real-traffic interference and risks the scanner triggering real alerts/outages. Distractor 3 confuses DAST with developer pre-commit hooks; DAST requires a deployed environment, not just source. Most pipelines run DAST nightly or per-release rather than per-commit."
+  },
+  {
+    "id": "cicd-041-mcq-1",
+    "source_id": "cicd-041",
+    "domain": "cicd",
+    "subdomain": "quality",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "SonarQube has a 'Quality Gate' configured on a project. What does the Quality Gate evaluate?",
+    "options": {
+      "correct": "A set of metrics on either the new code or the whole codebase that, if breached, marks the PR as failing the gate",
+      "distractor_1": "Whether the developer has manually marked the PR as ready for review using SonarQube's web UI before merging",
+      "distractor_2": "Whether the PR's commit messages follow the SonarQube-mandated conventional commits format (feat/fix/chore prefixes)",
+      "distractor_3": "Whether the PR has been reviewed by at least two SonarQube-certified reviewers within the configured time window, with quality recorded as a side effect of the human review"
+    },
+    "explanation": "Quality Gates are SonarQube's pass/fail mechanism — metrics like 'no new critical bugs', 'duplication < 3%', 'new code coverage > 80%' are configured and checked on each scan. Distractor 1 invents a manual ready-for-review step. Distractor 2 invents a commit message convention requirement. Distractor 3 invents a SonarQube reviewer certification. The metric set is configurable per project, with sensible defaults for new vs all code."
+  },
+  {
+    "id": "cicd-041-mcq-2",
+    "source_id": "cicd-041",
+    "domain": "cicd",
+    "subdomain": "quality",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Why does SonarQube focus on 'new code' metrics rather than whole-codebase metrics for Quality Gates?",
+    "options": {
+      "correct": "New-code metrics let teams improve incrementally without backfilling years of legacy debt before the gate ever passes",
+      "distractor_1": "New code is the only code SonarQube can analyse because it can't index files older than 30 days",
+      "distractor_2": "Whole-codebase metrics are slow to compute, while new-code metrics run in under one second regardless of repo size",
+      "distractor_3": "SonarQube charges by line of new code analysed, so whole-codebase mode is disabled in the free tier by default"
+    },
+    "explanation": "The new-code-only approach is what makes SonarQube adoptable in real codebases — old debt is grandfathered while the team enforces a higher bar on new changes. Distractor 1 fabricates a 30-day analysis horizon. Distractor 2 (whole-codebase too slow) isn't accurate — scans index incrementally. Distractor 3 invents a per-line pricing model. The new-code window is configurable (previous release, fixed date, etc.) but the principle of 'don't make it worse' is core."
+  },
+  {
+    "id": "cicd-050-mcq-1",
+    "source_id": "cicd-050",
+    "domain": "cicd",
+    "subdomain": "operations",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "A pipeline stage fails intermittently — about 1 in 5 runs. The team's first impulse is to add `retry: 3` and move on. Why is that a bad first move?",
+    "options": {
+      "correct": "Retry hides the cause and erodes signal — the next time the underlying issue gets worse, the team has no historical data to debug",
+      "distractor_1": "Retrying causes GitHub Actions to charge double per attempted run, doubling the CI bill within weeks",
+      "distractor_2": "Retry attempts run in a different runner environment, so a flake on one runner won't reproduce on the retry — making the issue impossible to debug",
+      "distractor_3": "Retry blocks downstream stages from starting until all retry attempts complete, slowing every successful run by 3x"
+    },
+    "explanation": "Flaky tests / pipelines have causes (timing, parallel state, dependency networks, runner variance). Retrying is a coping mechanism, not a fix — and once retries are in place, the team loses motivation to diagnose. Distractor 1 (double billing) over-states; retries cost something but not double. Distractor 2 inverts environment behaviour; fresh runners reset state, which sometimes hides a flake (helpful for shipping, bad for debugging). Distractor 3 ignores that retry only runs on failure, not on success."
+  },
+  {
+    "id": "cicd-050-mcq-2",
+    "source_id": "cicd-050",
+    "domain": "cicd",
+    "subdomain": "operations",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Which is NOT a common source of CI flakiness?",
+    "options": {
+      "correct": "Pure functions in unit tests with no shared state — they're deterministic by construction and don't flake",
+      "distractor_1": "Tests that race on shared resources (a port, a database row, a file) when parallelised",
+      "distractor_2": "Timing-dependent tests that assume operations complete within a fixed millisecond budget on every runner",
+      "distractor_3": "Tests that depend on external services (third-party APIs, DNS resolution) without timeouts or stubs to make the dependency reproducible"
+    },
+    "explanation": "Pure functions with no I/O and no shared state are the gold standard for reliability — they're the OPPOSITE of flaky. Distractor 1 (race on shared resources) is the #1 source of flake in parallel test runs. Distractor 2 (timing) is the #2 source — tests that pass on developer laptops fail on slower runners. Distractor 3 (external dependencies) is the #3 source — production-like systems have networks that flap. The question reversal teaches what reliable tests look like by contrast."
+  },
+  {
+    "id": "cicd-051-mcq-1",
+    "source_id": "cicd-051",
+    "domain": "cicd",
+    "subdomain": "ownership",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "An experienced pipeline owner is asked to redesign a CI/CD pipeline that takes 40 minutes and ships once a week. Which prioritisation reflects mature production thinking?",
+    "options": {
+      "correct": "Fast signal first (parallelise + shard tests) and tighten the deploy gate (smaller batches, automated rollback) — speed of feedback is the dominant lever",
+      "distractor_1": "Maximise pipeline reliability by adding 3 retries to every stage and disabling flaky tests for the next quarter to stabilise the build",
+      "distractor_2": "Migrate to the newest CI tooling first; tooling churn unlocks 10x improvements that incremental changes cannot match",
+      "distractor_3": "Reduce scope: cut tests that have caught fewer than 5 bugs in the last year and rely on production monitoring for the rest"
+    },
+    "explanation": "The owner's first job is to compress the feedback loop so commits-to-ship is short and reliable — that's where speed and risk both come down. Distractor 1 (retries + disable flakes) trades signal for green checkmarks; production gets worse. Distractor 2 (tooling churn) is the rookie answer — gains rarely come from the tool. Distractor 3 (cut tests) trades coverage for speed without understanding the cost; flaky-and-slow tests get fixed, not deleted. Mature owners prioritise *useful* fast signal."
+  },
+  {
+    "id": "cicd-051-mcq-2",
+    "source_id": "cicd-051",
+    "domain": "cicd",
+    "subdomain": "ownership",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Which lesson would a pipeline owner most likely take from running a CI/CD system through 18 months of production?",
+    "options": {
+      "correct": "Reduce batch size — large infrequent merges produce most incidents; small, frequent merges produce most boring uneventful deploys",
+      "distractor_1": "Centralise everything — replace decentralised team pipelines with a single org-wide pipeline that all changes flow through for consistency",
+      "distractor_2": "Add gates — every deploy should pass through at least 5 approval gates to ensure no change reaches production without sign-off",
+      "distractor_3": "Move to a custom in-house CI system — third-party CI tools (GitHub Actions, GitLab) cannot meet the reliability needs of mature pipelines"
+    },
+    "explanation": "Small batch size is the single most consistent lesson from pipeline operations — it shrinks the change surface, eases bisection on regression, and keeps reviewers honest. Distractor 1 (centralisation) often slows teams and adds blocking dependencies. Distractor 2 (more gates) trades velocity for false-precision; gates without signal become rubber-stamping. Distractor 3 (build your own CI) is the classic 'not invented here' trap — almost never the right answer."
+  }
+]
