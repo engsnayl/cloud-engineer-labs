@@ -23,6 +23,8 @@
 - `5997fbe` operative fabrication rubric in PLAN.md
 - `8e52f88` tracking.json final disposition
 - `0d824e4` GATE 1 closed — seed-7919 control sample 6/6 at-bar
+- `b5d755c` HANDOFF for Tier 1 (this file)
+- (plus a follow-up commit correcting this list)
 
 ## Exact next action for the new session
 
