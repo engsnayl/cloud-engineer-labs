@@ -1200,10 +1200,10 @@
     "bank": 1,
     "stem_type": "definition",
     "flags": [
-      "D_definition"
+      "A_fabricated"
     ],
     "notes": [
-      "stem reads as recall not scenario"
+      "D_definition resolved by T1.2 stem reframe; distractor_2 '32 entries per pod' is a fabricated number (Stephen 2026-06-02, same category as Istio-450ms) -> queued for Tier 2 distractor swap (widens T2.1)."
     ],
     "stem_preview": "Why is environment-variable-based service discovery in Kubernetes considered worse than DNS-based discovery?"
   },
@@ -1213,10 +1213,10 @@
     "bank": 1,
     "stem_type": "definition",
     "flags": [
-      "D_definition"
+      "B_structural_option_balance"
     ],
     "notes": [
-      "stem reads as recall not scenario"
+      "D_definition resolved by T1.2 stem reframe; one-word correct ('StatefulSet') vs verbose distractors is a length tell that survives shuffling -> queued for T3.2 option-balance pass (Stephen 2026-06-02). Stem stays as reframed."
     ],
     "stem_preview": "Which Kubernetes workload object is the right fit for a clustered database that needs stable network identity and persis"
   },

@@ -662,7 +662,7 @@
     "subdomain": "workloads",
     "priority": "high",
     "difficulty": "medium",
-    "question": "A Java app takes 90 seconds to warm up. The team configures a liveness probe with `initialDelaySeconds: 30` and `failureThreshold: 3` (every 10 seconds). What happens at startup?",
+    "question": "Your team deploys a Java app that needs 90 seconds to warm up, with a liveness probe set to initialDelaySeconds: 30 and failureThreshold: 3 (checked every 10 seconds). What happens at startup?",
     "options": {
       "correct": "The liveness probe starts at 30s, fails three times (at 30s, 40s, 50s), and the kubelet kills the container before warm-up completes \u2014 creating a restart loop",
       "distractor_1": "The pod stays in CrashLoopBackOff during warm-up because Kubernetes detects the slow start and applies exponential backoff to the liveness probe itself",
@@ -694,7 +694,7 @@
     "subdomain": "networking",
     "priority": "critical",
     "difficulty": "easy",
-    "question": "When does an Ingress make sense instead of multiple LoadBalancer Services?",
+    "question": "Your team runs several HTTP services, each behind its own LoadBalancer Service, and wants to cut cloud load-balancer cost. When does an Ingress make more sense than multiple LoadBalancer Services?",
     "options": {
       "correct": "When you have several HTTP services that can share one cloud load balancer and be routed by path or hostname \u2014 Ingress saves the per-service LB cost",
       "distractor_1": "When you need TCP load balancing for non-HTTP traffic, since LoadBalancer Services only support HTTP",
@@ -710,7 +710,7 @@
     "subdomain": "networking",
     "priority": "high",
     "difficulty": "medium",
-    "question": "On EKS with the AWS Load Balancer Controller, what's the difference between annotating an Ingress with `alb.ingress.kubernetes.io/scheme: internal` versus `internet-facing`?",
+    "question": "An engineer on EKS with the AWS Load Balancer Controller is choosing between annotating an Ingress with `alb.ingress.kubernetes.io/scheme: internal` and `internet-facing`. What's the difference?",
     "options": {
       "correct": "`internal` provisions an ALB in private subnets reachable only from the VPC; `internet-facing` provisions one in public subnets with a public IP",
       "distractor_1": "`internal` provisions an ALB attached to private subnets but assigned a public IP, with the AWS LB Controller restricting reachability via Security Group ingress rules added per-target",
@@ -790,7 +790,7 @@
     "subdomain": "scheduling",
     "priority": "critical",
     "difficulty": "medium",
-    "question": "What's the fundamental architectural difference between Karpenter and Cluster Autoscaler?",
+    "question": "Your team is choosing between Karpenter and Cluster Autoscaler for node scaling on EKS. What's the fundamental architectural difference between them?",
     "options": {
       "correct": "Karpenter provisions nodes directly from the cloud provider based on pending pod requirements; Cluster Autoscaler scales pre-defined Auto Scaling Groups up and down",
       "distractor_1": "Karpenter and Cluster Autoscaler are different names for the same tool \u2014 Karpenter is AWS's rebranded Cluster Autoscaler",
@@ -806,7 +806,7 @@
     "subdomain": "configuration",
     "priority": "high",
     "difficulty": "easy",
-    "question": "When should you use a ConfigMap and when should you use a Secret?",
+    "question": "An engineer is deciding whether to store a configuration value in a ConfigMap or a Secret. What should drive the choice?",
     "options": {
       "correct": "ConfigMap for non-sensitive data; Secret for sensitive data \u2014 Secret enables encryption at rest and integrates with workflows for least-privilege access",
       "distractor_1": "ConfigMap for small values (under 1 MiB), Secret for any value over 1 MiB regardless of sensitivity",
@@ -854,7 +854,7 @@
     "subdomain": "eks",
     "priority": "high",
     "difficulty": "hard",
-    "question": "Which is the recommended mitigation for VPC CNI IP exhaustion in 2025+ clusters?",
+    "question": "Your EKS cluster keeps hitting VPC CNI IP exhaustion, and you want the recommended mitigation for 2025-era clusters. Which is it?",
     "options": {
       "correct": "Enable prefix delegation \u2014 instead of secondary IPs, each ENI gets a /28 prefix, dramatically increasing pods-per-node within the same ENI limits",
       "distractor_1": "Disable VPC CNI and install the kubenet plugin, which uses the legacy per-node /24 model and avoids the IP exhaustion problem entirely",

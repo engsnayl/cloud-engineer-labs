@@ -1,55 +1,64 @@
-# Phase 4 — handoff (2026-06-02, GATE 1 closed)
+# Phase 4 — handoff (2026-06-02, T1.1 + T1.2 committed)
 
 ## Headline state
 
-- **Total flagged: 138 / 208** (`phase3-audit/flagged-mcqs.json`, 138 entries).
-- **GATE 1: CLOSED.** Seed-7919 control sample = 6/6 at-bar under the operative rubric.
-- **Next action: Tier 1 begins — Task 3, batch T1.1 (17 AWS D-only stem reframes).** See `PLAN.md` Task 3. No Tier 1 work has started yet.
+- **Tier 1 in progress: 2 of 5 batches done and committed** (T1.1 AWS, T1.2 Kubernetes).
+- **33 stem reframes total** (15 AWS + 17 K8s + 1 AWS Tier-1.5 micro-edit counted within the 15), **1 Tier-3 dropout** (aws-021-mcq-1), **3 pilot-FPs cleared**, **3 borderlines adjudicated**.
+- **Cumulative Tier-1 dropout rate: 3.03%** (1 of 33 reframe-attempts) — well under the 20–30% estimate. Honest: D-only flags mark a missing scenario-actor marker, not a content defect, so adding an actor disturbs nothing.
+- **Flagged total: 135** (was 138; −3 pilot byte-identical FPs in T1.1). Reframed D-only MCQs stay on the worklist as resolved-in-place (verified by drift + final audit), per the plan's model.
+- **Next action: Tier 1 continues — Task 5, batch T1.3 (CI/CD D-only). Slice = 16** (see correction below). No T1.3 work has started.
 
-## What happened this session (GATE 1 closure)
+## Correction to the prior session's estimate
 
-1. **LLM fabrication scan** over the 71 unflagged-after-expansion MCQs (5 domain-sliced agents + reviewer verification of every suspect against `Interview Prep App/Interview-Prep-Combined.md` and real tooling). Deliverables: `llm-fabrication-scan.json` (per-distractor verdicts) + `llm-fabrication-scan.md` (summary). Result: 62/71 clean, 9 fabrications.
-2. **Operative rubric settled** (recorded in `PLAN.md` → Tightened rubric → "Operative rule"): the 6-month-candidate test is the bar — *named-identifier* fabrications (invented keys/commands/flags/specific-numbers/deprecations) fail categorically; *invented-behaviour-of-a-real-feature* passes if a junior could plausibly hold it via a transferred mental model, fails on impossibility / false-authority jargon / contradicting basic semantics; borderline → surface (reference borderline: `k8s-014-mcq-2`). The pilot stands unchanged.
-3. **Rebaseline 126 → 138.** Added 12 net-new `A_fabricated` MCQs:
-   - LLM pass (7): `cicd-011-mcq-2`, `cicd-022-mcq-1`, `docker-004-mcq-2`, `git-003-mcq-2`, `linux-006-mcq-2`, `tf-010-mcq-2`, `cicd-022-mcq-2`
-   - control-sample confirmed (2): `cicd-012-mcq-2`, `docker-010-mcq-2`
-   - heuristic-adds adjudicated (3): `aws-019-mcq-2`, `cicd-021-mcq-1`, `tf-003-mcq-2`
-4. **6 heuristic false-positives resolved** (not flagged): `aws-003-mcq-1`, `tf-002-mcq-1`, `tf-011-mcq-1` (pilot exemplars), `git-006-mcq-1`, `k8s-021-mcq-1` (stem-defined label), `k8s-014-mcq-2` (borderline, at-bar). `docker-004-mcq-1` and `cicd-020-mcq-2` stay flagged on their independent D/A flags (only their bad suspect-key tags cleared).
-5. **Re-sample (seed 7919) = 6/6 at-bar** → GATE 1 closed. See `control-sample-checkpoint-2.md`. Caveat: the LLM pass covered the whole unflagged set, so the sample confirms rather than independently probes.
+The prior handoff guidance guessed T1.3 ≈ 15 ("16 − cicd-020-mcq-1 cleared"). **That's wrong:** `cicd-020-mcq-1` was flagged `C_never_correct` (a pilot FP, cleared in T1.1), **not** `D_definition`, so it was never in the CI/CD D-only slice. **The CI/CD D-only slice is 16.** Confirm at session start with the Task 5 query.
 
-## Commits this session (on `feat/lab-interview-drill-phase1`)
+## What happened this session
 
-- `dd56495` LLM scan deliverables + rebaseline flagged 126→138
-- `5997fbe` operative fabrication rubric in PLAN.md
-- `8e52f88` tracking.json final disposition
-- `0d824e4` GATE 1 closed — seed-7919 control sample 6/6 at-bar
-- `b5d755c` HANDOFF for Tier 1 (this file)
-- (plus a follow-up commit correcting this list)
+### T1.1 — AWS D-only (committed `fee5e5e`)
+- 17-MCQ slice → **15 reframed** (14 pure Tier-1 + 1 Tier-1.5: `aws-009-mcq-2` distractor_1 spelling `--multi-attach=true` → `--multi-attach-enabled=true`), **1 dropped to Tier 3** (`aws-021-mcq-1`, "worst candidate" superlative = structural NOT-stem), **1 cleared FP** (`aws-026-mcq-1`).
+- Established the **`pilot_byte_identical` FP class**: bank MCQs byte-identical to a pilot exemplar auto-clear (they ARE the bar). Global scan cleared 3: `aws-026-mcq-1`, `cicd-020-mcq-1`, `k8s-010-mcq-1`. flagged-mcqs.json 138→135.
+- New tool `scripts/pilot_dupe_check.py` + pre-flight step + D_definition mechanism note added to PLAN.md.
+
+### T1.2 — Kubernetes D-only (committed this session)
+- Slice was **17** (was 18; `k8s-010-mcq-1` already cleared in T1.1). All **17 reframed**, 0 dropouts.
+- 3 borderlines adjudicated by Stephen:
+  - `k8s-004-mcq-2` — **at-bar** (invented field names = transferred-mental-model). In `tracking.json → borderline_approved`.
+  - `k8s-014-mcq-1` — d2 "32 entries per pod" = **fabrication → Tier 2** (widens T2.1; reclassified D→A in flagged-mcqs.json). "Weaker than" framing **kept**; rubric distinction added to PLAN.md.
+  - `k8s-020-mcq-1` — **Tier-3 option-balance → T3.2** (one-word-correct vs verbose-distractor length tell; reclassified D→B_structural).
+
+## Queues carried forward
+
+- **Tier 3 absorption (`tracking.json → tier3_absorption_queue`):**
+  - `aws-021-mcq-1` — full positive reauthor ("best fit for Spot" + poor-fit distractors).
+  - `k8s-020-mcq-1` — option-balance pass only (stem already reframed). Stephen assigned to **T3.2** (domain-query would otherwise route it to T3.1 — honor the queue).
+- **Tier 2 widening (`tracking.json → tier2_widening_queue`):**
+  - `k8s-014-mcq-1` / distractor_2 — replace fabricated "32 entries" limit. T2.1 widens beyond the original 11 A-only (plus the 12 rebaseline fabrications already noted).
 
 ## Exact next action for the new session
 
-**Task 3 — batch T1.1: reframe the 17 AWS D-only MCQ stems to scenario form.** Follow `PLAN.md` Task 3 step-by-step. In brief:
+**Task 5 — batch T1.3: reframe the 16 CI/CD D-only MCQ stems to scenario form.** Follow `PLAN.md` Task 5 (identical procedure to Task 3). In brief:
+- **Step 0:** re-anchor on `phase2-pilot/pilot.json` (re-read end-to-end — per-tier discipline rule). CI/CD pilot voice: `cicd-020-mcq-1` (OIDC vs static keys) and `cicd-030-mcq-1` (canary/blast-radius).
+- **Step 0.5 (pre-flight):** `python interview-questions-runner/scripts/pilot_dupe_check.py <slice-ids>` — clear any byte-identical-to-pilot before authoring.
+- **Step 1:** confirm the 16 IDs: `flags == ['D_definition'] and domain == 'cicd'`.
+- **Authoring:** lead each reframe with a recognised scenario-actor marker (see the D_definition mechanism note in PLAN.md) so the flag clears. CI/CD-specific fodder: OIDC vs static credentials, workflow/job/step scope, runner types, artifact retention.
+- **Verify:** `validate_mcqs.py` (3 banks) → `check_drift.py batch-03-tier1-cicd.json` must PASS → update tracking.json → `batch-03-checkpoint.md` → **surface to Stephen (GATE)** → commit after approval.
+- **Watch:** the `borderline_approved` counter — if Tier 1 hits 3+ invented-identifier-as-transferred-model cases, flag to revisit the bar mid-flight (currently 1: k8s-004-mcq-2).
 
-- Step 0: re-anchor on `phase2-pilot/pilot.json` (the voice).
-- Step 1: identify the 17 AWS D-only IDs — `python -c "import json; d=json.load(open('interview-questions-runner/phase3-audit/flagged-mcqs.json')); ids=[x['id'] for x in d if x['flags']==['D_definition'] and x['domain']=='aws']; print(len(ids)); [print(i) for i in ids]"`
-- Steps 2–4: Tier 1 procedure (stem reframe only; drop to Tier 3 if a reframe forces option/explanation changes), write `batch-01-tier1-aws.json`, apply back into the bank files.
-- Step 5: `validate_mcqs.py` on all three banks.
-- Step 6: `check_drift.py batch-01-tier1-aws.json` — must PASS (drift FAIL → checkpoint shows only the drift, fix locally first).
-- Steps 7–10: update `tracking.json`, write `batch-01-checkpoint.md`, surface to Stephen (GATE), commit.
-
-## Required inputs for the new session
+## Required inputs
 
 1. `interview-questions-runner/Interview-Drill-Runner.md` — canonical brief + Appendix A bar
 2. `interview-questions-runner/phase2-pilot/pilot.json` — the voice (re-anchor before authoring)
-3. `interview-questions-runner/phase4-rewrite/PLAN.md` — execution plan + **operative rubric**
-4. `interview-questions-runner/phase4-rewrite/tracking.json` — state of play (138 flagged, GATE 1 closed)
-5. `interview-questions-runner/phase3-audit/flagged-mcqs.json` — the 138 flagged IDs with flags/notes
-6. `cloud-labs/lab-095-interview-drill-mcq/questions/interview-{1,2,3}.json` — the banks to edit
+3. `interview-questions-runner/phase4-rewrite/PLAN.md` — execution plan + **operative rubric** (now incl. superlative/comparative + pilot-dupe pre-flight + D_definition mechanism notes)
+4. `interview-questions-runner/phase4-rewrite/tracking.json` — state of play (2 batches done, queues, borderline_approved)
+5. `interview-questions-runner/phase3-audit/flagged-mcqs.json` — 135 flagged IDs (k8s-014→A, k8s-020→B reclassified)
+6. `cloud-labs/lab-095-interview-drill-mcq/questions/interview-{1,2,3}.json` — banks to edit
 7. `Interview Prep App/Interview-Prep-Combined.md` (repo root) — source of truth for concepts
 
 ## Things to NOT forget
 
-- **The operative rubric is settled** — apply it to every distractor touched in Tier 1/2/3. Borderline → surface, don't auto-decide (`k8s-014-mcq-2` is the reference case).
-- **The `audit_suspect.py` constraint/mechanism/key heuristics over-flag** invented-behaviour distractors (incl. pilot exemplars). Treat their output as a contrast signal, not a verdict. Allowlist refinements are listed in `tracking.json` → `audit_expansion.allowlist_refinements_todo` (image tags, real IAM keys, real k8s fields, pilot-distractor text) — optional cleanup, not blocking.
-- **`final-report.md` (Task 11) must document the audit-expansion honesty**: the expansion was overreaching but useful (caught the 6 named-identifier cases, gave a contrast set for the judgment calls).
-- **Tier slicing is locked** (PLAN.md). The new fabrications surfaced this session (the 12) are `A_fabricated`-type and belong to **Tier 2** (distractor swaps), not Tier 1 — Tier 1 is D-only stem reframes. Tier 2 batch T2.1 will need to widen beyond the original 11 A-only MCQs to absorb these; reconcile the Tier 2 slice count when you reach Task 8.
+- **Pilot-dupe pre-flight on every batch** (PLAN.md). Five seconds saves an unnecessary reframe.
+- **Lead reframes with a recognised actor marker** or the D_definition flag won't clear and drift will FAIL.
+- **Operative rubric is settled** — named-identifier fabrications fail categorically; invented-behaviour-of-real-feature (incl. transferred-mental-model identifiers like k8s-004) passes if plausible; superlative framings at-bar only with a factual answer; borderline → surface, don't auto-decide.
+- **Match existing bank JSON format** when applying (ensure_ascii=True, indent=2, no trailing newline, CRLF) — keeps the diff to changed `question` lines only.
+- **GATE per batch:** surface checkpoint, hold commit until Stephen approves.
+- **Helper (committed):** `interview-questions-runner/phase4-rewrite/apply_batch.py` is a generic, reusable batch-apply — `python apply_batch.py <batch.json>` (writes `after` for completed, `before` for dropped; matches bank format).

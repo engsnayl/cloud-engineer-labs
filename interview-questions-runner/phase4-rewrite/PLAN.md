@@ -32,6 +32,7 @@ Other rubric tightenings (apply when a stem or option is touched):
 - **≥70% scenario stems** across the bank — the rewrite must not regress this ratio. Pure recall ("What is X?") allowed only when recall is genuinely the testable point (octal permissions, port numbers, defaults).
 - **Match-style MCQs may include at most one full scramble.** Other distractors must be partial-correct (almost right, one relationship wrong) or different framing (e.g., "all of these do the same thing").
 - **No "NOT" / "which is not" stems. No "essentially never" correct options.** Either reframe to a scenario where one positive option is the right answer, or move to a different facet of the source.
+- **Superlative/comparative framings (worst / weakest / strongest / best) are at-bar when the testable property has a factual answer; not at-bar when the framing reduces to "pick the failing option" (a structural NOT-stem).** (Settled 2026-06-02.) Examples: `aws-021-mcq-1` "which workload is the *worst* fit for Spot" reduces to picking the option that fails among otherwise-fine options → structural NOT-stem → **Tier 3 positive reauthor**. `k8s-014-mcq-1` "why is env-var discovery the *weaker* option" asks which mechanism is genuinely weaker, with a single factual correct answer and wrong-*reason* distractors → **at-bar, kept**.
 - **Two MCQs from one source must test distinct facets** — re-check during Tier 3 reauthoring especially.
 
 ---

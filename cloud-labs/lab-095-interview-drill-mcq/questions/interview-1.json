@@ -710,7 +710,7 @@
     "subdomain": "workloads",
     "priority": "high",
     "difficulty": "medium",
-    "question": "What does a failing liveness probe do, and what does a failing readiness probe do?",
+    "question": "A pod's liveness probe starts failing while its readiness probe keeps passing. What does each probe's failure cause Kubernetes to do?",
     "options": {
       "correct": "Liveness failure restarts the container; readiness failure removes the pod from Service endpoints without restarting it",
       "distractor_1": "Liveness failure removes the pod from endpoints; readiness failure restarts the container after a backoff period",
@@ -758,7 +758,7 @@
     "subdomain": "networking",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "By default, what is the network policy applied to pods in a fresh Kubernetes cluster?",
+    "question": "A developer deploys pods to a fresh Kubernetes cluster that has no NetworkPolicies and wants to know what pod-to-pod traffic is permitted by default. What is the default?",
     "options": {
       "correct": "All traffic is allowed in both directions until a NetworkPolicy is created that selects the pod, at which point that pod becomes default-deny within the policy's scope",
       "distractor_1": "All ingress is denied and all egress is allowed; NetworkPolicies are needed to allow inbound traffic between pods",
@@ -774,7 +774,7 @@
     "subdomain": "networking",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "Why is environment-variable-based service discovery in Kubernetes considered worse than DNS-based discovery?",
+    "question": "An engineer is choosing between environment-variable and DNS-based service discovery in Kubernetes and asks why the env-var mechanism is the weaker option. What's the main reason?",
     "options": {
       "correct": "Env vars are only set at pod startup, so any Service created after the pod is missing from the pod's environment until restart",
       "distractor_1": "Env vars expose service IPs in cleartext to every other process in the same pod, while DNS lookups go over TLS-encrypted resolver connections by default",
@@ -790,7 +790,7 @@
     "subdomain": "workloads",
     "priority": "critical",
     "difficulty": "medium",
-    "question": "Which Kubernetes workload object is the right fit for a clustered database that needs stable network identity and persistent storage per replica?",
+    "question": "Your team is deploying a clustered database that needs a stable network identity and its own persistent storage per replica. Which Kubernetes workload object fits?",
     "options": {
       "correct": "StatefulSet",
       "distractor_1": "Deployment with a PersistentVolumeClaim template attached for stable storage across pods",
@@ -854,7 +854,7 @@
     "subdomain": "security",
     "priority": "high",
     "difficulty": "medium",
-    "question": "What's the difference between a Role and a ClusterRole?",
+    "question": "An engineer needs to grant a teammate permissions in a single namespace and is unsure whether to use a Role or a ClusterRole. What's the actual difference between them?",
     "options": {
       "correct": "Role grants permissions scoped to a single namespace; ClusterRole grants permissions at the cluster scope (and can also be reused per-namespace via RoleBindings)",
       "distractor_1": "Role grants read-only access; ClusterRole grants write access \u2014 the names indicate the level of permission",
@@ -870,7 +870,7 @@
     "subdomain": "eks",
     "priority": "critical",
     "difficulty": "medium",
-    "question": "What is IRSA in EKS, in one sentence?",
+    "question": "A pod on EKS needs AWS credentials without any long-lived keys, and a teammate suggests using IRSA. What is IRSA?",
     "options": {
       "correct": "IAM Roles for Service Accounts \u2014 a way for pods to assume an IAM role using a projected OIDC token from the cluster's IAM identity provider",
       "distractor_1": "Instance Role Service Account \u2014 assigns the EC2 instance role to all pods running on that node, so they share node credentials",
@@ -886,7 +886,7 @@
     "subdomain": "eks",
     "priority": "high",
     "difficulty": "hard",
-    "question": "Why does the AWS VPC CNI plugin cause 'IP exhaustion' on EKS, and what's the underlying mechanism?",
+    "question": "Your EKS cluster using the AWS VPC CNI is hitting 'IP exhaustion' on its nodes. What's the underlying mechanism causing it?",
     "options": {
       "correct": "Each pod gets a real VPC IP via an ENI on its node; node ENI count and IPs-per-ENI are EC2-instance-size bound, so pod density per node is capped by those AWS limits",
       "distractor_1": "Each pod gets a Cluster IP from a /16 cluster CIDR, which exhausts after ~65k pods regardless of node size",

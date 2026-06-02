@@ -694,7 +694,7 @@
     "subdomain": "workloads",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "Kubernetes 1.28 introduced native sidecar containers. How are they declared and how do they differ from regular main containers?",
+    "question": "An engineer on Kubernetes 1.28 wants to add a native sidecar container to a pod. How is it declared, and how does it differ from a regular main container?",
     "options": {
       "correct": "Declared as init containers with `restartPolicy: Always` \u2014 they start before main containers, run alongside them, and the pod doesn't terminate until they exit cleanly during shutdown",
       "distractor_1": "Declared in a new `sidecarContainers:` field at the same level as `containers:` and `initContainers:`, with a dedicated lifecycle separate from both",
@@ -742,7 +742,7 @@
     "subdomain": "networking",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "Within a Kubernetes cluster, what's the fully-qualified DNS name pattern for a Service?",
+    "question": "A pod in one namespace needs to reach a Service in another namespace using its fully-qualified DNS name. Which name pattern is correct?",
     "options": {
       "correct": "`<service>.<namespace>.svc.cluster.local`",
       "distractor_1": "`<service>.<namespace>.cluster.local.svc` \u2014 `cluster.local` precedes the resource-type segment `svc`",
@@ -790,7 +790,7 @@
     "subdomain": "configuration",
     "priority": "high",
     "difficulty": "easy",
-    "question": "How are Kubernetes Secrets encoded in etcd by default on a freshly-installed cluster?",
+    "question": "You're assessing whether Kubernetes Secrets are protected at rest in etcd on a freshly-installed cluster. How are they encoded by default?",
     "options": {
       "correct": "Base64-encoded only \u2014 not encrypted. Anyone with read access to etcd or the Kubernetes API can decode them",
       "distractor_1": "AES-256 encrypted at rest using the cluster's master key, which only kube-apiserver can access",
@@ -838,7 +838,7 @@
     "subdomain": "eks",
     "priority": "critical",
     "difficulty": "medium",
-    "question": "What does AWS manage and what do you manage on EKS?",
+    "question": "Your team is adopting EKS and needs to know which parts AWS operates and which parts remain their responsibility. Where is the boundary?",
     "options": {
       "correct": "AWS manages the control plane (etcd, apiserver, scheduler, controllers); you manage the worker nodes (managed nodes, self-managed, Fargate, or Karpenter) and workloads",
       "distractor_1": "AWS manages the apiserver and etcd; you manage the scheduler and controllers as well as the worker nodes",

@@ -479,14 +479,10 @@
     "id": "k8s-003-mcq-1",
     "domain": "kubernetes",
     "bank": 1,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "What does a failing liveness probe do, and what does a failing readiness probe do?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "A pod's liveness probe starts failing while its readiness probe keeps passing. What does each probe's failure cause Kube"
   },
   {
     "id": "k8s-004-mcq-1",
@@ -510,40 +506,28 @@
     "id": "k8s-012-mcq-1",
     "domain": "kubernetes",
     "bank": 1,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "By default, what is the network policy applied to pods in a fresh Kubernetes cluster?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "A developer deploys pods to a fresh Kubernetes cluster that has no NetworkPolicies and wants to know what pod-to-pod tra"
   },
   {
     "id": "k8s-014-mcq-1",
     "domain": "kubernetes",
     "bank": 1,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "Why is environment-variable-based service discovery in Kubernetes considered worse than DNS-based discovery?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "An engineer is choosing between environment-variable and DNS-based service discovery in Kubernetes and asks why the env-"
   },
   {
     "id": "k8s-020-mcq-1",
     "domain": "kubernetes",
     "bank": 1,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "Which Kubernetes workload object is the right fit for a clustered database that needs stable network identity and persis"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "Your team is deploying a clustered database that needs a stable network identity and its own persistent storage per repl"
   },
   {
     "id": "k8s-021-mcq-1",
@@ -580,40 +564,28 @@
     "id": "k8s-032-mcq-1",
     "domain": "kubernetes",
     "bank": 1,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "What's the difference between a Role and a ClusterRole?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "An engineer needs to grant a teammate permissions in a single namespace and is unsure whether to use a Role or a Cluster"
   },
   {
     "id": "k8s-041-mcq-1",
     "domain": "kubernetes",
     "bank": 1,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "What is IRSA in EKS, in one sentence?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "A pod on EKS needs AWS credentials without any long-lived keys, and a teammate suggests using IRSA. What is IRSA?"
   },
   {
     "id": "k8s-042-mcq-1",
     "domain": "kubernetes",
     "bank": 1,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "Why does the AWS VPC CNI plugin cause 'IP exhaustion' on EKS, and what's the underlying mechanism?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "Your EKS cluster using the AWS VPC CNI is hitting 'IP exhaustion' on its nodes. What's the underlying mechanism causing "
   },
   {
     "id": "k8s-050-mcq-1",
@@ -1226,14 +1198,10 @@
     "id": "k8s-004-mcq-2",
     "domain": "kubernetes",
     "bank": 2,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "Kubernetes 1.28 introduced native sidecar containers. How are they declared and how do they differ from regular main con"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "An engineer on Kubernetes 1.28 wants to add a native sidecar container to a pod. How is it declared, and how does it dif"
   },
   {
     "id": "k8s-010-mcq-1",
@@ -1265,14 +1233,10 @@
     "id": "k8s-013-mcq-1",
     "domain": "kubernetes",
     "bank": 2,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "Within a Kubernetes cluster, what's the fully-qualified DNS name pattern for a Service?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "A pod in one namespace needs to reach a Service in another namespace using its fully-qualified DNS name. Which name patt"
   },
   {
     "id": "k8s-020-mcq-2",
@@ -1300,14 +1264,10 @@
     "id": "k8s-030-mcq-1",
     "domain": "kubernetes",
     "bank": 2,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "How are Kubernetes Secrets encoded in etcd by default on a freshly-installed cluster?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "You're assessing whether Kubernetes Secrets are protected at rest in etcd on a freshly-installed cluster. How are they e"
   },
   {
     "id": "k8s-031-mcq-1",
@@ -1331,14 +1291,10 @@
     "id": "k8s-040-mcq-1",
     "domain": "kubernetes",
     "bank": 2,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "What does AWS manage and what do you manage on EKS?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "Your team is adopting EKS and needs to know which parts AWS operates and which parts remain their responsibility. Where "
   },
   {
     "id": "k8s-041-mcq-2",
@@ -1967,14 +1923,10 @@
     "id": "k8s-003-mcq-2",
     "domain": "kubernetes",
     "bank": 3,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "A Java app takes 90 seconds to warm up. The team configures a liveness probe with `initialDelaySeconds: 30` and `failure"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "Your team deploys a Java app that needs 90 seconds to warm up, with a liveness probe set to initialDelaySeconds: 30 and "
   },
   {
     "id": "k8s-005-mcq-2",
@@ -1989,27 +1941,19 @@
     "id": "k8s-010-mcq-2",
     "domain": "kubernetes",
     "bank": 3,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "When does an Ingress make sense instead of multiple LoadBalancer Services?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "Your team runs several HTTP services, each behind its own LoadBalancer Service, and wants to cut cloud load-balancer cos"
   },
   {
     "id": "k8s-011-mcq-2",
     "domain": "kubernetes",
     "bank": 3,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "On EKS with the AWS Load Balancer Controller, what's the difference between annotating an Ingress with `alb.ingress.kube"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "An engineer on EKS with the AWS Load Balancer Controller is choosing between annotating an Ingress with `alb.ingress.kub"
   },
   {
     "id": "k8s-012-mcq-2",
@@ -2051,27 +1995,19 @@
     "id": "k8s-023-mcq-2",
     "domain": "kubernetes",
     "bank": 3,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "What's the fundamental architectural difference between Karpenter and Cluster Autoscaler?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "Your team is choosing between Karpenter and Cluster Autoscaler for node scaling on EKS. What's the fundamental architect"
   },
   {
     "id": "k8s-030-mcq-2",
     "domain": "kubernetes",
     "bank": 3,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "When should you use a ConfigMap and when should you use a Secret?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "An engineer is deciding whether to store a configuration value in a ConfigMap or a Secret. What should drive the choice?"
   },
   {
     "id": "k8s-031-mcq-2",
@@ -2095,14 +2031,10 @@
     "id": "k8s-042-mcq-2",
     "domain": "kubernetes",
     "bank": 3,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "Which is the recommended mitigation for VPC CNI IP exhaustion in 2025+ clusters?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "Your EKS cluster keeps hitting VPC CNI IP exhaustion, and you want the recommended mitigation for 2025-era clusters. Whi"
   },
   {
     "id": "k8s-050-mcq-2",

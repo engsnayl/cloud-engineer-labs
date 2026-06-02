@@ -121,6 +121,56 @@
       "drift_status": "PASS (touched_count=15, no still-flagged, no regressions)",
       "checkpoint_date": "2026-06-02",
       "status": "approved"
+    },
+    {
+      "batch_id": "T1.2",
+      "tier": 1,
+      "domain_slice": "kubernetes",
+      "mcq_ids_attempted": [
+        "k8s-003-mcq-1", "k8s-003-mcq-2", "k8s-004-mcq-2", "k8s-010-mcq-2",
+        "k8s-011-mcq-2", "k8s-012-mcq-1", "k8s-013-mcq-1", "k8s-014-mcq-1",
+        "k8s-020-mcq-1", "k8s-023-mcq-2", "k8s-030-mcq-1", "k8s-030-mcq-2",
+        "k8s-032-mcq-1", "k8s-040-mcq-1", "k8s-041-mcq-1", "k8s-042-mcq-1",
+        "k8s-042-mcq-2"
+      ],
+      "slice_total": 17,
+      "pilot_dupe_preflight": "0 byte-identical-to-pilot in slice (k8s-010-mcq-1 already cleared in T1.1)",
+      "reframe_attempted": 17,
+      "mcqs_completed": 17,
+      "completed_breakdown": {"tier1_pure_stem_reframe": 17, "tier1_5_stem_reframe_plus_option_microedit": 0},
+      "mcqs_dropped_to_tier3": 0,
+      "drop_out_ids": [],
+      "cleared_false_positive": [],
+      "borderline_surfaced": ["k8s-004-mcq-2", "k8s-014-mcq-1", "k8s-020-mcq-1"],
+      "dispositions_applied": {
+        "k8s-004-mcq-2": "AT-BAR (transferred-mental-model); recorded in borderline_approved.",
+        "k8s-014-mcq-1": "d2 '32 entries' = fabrication -> Tier 2 swap (widens T2.1); 'weaker than' framing KEPT (rubric distinction added to PLAN.md).",
+        "k8s-020-mcq-1": "Tier-3 option-balance pass -> T3.2 (stem stays reframed)."
+      },
+      "distractor_self_check_records": 51,
+      "fabrications_caught_at_selfreview": 0,
+      "audit_reflag_ids_after_batch": [],
+      "validate_mcqs_status": "pass",
+      "drift_status": "PASS (touched_count=17, no still-flagged, no regressions)",
+      "checkpoint_date": "2026-06-02",
+      "status": "approved"
+    }
+  ],
+  "borderline_approved": [
+    {
+      "id": "k8s-004-mcq-2",
+      "tier": "T1.2",
+      "reason": "Invented K8s API field names in distractors (sidecarContainers:, containerType: sidecar, kubernetes.io/sidecar annotation) judged AT-BAR by Stephen (2026-06-02): transferred-mental-model — Kubernetes does name things this way, and a junior would plausibly guess them. Not a false-authority fabrication.",
+      "watch": "If Tier 1 produces 3+ invented-identifier-as-transferred-model cases, revisit the bar mid-flight."
+    }
+  ],
+  "tier2_widening_queue": [
+    {
+      "id": "k8s-014-mcq-1",
+      "distractor": "distractor_2",
+      "from_tier": "T1.2",
+      "reason": "'Env vars are limited to 32 entries per pod' — specific fabricated number (Stephen 2026-06-02, same class as Istio-450ms). Replace with a real env-var-discovery misconception. Stem already reframed in T1.2 (D resolved); flagged-mcqs.json reclassified D_definition -> A_fabricated so T2.1's query picks it up.",
+      "note": "Widens T2.1 beyond the original 11 A-only MCQs (in addition to the 12 rebaseline fabrications already noted)."
     }
   ],
   "heuristic_fp_classes": {
@@ -142,14 +192,21 @@
     "math": "138 - 3 pilot_byte_identical FPs cleared (aws-026-mcq-1, cicd-020-mcq-1, k8s-010-mcq-1) = 135. The 15 reframed + aws-021 dropout remain 'resolved-in-place' but stay accounted; aws-021 still flagged pending its Tier-3 reauthor.",
     "note": "flagged-mcqs.json now holds 135 entries."
   },
-  "tier3_absorption_queue": ["aws-021-mcq-1"],
+  "tier3_absorption_queue": [
+    {"id": "aws-021-mcq-1", "from_tier": "T1.1", "work": "full positive reauthor ('best fit for Spot' with poor-fit distractors); 'worst candidate' = structural NOT-stem"},
+    {"id": "k8s-020-mcq-1", "from_tier": "T1.2", "work": "option-balance pass only — stem already reframed; rebalance one-word correct vs verbose distractors so length isn't a tell. flagged-mcqs.json reclassified D_definition -> B_structural_option_balance. NOTE: domain-based T3 query would route this to T3.1 (kubernetes); Stephen assigned it to T3.2 — honor this queue."}
+  ],
   "running_totals": {
+    "tier1_batches_done": 2,
     "tier1_dropouts_to_tier3": 1,
-    "tier1_attempted_so_far": 16,
-    "tier1_reframed_so_far": 15,
-    "tier1_dropout_rate_pct": 6.25,
+    "tier1_attempted_so_far": 33,
+    "tier1_reframed_so_far": 32,
+    "tier1_dropout_rate_pct": 3.03,
     "tier1_5_microedits": 1,
     "pilot_fps_cleared": 3,
+    "tier1_borderline_approved_at_bar": 1,
+    "tier1_distractors_queued_for_tier2": 1,
+    "tier3_absorption_queue_size": 2,
     "tier2_fabrications_caught": 0,
     "tier3_full_rewrites": 0,
     "total_audit_reflags": 0
