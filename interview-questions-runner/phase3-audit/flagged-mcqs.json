@@ -156,6 +156,20 @@
     "stem_preview": "Looking at the EC2 instance family letters (M, C, R, T, G), which one is designed for memory-intensive workloads such as"
   },
   {
+    "id": "aws-019-mcq-2",
+    "domain": "aws",
+    "bank": 3,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A_fabricated: d1/d2/d3 invent post-resize mechanisms (one-hour CPU limiting, kernel warm-tuning, Nitro AMI rebuild) (false-authority)",
+      "source: heuristic-review"
+    ],
+    "stem_preview": "An EC2 instance running at 95% CPU prompts a team to switch from m5.large to m5.xlarge. Af..."
+  },
+  {
     "id": "aws-020-mcq-1",
     "domain": "aws",
     "bank": 2,
@@ -431,6 +445,34 @@
     "stem_preview": "When should you reach for a reusable workflow vs a composite action in GitHub Actions?"
   },
   {
+    "id": "cicd-011-mcq-2",
+    "domain": "cicd",
+    "bank": 3,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A_fabricated: d3 invents a COMPOSITE_-prefixed secret naming convention (named-identifier)",
+      "source: llm-pass"
+    ],
+    "stem_preview": "Your composite action needs access to a secret stored at the repository level. What's true..."
+  },
+  {
+    "id": "cicd-012-mcq-2",
+    "domain": "cicd",
+    "bank": 3,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A_fabricated: d3 invents the `skip-matrix:` YAML key (named-identifier)",
+      "source: control-sample"
+    ],
+    "stem_preview": "Your matrix has `os: [ubuntu, macos, windows]` and `node: [18, 20]` but you don't want the..."
+  },
+  {
     "id": "cicd-013-mcq-2",
     "domain": "cicd",
     "bank": 3,
@@ -496,6 +538,20 @@
     "stem_preview": "Your OIDC trust policy between GitHub Actions and AWS allows AssumeRole. What condition should you add to prevent any ot"
   },
   {
+    "id": "cicd-021-mcq-1",
+    "domain": "cicd",
+    "bank": 1,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A_fabricated: d1 invents a specific `10 manifest ops/min` rate limit (named-identifier/number)",
+      "source: heuristic-review"
+    ],
+    "stem_preview": "Your GHA workflow deploys to EKS by running `kubectl apply -f manifests/`. What's the main..."
+  },
+  {
     "id": "cicd-021-mcq-2",
     "domain": "cicd",
     "bank": 2,
@@ -507,6 +563,34 @@
       "stem reads as recall not scenario"
     ],
     "stem_preview": "Push-based and pull-based deployments to EKS differ in which key way?"
+  },
+  {
+    "id": "cicd-022-mcq-1",
+    "domain": "cicd",
+    "bank": 1,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A_fabricated: d3 invents an `aws ecs deploy-now` command + queued-deploy state (named-identifier)",
+      "source: llm-pass"
+    ],
+    "stem_preview": "An ECS service is updated via `aws ecs update-service --task-definition new-revision`. Wha..."
+  },
+  {
+    "id": "cicd-022-mcq-2",
+    "domain": "cicd",
+    "bank": 3,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A_fabricated: d1 minimumHealthyPercent=200 is numerically impossible + wrong-direction surge claim (impossibility)",
+      "source: llm-pass"
+    ],
+    "stem_preview": "Your ECS rolling update is too risky for production releases. You want one-cut traffic swi..."
   },
   {
     "id": "cicd-031-mcq-1",
@@ -736,6 +820,20 @@
     "stem_preview": "Which base image choice is the most effective for shrinking a Python service's image?"
   },
   {
+    "id": "docker-004-mcq-2",
+    "domain": "docker",
+    "bank": 3,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A_fabricated: d2 invents a docker build `--no-context` flag (named-identifier)",
+      "source: llm-pass"
+    ],
+    "stem_preview": "Your team is building images in CI but the resulting images include node_modules from loca..."
+  },
+  {
     "id": "docker-005-mcq-2",
     "domain": "docker",
     "bank": 3,
@@ -855,6 +953,20 @@
     "stem_preview": "An ECR lifecycle policy says 'keep only the 10 most recent images, expire the rest.' Why is tag immutability sometimes s"
   },
   {
+    "id": "docker-010-mcq-2",
+    "domain": "docker",
+    "bank": 2,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A_fabricated: d3 invents a kernel buffer the daemon doesn't drain (false-authority mechanism)",
+      "source: control-sample"
+    ],
+    "stem_preview": "A container starts and exits immediately. `docker logs` shows nothing. What's the next dia..."
+  },
+  {
     "id": "git-001-mcq-1",
     "domain": "git",
     "bank": 1,
@@ -918,6 +1030,20 @@
       "stem reads as recall not scenario"
     ],
     "stem_preview": "What's the difference between `git clone` and a GitHub fork?"
+  },
+  {
+    "id": "git-003-mcq-2",
+    "domain": "git",
+    "bank": 3,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A_fabricated: d2 invents a `git pull --fork` flag (named-identifier)",
+      "source: llm-pass"
+    ],
+    "stem_preview": "You've forked an open-source repo on GitHub and cloned your fork locally. What remote setu..."
   },
   {
     "id": "git-004-mcq-1",
@@ -1400,6 +1526,20 @@
     "stem_preview": "Which is the most efficient way to find all log entries between 14:00 and 14:30 today across all systemd units?"
   },
   {
+    "id": "linux-006-mcq-2",
+    "domain": "linux",
+    "bank": 2,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A_fabricated: d1 invents journalctl `--severity`/`--realtime`; d3 invents `systemctl follow` (named-identifier)",
+      "source: llm-pass"
+    ],
+    "stem_preview": "You want to follow logs from nginx in real-time, filtering only entries with priority erro..."
+  },
+  {
     "id": "linux-007-mcq-1",
     "domain": "linux",
     "bank": 2,
@@ -1463,6 +1603,20 @@
       "stem reads as recall not scenario"
     ],
     "stem_preview": "What's the canonical structure of a well-designed Terraform module?"
+  },
+  {
+    "id": "tf-003-mcq-2",
+    "domain": "terraform",
+    "bank": 2,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A_fabricated: d2 invents a `terraform_module_version:` config field (named-identifier)",
+      "source: heuristic-review"
+    ],
+    "stem_preview": "Your module's `main.tf` calls a Git-sourced module: `source = \"git::https://github.com/acm..."
   },
   {
     "id": "tf-004-mcq-1",
@@ -1638,6 +1792,20 @@
       "match-style stem (high scramble risk)"
     ],
     "stem_preview": "Match the tool to its primary job: Terraform vs Packer."
+  },
+  {
+    "id": "tf-010-mcq-2",
+    "domain": "terraform",
+    "bank": 3,
+    "stem_type": "scenario",
+    "flags": [
+      "A_fabricated"
+    ],
+    "notes": [
+      "A_fabricated: d3 invents an `--ami-from-packer` flag (named-identifier)",
+      "source: llm-pass"
+    ],
+    "stem_preview": "Your team uses Packer + Terraform. How does Terraform consume the AMI Packer produced?"
   },
   {
     "id": "tf-012-mcq-2",
