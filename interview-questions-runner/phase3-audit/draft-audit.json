@@ -12,14 +12,10 @@
     "id": "aws-002-mcq-1",
     "domain": "aws",
     "bank": 1,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "What technically distinguishes a public subnet from a private subnet in an AWS VPC?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "An engineer inspects a subnet in an AWS VPC and needs to determine whether it is public or private. Which property actua"
   },
   {
     "id": "aws-003-mcq-1",
@@ -97,27 +93,19 @@
     "id": "aws-017-mcq-1",
     "domain": "aws",
     "bank": 1,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "Which AWS services are accessed via a Gateway endpoint rather than an Interface endpoint?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "An engineer setting up private VPC access notices that S3 and DynamoDB offer a free 'Gateway' endpoint type while other "
   },
   {
     "id": "aws-019-mcq-1",
     "domain": "aws",
     "bank": 1,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "Looking at the EC2 instance family letters (M, C, R, T, G), which one is designed for memory-intensive workloads such as"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "You're right-sizing EC2 for a RAM-bound in-memory database such as Redis or SAP HANA, not a CPU-bound workload. Which in"
   },
   {
     "id": "aws-021-mcq-1",
@@ -185,14 +173,10 @@
     "id": "aws-034-mcq-1",
     "domain": "aws",
     "bank": 1,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "Which factor has the BIGGEST impact on Lambda cold start duration?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "You're optimising a Lambda function whose cold starts are too slow and need to decide what to address first. Which facto"
   },
   {
     "id": "cicd-001-mcq-1",
@@ -855,27 +839,19 @@
     "id": "aws-014-mcq-1",
     "domain": "aws",
     "bank": 2,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "Which statement correctly captures the directionality of an Internet Gateway and a NAT Gateway?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "An EC2 instance in a private subnet reaches the internet through a NAT Gateway, while an instance in a public subnet use"
   },
   {
     "id": "aws-015-mcq-2",
     "domain": "aws",
     "bank": 2,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "A SaaS provider wants to expose a single internal service to specific customer VPCs without giving those VPCs any visibi"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "Your company runs a SaaS platform and wants to expose a single internal service to specific customer VPCs without giving"
   },
   {
     "id": "aws-016-mcq-2",
@@ -890,14 +866,10 @@
     "id": "aws-020-mcq-1",
     "domain": "aws",
     "bank": 2,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "Which ASG scaling policy keeps the underlying metric close to a single user-defined value by adding or removing capacity"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "An ASG must automatically add or remove instances to keep a metric close to a single user-defined value such as 60% CPU."
   },
   {
     "id": "aws-021-mcq-2",
@@ -921,14 +893,10 @@
     "id": "aws-026-mcq-2",
     "domain": "aws",
     "bank": 2,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "What is the fundamental security difference between IAM user access keys and credentials obtained via STS AssumeRole?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "An engineer is comparing long-lived IAM user access keys against credentials obtained via STS AssumeRole for a workload."
   },
   {
     "id": "aws-027-mcq-1",
@@ -970,14 +938,10 @@
     "id": "aws-032-mcq-1",
     "domain": "aws",
     "bank": 2,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "Users report 'the app is slow.' The system is a browser \u2192 CloudFront \u2192 ALB \u2192 ECS service \u2192 RDS. What's the most useful f"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "Your application serves traffic through browser to CloudFront to ALB to ECS service to RDS, and users report 'the app is"
   },
   {
     "id": "aws-035-mcq-1",
@@ -1568,14 +1532,10 @@
     "id": "aws-003-mcq-2",
     "domain": "aws",
     "bank": 3,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "Which statement about NACL rule evaluation is correct?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "An engineer adds several allow and deny rules to a NACL and needs to predict which rule applies to a given packet. How d"
   },
   {
     "id": "aws-005-mcq-2",
@@ -1594,27 +1554,19 @@
     "id": "aws-007-mcq-2",
     "domain": "aws",
     "bank": 3,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "An e-commerce site can tolerate at most 15 minutes of downtime and 1 minute of lost orders during a regional outage. The"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "Your team runs an e-commerce site that can tolerate at most 15 minutes of downtime and 1 minute of lost orders during a "
   },
   {
     "id": "aws-009-mcq-2",
     "domain": "aws",
     "bank": 3,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "Two EC2 instances need to share an EBS volume with concurrent read/write access. Which combination works?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "An application needs two EC2 instances in the same AZ to share a single EBS volume with concurrent read/write access. Wh"
   },
   {
     "id": "aws-012-mcq-2",
@@ -1705,14 +1657,10 @@
     "id": "aws-029-mcq-2",
     "domain": "aws",
     "bank": 3,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "When does Parameter Store make more sense than Secrets Manager?"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "Your team has hundreds of small, infrequently-rotated configuration values and wants to avoid Secrets Manager's per-secr"
   },
   {
     "id": "aws-031-mcq-2",
@@ -1736,27 +1684,19 @@
     "id": "aws-034-mcq-2",
     "domain": "aws",
     "bank": 3,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "A Java Lambda function takes 4 seconds to cold-start, which is unacceptable for the user-facing API in front of it. Whic"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "An API in front of a Java Lambda function suffers 4-second cold starts, which is unacceptable for users. Which mitigatio"
   },
   {
     "id": "aws-035-mcq-2",
     "domain": "aws",
     "bank": 3,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "question": "API Gateway is forwarding requests to a Lambda function using 'Lambda Proxy Integration.' What does that mean concretely"
+    "stem_type": "scenario",
+    "flags": [],
+    "notes": [],
+    "question": "An API Gateway route forwards requests to a Lambda using 'Lambda Proxy Integration,' and you're tracing how the request "
   },
   {
     "id": "cicd-003-mcq-2",

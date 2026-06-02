@@ -6,7 +6,7 @@
     "subdomain": "networking",
     "priority": "critical",
     "difficulty": "easy",
-    "question": "Which statement about NACL rule evaluation is correct?",
+    "question": "An engineer adds several allow and deny rules to a NACL and needs to predict which rule applies to a given packet. How does a NACL evaluate its rules?",
     "options": {
       "correct": "Rules are evaluated in ascending order of rule number; the first match wins and evaluation stops",
       "distractor_1": "Rules are evaluated in descending order of rule number so higher-priority rules win in case of conflict",
@@ -38,7 +38,7 @@
     "subdomain": "architecture",
     "priority": "high",
     "difficulty": "hard",
-    "question": "An e-commerce site can tolerate at most 15 minutes of downtime and 1 minute of lost orders during a regional outage. They want the cheapest DR strategy that meets these constraints. Which fits best?",
+    "question": "Your team runs an e-commerce site that can tolerate at most 15 minutes of downtime and 1 minute of lost orders during a regional outage, and wants the cheapest DR strategy that meets those constraints. Which fits best?",
     "options": {
       "correct": "Warm standby \u2014 a scaled-down replica running continuously in the DR region, scaled up on failover; meets a 15-min RTO and 1-min RPO with lower steady-state cost than active/active",
       "distractor_1": "Multi-site active/active \u2014 runs full capacity in both regions to guarantee the RTO/RPO targets without any scaling step on failover",
@@ -54,10 +54,10 @@
     "subdomain": "storage",
     "priority": "medium",
     "difficulty": "easy",
-    "question": "Two EC2 instances need to share an EBS volume with concurrent read/write access. Which combination works?",
+    "question": "An application needs two EC2 instances in the same AZ to share a single EBS volume with concurrent read/write access. Which combination actually works?",
     "options": {
       "correct": "An io1 or io2 EBS volume with Multi-Attach enabled, both instances in the same AZ, and a cluster-aware filesystem like OCFS2 or GFS2 above it",
-      "distractor_1": "A gp3 EBS volume attached to both instances using --multi-attach=true, with ext4 as the filesystem",
+      "distractor_1": "A gp3 EBS volume attached to both instances using --multi-attach-enabled=true, with ext4 as the filesystem",
       "distractor_2": "An io2 EBS volume with Multi-Attach, both instances in different AZs, and ext4 \u2014 Multi-Attach handles the cross-AZ replication",
       "distractor_3": "Any EBS volume type, with both instances mounting it read-write \u2014 EBS handles concurrent access at the block layer"
     },
@@ -214,7 +214,7 @@
     "subdomain": "security",
     "priority": "high",
     "difficulty": "medium",
-    "question": "When does Parameter Store make more sense than Secrets Manager?",
+    "question": "Your team has hundreds of small, infrequently-rotated configuration values and wants to avoid Secrets Manager's per-secret monthly charge. When does Parameter Store make more sense than Secrets Manager?",
     "options": {
       "correct": "When you have many small, infrequently-rotated configuration values where the per-secret cost of Secrets Manager outweighs its rotation features",
       "distractor_1": "When the secret needs to be encrypted at rest \u2014 only Parameter Store supports KMS encryption; Secrets Manager stores values in plaintext",
@@ -262,7 +262,7 @@
     "subdomain": "serverless",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "A Java Lambda function takes 4 seconds to cold-start, which is unacceptable for the user-facing API in front of it. Which mitigation gives the best latency improvement?",
+    "question": "An API in front of a Java Lambda function suffers 4-second cold starts, which is unacceptable for users. Which mitigation gives the best latency improvement?",
     "options": {
       "correct": "Provisioned Concurrency \u2014 pre-initialised execution environments are kept warm, so requests skip the init phase entirely at the cost of paying for warm capacity",
       "distractor_1": "Reduce the function's memory configuration \u2014 lower memory reduces the init phase proportionally because less CPU has to bootstrap",
@@ -278,7 +278,7 @@
     "subdomain": "serverless",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "API Gateway is forwarding requests to a Lambda function using 'Lambda Proxy Integration.' What does that mean concretely?",
+    "question": "An API Gateway route forwards requests to a Lambda using 'Lambda Proxy Integration,' and you're tracing how the request reaches your handler. What does proxy integration mean concretely?",
     "options": {
       "correct": "API Gateway passes the entire raw request (headers, body, path, query) to Lambda as an event, and Lambda must return a response object shaped with statusCode/headers/body",
       "distractor_1": "API Gateway parses the request and only passes the request body to Lambda; headers, path parameters, and query strings must be fetched via additional SDK calls back to API Gateway from inside the handler",

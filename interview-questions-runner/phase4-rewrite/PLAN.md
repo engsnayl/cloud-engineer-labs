@@ -631,9 +631,15 @@ For each MCQ in the slice:
 
 For each MCQ that stays in Tier 1, apply the change back to the source bank file by matching on `id`. For each MCQ dropped to Tier 3, leave the bank file unchanged for that MCQ and record `dropped_to_tier3: true` with a `drop_reason`.
 
+**Pilot-duplicate pre-flight (ALL batches, every tier — established at T1.1, 2026-06-02):** Before authoring, run `python interview-questions-runner/scripts/pilot_dupe_check.py <slice-ids...>` (or no args to scan all banks). Any slice MCQ byte-identical to a `phase2-pilot/pilot.json` exemplar (question + options + explanation) **auto-clears as a `pilot_byte_identical` false positive** — it IS the bar by definition. Do NOT reframe or reauthor it: remove it from `flagged-mcqs.json`, record it under `tracking.json → heuristic_fp_classes.pilot_byte_identical`, and exclude it from the batch's touched-set. Five seconds of comparison saves an unnecessary reframe. (T1.1 cleared 3 this way: `aws-026-mcq-1`, `cicd-020-mcq-1`, `k8s-010-mcq-1`.)
+
 - [ ] **Step 0: Re-anchor on the pilot voice**
 
 Before any authoring, re-read `interview-questions-runner/phase2-pilot/pilot.json` end-to-end. The pilot is the voice for this tier. Note: scenario framing, distractor patterns (real concept wrong context, half-remembered, what-would-happen-without-X, etc.), explanation structure (one-sentence correct + per-distractor failure mode + one piece of real-world context). This is anchoring, not lookup — do it even if you "remember" the pilot from earlier in the session.
+
+- [ ] **Step 0.5: Pilot-duplicate pre-flight** — run `pilot_dupe_check.py` on the slice (see the pre-flight note above) and clear any byte-identical-to-pilot MCQs before authoring.
+
+**NOTE on the `D_definition` heuristic (learned at T1.1):** `audit.py`'s `classify_stem()` flags `D_definition` purely as a *fall-through* when a stem doesn't match its hard-coded scenario-marker list (case-sensitive: `An EC2/application/engineer/ALB/RDS/ASG/IAM/API/instance…`, `Your team/app/company…`, `You're/You need/notice/observe…`, `A service/file/container/node…`, digit+`instances/users/nodes/pods…`, `in production`, etc.). A genuinely-scenario stem can still be flagged if it leads with an unrecognised noun (`A Python service`, `An e-commerce site`, `Two EC2 instances`). To clear the flag, **lead each reframe with a recognised actor marker** — which is also the pilot voice. Verify with `classify_stem()` before drift if unsure.
 
 - [ ] **Step 1: Identify the 17 AWS D-only MCQ IDs**
 

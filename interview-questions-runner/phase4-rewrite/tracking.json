@@ -86,10 +86,70 @@
     "caveat": "LLM pass covered the entire unflagged set, so the re-sample confirms rather than independently probes; substantive assurance is the exhaustive pass.",
     "next": "Tier 1 may begin — Task 3, batch T1.1 (AWS D-only stem reframes)."
   },
-  "batches": [],
+  "batches": [
+    {
+      "batch_id": "T1.1",
+      "tier": 1,
+      "domain_slice": "aws",
+      "mcq_ids_attempted": [
+        "aws-002-mcq-1", "aws-003-mcq-2", "aws-007-mcq-2", "aws-009-mcq-2",
+        "aws-014-mcq-1", "aws-015-mcq-2", "aws-017-mcq-1", "aws-019-mcq-1",
+        "aws-020-mcq-1", "aws-021-mcq-1", "aws-026-mcq-1", "aws-026-mcq-2",
+        "aws-029-mcq-2", "aws-032-mcq-1", "aws-034-mcq-1", "aws-034-mcq-2",
+        "aws-035-mcq-2"
+      ],
+      "slice_total": 17,
+      "reframe_attempted": 16,
+      "mcqs_completed": 15,
+      "completed_breakdown": {
+        "tier1_pure_stem_reframe": 14,
+        "tier1_5_stem_reframe_plus_option_microedit": 1
+      },
+      "tier1_5_microedits": [
+        "aws-009-mcq-2/distractor_1: --multi-attach=true -> --multi-attach-enabled=true (spelling correction, not a reframe; gp3 misconception trap unchanged). Approved by Stephen 2026-06-02 as at-bar with micro-correction."
+      ],
+      "mcqs_dropped_to_tier3": 1,
+      "drop_out_ids": ["aws-021-mcq-1"],
+      "drop_out_note": "aws-021-mcq-1 ('worst candidate for Spot') dropped to Tier 3 (Stephen, 2026-06-02): superlative framing = same structural problem as NOT/never; needs positive reauthor ('best fit for Spot' with poor-fit distractors). Queued for T3.2 absorption. Bank stem reverted to original.",
+      "cleared_false_positive": ["aws-026-mcq-1"],
+      "cleared_fp_note": "aws-026-mcq-1 cleared as a pilot_byte_identical false positive (see heuristic_fp_classes). Removed from flagged-mcqs.json.",
+      "reconciliation": "17 slice = 15 completed (14 pure Tier-1 + 1 Tier-1.5) + 1 dropped to Tier 3 (aws-021-mcq-1) + 1 cleared FP (aws-026-mcq-1). Dropout rate = 1/16 reframe-attempts = 6.25%.",
+      "distractor_self_check_records": 45,
+      "fabrications_caught_at_selfreview": 0,
+      "audit_reflag_ids_after_batch": [],
+      "validate_mcqs_status": "pass",
+      "drift_status": "PASS (touched_count=15, no still-flagged, no regressions)",
+      "checkpoint_date": "2026-06-02",
+      "status": "approved"
+    }
+  ],
+  "heuristic_fp_classes": {
+    "pilot_byte_identical": {
+      "rule": "Any bank MCQ byte-identical to a phase2-pilot/pilot.json exemplar (question + options + explanation) auto-clears as a heuristic false positive — it IS the bar by definition. Never reframe or reauthor it.",
+      "established_date": "2026-06-02",
+      "established_by": "Stephen, at T1.1 checkpoint",
+      "detection": "interview-questions-runner/scripts/pilot_dupe_check.py (now a per-batch pre-flight step)",
+      "cleared_ids": ["aws-026-mcq-1", "cicd-020-mcq-1", "k8s-010-mcq-1"],
+      "cleared_detail": {
+        "aws-026-mcq-1": "was D_definition; in the T1.1 slice; pilot exemplar.",
+        "cicd-020-mcq-1": "was C_never_correct (correct option starts with 'No long-lived credential...' -> regex matched 'No'); pilot exemplar; would have been mis-handled in T1.3.",
+        "k8s-010-mcq-1": "was D_definition; pilot exemplar; would have been in the T1.2 K8s slice (now 18->17)."
+      }
+    }
+  },
+  "flagged_total_after_t1_1": {
+    "value": 135,
+    "math": "138 - 3 pilot_byte_identical FPs cleared (aws-026-mcq-1, cicd-020-mcq-1, k8s-010-mcq-1) = 135. The 15 reframed + aws-021 dropout remain 'resolved-in-place' but stay accounted; aws-021 still flagged pending its Tier-3 reauthor.",
+    "note": "flagged-mcqs.json now holds 135 entries."
+  },
+  "tier3_absorption_queue": ["aws-021-mcq-1"],
   "running_totals": {
-    "tier1_dropouts_to_tier3": 0,
-    "tier1_dropout_rate_pct": 0,
+    "tier1_dropouts_to_tier3": 1,
+    "tier1_attempted_so_far": 16,
+    "tier1_reframed_so_far": 15,
+    "tier1_dropout_rate_pct": 6.25,
+    "tier1_5_microedits": 1,
+    "pilot_fps_cleared": 3,
     "tier2_fabrications_caught": 0,
     "tier3_full_rewrites": 0,
     "total_audit_reflags": 0

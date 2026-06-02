@@ -1,0 +1,789 @@
+{
+  "batch_id": "T1.1",
+  "tier": 1,
+  "domain_slice": "aws",
+  "rewrites": [
+    {
+      "mcq_id": "aws-002-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "What technically distinguishes a public subnet from a private subnet in an AWS VPC?",
+        "options": {
+          "correct": "The subnet has a route in its route table sending 0.0.0.0/0 to an Internet Gateway",
+          "distractor_1": "The subnet's CIDR block is within the VPC's public IP range",
+          "distractor_2": "Instances launched in the subnet automatically receive a public IP address",
+          "distractor_3": "The subnet is associated with a security group that allows inbound traffic from 0.0.0.0/0"
+        },
+        "explanation": "Nothing about a subnet is intrinsically 'public' or 'private' — the distinction is purely the route table. Auto-assign public IP (distractor 2) is a real, separate setting (MapPublicIpOnLaunch) but an instance needs BOTH the IGW route AND a public IP to be reachable. CIDR blocks within a VPC aren't categorised as public or private. Security groups operate at the instance level and never define subnet type."
+      },
+      "after": {
+        "question": "An engineer inspects a subnet in an AWS VPC and needs to determine whether it is public or private. Which property actually decides this?",
+        "options": {
+          "correct": "The subnet has a route in its route table sending 0.0.0.0/0 to an Internet Gateway",
+          "distractor_1": "The subnet's CIDR block is within the VPC's public IP range",
+          "distractor_2": "Instances launched in the subnet automatically receive a public IP address",
+          "distractor_3": "The subnet is associated with a security group that allows inbound traffic from 0.0.0.0/0"
+        },
+        "explanation": "Nothing about a subnet is intrinsically 'public' or 'private' — the distinction is purely the route table. Auto-assign public IP (distractor 2) is a real, separate setting (MapPublicIpOnLaunch) but an instance needs BOTH the IGW route AND a public IP to be reachable. CIDR blocks within a VPC aren't categorised as public or private. Security groups operate at the instance level and never define subnet type."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Junior thinks 'public' subnets must use a special CIDR range — a real misconception transferred from on-prem public/private IP blocks."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Auto-assign public IP (MapPublicIpOnLaunch) is a real, separate setting; juniors routinely conflate it with what makes a subnet public."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Confusing instance-level security groups with subnet routing is a classic layer mix-up under an 'is this subnet public?' scenario."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "aws-003-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "Which statement about NACL rule evaluation is correct?",
+        "options": {
+          "correct": "Rules are evaluated in ascending order of rule number; the first match wins and evaluation stops",
+          "distractor_1": "Rules are evaluated in descending order of rule number so higher-priority rules win in case of conflict",
+          "distractor_2": "All rules are evaluated and the most restrictive match applies to the traffic",
+          "distractor_3": "Rules are evaluated alphabetically by rule name, with deny rules taking precedence over allow rules"
+        },
+        "explanation": "NACL evaluation walks rules in ascending numeric order and stops at the first match. The implicit '*' rule (deny all) applies only if no numbered rule matches. Distractor 1 reverses the order — descending is intuitive but wrong. Distractor 2 invents an aggregation pass over all rules; NACLs short-circuit. Distractor 3 confuses NACLs with some firewall systems that order by name and apply explicit-deny preference — useful to know that AWS NACLs do neither. Lower rule numbers should hold the more specific allows, with broader denies higher up."
+      },
+      "after": {
+        "question": "An engineer adds several allow and deny rules to a NACL and needs to predict which rule applies to a given packet. How does a NACL evaluate its rules?",
+        "options": {
+          "correct": "Rules are evaluated in ascending order of rule number; the first match wins and evaluation stops",
+          "distractor_1": "Rules are evaluated in descending order of rule number so higher-priority rules win in case of conflict",
+          "distractor_2": "All rules are evaluated and the most restrictive match applies to the traffic",
+          "distractor_3": "Rules are evaluated alphabetically by rule name, with deny rules taking precedence over allow rules"
+        },
+        "explanation": "NACL evaluation walks rules in ascending numeric order and stops at the first match. The implicit '*' rule (deny all) applies only if no numbered rule matches. Distractor 1 reverses the order — descending is intuitive but wrong. Distractor 2 invents an aggregation pass over all rules; NACLs short-circuit. Distractor 3 confuses NACLs with some firewall systems that order by name and apply explicit-deny preference — useful to know that AWS NACLs do neither. Lower rule numbers should hold the more specific allows, with broader denies higher up."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Descending/priority order is the intuitive guess and how some other systems work — live under a 'which rule applies' scenario."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "'Most restrictive wins' is transferred from security-group union mental models; plausible for a junior predicting rule outcome."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Name-ordered, deny-precedence evaluation is borrowed from host firewalls (e.g. iptables chains) — a real cross-tool confusion."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "aws-007-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "An e-commerce site can tolerate at most 15 minutes of downtime and 1 minute of lost orders during a regional outage. They want the cheapest DR strategy that meets these constraints. Which fits best?",
+        "options": {
+          "correct": "Warm standby — a scaled-down replica running continuously in the DR region, scaled up on failover; meets a 15-min RTO and 1-min RPO with lower steady-state cost than active/active",
+          "distractor_1": "Multi-site active/active — runs full capacity in both regions to guarantee the RTO/RPO targets without any scaling step on failover",
+          "distractor_2": "Pilot light — keeps only the database replica warm and provisions everything else on failover, comfortably meeting a 15-minute RTO",
+          "distractor_3": "Backup and restore — restores from cross-region backups within the 15-minute window, the cheapest option that meets the constraints"
+        },
+        "explanation": "Warm standby fits the brief: continuously replicated data (sub-minute RPO) plus pre-running scaled-down compute that can scale up inside 15 minutes. Distractor 1 meets the targets but isn't cheapest — it runs full capacity in both regions continuously. Distractor 2 (pilot light) is cheaper but the scale-up step typically blows past 15 minutes for non-trivial stacks. Distractor 3 underestimates restore time (AMI rebuild, RDS restore, DNS propagation), which usually exceeds an hour for real systems."
+      },
+      "after": {
+        "question": "Your team runs an e-commerce site that can tolerate at most 15 minutes of downtime and 1 minute of lost orders during a regional outage, and wants the cheapest DR strategy that meets those constraints. Which fits best?",
+        "options": {
+          "correct": "Warm standby — a scaled-down replica running continuously in the DR region, scaled up on failover; meets a 15-min RTO and 1-min RPO with lower steady-state cost than active/active",
+          "distractor_1": "Multi-site active/active — runs full capacity in both regions to guarantee the RTO/RPO targets without any scaling step on failover",
+          "distractor_2": "Pilot light — keeps only the database replica warm and provisions everything else on failover, comfortably meeting a 15-minute RTO",
+          "distractor_3": "Backup and restore — restores from cross-region backups within the 15-minute window, the cheapest option that meets the constraints"
+        },
+        "explanation": "Warm standby fits the brief: continuously replicated data (sub-minute RPO) plus pre-running scaled-down compute that can scale up inside 15 minutes. Distractor 1 meets the targets but isn't cheapest — it runs full capacity in both regions continuously. Distractor 2 (pilot light) is cheaper but the scale-up step typically blows past 15 minutes for non-trivial stacks. Distractor 3 underestimates restore time (AMI rebuild, RDS restore, DNS propagation), which usually exceeds an hour for real systems."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Active/active genuinely meets the RTO/RPO; the trap is missing 'cheapest' — a live judgment error under the cost-constrained scenario."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Pilot light is a real strategy; underestimating its scale-up time against a 15-min RTO is a common junior miscalculation."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Backup-and-restore as 'cheapest that fits' ignores real restore times — exactly the misjudgment the scenario probes."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "aws-009-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1.5,
+      "change_summary": "stem reframed to scenario form; PLUS Tier-1.5 option spelling micro-edit on distractor_1 (identifier correction, not a reframe; explanation unchanged)",
+      "before": {
+        "question": "Two EC2 instances need to share an EBS volume with concurrent read/write access. Which combination works?",
+        "options": {
+          "correct": "An io1 or io2 EBS volume with Multi-Attach enabled, both instances in the same AZ, and a cluster-aware filesystem like OCFS2 or GFS2 above it",
+          "distractor_1": "A gp3 EBS volume attached to both instances using --multi-attach=true, with ext4 as the filesystem",
+          "distractor_2": "An io2 EBS volume with Multi-Attach, both instances in different AZs, and ext4 — Multi-Attach handles the cross-AZ replication",
+          "distractor_3": "Any EBS volume type, with both instances mounting it read-write — EBS handles concurrent access at the block layer"
+        },
+        "explanation": "EBS Multi-Attach only works with io1/io2 volume types, only within a single AZ, and requires a cluster-aware filesystem because EBS doesn't coordinate writes from multiple instances. Distractor 1 picks the wrong volume type (gp3 doesn't support Multi-Attach) and a non-cluster filesystem that would corrupt under concurrent writes. Distractor 2 invents cross-AZ Multi-Attach — EBS volumes are AZ-scoped. Distractor 3 is the candidate myth that EBS arbitrates concurrent writes itself; it doesn't, which is why a cluster-aware filesystem is mandatory."
+      },
+      "after": {
+        "question": "An application needs two EC2 instances in the same AZ to share a single EBS volume with concurrent read/write access. Which combination actually works?",
+        "options": {
+          "correct": "An io1 or io2 EBS volume with Multi-Attach enabled, both instances in the same AZ, and a cluster-aware filesystem like OCFS2 or GFS2 above it",
+          "distractor_1": "A gp3 EBS volume attached to both instances using --multi-attach-enabled=true, with ext4 as the filesystem",
+          "distractor_2": "An io2 EBS volume with Multi-Attach, both instances in different AZs, and ext4 — Multi-Attach handles the cross-AZ replication",
+          "distractor_3": "Any EBS volume type, with both instances mounting it read-write — EBS handles concurrent access at the block layer"
+        },
+        "explanation": "EBS Multi-Attach only works with io1/io2 volume types, only within a single AZ, and requires a cluster-aware filesystem because EBS doesn't coordinate writes from multiple instances. Distractor 1 picks the wrong volume type (gp3 doesn't support Multi-Attach) and a non-cluster filesystem that would corrupt under concurrent writes. Distractor 2 invents cross-AZ Multi-Attach — EBS volumes are AZ-scoped. Distractor 3 is the candidate myth that EBS arbitrates concurrent writes itself; it doesn't, which is why a cluster-aware filesystem is mandatory."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": true,
+          "still_fits_new_stem": true,
+          "real_misconception": "gp3 + a '--multi-attach' style flag + ext4: juniors believe any volume can multi-attach and a normal FS is fine — the core misconception. (Flag spelling gestures at the real --multi-attach-enabled create option; invented-behaviour, not a fabricated identifier.)",
+          "microedit_note": "Spelling correction (Tier 1.5): --multi-attach=true -> --multi-attach-enabled=true (the real create-volume flag). Not a reframe; the gp3-can't-multi-attach misconception trap is unchanged."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Cross-AZ Multi-Attach 'handles replication' is a plausible over-extension of a real feature for a candidate who hasn't hit the AZ-scoping limit."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "'EBS arbitrates concurrent writes at the block layer' is the textbook myth the scenario is built to catch."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "aws-014-mcq-1",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "Which statement correctly captures the directionality of an Internet Gateway and a NAT Gateway?",
+        "options": {
+          "correct": "An Internet Gateway allows both inbound and outbound traffic; a NAT Gateway allows only outbound-initiated traffic and the return packets for those flows",
+          "distractor_1": "Both Internet Gateway and NAT Gateway allow inbound and outbound traffic; the difference is that NAT performs source address translation while IGW does not",
+          "distractor_2": "An Internet Gateway is outbound-only; a NAT Gateway adds inbound capability by mapping public IPs to private IPs via PAT rules",
+          "distractor_3": "Both are outbound-only by default; inbound on either requires opening Security Group rules and adding a public IP to the instance"
+        },
+        "explanation": "IGW is the bidirectional VPC-to-internet door; NAT Gateway translates outbound traffic from private subnets and lets the return path back through, with no way to initiate connections inbound. Distractor 1 ignores the inbound asymmetry — NAT Gateway does perform translation, but the directionality is the bigger semantic difference. Distractor 2 reverses the two gateways entirely. Distractor 3 conflates IGW and NAT with Security Groups — SGs control traffic at the ENI level, not the gateway level; an IGW with an SG-allowed public-IP instance is inbound-reachable."
+      },
+      "after": {
+        "question": "An EC2 instance in a private subnet reaches the internet through a NAT Gateway, while an instance in a public subnet uses an Internet Gateway. Which statement correctly captures the directional difference between the two gateways?",
+        "options": {
+          "correct": "An Internet Gateway allows both inbound and outbound traffic; a NAT Gateway allows only outbound-initiated traffic and the return packets for those flows",
+          "distractor_1": "Both Internet Gateway and NAT Gateway allow inbound and outbound traffic; the difference is that NAT performs source address translation while IGW does not",
+          "distractor_2": "An Internet Gateway is outbound-only; a NAT Gateway adds inbound capability by mapping public IPs to private IPs via PAT rules",
+          "distractor_3": "Both are outbound-only by default; inbound on either requires opening Security Group rules and adding a public IP to the instance"
+        },
+        "explanation": "IGW is the bidirectional VPC-to-internet door; NAT Gateway translates outbound traffic from private subnets and lets the return path back through, with no way to initiate connections inbound. Distractor 1 ignores the inbound asymmetry — NAT Gateway does perform translation, but the directionality is the bigger semantic difference. Distractor 2 reverses the two gateways entirely. Distractor 3 conflates IGW and NAT with Security Groups — SGs control traffic at the ENI level, not the gateway level; an IGW with an SG-allowed public-IP instance is inbound-reachable."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Both-bidirectional-but-NAT-translates is the most sophisticated wrong answer; live for a junior who knows NAT does translation but misses the inbound asymmetry."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Reversing IGW and NAT directionality is a direct swap a 6-month candidate easily makes."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Collapsing gateway directionality into security-group rules is a real layer confusion under a directionality scenario."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "aws-015-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "A SaaS provider wants to expose a single internal service to specific customer VPCs without giving those VPCs any visibility into the provider's broader VPC. Which connectivity model fits best?",
+        "options": {
+          "correct": "AWS PrivateLink — the provider publishes the service as a VPC Endpoint Service and customers create Interface endpoints, exposing only that one service over private networking",
+          "distractor_1": "VPC peering between the provider VPC and each customer VPC, with route table entries scoped to the single service's IP range",
+          "distractor_2": "Transit Gateway with route tables that allow each customer attachment to reach only the IP of the single service in the provider VPC",
+          "distractor_3": "Direct Connect Gateway with VIFs configured per customer, scoping each VIF to the single service's IP and port"
+        },
+        "explanation": "PrivateLink is built for exactly this: one-way exposure of a specific service across account/VPC boundaries with no CIDR overlap concerns and no broader VPC connectivity. Distractor 1 (peering) exposes the full provider VPC routing space even if you tighten route tables — there's still discovery risk and CIDR overlap problems. Distractor 2 (TGW) gives more control but still establishes layer-3 connectivity between VPCs, and customers must coordinate CIDRs. Distractor 3 (Direct Connect) is for on-prem to AWS, not VPC-to-VPC, and is hugely overkill for a per-service exposure."
+      },
+      "after": {
+        "question": "Your company runs a SaaS platform and wants to expose a single internal service to specific customer VPCs without giving those VPCs any visibility into the rest of your VPC. Which connectivity model fits best?",
+        "options": {
+          "correct": "AWS PrivateLink — the provider publishes the service as a VPC Endpoint Service and customers create Interface endpoints, exposing only that one service over private networking",
+          "distractor_1": "VPC peering between the provider VPC and each customer VPC, with route table entries scoped to the single service's IP range",
+          "distractor_2": "Transit Gateway with route tables that allow each customer attachment to reach only the IP of the single service in the provider VPC",
+          "distractor_3": "Direct Connect Gateway with VIFs configured per customer, scoping each VIF to the single service's IP and port"
+        },
+        "explanation": "PrivateLink is built for exactly this: one-way exposure of a specific service across account/VPC boundaries with no CIDR overlap concerns and no broader VPC connectivity. Distractor 1 (peering) exposes the full provider VPC routing space even if you tighten route tables — there's still discovery risk and CIDR overlap problems. Distractor 2 (TGW) gives more control but still establishes layer-3 connectivity between VPCs, and customers must coordinate CIDRs. Distractor 3 (Direct Connect) is for on-prem to AWS, not VPC-to-VPC, and is hugely overkill for a per-service exposure."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "VPC peering with scoped routes 'hides' the rest of the VPC: a plausible belief for a junior who hasn't hit route-table/CIDR exposure limits."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Transit Gateway with tight route tables sounds like fine-grained isolation; a real over-estimate of what TGW route scoping buys you."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Direct Connect Gateway per-customer VIFs confuses on-prem connectivity with VPC-to-VPC — a common service mix-up."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "aws-017-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "Which AWS services are accessed via a Gateway endpoint rather than an Interface endpoint?",
+        "options": {
+          "correct": "S3 and DynamoDB only — every other AWS service uses Interface endpoints (PrivateLink)",
+          "distractor_1": "All services that have a public regional endpoint can be reached via a Gateway endpoint, including S3, DynamoDB, KMS, and SNS",
+          "distractor_2": "Only services that are global rather than regional, such as IAM and CloudFront, use Gateway endpoints",
+          "distractor_3": "Gateway endpoints are available for all AWS services in a VPC; Interface endpoints exist only for third-party services exposed via PrivateLink"
+        },
+        "explanation": "Gateway endpoints are a special, free-of-charge type only available for S3 and DynamoDB — they add a prefix list to your route table and traffic stays on the AWS backbone. Every other in-VPC private access uses Interface endpoints (backed by PrivateLink, charged hourly per endpoint and per GB). Distractor 1 over-extends Gateway endpoints to services that use Interface endpoints. Distractor 2 fabricates a global-vs-regional distinction. Distractor 3 reverses the model — third-party PrivateLink services do exist, but Interface endpoints are also how you reach most AWS-native services."
+      },
+      "after": {
+        "question": "An engineer setting up private VPC access notices that S3 and DynamoDB offer a free 'Gateway' endpoint type while other services do not. Which statement correctly captures the scope of Gateway endpoints?",
+        "options": {
+          "correct": "S3 and DynamoDB only — every other AWS service uses Interface endpoints (PrivateLink)",
+          "distractor_1": "All services that have a public regional endpoint can be reached via a Gateway endpoint, including S3, DynamoDB, KMS, and SNS",
+          "distractor_2": "Only services that are global rather than regional, such as IAM and CloudFront, use Gateway endpoints",
+          "distractor_3": "Gateway endpoints are available for all AWS services in a VPC; Interface endpoints exist only for third-party services exposed via PrivateLink"
+        },
+        "explanation": "Gateway endpoints are a special, free-of-charge type only available for S3 and DynamoDB — they add a prefix list to your route table and traffic stays on the AWS backbone. Every other in-VPC private access uses Interface endpoints (backed by PrivateLink, charged hourly per endpoint and per GB). Distractor 1 over-extends Gateway endpoints to services that use Interface endpoints. Distractor 2 fabricates a global-vs-regional distinction. Distractor 3 reverses the model — third-party PrivateLink services do exist, but Interface endpoints are also how you reach most AWS-native services."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Extending Gateway endpoints to KMS/SNS etc. is the natural over-generalisation when you only know S3/DynamoDB have them."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A global-vs-regional split for endpoint type is a fabricated-but-plausible rationalisation a junior could invent."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Reversing the model (Gateway for all AWS, Interface for third-party only) is a believable inversion for someone new to PrivateLink."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "aws-019-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "Looking at the EC2 instance family letters (M, C, R, T, G), which one is designed for memory-intensive workloads such as in-memory databases?",
+        "options": {
+          "correct": "R — memory-optimised family with a higher memory-to-vCPU ratio",
+          "distractor_1": "M — the 'memory' letter indicates memory-optimised general-purpose instances",
+          "distractor_2": "C — compute-optimised with the highest memory allocation per vCPU in the family lineup",
+          "distractor_3": "T — burstable instances with deep memory pools to handle in-memory database working sets"
+        },
+        "explanation": "R-family instances (R5, R6i, R7i, etc.) are memory-optimised — designed for Redis, SAP HANA, large in-memory analytics. Distractor 1 traps the candidate on letter-meaning: M is general purpose, despite the M; the memory letter is R. Distractor 2 swaps compute (C) for memory — C is the opposite end, high vCPU per memory unit. Distractor 3 picks T (burstable, low cost) which is for variable low-load workloads, not sustained memory pressure. Right-sizing starts with knowing the family naming."
+      },
+      "after": {
+        "question": "You're right-sizing EC2 for a RAM-bound in-memory database such as Redis or SAP HANA, not a CPU-bound workload. Which instance family letter (M, C, R, T, G) is purpose-built for this?",
+        "options": {
+          "correct": "R — memory-optimised family with a higher memory-to-vCPU ratio",
+          "distractor_1": "M — the 'memory' letter indicates memory-optimised general-purpose instances",
+          "distractor_2": "C — compute-optimised with the highest memory allocation per vCPU in the family lineup",
+          "distractor_3": "T — burstable instances with deep memory pools to handle in-memory database working sets"
+        },
+        "explanation": "R-family instances (R5, R6i, R7i, etc.) are memory-optimised — designed for Redis, SAP HANA, large in-memory analytics. Distractor 1 traps the candidate on letter-meaning: M is general purpose, despite the M; the memory letter is R. Distractor 2 swaps compute (C) for memory — C is the opposite end, high vCPU per memory unit. Distractor 3 picks T (burstable, low cost) which is for variable low-load workloads, not sustained memory pressure. Right-sizing starts with knowing the family naming."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "'M = memory' is the letter trap the question is built on; extremely live for a 6-month candidate."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Picking C (compute) for memory swaps the two optimisation axes — a common early confusion."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "T (burstable) 'with deep memory pools' misreads burstable as a memory tier rather than a CPU-credit tier."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "aws-020-mcq-1",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "Which ASG scaling policy keeps the underlying metric close to a single user-defined value by adding or removing capacity as needed?",
+        "options": {
+          "correct": "Target tracking — you specify a target value (e.g. 60% CPU) and ASG continuously adjusts capacity to maintain it",
+          "distractor_1": "Step scaling — you specify a target value and ASG increments capacity in fixed steps until the metric matches it",
+          "distractor_2": "Simple scaling — you specify a target value and ASG fires a Lambda function that calculates and applies the new capacity",
+          "distractor_3": "Scheduled scaling — you specify a target value with associated time windows during which ASG enforces it"
+        },
+        "explanation": "Target tracking is the 'thermostat' policy: pick a metric and a target, let ASG handle the rest. Distractor 1 (step scaling) actually requires you to define explicit threshold breaches and step adjustments — it doesn't take a single target. Distractor 2 (simple scaling) fires one adjustment per breach with a cooldown; no Lambda involvement. Distractor 3 (scheduled scaling) ignores metrics entirely — it scales on calendar/time, useful for predictable traffic shifts. Target tracking is now the default recommendation for most workloads."
+      },
+      "after": {
+        "question": "An ASG must automatically add or remove instances to keep a metric close to a single user-defined value such as 60% CPU. Which scaling policy is designed for this?",
+        "options": {
+          "correct": "Target tracking — you specify a target value (e.g. 60% CPU) and ASG continuously adjusts capacity to maintain it",
+          "distractor_1": "Step scaling — you specify a target value and ASG increments capacity in fixed steps until the metric matches it",
+          "distractor_2": "Simple scaling — you specify a target value and ASG fires a Lambda function that calculates and applies the new capacity",
+          "distractor_3": "Scheduled scaling — you specify a target value with associated time windows during which ASG enforces it"
+        },
+        "explanation": "Target tracking is the 'thermostat' policy: pick a metric and a target, let ASG handle the rest. Distractor 1 (step scaling) actually requires you to define explicit threshold breaches and step adjustments — it doesn't take a single target. Distractor 2 (simple scaling) fires one adjustment per breach with a cooldown; no Lambda involvement. Distractor 3 (scheduled scaling) ignores metrics entirely — it scales on calendar/time, useful for predictable traffic shifts. Target tracking is now the default recommendation for most workloads."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Step scaling 'takes a single target' blurs the line with target tracking — the central confusion the scenario tests."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Simple scaling 'fires a Lambda to compute capacity' is invented behaviour, but plausible given how Lambda-driven AWS feels to a junior."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Scheduled scaling 'with a target value' conflates time-based and metric-based policies — a real mix-up."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "aws-021-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "change_summary": "DROPPED to Tier 3 (Stephen, 2026-06-02): superlative 'worst candidate' framing needs a positive reauthor, not a stem reframe. Original stem retained in bank.",
+      "before": {
+        "question": "Which workload is the WORST fit for EC2 Spot Instances?",
+        "options": {
+          "correct": "A stateful PostgreSQL database serving production traffic with no replication or failover layer",
+          "distractor_1": "A nightly Spark batch job that processes the day's events and can restart from the last checkpoint",
+          "distractor_2": "A stateless web tier behind an ALB with autoscaling and at least 50% on-demand baseline",
+          "distractor_3": "A CI/CD build farm where individual builds take under 20 minutes and can be retried automatically"
+        },
+        "explanation": "Spot instances can be reclaimed with a 2-minute warning; they fit anything that can checkpoint, retry, or absorb a node loss. A solo stateful database has none of those properties — losing it loses data and uptime. Distractor 1 (Spark with checkpoints) is a textbook Spot fit. Distractor 2 (stateless web with on-demand baseline) is the recommended ASG pattern: mix on-demand and Spot via instance allocation strategy. Distractor 3 (short, retryable CI builds) is also good — worst case the build retries on another instance type."
+      },
+      "after": {
+        "question": "Which workload is the WORST fit for EC2 Spot Instances?",
+        "options": {
+          "correct": "A stateful PostgreSQL database serving production traffic with no replication or failover layer",
+          "distractor_1": "A nightly Spark batch job that processes the day's events and can restart from the last checkpoint",
+          "distractor_2": "A stateless web tier behind an ALB with autoscaling and at least 50% on-demand baseline",
+          "distractor_3": "A CI/CD build farm where individual builds take under 20 minutes and can be retried automatically"
+        },
+        "explanation": "Spot instances can be reclaimed with a 2-minute warning; they fit anything that can checkpoint, retry, or absorb a node loss. A solo stateful database has none of those properties — losing it loses data and uptime. Distractor 1 (Spark with checkpoints) is a textbook Spot fit. Distractor 2 (stateless web with on-demand baseline) is the recommended ASG pattern: mix on-demand and Spot via instance allocation strategy. Distractor 3 (short, retryable CI builds) is also good — worst case the build retries on another instance type."
+      },
+      "distractor_self_check": [],
+      "dropped_to_tier3": true,
+      "drop_reason": "The 'worst candidate for Spot' superlative has the same structural problem as a NOT/never stem: the candidate picks the failing option rather than the succeeding one, and the cost-scenario wrapper does not change the ask. Tier 3 will reframe positively ('Which workload is the BEST fit for Spot?') with poor-fit distractors. First genuine Tier-1 dropout; queued for T3.2 absorption.",
+      "disposition": "tier3_dropout_queued_T3.2",
+      "attempted_stem_for_record": "Your team wants to cut EC2 costs by moving suitable workloads onto Spot Instances, which can be reclaimed with a two-minute warning. Which of these workloads is the worst candidate for Spot?"
+    },
+    {
+      "mcq_id": "aws-026-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "change_summary": "NOT reframed — byte-identical to phase2-pilot/pilot.json exemplar. CLEARED as heuristic false positive (Stephen, 2026-06-02).",
+      "before": {
+        "question": "A Python service running on an EC2 instance needs to read objects from an S3 bucket. Which approach grants access using AWS best practice?",
+        "options": {
+          "correct": "Attach an IAM role to the EC2 instance with the needed S3 permissions; the SDK retrieves temporary credentials from IMDSv2",
+          "distractor_1": "Create an IAM user with the required S3 permissions, generate an access key, and place it in ~/.aws/credentials on the instance",
+          "distractor_2": "Create an IAM user, generate an access key, and store it as a Kubernetes-style environment variable in the instance's user data",
+          "distractor_3": "Add a Security Group rule on the EC2 instance permitting outbound traffic to the S3 service so the instance can reach the bucket"
+        },
+        "explanation": "IAM roles are designed for workload identity: EC2 retrieves short-lived, auto-rotating credentials via IMDSv2, so no secret sits on the host. Distractor 1 uses a static access key, which has no rotation and lands as plain text on the instance — a common path to credential leaks. Distractor 2 just moves the same long-lived key into user data, which is even worse (visible to anyone with describe-instance permissions). Distractor 3 confuses network-layer reachability with IAM authorization; opening an SG to S3 doesn't grant any S3 permissions. VPC endpoints help with reachability but still require IAM."
+      },
+      "after": {
+        "question": "A Python service running on an EC2 instance needs to read objects from an S3 bucket. Which approach grants access using AWS best practice?",
+        "options": {
+          "correct": "Attach an IAM role to the EC2 instance with the needed S3 permissions; the SDK retrieves temporary credentials from IMDSv2",
+          "distractor_1": "Create an IAM user with the required S3 permissions, generate an access key, and place it in ~/.aws/credentials on the instance",
+          "distractor_2": "Create an IAM user, generate an access key, and store it as a Kubernetes-style environment variable in the instance's user data",
+          "distractor_3": "Add a Security Group rule on the EC2 instance permitting outbound traffic to the S3 service so the instance can reach the bucket"
+        },
+        "explanation": "IAM roles are designed for workload identity: EC2 retrieves short-lived, auto-rotating credentials via IMDSv2, so no secret sits on the host. Distractor 1 uses a static access key, which has no rotation and lands as plain text on the instance — a common path to credential leaks. Distractor 2 just moves the same long-lived key into user data, which is even worse (visible to anyone with describe-instance permissions). Distractor 3 confuses network-layer reachability with IAM authorization; opening an SG to S3 doesn't grant any S3 permissions. VPC endpoints help with reachability but still require IAM."
+      },
+      "distractor_self_check": [],
+      "dropped_to_tier3": true,
+      "drop_reason": "Byte-identical to pilot exemplar => it IS the bar by definition. Cleared from the flagged set under FP class 'pilot_byte_identical'. NOT a Tier-3 reauthor candidate; excluded from drift touched-set.",
+      "disposition": "pilot_byte_identical_false_positive_cleared"
+    },
+    {
+      "mcq_id": "aws-026-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "What is the fundamental security difference between IAM user access keys and credentials obtained via STS AssumeRole?",
+        "options": {
+          "correct": "Access keys are long-lived static secrets that remain valid until manually rotated; STS credentials are short-lived (default 1 hour) and automatically expire",
+          "distractor_1": "Access keys are encrypted in the AWS console while STS credentials are returned in plaintext, so STS is actually riskier in transit",
+          "distractor_2": "Access keys are tied to a specific source IP at creation time; STS credentials work from any IP address",
+          "distractor_3": "Access keys can be MFA-protected per request; STS credentials inherit the role's permissions with no per-request MFA capability"
+        },
+        "explanation": "Long-lived vs short-lived credentials is the defining security difference: a leaked access key is valid until somebody notices and rotates; a leaked STS session token expires automatically (typically within an hour). Distractor 1 fabricates an encryption-vs-plaintext difference; both go over TLS. Distractor 2 invents an IP-tying behaviour for access keys that doesn't exist. Distractor 3 reverses the MFA story — IAM policies can require MFA conditions on both access keys and AssumeRole, but the credential type itself doesn't determine MFA capability."
+      },
+      "after": {
+        "question": "An engineer is comparing long-lived IAM user access keys against credentials obtained via STS AssumeRole for a workload. What is the fundamental security difference between them?",
+        "options": {
+          "correct": "Access keys are long-lived static secrets that remain valid until manually rotated; STS credentials are short-lived (default 1 hour) and automatically expire",
+          "distractor_1": "Access keys are encrypted in the AWS console while STS credentials are returned in plaintext, so STS is actually riskier in transit",
+          "distractor_2": "Access keys are tied to a specific source IP at creation time; STS credentials work from any IP address",
+          "distractor_3": "Access keys can be MFA-protected per request; STS credentials inherit the role's permissions with no per-request MFA capability"
+        },
+        "explanation": "Long-lived vs short-lived credentials is the defining security difference: a leaked access key is valid until somebody notices and rotates; a leaked STS session token expires automatically (typically within an hour). Distractor 1 fabricates an encryption-vs-plaintext difference; both go over TLS. Distractor 2 invents an IP-tying behaviour for access keys that doesn't exist. Distractor 3 reverses the MFA story — IAM policies can require MFA conditions on both access keys and AssumeRole, but the credential type itself doesn't determine MFA capability."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Encryption-vs-plaintext-in-transit is a fabricated difference, but a junior conflating 'console shows keys' with transit security could believe it."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Source-IP-tied access keys is invented behaviour plausibly transferred from IP-allowlist mental models."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Reversing the MFA story (keys MFA-protected, STS not) is a believable inversion for someone who hasn't written IAM MFA conditions."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "aws-029-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "When does Parameter Store make more sense than Secrets Manager?",
+        "options": {
+          "correct": "When you have many small, infrequently-rotated configuration values where the per-secret cost of Secrets Manager outweighs its rotation features",
+          "distractor_1": "When the secret needs to be encrypted at rest — only Parameter Store supports KMS encryption; Secrets Manager stores values in plaintext",
+          "distractor_2": "When the secret must be retrievable from outside the VPC — Secrets Manager is VPC-only and requires PrivateLink for cross-account access",
+          "distractor_3": "When the secret needs versioning — Secrets Manager only retains the current value while Parameter Store keeps the full history with named version labels"
+        },
+        "explanation": "Parameter Store has a free tier and no per-secret monthly charge; Secrets Manager charges per secret per month plus per 10,000 API calls. For configuration knobs (feature flags, endpoint URLs, non-sensitive defaults) Parameter Store is cheaper. Distractor 1 inverts the encryption story — both support KMS encryption; Secrets Manager always encrypts. Distractor 2 fabricates a VPC restriction on Secrets Manager. Distractor 3 reverses versioning — both keep version history, but Secrets Manager's versioning is more visible in the API."
+      },
+      "after": {
+        "question": "Your team has hundreds of small, infrequently-rotated configuration values and wants to avoid Secrets Manager's per-secret monthly charge. When does Parameter Store make more sense than Secrets Manager?",
+        "options": {
+          "correct": "When you have many small, infrequently-rotated configuration values where the per-secret cost of Secrets Manager outweighs its rotation features",
+          "distractor_1": "When the secret needs to be encrypted at rest — only Parameter Store supports KMS encryption; Secrets Manager stores values in plaintext",
+          "distractor_2": "When the secret must be retrievable from outside the VPC — Secrets Manager is VPC-only and requires PrivateLink for cross-account access",
+          "distractor_3": "When the secret needs versioning — Secrets Manager only retains the current value while Parameter Store keeps the full history with named version labels"
+        },
+        "explanation": "Parameter Store has a free tier and no per-secret monthly charge; Secrets Manager charges per secret per month plus per 10,000 API calls. For configuration knobs (feature flags, endpoint URLs, non-sensitive defaults) Parameter Store is cheaper. Distractor 1 inverts the encryption story — both support KMS encryption; Secrets Manager always encrypts. Distractor 2 fabricates a VPC restriction on Secrets Manager. Distractor 3 reverses versioning — both keep version history, but Secrets Manager's versioning is more visible in the API."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "'Only Parameter Store supports KMS; Secrets Manager is plaintext' is a fabricated inversion, but plausible for a junior who hasn't used either deeply."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A VPC-only restriction on Secrets Manager is invented but believable given how many AWS services have VPC nuances."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Reversing versioning (only SM keeps current) is a plausible half-memory of the two services' version handling."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "aws-032-mcq-1",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "Users report 'the app is slow.' The system is a browser → CloudFront → ALB → ECS service → RDS. What's the most useful first signal to look at?",
+        "options": {
+          "correct": "ALB target response time and 5xx rate broken down by target group — this tells you whether latency is in the front edge, the app, or downstream of the app",
+          "distractor_1": "CloudFront cache hit ratio — if it's below 80%, that's the most common root cause of 'app is slow' reports in CDN-fronted apps",
+          "distractor_2": "RDS Performance Insights — slow queries are the dominant cause of perceived slowness for 90%+ of web apps",
+          "distractor_3": "User device metrics from synthetic browser checks — server-side numbers usually don't capture what users actually experience"
+        },
+        "explanation": "ALB target response time isolates whether latency is upstream (CloudFront/network) or downstream (your service and what it calls). It's the lowest-cost, fastest signal to bisect the stack. Distractor 1 jumps to a specific theory (cache miss) — possibly the cause, but not the first signal. Distractor 2 over-claims that RDS is the dominant root cause — true sometimes, but starting at the DB skips half the stack. Distractor 3 over-emphasises client-side metrics; useful for confirming impact, but not for bisecting where the latency lives."
+      },
+      "after": {
+        "question": "Your application serves traffic through browser to CloudFront to ALB to ECS service to RDS, and users report 'the app is slow.' What's the most useful first signal to look at?",
+        "options": {
+          "correct": "ALB target response time and 5xx rate broken down by target group — this tells you whether latency is in the front edge, the app, or downstream of the app",
+          "distractor_1": "CloudFront cache hit ratio — if it's below 80%, that's the most common root cause of 'app is slow' reports in CDN-fronted apps",
+          "distractor_2": "RDS Performance Insights — slow queries are the dominant cause of perceived slowness for 90%+ of web apps",
+          "distractor_3": "User device metrics from synthetic browser checks — server-side numbers usually don't capture what users actually experience"
+        },
+        "explanation": "ALB target response time isolates whether latency is upstream (CloudFront/network) or downstream (your service and what it calls). It's the lowest-cost, fastest signal to bisect the stack. Distractor 1 jumps to a specific theory (cache miss) — possibly the cause, but not the first signal. Distractor 2 over-claims that RDS is the dominant root cause — true sometimes, but starting at the DB skips half the stack. Distractor 3 over-emphasises client-side metrics; useful for confirming impact, but not for bisecting where the latency lives."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Jumping straight to CloudFront cache-hit ratio is a real first-instinct error for CDN-fronted apps."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "'RDS is the cause 90% of the time' is a believable over-generalisation a junior repeats from experience."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Reaching first for synthetic client metrics over server-side bisection is a plausible ordering mistake."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "aws-034-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "Which factor has the BIGGEST impact on Lambda cold start duration?",
+        "options": {
+          "correct": "Deployment package size — larger packages take longer to download and unpack into the execution environment, dominating the init phase",
+          "distractor_1": "Memory configuration — higher memory increases cold start time proportionally because more memory has to be allocated to the runtime container before the init phase can begin running user code",
+          "distractor_2": "Concurrent invocation count at the moment of cold start — the more concurrent invocations, the slower each one initialises",
+          "distractor_3": "The size of the event payload — cold start parsing time scales linearly with input JSON size"
+        },
+        "explanation": "Package size and runtime choice (the JVM/.NET cold start is much slower than Python/Node) are the dominant cold start factors. Distractor 1 inverts the memory story — higher memory allocations actually speed up cold starts because Lambda allocates proportional CPU. Distractor 2 misdescribes concurrency — high concurrency means MORE cold starts (each new execution environment is one), but each individual cold start isn't slower. Distractor 3 fabricates event-size-driven cold start cost; payload parsing is request-time, not init-time."
+      },
+      "after": {
+        "question": "You're optimising a Lambda function whose cold starts are too slow and need to decide what to address first. Which factor has the biggest impact on cold start duration?",
+        "options": {
+          "correct": "Deployment package size — larger packages take longer to download and unpack into the execution environment, dominating the init phase",
+          "distractor_1": "Memory configuration — higher memory increases cold start time proportionally because more memory has to be allocated to the runtime container before the init phase can begin running user code",
+          "distractor_2": "Concurrent invocation count at the moment of cold start — the more concurrent invocations, the slower each one initialises",
+          "distractor_3": "The size of the event payload — cold start parsing time scales linearly with input JSON size"
+        },
+        "explanation": "Package size and runtime choice (the JVM/.NET cold start is much slower than Python/Node) are the dominant cold start factors. Distractor 1 inverts the memory story — higher memory allocations actually speed up cold starts because Lambda allocates proportional CPU. Distractor 2 misdescribes concurrency — high concurrency means MORE cold starts (each new execution environment is one), but each individual cold start isn't slower. Distractor 3 fabricates event-size-driven cold start cost; payload parsing is request-time, not init-time."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "'Higher memory slows cold start' inverts the real CPU-scales-with-memory behaviour — a very common junior belief."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Tying cold-start duration to concurrent invocation count confuses 'more cold starts' with 'slower cold starts'."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Event-payload-size-driven cold start invents an init-time cost from a request-time activity — plausible to a beginner."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "aws-034-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "A Java Lambda function takes 4 seconds to cold-start, which is unacceptable for the user-facing API in front of it. Which mitigation gives the best latency improvement?",
+        "options": {
+          "correct": "Provisioned Concurrency — pre-initialised execution environments are kept warm, so requests skip the init phase entirely at the cost of paying for warm capacity",
+          "distractor_1": "Reduce the function's memory configuration — lower memory reduces the init phase proportionally because less CPU has to bootstrap",
+          "distractor_2": "Enable Lambda SnapStart for the Java runtime, which removes cold starts entirely at no additional cost in the standard Lambda pricing",
+          "distractor_3": "Switch the deployment to Amazon Linux 2 instead of Amazon Linux 2023 — the older runtime has faster JVM startup"
+        },
+        "explanation": "Provisioned Concurrency keeps the configured number of environments pre-initialised, so requests hit a warm function and skip the cold start. Distractor 1 inverts memory's effect — lower memory means less CPU and slower cold start. Distractor 2 over-promises SnapStart: it does dramatically reduce Java cold starts (~10x) but isn't free — published as no surcharge, but it has its own constraints (state snapshot, /tmp resets, no UUIDs/MAC addresses preserved). Distractor 3 fabricates a runtime-AMI cold-start delta."
+      },
+      "after": {
+        "question": "An API in front of a Java Lambda function suffers 4-second cold starts, which is unacceptable for users. Which mitigation gives the best latency improvement?",
+        "options": {
+          "correct": "Provisioned Concurrency — pre-initialised execution environments are kept warm, so requests skip the init phase entirely at the cost of paying for warm capacity",
+          "distractor_1": "Reduce the function's memory configuration — lower memory reduces the init phase proportionally because less CPU has to bootstrap",
+          "distractor_2": "Enable Lambda SnapStart for the Java runtime, which removes cold starts entirely at no additional cost in the standard Lambda pricing",
+          "distractor_3": "Switch the deployment to Amazon Linux 2 instead of Amazon Linux 2023 — the older runtime has faster JVM startup"
+        },
+        "explanation": "Provisioned Concurrency keeps the configured number of environments pre-initialised, so requests hit a warm function and skip the cold start. Distractor 1 inverts memory's effect — lower memory means less CPU and slower cold start. Distractor 2 over-promises SnapStart: it does dramatically reduce Java cold starts (~10x) but isn't free — published as no surcharge, but it has its own constraints (state snapshot, /tmp resets, no UUIDs/MAC addresses preserved). Distractor 3 fabricates a runtime-AMI cold-start delta."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "'Lower memory reduces init proportionally' is the same inverted memory model — live under a mitigation scenario."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "SnapStart 'removes cold starts entirely at no cost' over-claims a real feature; a junior who's heard of SnapStart could believe it."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "An AL2-vs-AL2023 JVM-startup delta is fabricated but plausible to someone who assumes newer AMIs differ in startup."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "aws-035-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "API Gateway is forwarding requests to a Lambda function using 'Lambda Proxy Integration.' What does that mean concretely?",
+        "options": {
+          "correct": "API Gateway passes the entire raw request (headers, body, path, query) to Lambda as an event, and Lambda must return a response object shaped with statusCode/headers/body",
+          "distractor_1": "API Gateway parses the request and only passes the request body to Lambda; headers, path parameters, and query strings must be fetched via additional SDK calls back to API Gateway from inside the handler",
+          "distractor_2": "API Gateway proxies the request to Lambda over a dedicated network connection, bypassing the standard event invocation model for lower latency",
+          "distractor_3": "API Gateway transforms the request using a mapping template before invoking Lambda, providing a cleaner event shape than non-proxy integration"
+        },
+        "explanation": "Lambda Proxy Integration is API Gateway's pass-through mode: it skips request/response transformation and hands Lambda everything, expecting Lambda to construct a fully-formed HTTP response object. Distractor 1 inverts — the whole point is no parsing or transformation at the gateway. Distractor 2 invents a dedicated network path; invocation goes through the standard Lambda invoke API. Distractor 3 describes non-proxy (legacy) integration, where mapping templates do the transformation — proxy is the simpler model that replaced it for most use cases."
+      },
+      "after": {
+        "question": "An API Gateway route forwards requests to a Lambda using 'Lambda Proxy Integration,' and you're tracing how the request reaches your handler. What does proxy integration mean concretely?",
+        "options": {
+          "correct": "API Gateway passes the entire raw request (headers, body, path, query) to Lambda as an event, and Lambda must return a response object shaped with statusCode/headers/body",
+          "distractor_1": "API Gateway parses the request and only passes the request body to Lambda; headers, path parameters, and query strings must be fetched via additional SDK calls back to API Gateway from inside the handler",
+          "distractor_2": "API Gateway proxies the request to Lambda over a dedicated network connection, bypassing the standard event invocation model for lower latency",
+          "distractor_3": "API Gateway transforms the request using a mapping template before invoking Lambda, providing a cleaner event shape than non-proxy integration"
+        },
+        "explanation": "Lambda Proxy Integration is API Gateway's pass-through mode: it skips request/response transformation and hands Lambda everything, expecting Lambda to construct a fully-formed HTTP response object. Distractor 1 inverts — the whole point is no parsing or transformation at the gateway. Distractor 2 invents a dedicated network path; invocation goes through the standard Lambda invoke API. Distractor 3 describes non-proxy (legacy) integration, where mapping templates do the transformation — proxy is the simpler model that replaced it for most use cases."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Believing the gateway parses and forwards only the body (needing SDK callbacks for the rest) inverts proxy integration — a real beginner model."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A 'dedicated low-latency network path' invents a transport optimisation; plausible to someone guessing what 'proxy' implies."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Describing mapping-template (non-proxy) behaviour as proxy integration is the exact confusion the question targets."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    }
+  ]
+}

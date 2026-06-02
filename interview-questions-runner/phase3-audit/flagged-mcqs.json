@@ -209,19 +209,6 @@
     "stem_preview": "A team is choosing between ECS Fargate, EKS, and Lambda for a video transcoding service. Individual jobs take 20-90 minu"
   },
   {
-    "id": "aws-026-mcq-1",
-    "domain": "aws",
-    "bank": 1,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "stem_preview": "A Python service running on an EC2 instance needs to read objects from an S3 bucket. Which approach grants access using "
-  },
-  {
     "id": "aws-026-mcq-2",
     "domain": "aws",
     "bank": 2,
@@ -510,19 +497,6 @@
       "stem reads as recall not scenario"
     ],
     "stem_preview": "A production deploy job needs a manual approval and access to prod-only secrets. Which GitHub Actions feature delivers b"
-  },
-  {
-    "id": "cicd-020-mcq-1",
-    "domain": "cicd",
-    "bank": 1,
-    "stem_type": "scenario",
-    "flags": [
-      "C_never_correct"
-    ],
-    "notes": [
-      "correct starts with 'Never/No/Essentially never': No long-lived credential is stored; each run exchanges a sho..."
-    ],
-    "stem_preview": "Your team is migrating GitHub Actions deployments from static AWS IAM access keys (stored as repository secrets) to OIDC"
   },
   {
     "id": "cicd-020-mcq-2",
@@ -1152,19 +1126,6 @@
       "stem reads as recall not scenario"
     ],
     "stem_preview": "Kubernetes 1.28 introduced native sidecar containers. How are they declared and how do they differ from regular main con"
-  },
-  {
-    "id": "k8s-010-mcq-1",
-    "domain": "kubernetes",
-    "bank": 2,
-    "stem_type": "definition",
-    "flags": [
-      "D_definition"
-    ],
-    "notes": [
-      "stem reads as recall not scenario"
-    ],
-    "stem_preview": "A backend microservice will only be called by other services running in the same Kubernetes cluster. It should not be re"
   },
   {
     "id": "k8s-010-mcq-2",

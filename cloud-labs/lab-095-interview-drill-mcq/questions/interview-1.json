@@ -22,7 +22,7 @@
     "subdomain": "networking",
     "priority": "high",
     "difficulty": "easy",
-    "question": "What technically distinguishes a public subnet from a private subnet in an AWS VPC?",
+    "question": "An engineer inspects a subnet in an AWS VPC and needs to determine whether it is public or private. Which property actually decides this?",
     "options": {
       "correct": "The subnet has a route in its route table sending 0.0.0.0/0 to an Internet Gateway",
       "distractor_1": "The subnet's CIDR block is within the VPC's public IP range",
@@ -166,7 +166,7 @@
     "subdomain": "networking",
     "priority": "high",
     "difficulty": "medium",
-    "question": "Which AWS services are accessed via a Gateway endpoint rather than an Interface endpoint?",
+    "question": "An engineer setting up private VPC access notices that S3 and DynamoDB offer a free 'Gateway' endpoint type while other services do not. Which statement correctly captures the scope of Gateway endpoints?",
     "options": {
       "correct": "S3 and DynamoDB only \u2014 every other AWS service uses Interface endpoints (PrivateLink)",
       "distractor_1": "All services that have a public regional endpoint can be reached via a Gateway endpoint, including S3, DynamoDB, KMS, and SNS",
@@ -182,7 +182,7 @@
     "subdomain": "compute",
     "priority": "medium",
     "difficulty": "easy",
-    "question": "Looking at the EC2 instance family letters (M, C, R, T, G), which one is designed for memory-intensive workloads such as in-memory databases?",
+    "question": "You're right-sizing EC2 for a RAM-bound in-memory database such as Redis or SAP HANA, not a CPU-bound workload. Which instance family letter (M, C, R, T, G) is purpose-built for this?",
     "options": {
       "correct": "R \u2014 memory-optimised family with a higher memory-to-vCPU ratio",
       "distractor_1": "M \u2014 the 'memory' letter indicates memory-optimised general-purpose instances",
@@ -294,7 +294,7 @@
     "subdomain": "serverless",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "Which factor has the BIGGEST impact on Lambda cold start duration?",
+    "question": "You're optimising a Lambda function whose cold starts are too slow and need to decide what to address first. Which factor has the biggest impact on cold start duration?",
     "options": {
       "correct": "Deployment package size \u2014 larger packages take longer to download and unpack into the execution environment, dominating the init phase",
       "distractor_1": "Memory configuration \u2014 higher memory increases cold start time proportionally because more memory has to be allocated to the runtime container before the init phase can begin running user code",
