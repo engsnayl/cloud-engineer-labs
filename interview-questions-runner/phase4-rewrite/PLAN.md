@@ -235,16 +235,27 @@ The script mechanises the user's requirement: after every batch, automatically c
 
 - [ ] **Step 1: Pre-flight — verify source material is available**
 
-The rewrite needs `Interview-Prep-Combined.md` from the parent repo as the source of truth for each MCQ's underlying concept. Verify it's locally accessible (default path per the brief: `~/interview-prep-app/Interview-Prep-Combined.md`). If not present, clone:
+The rewrite needs `Interview-Prep-Combined.md` from the parent repo as the source of truth for each MCQ's underlying concept. Two acceptable local paths:
+
+1. `~/interview-prep-app/Interview-Prep-Combined.md` — Pi convention from the brief
+2. `Interview Prep App/Interview-Prep-Combined.md` (relative to repo root) — Windows dev location when the source repo is checked out alongside the lab repo
+
+Verify one of them exists; clone if neither:
 
 ```bash
-if [ ! -f ~/interview-prep-app/Interview-Prep-Combined.md ]; then
+if [ -f ~/interview-prep-app/Interview-Prep-Combined.md ]; then
+  echo "FOUND: ~/interview-prep-app/Interview-Prep-Combined.md"
+  ls -la ~/interview-prep-app/Interview-Prep-Combined.md
+elif [ -f "Interview Prep App/Interview-Prep-Combined.md" ]; then
+  echo "FOUND: Interview Prep App/Interview-Prep-Combined.md (repo-root)"
+  ls -la "Interview Prep App/Interview-Prep-Combined.md"
+else
   git clone https://github.com/engsnayl/interview-prep-app ~/interview-prep-app
+  ls -la ~/interview-prep-app/Interview-Prep-Combined.md
 fi
-ls -la ~/interview-prep-app/Interview-Prep-Combined.md
 ```
 
-Expected: file exists, size > 0. If clone is required: `git clone` succeeds and the file appears under the clone.
+Expected: file exists, size > 0 (current size ~675KB). The file's first line should be `# Interview Prep — Combined Reference`. Subsequent tier-batch tasks should read from whichever path resolved.
 
 If cloning fails (offline, auth required), fall back to fetching the raw file once via WebFetch from `https://raw.githubusercontent.com/engsnayl/interview-prep-app/main/Interview-Prep-Combined.md` and saving it locally to `~/interview-prep-app/Interview-Prep-Combined.md`. Source must be available before any tier batch starts.
 
