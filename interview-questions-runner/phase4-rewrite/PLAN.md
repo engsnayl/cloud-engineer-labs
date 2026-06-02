@@ -172,7 +172,13 @@ A fixed template surfaced after each batch:
 - New audit re-flags on touched IDs: [list or "none"]
 - Validate script: [PASS | FAIL — details]
 
-[If FAIL on audit drift: STOP HERE. Do not include sample review until drift is resolved.]
+[If FAIL on audit drift: STOP HERE — drift-only checkpoint per execution discipline rule 2. Do not include sample review, self-assessment, false-positive section, or decision-request until drift is resolved.]
+
+## Session context status
+
+- Estimated context usage: [under 50% | 50–65% | over 65%]
+- Handoff recommended: [no | yes — start a fresh Claude Code session before the next batch; resume from this checkpoint's tracking.json state]
+- Notes: [optional, e.g., "previous batches in this session: N" or "approaching cache TTL"]
 
 ## Self-assessment numbers
 
@@ -201,6 +207,18 @@ A fixed template surfaced after each batch:
 **Why I'm least confident:** [if flagged as such, one or two sentences]
 **6-month-candidate justification for any touched distractor:** ...
 
+## False-positive verifications (Tier 2 batches only)
+
+For each Tier 2 MCQ where the suspect-distractor was verified as a real misconception on review (no change applied):
+
+- **mcq_id:** ...
+- **suspect_distractor_key:** ...
+- **suspect-script pattern that flagged it:** ...
+- **Why it's actually a real misconception:** one sentence
+- **Heuristic recommendation:** keep / tighten / drop — and how
+
+These records refine `audit_suspect.py` for future banks; they're not just exceptions.
+
 ## Decision requested
 
 Approve / revise / expand audit scope.
@@ -215,7 +233,22 @@ Approve / revise / expand audit scope.
 
 The script mechanises the user's requirement: after every batch, automatically check whether (a) any of the IDs we just "fixed" still flag, or (b) any previously-unflagged ID has newly become flagged.
 
-- [ ] **Step 1: Create the script with this exact content**
+- [ ] **Step 1: Pre-flight — verify source material is available**
+
+The rewrite needs `Interview-Prep-Combined.md` from the parent repo as the source of truth for each MCQ's underlying concept. Verify it's locally accessible (default path per the brief: `~/interview-prep-app/Interview-Prep-Combined.md`). If not present, clone:
+
+```bash
+if [ ! -f ~/interview-prep-app/Interview-Prep-Combined.md ]; then
+  git clone https://github.com/engsnayl/interview-prep-app ~/interview-prep-app
+fi
+ls -la ~/interview-prep-app/Interview-Prep-Combined.md
+```
+
+Expected: file exists, size > 0. If clone is required: `git clone` succeeds and the file appears under the clone.
+
+If cloning fails (offline, auth required), fall back to fetching the raw file once via WebFetch from `https://raw.githubusercontent.com/engsnayl/interview-prep-app/main/Interview-Prep-Combined.md` and saving it locally to `~/interview-prep-app/Interview-Prep-Combined.md`. Source must be available before any tier batch starts.
+
+- [ ] **Step 2: Create the drift-check script with this exact content**
 
 ```python
 """Drift check — runs after every Phase 4 batch.
@@ -306,7 +339,7 @@ if __name__ == "__main__":
     main()
 ```
 
-- [ ] **Step 2: Smoke-test on an empty fake batch to confirm the script runs**
+- [ ] **Step 3: Smoke-test on an empty fake batch to confirm the script runs**
 
 ```bash
 cd /c/Users/naylo/Labs/cloud-engineer-labs
@@ -316,7 +349,7 @@ python interview-questions-runner/scripts/check_drift.py /tmp/smoke_batch.json
 
 Expected: exits 2 with "baseline-snapshot.json missing" (we haven't created it yet — Task 1 does that). This proves the script loads.
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
 git add interview-questions-runner/scripts/check_drift.py
@@ -577,6 +610,10 @@ For each MCQ in the slice:
 
 For each MCQ that stays in Tier 1, apply the change back to the source bank file by matching on `id`. For each MCQ dropped to Tier 3, leave the bank file unchanged for that MCQ and record `dropped_to_tier3: true` with a `drop_reason`.
 
+- [ ] **Step 0: Re-anchor on the pilot voice**
+
+Before any authoring, re-read `interview-questions-runner/phase2-pilot/pilot.json` end-to-end. The pilot is the voice for this tier. Note: scenario framing, distractor patterns (real concept wrong context, half-remembered, what-would-happen-without-X, etc.), explanation structure (one-sentence correct + per-distractor failure mode + one piece of real-world context). This is anchoring, not lookup — do it even if you "remember" the pilot from earlier in the session.
+
 - [ ] **Step 1: Identify the 17 AWS D-only MCQ IDs**
 
 ```bash
@@ -774,7 +811,7 @@ git commit -m "phase4: batch T1.3 — reframe 16 CI/CD D-only MCQ stems to scena
 - [ ] Step 5: Validate.
 - [ ] Step 6: Drift check. NOTE: any Linux MCQ where you retained a recall stem will still get flagged D_definition by the audit script — that's expected. The drift check will FAIL on those IDs. Resolution: list those IDs explicitly in the batch JSON with `intentional_recall: true` and skip them in the drift comparison, OR handle them as Tier-3 reauthoring. **For first execution, treat intentional-recall as a drop-to-Tier-3** — keep the drift check honest. We can introduce an "intentional recall" exception in a later iteration if dropouts here are high.
 - [ ] Step 7: Update tracking.json.
-- [ ] Step 8: Write `batch-04-checkpoint.md`.
+- [ ] Step 8: Write `batch-04-checkpoint.md`. Include a section **"Recall-stem drop-outs"** listing each MCQ where the stem was a genuine pure-recall and got dropped to Tier 3 under the intentional-recall default. **If recall-stem drop-outs alone exceed ~40% of this batch's slice (≥9 of 22), flag this prominently with a recommendation to revisit the intentional-recall exception** — the policy may be over-rejecting legitimate recall MCQs.
 - [ ] Step 9: Surface to Stephen — GATE.
 - [ ] Step 10: Commit.
 
@@ -801,7 +838,7 @@ git commit -m "phase4: batch T1.4 — reframe 22 Terraform + Linux D-only MCQ st
 - [ ] Step 5: Validate.
 - [ ] Step 6: Drift check.
 - [ ] Step 7: Update tracking.json. **Compute final Tier 1 dropout rate** — flag in checkpoint if it materially differs from the 20–30% estimate.
-- [ ] Step 8: Write `batch-05-checkpoint.md`. Include a section: "Tier 1 cumulative — N batches done, X total dropouts, Y% rate, [matches | undershoots | overshoots] the 20-30% estimate."
+- [ ] Step 8: Write `batch-05-checkpoint.md`. Include two sections: (a) **"Tier 1 cumulative"** — N batches done, X total dropouts, Y% rate, [matches | undershoots | overshoots] the 20-30% estimate; (b) **"Recall-stem drop-outs (T1.4 + T1.5 combined)"** — list per-batch and combined counts. **If combined T1.4+T1.5 recall-stem drop-outs exceed ~40% of the combined slice (≥17 of 43), flag prominently with a recommendation to revisit the intentional-recall exception** before any further rewrite work.
 - [ ] Step 9: Surface to Stephen — GATE.
 - [ ] Step 10: Commit.
 
@@ -836,6 +873,10 @@ For each MCQ in the slice (11 A-only flagged MCQs across AWS 4, CI/CD 4, K8s 2, 
 6. Record before/after in batch JSON with `distractor_self_check` flagged `touched: true` on the swapped key.
 
 If the suspect distractor turns out to be a real misconception on review (false positive), record the MCQ as `dropped_to_tier3: false` AND **no change** — set `change_summary: "no change — suspect distractor verified as real misconception on review"` and explain in the self-check record. The MCQ is removed from the flagged set by this verification.
+
+- [ ] **Step 0: Re-anchor on the pilot voice**
+
+Before any authoring, re-read `interview-questions-runner/phase2-pilot/pilot.json` end-to-end. Tier 2's distractor swaps must match the pilot's per-distractor reasoning — each replacement encodes a specific real misconception, and the explanation addresses why it fails. Re-anchor even if the pilot was re-read at the start of Tier 1.
 
 - [ ] **Step 1: Identify the 11 A-only MCQ IDs and cross-reference suspect-distractors.json**
 
@@ -914,6 +955,10 @@ For each MCQ in the slice (AWS 4, K8s 5, CI/CD 4 — the first 13 of 21):
 6. Length-check: explanation ≤130 words (validate script's grace allowance).
 
 Drop-out is unusual at Tier 3 — these are full rewrites, you control the shape. If you can't produce a clean MCQ for a source (e.g., the source's concept doesn't decompose into a clean MCQ), record `dropped_to_tier3: false, change_summary: "source concept does not decompose into rubric-compliant MCQ; recommend dropping this MCQ from the bank"` and surface for Stephen's decision. Don't force a bad MCQ in.
+
+- [ ] **Step 0: Re-anchor on the pilot voice**
+
+Before any authoring, re-read `interview-questions-runner/phase2-pilot/pilot.json` end-to-end. Tier 3 produces full rewrites; the pilot is the closest analogue to what each Tier 3 MCQ should look like. Re-anchor even if the pilot was re-read at the start of earlier tiers.
 
 - [ ] **Step 1: Identify the 13 Tier 3 part 1 IDs (AWS + K8s + CI/CD structural / multi-flag)**
 
@@ -1089,7 +1134,9 @@ Then offer: "PR #1 (feat/lab-interview-drill-phase1) is ready for re-review. Wan
 ## Notes on execution discipline
 
 1. **Never claim "done" without running the drift check.** The user explicitly mechanised this requirement; the checkpoint format puts the drift result first for that reason.
-2. **The 6-month-candidate test is not optional.** It applies to every distractor authored or rewritten. The self-check record format in batch JSON is the audit trail.
-3. **Drop-outs are signal, not failure.** Tier 1 → Tier 3 drop-out is the rubric working. Track them; don't smooth them over by force-fitting a stem reframe.
-4. **Source for content: `Interview-Prep-Combined.md` in the parent repo.** If not locally cloned, clone it: `git clone https://github.com/engsnayl/interview-prep-app ~/interview-prep-app` or fetch raw via WebFetch.
-5. **One MCQ change per source bank entry.** Match on `id`. Never re-order or re-key the bank arrays.
+2. **Drift FAIL means the checkpoint shows ONLY the drift.** If `check_drift.py` exits non-zero, the batch checkpoint markdown contains the drift result, the touched IDs that still flag, and any regressions — nothing else. Fix-and-retry happens locally before human review. Don't include samples, self-assessment, false-positive verifications, or "decision requested" until drift PASSes.
+3. **The 6-month-candidate test is not optional.** It applies to every distractor authored or rewritten. The self-check record format in batch JSON is the audit trail.
+4. **Drop-outs are signal, not failure.** Tier 1 → Tier 3 drop-out is the rubric working. Track them; don't smooth them over by force-fitting a stem reframe.
+5. **Source for content: `Interview-Prep-Combined.md` in the parent repo.** Task 0 Step 1 verifies it's available before any tier batch starts.
+6. **One MCQ change per source bank entry.** Match on `id`. Never re-order or re-key the bank arrays.
+7. **Report session context at every checkpoint, recommend handoff at ~65%.** Long sessions degrade authoring quality; the checkpoint template has a Session context status section. If the agent estimates context usage at or above 65%, the checkpoint recommends a fresh session before the next batch; tracking.json is the handoff state.
