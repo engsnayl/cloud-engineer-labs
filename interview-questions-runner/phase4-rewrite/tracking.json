@@ -1,0 +1,13 @@
+{
+  "baseline_flagged_count": 126,
+  "baseline_snapshot_path": "interview-questions-runner/phase4-rewrite/baseline-snapshot.json",
+  "control_sample_status": "pending",
+  "batches": [],
+  "running_totals": {
+    "tier1_dropouts_to_tier3": 0,
+    "tier1_dropout_rate_pct": 0,
+    "tier2_fabrications_caught": 0,
+    "tier3_full_rewrites": 0,
+    "total_audit_reflags": 0
+  }
+}
