@@ -1,5 +1,90 @@
 [
   {
+    "id": "aws-003-mcq-1",
+    "source_id": "aws-003",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "critical",
+    "difficulty": "easy",
+    "question": "An EC2 instance has a Security Group that allows inbound TCP/443 from 0.0.0.0/0. The NACL on its subnet allows inbound TCP/443 from 0.0.0.0/0 but has no outbound rules other than the default explicit deny. A client opens an HTTPS connection. What happens?",
+    "options": {
+      "correct": "The SYN-ACK reply is dropped on egress at the NACL \u2014 NACLs are stateless and need an explicit outbound rule on ephemeral ports",
+      "distractor_1": "The connection succeeds because the Security Group is stateful and automatically permits the corresponding outbound return traffic at both the SG and NACL layers",
+      "distractor_2": "The inbound SYN is dropped at the subnet because NACLs require an outbound rule before evaluating any inbound traffic",
+      "distractor_3": "The connection succeeds because AWS implicitly allows ephemeral-port return traffic at the subnet level once an inbound rule has matched"
+    },
+    "explanation": "NACLs evaluate each direction independently and have no notion of established connections \u2014 return traffic on ephemeral ports must be explicitly allowed outbound. The SG (stateful) does permit the reply, but the NACL drops it first. Distractor 1 misattributes the SG's statefulness to the NACL. Distractor 2 inverts the failure direction \u2014 NACLs evaluate inbound and outbound separately, so inbound succeeds and outbound is where this connection actually dies. Distractor 3 invents an implicit-allow that doesn't exist; NACLs default to explicit deny on anything not matched.",
+    "bank": 1
+  },
+  {
+    "id": "tf-002-mcq-1",
+    "source_id": "tf-002",
+    "domain": "terraform",
+    "subdomain": "state",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "Two engineers run terraform apply simultaneously against the same S3 remote backend. State locking via DynamoDB is configured. What happens?",
+    "options": {
+      "correct": "The second apply fails immediately with a state lock error",
+      "distractor_1": "Both applies succeed; Terraform merges the resulting state files",
+      "distractor_2": "The second apply waits for the first to complete, then proceeds",
+      "distractor_3": "Both applies succeed but the second silently overwrites the first's state"
+    },
+    "explanation": "DynamoDB state locking is advisory and fail-fast, not a queue. The second apply attempts to acquire the lock, sees it's held, and exits with an error. Distractor 1: Terraform never merges state files \u2014 that's a deliberate design choice. Distractor 2: it doesn't queue (some CI systems do, Terraform doesn't). Distractor 3 is literally what happens WITHOUT locking \u2014 the question is testing what locking actually prevents.",
+    "bank": 1
+  },
+  {
+    "id": "k8s-032-mcq-2",
+    "source_id": "k8s-032",
+    "domain": "kubernetes",
+    "subdomain": "security",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "You bind a ClusterRole to a ServiceAccount using a RoleBinding (not a ClusterRoleBinding). What permissions does the ServiceAccount receive?",
+    "options": {
+      "correct": "The ClusterRole's verbs and resources are granted only within the RoleBinding's namespace \u2014 even though the role itself is cluster-scoped",
+      "distractor_1": "The ClusterRole's permissions are granted cluster-wide because the role is cluster-scoped, regardless of the binding type",
+      "distractor_2": "The combination is invalid and rejected at apply time; you must use ClusterRoleBinding to reference a ClusterRole",
+      "distractor_3": "The ServiceAccount receives no permissions because RoleBindings can only reference Roles, not ClusterRoles"
+    },
+    "explanation": "A RoleBinding referencing a ClusterRole grants those permissions scoped to the RoleBinding's namespace \u2014 this is the standard pattern for reusing one ClusterRole across multiple namespaces without duplicating it. Distractor 1 ignores the binding type and incorrectly grants cluster-wide. Distractor 2 invents an invalidity that doesn't exist. Distractor 3 inverts the truth \u2014 RoleBindings CAN reference ClusterRoles, that's the point. This pattern is heavily used to define one cluster-wide 'developer' role and bind it per-namespace.",
+    "bank": 2
+  },
+  {
+    "id": "docker-005-mcq-1",
+    "source_id": "docker-005",
+    "domain": "docker",
+    "subdomain": "images",
+    "priority": "medium",
+    "difficulty": "medium",
+    "question": "You change a single line in your application's source code. Which Dockerfile instructions are guaranteed to be re-executed (not cached)?",
+    "options": {
+      "correct": "The first COPY/ADD that includes the changed file, plus every instruction after it in the Dockerfile",
+      "distractor_1": "Only the specific RUN commands that reference the changed file in their command-line invocation",
+      "distractor_2": "Every instruction in the Dockerfile, because any source change invalidates the entire build for safety",
+      "distractor_3": "Only the FROM and CMD instructions; intermediate instructions remain cached as long as they don't reference the changed file directly"
+    },
+    "explanation": "Cache invalidation in Dockerfile builds is positional: the moment a layer is invalidated, everything after it is re-run too. So COPY changing busts that COPY layer and every subsequent one. Distractor 1 (only specific RUNs) misses cascade. Distractor 2 (everything) over-states \u2014 earlier layers (FROM, RUN apt-get) stay cached if their inputs didn't change. Distractor 3 inverts the model \u2014 intermediate instructions are exactly the ones that re-run.",
+    "bank": 2
+  },
+  {
+    "id": "cicd-050-mcq-1",
+    "source_id": "cicd-050",
+    "domain": "cicd",
+    "subdomain": "operations",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "A pipeline stage fails intermittently \u2014 about 1 in 5 runs. The team's first impulse is to add `retry: 3` and move on. Why is that a bad first move?",
+    "options": {
+      "correct": "Retry hides the cause and erodes signal \u2014 the next time the underlying issue gets worse, the team has no historical data to debug",
+      "distractor_1": "Retrying causes GitHub Actions to charge double per attempted run, doubling the CI bill within weeks",
+      "distractor_2": "Retry attempts run in a different runner environment, so a flake on one runner won't reproduce on the retry \u2014 making the issue impossible to debug",
+      "distractor_3": "Retry blocks downstream stages from starting until all retry attempts complete, slowing every successful run by 3x"
+    },
+    "explanation": "Flaky tests / pipelines have causes (timing, parallel state, dependency networks, runner variance). Retrying is a coping mechanism, not a fix \u2014 and once retries are in place, the team loses motivation to diagnose. Distractor 1 (double billing) over-states; retries cost something but not double. Distractor 2 inverts environment behaviour; fresh runners reset state, which sometimes hides a flake (helpful for shipping, bad for debugging). Distractor 3 ignores that retry only runs on failure, not on success.",
+    "bank": 2
+  },
+  {
     "id": "git-006-mcq-1",
     "source_id": "git-006",
     "domain": "git",
@@ -15,90 +100,5 @@
     },
     "explanation": "`.gitignore` is for UNTRACKED files. Once a file is tracked, `.gitignore` is ignored for it. You need `git rm --cached secrets.json` to stop tracking, then commit. Distractor 1 invents retroactive removal. Distractor 2 invents a push failure. Distractor 3 invents auto-exclusion of future modifications; Git keeps tracking until you explicitly stop it. This is the #1 gotcha behind 'I gitignored the file, why is it still appearing in PRs?'",
     "bank": 2
-  },
-  {
-    "id": "tf-011-mcq-1",
-    "source_id": "tf-011",
-    "domain": "terraform",
-    "subdomain": "configuration",
-    "priority": "medium",
-    "difficulty": "medium",
-    "question": "You manage 5 AWS IAM users with `resource \"aws_iam_user\" \"team\" { count = length(var.usernames) ... }`, where var.usernames is a list. You remove the username at index 2 from the list and run terraform apply. What happens?",
-    "options": {
-      "correct": "Terraform recreates the IAM users at indices 2, 3, and 4 because count addresses by position \u2014 the resource at team[2] now refers to a different username, so Terraform destroys the old one and creates a new one in its place",
-      "distractor_1": "Terraform destroys only the IAM user at index 2 and leaves the remaining users untouched in place",
-      "distractor_2": "Terraform refuses to apply because count cannot shrink after the first apply without a terraform state mv first",
-      "distractor_3": "Terraform destroys the IAM user at index 4 since count drops from 5 to 4, treating the change as a tail removal"
-    },
-    "explanation": "The correct option spells out why count's positional addressing causes the cascade. Distractor 1 assumes Terraform tracks identity (the username) rather than address (the index). Distractor 2 invents a count-can't-shrink constraint that doesn't exist. Distractor 3 assumes tail-removal semantics \u2014 natural-sounding, but count doesn't behave that way. The fix is to switch to for_each with a set or map keyed on the username, so each address (team[\"alice\"]) stays stable across list edits. For IAM specifically the recreation is destructive: access keys, MFA devices, and group memberships rebuild from scratch.",
-    "bank": 1
-  },
-  {
-    "id": "cicd-012-mcq-2",
-    "source_id": "cicd-012",
-    "domain": "cicd",
-    "subdomain": "github-actions",
-    "priority": "medium",
-    "difficulty": "easy",
-    "question": "Your matrix has `os: [ubuntu, macos, windows]` and `node: [18, 20]` but you don't want the macos+node18 combination because it's flaky. How do you skip it?",
-    "options": {
-      "correct": "Use `exclude:` in the strategy with `{os: macos, node: 18}` to remove that one combination while keeping all others",
-      "distractor_1": "Set `continue-on-error: true` on the specific matrix combination so its failures don't fail the workflow",
-      "distractor_2": "Use `if: ${{ !(matrix.os == 'macos' && matrix.node == 18) }}` on every step inside the matrix job to make all steps no-ops for that combo",
-      "distractor_3": "Add `skip-matrix:` to the workflow YAML with the combination key, which tells GitHub to not even queue that job run"
-    },
-    "explanation": "The native solution is `exclude:` (and `include:` adds combinations beyond the cross-product). Distractor 1 keeps the job running and silences failures \u2014 wasteful and noisy. Distractor 2 keeps the job queued and runs through every step as a no-op \u2014 extreme overhead for skipping. Distractor 3 invents a `skip-matrix:` key that doesn't exist. Matrix pruning matters at scale \u2014 a 3\u00d73\u00d73 cross-product is 27 jobs, and `exclude:` keeps the bill in check.",
-    "bank": 3
-  },
-  {
-    "id": "docker-010-mcq-2",
-    "source_id": "docker-010",
-    "domain": "docker",
-    "subdomain": "operations",
-    "priority": "high",
-    "difficulty": "medium",
-    "question": "A container starts and exits immediately. `docker logs` shows nothing. What's the next diagnostic step?",
-    "options": {
-      "correct": "Run `docker inspect <container>` and look at State (exit code, error) plus run with `-it --entrypoint=sh` to get an interactive shell instead of executing the original entrypoint",
-      "distractor_1": "Run `docker exec -it <container> sh` to drop into the exited container and inspect its filesystem state",
-      "distractor_2": "Increase the container's stop timeout to 60 seconds, which gives docker logs more time to capture output before exit",
-      "distractor_3": "Restart Docker daemon to flush log buffers; transient containers often lose stdout to a kernel buffer that the daemon doesn't drain"
-    },
-    "explanation": "`docker inspect` shows the exit code and any error message; running with `--entrypoint=sh -it` lets you start the container manually and explore \u2014 bypassing the failing entrypoint. Distractor 1 (docker exec on exited) fails: exec requires a running container. Distractor 2 misunderstands stop timeout (it controls graceful shutdown waits, not log capture). Distractor 3 invents a daemon-restart fix. The entrypoint override is the most useful technique when the container fails before producing usable output.",
-    "bank": 2
-  },
-  {
-    "id": "k8s-002-mcq-2",
-    "source_id": "k8s-002",
-    "domain": "kubernetes",
-    "subdomain": "workloads",
-    "priority": "high",
-    "difficulty": "medium",
-    "question": "A pod is in `CrashLoopBackOff`. What does this state tell you?",
-    "options": {
-      "correct": "The container has crashed multiple times in quick succession and the kubelet is now restarting it with exponential backoff between attempts",
-      "distractor_1": "The pod's image cannot be pulled and the kubelet is retrying with backoff before giving up",
-      "distractor_2": "The pod is scheduled to a node that's repeatedly running out of memory, causing the pod to be evicted in a loop",
-      "distractor_3": "The pod's readiness probe is failing, so the Service is removing it from endpoints and adding it back as the probe oscillates"
-    },
-    "explanation": "CrashLoopBackOff specifically describes container-level crashes followed by kubelet-controlled restart backoff (10s, 20s, 40s, capped). Distractor 1 describes ImagePullBackOff, a distinct state where the image itself is the problem. Distractor 2 describes eviction churn, which shows as repeated pod termination, not CrashLoop. Distractor 3 describes a readiness flap \u2014 the pod stays Running but cycles in and out of Service endpoints, never entering CrashLoopBackOff. Knowing which state means which class of failure shortens triage by minutes.",
-    "bank": 2
-  },
-  {
-    "id": "aws-020-mcq-2",
-    "source_id": "aws-020",
-    "domain": "aws",
-    "subdomain": "compute",
-    "priority": "high",
-    "difficulty": "medium",
-    "question": "During a deploy, an ASG with a target tracking policy starts terminating instances that the deployment script just registered. What feature should the deployment use to prevent this?",
-    "options": {
-      "correct": "Instance scale-in protection on the new instances, or the broader ASG-level scale-in protection setting, so ASG won't terminate them during scale-in events",
-      "distractor_1": "Deployment cooldown on the ASG \u2014 extending the cooldown to several minutes blocks all scale-in actions during a deploy",
-      "distractor_2": "Health check grace period \u2014 increasing the grace period prevents the ASG from removing instances flagged as in-flight",
-      "distractor_3": "Termination policy 'OldestInstance' so scale-in events only target instances older than the deploy timestamp"
-    },
-    "explanation": "Scale-in protection marks specific instances (or the whole ASG) as ineligible for ASG-initiated termination, which is exactly what's needed to shield newly-deployed instances. Distractor 1 confuses cooldown semantics: cooldowns affect scaling actions between events, not which instances get picked. Distractor 2 misuses the health check grace period, which controls when ASG starts evaluating health, not termination eligibility. Distractor 3 (OldestInstance termination policy) sometimes helps but isn't a guarantee \u2014 if the policy can't find an old-enough candidate it falls back to other criteria.",
-    "bank": 3
   }
 ]

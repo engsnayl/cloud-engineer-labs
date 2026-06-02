@@ -78,9 +78,13 @@
     ]
   },
   "gate1": {
-    "status": "pending_resample",
+    "status": "closed",
     "resample_seed": 7919,
-    "note": "Re-run sample_unflagged.py against the 70-MCQ unflagged set; evaluate 6 against the operative rubric."
+    "resample_result": "6/6 at-bar",
+    "resample_ids": ["aws-003-mcq-1", "tf-002-mcq-1", "k8s-032-mcq-2", "docker-005-mcq-1", "cicd-050-mcq-1", "git-006-mcq-1"],
+    "checkpoint": "interview-questions-runner/phase4-rewrite/control-sample-checkpoint-2.md",
+    "caveat": "LLM pass covered the entire unflagged set, so the re-sample confirms rather than independently probes; substantive assurance is the exhaustive pass.",
+    "next": "Tier 1 may begin — Task 3, batch T1.1 (AWS D-only stem reframes)."
   },
   "batches": [],
   "running_totals": {

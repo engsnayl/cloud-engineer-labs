@@ -1,0 +1,104 @@
+[
+  {
+    "id": "git-006-mcq-1",
+    "source_id": "git-006",
+    "domain": "git",
+    "subdomain": "workflow",
+    "priority": "medium",
+    "difficulty": "easy",
+    "question": "You add `secrets.json` to `.gitignore` AFTER having already committed and pushed the file. What happens?",
+    "options": {
+      "correct": ".gitignore only affects untracked files; secrets.json is already tracked, so it stays in the repo and continues to be committed on changes",
+      "distractor_1": "Git automatically retroactively removes the file from history once it's added to .gitignore",
+      "distractor_2": "The next push fails because Git refuses to push a file that's now in .gitignore until you delete it from disk",
+      "distractor_3": "Future commits will exclude the file silently; the historical commits remain but new versions stop being tracked"
+    },
+    "explanation": "`.gitignore` is for UNTRACKED files. Once a file is tracked, `.gitignore` is ignored for it. You need `git rm --cached secrets.json` to stop tracking, then commit. Distractor 1 invents retroactive removal. Distractor 2 invents a push failure. Distractor 3 invents auto-exclusion of future modifications; Git keeps tracking until you explicitly stop it. This is the #1 gotcha behind 'I gitignored the file, why is it still appearing in PRs?'",
+    "bank": 2
+  },
+  {
+    "id": "tf-011-mcq-1",
+    "source_id": "tf-011",
+    "domain": "terraform",
+    "subdomain": "configuration",
+    "priority": "medium",
+    "difficulty": "medium",
+    "question": "You manage 5 AWS IAM users with `resource \"aws_iam_user\" \"team\" { count = length(var.usernames) ... }`, where var.usernames is a list. You remove the username at index 2 from the list and run terraform apply. What happens?",
+    "options": {
+      "correct": "Terraform recreates the IAM users at indices 2, 3, and 4 because count addresses by position \u2014 the resource at team[2] now refers to a different username, so Terraform destroys the old one and creates a new one in its place",
+      "distractor_1": "Terraform destroys only the IAM user at index 2 and leaves the remaining users untouched in place",
+      "distractor_2": "Terraform refuses to apply because count cannot shrink after the first apply without a terraform state mv first",
+      "distractor_3": "Terraform destroys the IAM user at index 4 since count drops from 5 to 4, treating the change as a tail removal"
+    },
+    "explanation": "The correct option spells out why count's positional addressing causes the cascade. Distractor 1 assumes Terraform tracks identity (the username) rather than address (the index). Distractor 2 invents a count-can't-shrink constraint that doesn't exist. Distractor 3 assumes tail-removal semantics \u2014 natural-sounding, but count doesn't behave that way. The fix is to switch to for_each with a set or map keyed on the username, so each address (team[\"alice\"]) stays stable across list edits. For IAM specifically the recreation is destructive: access keys, MFA devices, and group memberships rebuild from scratch.",
+    "bank": 1
+  },
+  {
+    "id": "cicd-012-mcq-2",
+    "source_id": "cicd-012",
+    "domain": "cicd",
+    "subdomain": "github-actions",
+    "priority": "medium",
+    "difficulty": "easy",
+    "question": "Your matrix has `os: [ubuntu, macos, windows]` and `node: [18, 20]` but you don't want the macos+node18 combination because it's flaky. How do you skip it?",
+    "options": {
+      "correct": "Use `exclude:` in the strategy with `{os: macos, node: 18}` to remove that one combination while keeping all others",
+      "distractor_1": "Set `continue-on-error: true` on the specific matrix combination so its failures don't fail the workflow",
+      "distractor_2": "Use `if: ${{ !(matrix.os == 'macos' && matrix.node == 18) }}` on every step inside the matrix job to make all steps no-ops for that combo",
+      "distractor_3": "Add `skip-matrix:` to the workflow YAML with the combination key, which tells GitHub to not even queue that job run"
+    },
+    "explanation": "The native solution is `exclude:` (and `include:` adds combinations beyond the cross-product). Distractor 1 keeps the job running and silences failures \u2014 wasteful and noisy. Distractor 2 keeps the job queued and runs through every step as a no-op \u2014 extreme overhead for skipping. Distractor 3 invents a `skip-matrix:` key that doesn't exist. Matrix pruning matters at scale \u2014 a 3\u00d73\u00d73 cross-product is 27 jobs, and `exclude:` keeps the bill in check.",
+    "bank": 3
+  },
+  {
+    "id": "docker-010-mcq-2",
+    "source_id": "docker-010",
+    "domain": "docker",
+    "subdomain": "operations",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "A container starts and exits immediately. `docker logs` shows nothing. What's the next diagnostic step?",
+    "options": {
+      "correct": "Run `docker inspect <container>` and look at State (exit code, error) plus run with `-it --entrypoint=sh` to get an interactive shell instead of executing the original entrypoint",
+      "distractor_1": "Run `docker exec -it <container> sh` to drop into the exited container and inspect its filesystem state",
+      "distractor_2": "Increase the container's stop timeout to 60 seconds, which gives docker logs more time to capture output before exit",
+      "distractor_3": "Restart Docker daemon to flush log buffers; transient containers often lose stdout to a kernel buffer that the daemon doesn't drain"
+    },
+    "explanation": "`docker inspect` shows the exit code and any error message; running with `--entrypoint=sh -it` lets you start the container manually and explore \u2014 bypassing the failing entrypoint. Distractor 1 (docker exec on exited) fails: exec requires a running container. Distractor 2 misunderstands stop timeout (it controls graceful shutdown waits, not log capture). Distractor 3 invents a daemon-restart fix. The entrypoint override is the most useful technique when the container fails before producing usable output.",
+    "bank": 2
+  },
+  {
+    "id": "k8s-002-mcq-2",
+    "source_id": "k8s-002",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "A pod is in `CrashLoopBackOff`. What does this state tell you?",
+    "options": {
+      "correct": "The container has crashed multiple times in quick succession and the kubelet is now restarting it with exponential backoff between attempts",
+      "distractor_1": "The pod's image cannot be pulled and the kubelet is retrying with backoff before giving up",
+      "distractor_2": "The pod is scheduled to a node that's repeatedly running out of memory, causing the pod to be evicted in a loop",
+      "distractor_3": "The pod's readiness probe is failing, so the Service is removing it from endpoints and adding it back as the probe oscillates"
+    },
+    "explanation": "CrashLoopBackOff specifically describes container-level crashes followed by kubelet-controlled restart backoff (10s, 20s, 40s, capped). Distractor 1 describes ImagePullBackOff, a distinct state where the image itself is the problem. Distractor 2 describes eviction churn, which shows as repeated pod termination, not CrashLoop. Distractor 3 describes a readiness flap \u2014 the pod stays Running but cycles in and out of Service endpoints, never entering CrashLoopBackOff. Knowing which state means which class of failure shortens triage by minutes.",
+    "bank": 2
+  },
+  {
+    "id": "aws-020-mcq-2",
+    "source_id": "aws-020",
+    "domain": "aws",
+    "subdomain": "compute",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "During a deploy, an ASG with a target tracking policy starts terminating instances that the deployment script just registered. What feature should the deployment use to prevent this?",
+    "options": {
+      "correct": "Instance scale-in protection on the new instances, or the broader ASG-level scale-in protection setting, so ASG won't terminate them during scale-in events",
+      "distractor_1": "Deployment cooldown on the ASG \u2014 extending the cooldown to several minutes blocks all scale-in actions during a deploy",
+      "distractor_2": "Health check grace period \u2014 increasing the grace period prevents the ASG from removing instances flagged as in-flight",
+      "distractor_3": "Termination policy 'OldestInstance' so scale-in events only target instances older than the deploy timestamp"
+    },
+    "explanation": "Scale-in protection marks specific instances (or the whole ASG) as ineligible for ASG-initiated termination, which is exactly what's needed to shield newly-deployed instances. Distractor 1 confuses cooldown semantics: cooldowns affect scaling actions between events, not which instances get picked. Distractor 2 misuses the health check grace period, which controls when ASG starts evaluating health, not termination eligibility. Distractor 3 (OldestInstance termination policy) sometimes helps but isn't a guarantee \u2014 if the policy can't find an old-enough candidate it falls back to other criteria.",
+    "bank": 3
+  }
+]
