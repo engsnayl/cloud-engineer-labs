@@ -1,7 +1,7 @@
 {
   "baseline_flagged_count": 126,
   "baseline_snapshot_path": "interview-questions-runner/phase4-rewrite/baseline-snapshot.json",
-  "control_sample_status": "expanded_audit",
+  "control_sample_status": "expanded_audit_resolved",
   "control_sample_seed": 4096,
   "control_sample_ids": [
     "git-006-mcq-1",
@@ -11,17 +11,11 @@
     "k8s-002-mcq-2",
     "aws-020-mcq-2"
   ],
-  "control_sample_verdicts": {
-    "at_bar": ["k8s-002-mcq-2", "aws-020-mcq-2"],
-    "borderline_treated_as_fail": ["git-006-mcq-1", "tf-011-mcq-1"],
-    "fails_rubric": ["cicd-012-mcq-2", "docker-010-mcq-2"]
+  "control_sample_verdicts_final": {
+    "at_bar": ["k8s-002-mcq-2", "aws-020-mcq-2", "git-006-mcq-1", "tf-011-mcq-1"],
+    "fabrication_confirmed": ["cicd-012-mcq-2", "docker-010-mcq-2"]
   },
-  "fails_rubric_pending_re_audit": [
-    "cicd-012-mcq-2",
-    "docker-010-mcq-2",
-    "git-006-mcq-1",
-    "tf-011-mcq-1"
-  ],
+  "control_sample_note": "git-006-mcq-1 and tf-011-mcq-1 re-resolved as false positives at GATE 1 under the operative rubric (invented-behaviour-of-real-feature, plausible transferred mental model; tf-011 is a pilot exemplar). cicd-012-mcq-2 and docker-010-mcq-2 confirmed fabrications, now flagged.",
   "audit_expansion": {
     "patterns_added_date": "2026-06-02",
     "patterns_added": [
@@ -29,29 +23,64 @@
       "invented-constraint (cannot X without Y first, refuses to X if Y)",
       "invented-key (YAML/HCL/CLI keys not in allowlist for major tools)"
     ],
-    "control_sample_failures_caught_by_new_patterns": {
-      "cicd-012-mcq-2": ["key-not-in-allowlist:skip-matrix"],
-      "docker-010-mcq-2": ["mechanism-kernel-internal", "mechanism-agent-negation"],
-      "git-006-mcq-1": ["constraint-until-you", "constraint-tool-prohibits"],
-      "tf-011-mcq-1": ["constraint-refuses", "constraint-tool-prohibits"]
+    "verdict_on_expansion": "OVERREACHING BUT USEFUL. The constraint/mechanism heuristics over-flag invented-behaviour-of-real-feature distractors that are at-bar under the operative rubric (including 3 pilot exemplars). They did catch the 6 Tier A named-identifier cases and gave a useful contrast set for the Tier B judgment calls. Treat their output as a contrast signal, not a verdict. To be documented honestly in final-report.md.",
+    "of_11_heuristic_adds": {
+      "flagged_confirmed": ["cicd-012-mcq-2", "docker-010-mcq-2", "aws-019-mcq-2", "cicd-021-mcq-1", "tf-003-mcq-2"],
+      "resolved_false_positive": ["aws-003-mcq-1", "git-006-mcq-1", "tf-011-mcq-1", "tf-002-mcq-1", "k8s-021-mcq-1", "k8s-014-mcq-2"]
     },
-    "suspect_distractors_after_expansion": {
-      "total_distractor_entries": 95,
-      "distinct_mcqs": 73,
-      "mechanism_distinct_mcqs": 3,
-      "constraint_distinct_mcqs": 7,
-      "key_distinct_mcqs": 7,
-      "new_mcqs_added_to_flagged": 11,
-      "expanded_total_flagged": 137
+    "false_positives_resolved": {
+      "aws-003-mcq-1": "pilot exemplar; NACL stateful/implicit-allow distractors are at-bar (invented behaviour, plausible)",
+      "tf-002-mcq-1": "literal pilot distractor (silently overwrites state)",
+      "tf-011-mcq-1": "pilot exemplar; count-cannot-shrink is at-bar invented behaviour",
+      "git-006-mcq-1": "Git refuses-to-push is at-bar invented behaviour (transferred mental model)",
+      "k8s-021-mcq-1": "key-not-in-allowlist:gpu is a label DEFINED IN THE STEM, not a fabricated key",
+      "k8s-014-mcq-2": "externalTrafficPolicy:External — real field, invented value/behaviour; BORDERLINE, resolved at-bar; reference borderline case for future judgment",
+      "docker-004-mcq-1": "image tags python:/ubuntu: are not fabricated keys; MCQ stays flagged on independent D_definition",
+      "cicd-020-mcq-2": "aws:MultiFactorAuthPresent is a real IAM key; MCQ stays flagged on independent A_fabricated; JWT-MFA-inheritance verified as a real misconception (pilot cicd-020-mcq-1)"
     },
-    "known_false_positives_to_review_next_session": [
-      "key-not-in-allowlist:python (docker-004-mcq-1) — `python:3.12-alpine` is a Docker image tag, not a fabricated YAML key",
-      "key-not-in-allowlist:ubuntu (docker-004-mcq-1) — `ubuntu:latest` is a Docker image tag",
-      "key-not-in-allowlist:aws (cicd-020-mcq-2) — `aws:MultiFactorAuthPresent` is a real IAM condition key (but the broader distractor claim about JWT MFA inheritance is still suspect — verify manually)",
-      "mechanism-silent-failure on tf-002-mcq-1 distractor_3 — `silently overwrites the first's state` is the literal pilot distractor; this is a false positive"
+    "allowlist_refinements_todo": [
+      "image tags (python:, ubuntu:, etc.)",
+      "real IAM condition keys (aws:*)",
+      "real k8s fields/resources (externalTrafficPolicy, nvidia.com/gpu)",
+      "exempt pilot-distractor text"
+    ]
+  },
+  "llm_pass": {
+    "pending": false,
+    "date": "2026-06-02",
+    "scope_mcqs": 71,
+    "method": "5 domain-sliced agents (AWS x2, K8s, CI/CD, Docker+Git+Linux+TF) + reviewer verification of every suspect against source/real tooling",
+    "result_clean": 62,
+    "result_fabrications": 9,
+    "fabrications_from_llm_pass": [
+      "cicd-011-mcq-2", "cicd-022-mcq-1", "docker-004-mcq-2",
+      "git-003-mcq-2", "linux-006-mcq-2", "tf-010-mcq-2", "cicd-022-mcq-2"
     ],
-    "llm_pass_pending": true,
-    "llm_pass_scope": "82 unflagged MCQs minus those now caught by expanded heuristics; LLM should specifically look for invented mechanisms, invented constraints, invented config keys/fields, and any other authoritative-sounding claims that the candidate could not verify against official docs"
+    "tier_b_resolved_at_bar": ["cicd-012-mcq-1", "cicd-013-mcq-1"],
+    "deliverables": [
+      "interview-questions-runner/phase4-rewrite/llm-fabrication-scan.json",
+      "interview-questions-runner/phase4-rewrite/llm-fabrication-scan.md"
+    ],
+    "reliability_notes": [
+      "Docker/Git/Linux/TF agent first rated invented flags at-bar citing pilot examples that do NOT exist in pilot.json (hallucinated precedent); reviewer revised to suspect.",
+      "Kubernetes agent first run failed on API-overload; re-run returned clean."
+    ]
+  },
+  "rebaseline": {
+    "expanded_total_flagged": 138,
+    "math": "126 original + 12 net-new A_fabricated (7 LLM + 2 control-sample-confirmed + 3 heuristic-adjudicated) = 138; 6 heuristic FPs resolved (not added)",
+    "unflagged_remaining": 70,
+    "new_fabrication_ids": [
+      "cicd-011-mcq-2", "cicd-022-mcq-1", "docker-004-mcq-2", "git-003-mcq-2",
+      "linux-006-mcq-2", "tf-010-mcq-2", "cicd-022-mcq-2",
+      "cicd-012-mcq-2", "docker-010-mcq-2",
+      "aws-019-mcq-2", "cicd-021-mcq-1", "tf-003-mcq-2"
+    ]
+  },
+  "gate1": {
+    "status": "pending_resample",
+    "resample_seed": 7919,
+    "note": "Re-run sample_unflagged.py against the 70-MCQ unflagged set; evaluate 6 against the operative rubric."
   },
   "batches": [],
   "running_totals": {
