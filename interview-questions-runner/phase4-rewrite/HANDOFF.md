@@ -1,68 +1,53 @@
-# Phase 4 — handoff (2026-06-02)
+# Phase 4 — handoff (2026-06-02, GATE 1 closed)
 
-## Current state
+## Headline state
 
-- **Plan:** approved with 4 review additions; committed as `edba19b`. See `PLAN.md`.
-- **Task 0 (drift script):** done. `scripts/check_drift.py` mechanises the audit drift check; smoke-tested PASS against the real baseline. Committed as `f3f8f57`.
-- **Task 1 (scaffold + baseline):** done. `phase4-rewrite/` directory created; `baseline-snapshot.json` is a frozen copy of `phase3-audit/draft-audit.json` (audit.py detects 115 of the 126 flagged MCQs mechanically). Committed as `9d32fce`.
-- **Task 2 (control sample):** **GATE 1 failed.** 6 unflagged MCQs sampled; 2 clear fabrications (`cicd-012-mcq-2` invented YAML key `skip-matrix:`, `docker-010-mcq-2` invented kernel-buffer mechanism) + 2 borderline-treated-as-fail (`git-006-mcq-1`, `tf-011-mcq-1`). Strict at-bar rate 2/6 trips STOP threshold. See `control-sample-checkpoint.md`.
-- **Decision:** expand audit scope before any Tier 1 work. Both heuristic pattern additions AND an LLM pass, in that order.
-- **Pattern additions:** **done this session.** `scripts/audit_suspect.py` now has three new pattern groups (mechanism-claim, invented-constraint, invented-key with allowlist). All 4 control-sample failures are caught by the new patterns. Expanded flagged total: **126 → 137** (11 new flagged MCQs from the pattern expansion).
-- **LLM pass:** **PENDING** — explicit next-session work.
+- **Total flagged: 138 / 208** (`phase3-audit/flagged-mcqs.json`, 138 entries).
+- **GATE 1: CLOSED.** Seed-7919 control sample = 6/6 at-bar under the operative rubric.
+- **Next action: Tier 1 begins — Task 3, batch T1.1 (17 AWS D-only stem reframes).** See `PLAN.md` Task 3. No Tier 1 work has started yet.
 
-## Files touched in this session
+## What happened this session (GATE 1 closure)
 
-| Path | Status |
-|---|---|
-| `interview-questions-runner/phase4-rewrite/PLAN.md` | Created and committed; revised with 4 additions; revised again to relax pre-flight path |
-| `interview-questions-runner/phase4-rewrite/README.md` | Created |
-| `interview-questions-runner/phase4-rewrite/tracking.json` | Created and progressively updated |
-| `interview-questions-runner/phase4-rewrite/baseline-snapshot.json` | Frozen baseline (208 rows; 115 flagged by audit.py mechanically) |
-| `interview-questions-runner/phase4-rewrite/control-sample.json` | 6 sampled unflagged MCQs (seed=4096) |
-| `interview-questions-runner/phase4-rewrite/control-sample-checkpoint.md` | Per-MCQ rubric assessment |
-| `interview-questions-runner/phase4-rewrite/HANDOFF.md` | This file |
-| `interview-questions-runner/scripts/check_drift.py` | New — drift-check script |
-| `interview-questions-runner/scripts/sample_unflagged.py` | New — control-sample picker |
-| `interview-questions-runner/scripts/audit_suspect.py` | Extended with 3 new pattern groups + allowlist + breakdown reporting |
-| `interview-questions-runner/phase3-audit/suspect-distractors.json` | Regenerated (95 entries, 73 distinct MCQs) |
-| `interview-questions-runner/phase3-audit/draft-audit.json` | Refreshed (idempotent on no-bank-change) |
+1. **LLM fabrication scan** over the 71 unflagged-after-expansion MCQs (5 domain-sliced agents + reviewer verification of every suspect against `Interview Prep App/Interview-Prep-Combined.md` and real tooling). Deliverables: `llm-fabrication-scan.json` (per-distractor verdicts) + `llm-fabrication-scan.md` (summary). Result: 62/71 clean, 9 fabrications.
+2. **Operative rubric settled** (recorded in `PLAN.md` → Tightened rubric → "Operative rule"): the 6-month-candidate test is the bar — *named-identifier* fabrications (invented keys/commands/flags/specific-numbers/deprecations) fail categorically; *invented-behaviour-of-a-real-feature* passes if a junior could plausibly hold it via a transferred mental model, fails on impossibility / false-authority jargon / contradicting basic semantics; borderline → surface (reference borderline: `k8s-014-mcq-2`). The pilot stands unchanged.
+3. **Rebaseline 126 → 138.** Added 12 net-new `A_fabricated` MCQs:
+   - LLM pass (7): `cicd-011-mcq-2`, `cicd-022-mcq-1`, `docker-004-mcq-2`, `git-003-mcq-2`, `linux-006-mcq-2`, `tf-010-mcq-2`, `cicd-022-mcq-2`
+   - control-sample confirmed (2): `cicd-012-mcq-2`, `docker-010-mcq-2`
+   - heuristic-adds adjudicated (3): `aws-019-mcq-2`, `cicd-021-mcq-1`, `tf-003-mcq-2`
+4. **6 heuristic false-positives resolved** (not flagged): `aws-003-mcq-1`, `tf-002-mcq-1`, `tf-011-mcq-1` (pilot exemplars), `git-006-mcq-1`, `k8s-021-mcq-1` (stem-defined label), `k8s-014-mcq-2` (borderline, at-bar). `docker-004-mcq-1` and `cicd-020-mcq-2` stay flagged on their independent D/A flags (only their bad suspect-key tags cleared).
+5. **Re-sample (seed 7919) = 6/6 at-bar** → GATE 1 closed. See `control-sample-checkpoint-2.md`. Caveat: the LLM pass covered the whole unflagged set, so the sample confirms rather than independently probes.
+
+## Commits this session (on `feat/lab-interview-drill-phase1`)
+
+- `dd56495` LLM scan deliverables + rebaseline flagged 126→138
+- `5997fbe` operative fabrication rubric in PLAN.md
+- `8e52f88` tracking.json final disposition
+- `0d824e4` GATE 1 closed — seed-7919 control sample 6/6 at-bar
 
 ## Exact next action for the new session
 
-**Task: LLM-based fabrication scan over the 82 unflagged MCQs (minus those now caught by expanded heuristics).**
+**Task 3 — batch T1.1: reframe the 17 AWS D-only MCQ stems to scenario form.** Follow `PLAN.md` Task 3 step-by-step. In brief:
 
-The expansion caught **11 new** MCQs the audit was missing, but the LLM pass is needed for the long tail — fabrications that don't match any heuristic pattern. Look for:
-
-1. **Invented mechanisms** that read as plausible technical jargon but describe non-existent layer-internal behaviour. The `docker-010-mcq-2` case is the template ("kernel buffer that the daemon doesn't drain").
-2. **Invented constraints** that read as plausible tool rules. The `tf-011-mcq-1` distractor_2 ("count cannot shrink without state mv first") and `git-006-mcq-1` distractor_2 ("Git refuses to push... until you delete it from disk") are the templates.
-3. **Invented config keys / fields / flags / annotations** that don't appear in official docs for the relevant tool. The `cicd-012-mcq-2` case (`skip-matrix:`) is the template — the allowlist catches the obvious ones; the LLM pass catches keys that read like real ones (think `nodeAffinity-strict: true`, `--retry-on-throttle`, etc.) that fall outside the allowlist's coverage.
-4. **Authoritative-sounding causal claims** that a 6-month candidate could not verify in 5 minutes of doc-reading.
-
-**Mechanics:**
-
-- Source: `cloud-labs/lab-095-interview-drill-mcq/questions/interview-{1,2,3}.json`
-- Filter to MCQs whose IDs are NOT in the expanded flagged set (after merging the original 126 + the 11 new from heuristic expansion = 137). The remaining ~71 MCQs are the LLM-pass target.
-- For each remaining MCQ, evaluate the 3 distractors against the 6-month-candidate test (see `PLAN.md` "Tightened rubric" section).
-- Emit a structured report: per-MCQ, per-distractor verdict + one-sentence justification + suspected fabrication category if any.
-- After the LLM pass, finalise `phase3-audit/flagged-mcqs.json` to include all MCQs flagged by (a) the original audit + manual review (126), (b) the heuristic expansion (+11), (c) the LLM pass (TBD).
-- Update `tracking.json` with the final expanded count, then GATE 1 is closed and Tier 1 may begin.
+- Step 0: re-anchor on `phase2-pilot/pilot.json` (the voice).
+- Step 1: identify the 17 AWS D-only IDs — `python -c "import json; d=json.load(open('interview-questions-runner/phase3-audit/flagged-mcqs.json')); ids=[x['id'] for x in d if x['flags']==['D_definition'] and x['domain']=='aws']; print(len(ids)); [print(i) for i in ids]"`
+- Steps 2–4: Tier 1 procedure (stem reframe only; drop to Tier 3 if a reframe forces option/explanation changes), write `batch-01-tier1-aws.json`, apply back into the bank files.
+- Step 5: `validate_mcqs.py` on all three banks.
+- Step 6: `check_drift.py batch-01-tier1-aws.json` — must PASS (drift FAIL → checkpoint shows only the drift, fix locally first).
+- Steps 7–10: update `tracking.json`, write `batch-01-checkpoint.md`, surface to Stephen (GATE), commit.
 
 ## Required inputs for the new session
 
-1. `interview-questions-runner/Interview-Drill-Runner.md` — canonical brief and Appendix A samples
-2. `interview-questions-runner/phase2-pilot/pilot.json` — 10 pilot MCQs at the bar (re-anchor before evaluating)
-3. `interview-questions-runner/phase3-audit/flagged-mcqs.json` — current 126-flagged consolidated list
-4. `interview-questions-runner/phase3-audit/suspect-distractors.json` — post-expansion suspect output (95 entries)
-5. `interview-questions-runner/phase4-rewrite/PLAN.md` — the implementation plan
-6. `interview-questions-runner/phase4-rewrite/tracking.json` — state of play, including the false-positives noted to triage
-7. `interview-questions-runner/phase4-rewrite/control-sample-checkpoint.md` — what the operationalised 6-month-candidate test looks like in practice
-8. `interview-questions-runner/phase4-rewrite/HANDOFF.md` — this file
-9. `cloud-labs/lab-095-interview-drill-mcq/questions/interview-{1,2,3}.json` — the 208 MCQ banks
-10. `~/interview-prep-app/Interview-Prep-Combined.md` OR `Interview Prep App/Interview-Prep-Combined.md` (repo root) — source material for ground-truth concept checks
+1. `interview-questions-runner/Interview-Drill-Runner.md` — canonical brief + Appendix A bar
+2. `interview-questions-runner/phase2-pilot/pilot.json` — the voice (re-anchor before authoring)
+3. `interview-questions-runner/phase4-rewrite/PLAN.md` — execution plan + **operative rubric**
+4. `interview-questions-runner/phase4-rewrite/tracking.json` — state of play (138 flagged, GATE 1 closed)
+5. `interview-questions-runner/phase3-audit/flagged-mcqs.json` — the 138 flagged IDs with flags/notes
+6. `cloud-labs/lab-095-interview-drill-mcq/questions/interview-{1,2,3}.json` — the banks to edit
+7. `Interview Prep App/Interview-Prep-Combined.md` (repo root) — source of truth for concepts
 
-## Things to NOT forget in the next session
+## Things to NOT forget
 
-- **Resolve the 4 known false-positives** listed in `tracking.json` under `audit_expansion.known_false_positives_to_review_next_session` before counting them against MCQ authors.
-- **The 4 control-sample failures** (`cicd-012-mcq-2`, `docker-010-mcq-2`, `git-006-mcq-1`, `tf-011-mcq-1`) are already in `fails_rubric_pending_re_audit`. Do NOT fold them into a Tier 2 batch piecemeal — they go into the single expanded Tier 2 batch alongside whatever else the LLM pass surfaces.
-- **Re-run the control sample with a different seed** (e.g. `SAMPLE_SEED=7919`) after the LLM pass closes; only then is GATE 1 truly cleared.
-- **Tier 1 still has not started.** All work to date has been audit-and-scaffold. The first actual MCQ rewrite happens after GATE 1 closes.
+- **The operative rubric is settled** — apply it to every distractor touched in Tier 1/2/3. Borderline → surface, don't auto-decide (`k8s-014-mcq-2` is the reference case).
+- **The `audit_suspect.py` constraint/mechanism/key heuristics over-flag** invented-behaviour distractors (incl. pilot exemplars). Treat their output as a contrast signal, not a verdict. Allowlist refinements are listed in `tracking.json` → `audit_expansion.allowlist_refinements_todo` (image tags, real IAM keys, real k8s fields, pilot-distractor text) — optional cleanup, not blocking.
+- **`final-report.md` (Task 11) must document the audit-expansion honesty**: the expansion was overreaching but useful (caught the 6 named-identifier cases, gave a contrast set for the judgment calls).
+- **Tier slicing is locked** (PLAN.md). The new fabrications surfaced this session (the 12) are `A_fabricated`-type and belong to **Tier 2** (distractor swaps), not Tier 1 — Tier 1 is D-only stem reframes. Tier 2 batch T2.1 will need to widen beyond the original 11 A-only MCQs to absorb these; reconcile the Tier 2 slice count when you reach Task 8.
