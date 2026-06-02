@@ -326,7 +326,7 @@
     "subdomain": "fundamentals",
     "priority": "critical",
     "difficulty": "medium",
-    "question": "When designing a CI pipeline, which stage order maximises fast feedback?",
+    "question": "An engineer is designing a CI pipeline and wants build failures to surface as early and as cheaply as possible. Which stage ordering maximises fast feedback?",
     "options": {
       "correct": "Fast checks first (lint, format, security scan), then unit tests, then integration tests, then build/deploy \u2014 fail fast on cheap stages",
       "distractor_1": "Build the container first, then run all tests against the built image to ensure tests reflect production behaviour",
@@ -342,7 +342,7 @@
     "subdomain": "fundamentals",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "Why are long-lived feature branches incompatible with modern CI/CD practices?",
+    "question": "Your team keeps feature branches alive for weeks before merging to main, and merges have become painful and risky. Why are long-lived feature branches incompatible with modern CI/CD practice?",
     "options": {
       "correct": "Long-lived branches drift from main, so integration is deferred until merge \u2014 the longer the branch lives, the more painful and risky the merge",
       "distractor_1": "Long-lived branches cannot run CI pipelines because GitHub Actions automatically disables workflows on branches that haven't been pushed in 7 days",
@@ -374,7 +374,7 @@
     "subdomain": "github-actions",
     "priority": "high",
     "difficulty": "medium",
-    "question": "When should you reach for a reusable workflow vs a composite action in GitHub Actions?",
+    "question": "Your team has a multi-job deployment pipeline they want to share across several repositories, and separately a short sequence of build steps they want to bundle for reuse inside one job. When should you reach for a reusable workflow versus a composite action?",
     "options": {
       "correct": "Reusable workflow when you need a full pipeline (multiple jobs, env, secrets); composite action when you want to bundle a sequence of steps inside a single job",
       "distractor_1": "Reusable workflow for self-hosted runners, composite action for GitHub-hosted runners \u2014 they target different runner types",
@@ -486,7 +486,7 @@
     "subdomain": "ownership",
     "priority": "critical",
     "difficulty": "medium",
-    "question": "An experienced pipeline owner is asked to redesign a CI/CD pipeline that takes 40 minutes and ships once a week. Which prioritisation reflects mature production thinking?",
+    "question": "An engineer who owns a CI/CD pipeline is asked to redesign it: today it takes 40 minutes and ships once a week. Which prioritisation reflects mature production thinking?",
     "options": {
       "correct": "Fast signal first (parallelise + shard tests) and tighten the deploy gate (smaller batches, automated rollback) \u2014 speed of feedback is the dominant lever",
       "distractor_1": "Maximise pipeline reliability by adding 3 retries to every stage and disabling flaky tests for the next quarter to stabilise the build",

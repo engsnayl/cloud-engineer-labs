@@ -12,8 +12,16 @@
     "aws-020-mcq-2"
   ],
   "control_sample_verdicts_final": {
-    "at_bar": ["k8s-002-mcq-2", "aws-020-mcq-2", "git-006-mcq-1", "tf-011-mcq-1"],
-    "fabrication_confirmed": ["cicd-012-mcq-2", "docker-010-mcq-2"]
+    "at_bar": [
+      "k8s-002-mcq-2",
+      "aws-020-mcq-2",
+      "git-006-mcq-1",
+      "tf-011-mcq-1"
+    ],
+    "fabrication_confirmed": [
+      "cicd-012-mcq-2",
+      "docker-010-mcq-2"
+    ]
   },
   "control_sample_note": "git-006-mcq-1 and tf-011-mcq-1 re-resolved as false positives at GATE 1 under the operative rubric (invented-behaviour-of-real-feature, plausible transferred mental model; tf-011 is a pilot exemplar). cicd-012-mcq-2 and docker-010-mcq-2 confirmed fabrications, now flagged.",
   "audit_expansion": {
@@ -25,8 +33,21 @@
     ],
     "verdict_on_expansion": "OVERREACHING BUT USEFUL. The constraint/mechanism heuristics over-flag invented-behaviour-of-real-feature distractors that are at-bar under the operative rubric (including 3 pilot exemplars). They did catch the 6 Tier A named-identifier cases and gave a useful contrast set for the Tier B judgment calls. Treat their output as a contrast signal, not a verdict. To be documented honestly in final-report.md.",
     "of_11_heuristic_adds": {
-      "flagged_confirmed": ["cicd-012-mcq-2", "docker-010-mcq-2", "aws-019-mcq-2", "cicd-021-mcq-1", "tf-003-mcq-2"],
-      "resolved_false_positive": ["aws-003-mcq-1", "git-006-mcq-1", "tf-011-mcq-1", "tf-002-mcq-1", "k8s-021-mcq-1", "k8s-014-mcq-2"]
+      "flagged_confirmed": [
+        "cicd-012-mcq-2",
+        "docker-010-mcq-2",
+        "aws-019-mcq-2",
+        "cicd-021-mcq-1",
+        "tf-003-mcq-2"
+      ],
+      "resolved_false_positive": [
+        "aws-003-mcq-1",
+        "git-006-mcq-1",
+        "tf-011-mcq-1",
+        "tf-002-mcq-1",
+        "k8s-021-mcq-1",
+        "k8s-014-mcq-2"
+      ]
     },
     "false_positives_resolved": {
       "aws-003-mcq-1": "pilot exemplar; NACL stateful/implicit-allow distractors are at-bar (invented behaviour, plausible)",
@@ -53,10 +74,18 @@
     "result_clean": 62,
     "result_fabrications": 9,
     "fabrications_from_llm_pass": [
-      "cicd-011-mcq-2", "cicd-022-mcq-1", "docker-004-mcq-2",
-      "git-003-mcq-2", "linux-006-mcq-2", "tf-010-mcq-2", "cicd-022-mcq-2"
+      "cicd-011-mcq-2",
+      "cicd-022-mcq-1",
+      "docker-004-mcq-2",
+      "git-003-mcq-2",
+      "linux-006-mcq-2",
+      "tf-010-mcq-2",
+      "cicd-022-mcq-2"
     ],
-    "tier_b_resolved_at_bar": ["cicd-012-mcq-1", "cicd-013-mcq-1"],
+    "tier_b_resolved_at_bar": [
+      "cicd-012-mcq-1",
+      "cicd-013-mcq-1"
+    ],
     "deliverables": [
       "interview-questions-runner/phase4-rewrite/llm-fabrication-scan.json",
       "interview-questions-runner/phase4-rewrite/llm-fabrication-scan.md"
@@ -71,17 +100,32 @@
     "math": "126 original + 12 net-new A_fabricated (7 LLM + 2 control-sample-confirmed + 3 heuristic-adjudicated) = 138; 6 heuristic FPs resolved (not added)",
     "unflagged_remaining": 70,
     "new_fabrication_ids": [
-      "cicd-011-mcq-2", "cicd-022-mcq-1", "docker-004-mcq-2", "git-003-mcq-2",
-      "linux-006-mcq-2", "tf-010-mcq-2", "cicd-022-mcq-2",
-      "cicd-012-mcq-2", "docker-010-mcq-2",
-      "aws-019-mcq-2", "cicd-021-mcq-1", "tf-003-mcq-2"
+      "cicd-011-mcq-2",
+      "cicd-022-mcq-1",
+      "docker-004-mcq-2",
+      "git-003-mcq-2",
+      "linux-006-mcq-2",
+      "tf-010-mcq-2",
+      "cicd-022-mcq-2",
+      "cicd-012-mcq-2",
+      "docker-010-mcq-2",
+      "aws-019-mcq-2",
+      "cicd-021-mcq-1",
+      "tf-003-mcq-2"
     ]
   },
   "gate1": {
     "status": "closed",
     "resample_seed": 7919,
     "resample_result": "6/6 at-bar",
-    "resample_ids": ["aws-003-mcq-1", "tf-002-mcq-1", "k8s-032-mcq-2", "docker-005-mcq-1", "cicd-050-mcq-1", "git-006-mcq-1"],
+    "resample_ids": [
+      "aws-003-mcq-1",
+      "tf-002-mcq-1",
+      "k8s-032-mcq-2",
+      "docker-005-mcq-1",
+      "cicd-050-mcq-1",
+      "git-006-mcq-1"
+    ],
     "checkpoint": "interview-questions-runner/phase4-rewrite/control-sample-checkpoint-2.md",
     "caveat": "LLM pass covered the entire unflagged set, so the re-sample confirms rather than independently probes; substantive assurance is the exhaustive pass.",
     "next": "Tier 1 may begin — Task 3, batch T1.1 (AWS D-only stem reframes)."
@@ -92,10 +136,22 @@
       "tier": 1,
       "domain_slice": "aws",
       "mcq_ids_attempted": [
-        "aws-002-mcq-1", "aws-003-mcq-2", "aws-007-mcq-2", "aws-009-mcq-2",
-        "aws-014-mcq-1", "aws-015-mcq-2", "aws-017-mcq-1", "aws-019-mcq-1",
-        "aws-020-mcq-1", "aws-021-mcq-1", "aws-026-mcq-1", "aws-026-mcq-2",
-        "aws-029-mcq-2", "aws-032-mcq-1", "aws-034-mcq-1", "aws-034-mcq-2",
+        "aws-002-mcq-1",
+        "aws-003-mcq-2",
+        "aws-007-mcq-2",
+        "aws-009-mcq-2",
+        "aws-014-mcq-1",
+        "aws-015-mcq-2",
+        "aws-017-mcq-1",
+        "aws-019-mcq-1",
+        "aws-020-mcq-1",
+        "aws-021-mcq-1",
+        "aws-026-mcq-1",
+        "aws-026-mcq-2",
+        "aws-029-mcq-2",
+        "aws-032-mcq-1",
+        "aws-034-mcq-1",
+        "aws-034-mcq-2",
         "aws-035-mcq-2"
       ],
       "slice_total": 17,
@@ -109,9 +165,13 @@
         "aws-009-mcq-2/distractor_1: --multi-attach=true -> --multi-attach-enabled=true (spelling correction, not a reframe; gp3 misconception trap unchanged). Approved by Stephen 2026-06-02 as at-bar with micro-correction."
       ],
       "mcqs_dropped_to_tier3": 1,
-      "drop_out_ids": ["aws-021-mcq-1"],
+      "drop_out_ids": [
+        "aws-021-mcq-1"
+      ],
       "drop_out_note": "aws-021-mcq-1 ('worst candidate for Spot') dropped to Tier 3 (Stephen, 2026-06-02): superlative framing = same structural problem as NOT/never; needs positive reauthor ('best fit for Spot' with poor-fit distractors). Queued for T3.2 absorption. Bank stem reverted to original.",
-      "cleared_false_positive": ["aws-026-mcq-1"],
+      "cleared_false_positive": [
+        "aws-026-mcq-1"
+      ],
       "cleared_fp_note": "aws-026-mcq-1 cleared as a pilot_byte_identical false positive (see heuristic_fp_classes). Removed from flagged-mcqs.json.",
       "reconciliation": "17 slice = 15 completed (14 pure Tier-1 + 1 Tier-1.5) + 1 dropped to Tier 3 (aws-021-mcq-1) + 1 cleared FP (aws-026-mcq-1). Dropout rate = 1/16 reframe-attempts = 6.25%.",
       "distractor_self_check_records": 45,
@@ -127,21 +187,40 @@
       "tier": 1,
       "domain_slice": "kubernetes",
       "mcq_ids_attempted": [
-        "k8s-003-mcq-1", "k8s-003-mcq-2", "k8s-004-mcq-2", "k8s-010-mcq-2",
-        "k8s-011-mcq-2", "k8s-012-mcq-1", "k8s-013-mcq-1", "k8s-014-mcq-1",
-        "k8s-020-mcq-1", "k8s-023-mcq-2", "k8s-030-mcq-1", "k8s-030-mcq-2",
-        "k8s-032-mcq-1", "k8s-040-mcq-1", "k8s-041-mcq-1", "k8s-042-mcq-1",
+        "k8s-003-mcq-1",
+        "k8s-003-mcq-2",
+        "k8s-004-mcq-2",
+        "k8s-010-mcq-2",
+        "k8s-011-mcq-2",
+        "k8s-012-mcq-1",
+        "k8s-013-mcq-1",
+        "k8s-014-mcq-1",
+        "k8s-020-mcq-1",
+        "k8s-023-mcq-2",
+        "k8s-030-mcq-1",
+        "k8s-030-mcq-2",
+        "k8s-032-mcq-1",
+        "k8s-040-mcq-1",
+        "k8s-041-mcq-1",
+        "k8s-042-mcq-1",
         "k8s-042-mcq-2"
       ],
       "slice_total": 17,
       "pilot_dupe_preflight": "0 byte-identical-to-pilot in slice (k8s-010-mcq-1 already cleared in T1.1)",
       "reframe_attempted": 17,
       "mcqs_completed": 17,
-      "completed_breakdown": {"tier1_pure_stem_reframe": 17, "tier1_5_stem_reframe_plus_option_microedit": 0},
+      "completed_breakdown": {
+        "tier1_pure_stem_reframe": 17,
+        "tier1_5_stem_reframe_plus_option_microedit": 0
+      },
       "mcqs_dropped_to_tier3": 0,
       "drop_out_ids": [],
       "cleared_false_positive": [],
-      "borderline_surfaced": ["k8s-004-mcq-2", "k8s-014-mcq-1", "k8s-020-mcq-1"],
+      "borderline_surfaced": [
+        "k8s-004-mcq-2",
+        "k8s-014-mcq-1",
+        "k8s-020-mcq-1"
+      ],
       "dispositions_applied": {
         "k8s-004-mcq-2": "AT-BAR (transferred-mental-model); recorded in borderline_approved.",
         "k8s-014-mcq-1": "d2 '32 entries' = fabrication -> Tier 2 swap (widens T2.1); 'weaker than' framing KEPT (rubric distinction added to PLAN.md).",
@@ -154,6 +233,59 @@
       "drift_status": "PASS (touched_count=17, no still-flagged, no regressions)",
       "checkpoint_date": "2026-06-02",
       "status": "approved"
+    },
+    {
+      "batch_id": "T1.3",
+      "tier": 1,
+      "domain_slice": "cicd",
+      "mcq_ids_attempted": [
+        "cicd-001-mcq-1",
+        "cicd-002-mcq-1",
+        "cicd-003-mcq-1",
+        "cicd-003-mcq-2",
+        "cicd-010-mcq-2",
+        "cicd-011-mcq-1",
+        "cicd-014-mcq-1",
+        "cicd-014-mcq-2",
+        "cicd-021-mcq-2",
+        "cicd-031-mcq-2",
+        "cicd-032-mcq-2",
+        "cicd-040-mcq-2",
+        "cicd-041-mcq-1",
+        "cicd-041-mcq-2",
+        "cicd-051-mcq-1",
+        "cicd-051-mcq-2"
+      ],
+      "slice_total": 16,
+      "pilot_dupe_preflight": "0 byte-identical-to-pilot in slice (cicd-020-mcq-1 cleared in T1.1 as pilot_byte_identical; cicd-030-mcq-1 is a pilot exemplar but not in the D-only slice)",
+      "reframe_attempted": 16,
+      "mcqs_completed": 15,
+      "completed_breakdown": {
+        "tier1_pure_stem_reframe": 15,
+        "tier1_5_stem_reframe_plus_option_microedit": 0
+      },
+      "mcqs_dropped_to_tier3": 1,
+      "drop_out_ids": [
+        "cicd-001-mcq-1"
+      ],
+      "cleared_false_positive": [],
+      "borderline_surfaced": [
+        "cicd-001-mcq-1",
+        "cicd-051-mcq-2"
+      ],
+      "reconciliation": "16 slice = 15 completed (15 pure Tier-1 stem reframes) + 1 dropped to Tier 3 (cicd-001-mcq-1) + 0 cleared FP. Dropout rate = 1/16 reframe-attempts = 6.25%. Options + explanation byte-identical before<->after on the 15 applied.",
+      "distractor_self_check_records": 45,
+      "fabrications_caught_at_selfreview": 0,
+      "audit_reflag_ids_after_batch": [],
+      "validate_mcqs_status": "pass",
+      "drift_status": "PASS (touched_count=15, no still-flagged, no regressions)",
+      "checkpoint_date": "2026-06-02",
+      "status": "pending",
+      "drop_out_note": "cicd-001-mcq-1 dropped to Tier 3 (Stephen, 2026-06-02). Tier-1 insufficient: definitional-distinction question form answered on recall; the scenario + teammate-mislabel are inert (Chekhov gun) because the four options are abstract definition-pairs no stem edit can make scenario-dependent. Applied form requires rewriting options into scenario-classifications = option rewrite = Tier 3. Bank stem reverted to original. Queued for Tier-3 absorption.",
+      "dispositions_applied": {
+        "cicd-001-mcq-1": "DROPPED to Tier 3 (option rewrite required; see drop_out_note).",
+        "cicd-051-mcq-2": "CLEARED / at-bar (Stephen): judgement genre was inherent pre-reframe; testability settled at GATE 1; not a superlative."
+      }
     }
   ],
   "borderline_approved": [
@@ -179,7 +311,11 @@
       "established_date": "2026-06-02",
       "established_by": "Stephen, at T1.1 checkpoint",
       "detection": "interview-questions-runner/scripts/pilot_dupe_check.py (now a per-batch pre-flight step)",
-      "cleared_ids": ["aws-026-mcq-1", "cicd-020-mcq-1", "k8s-010-mcq-1"],
+      "cleared_ids": [
+        "aws-026-mcq-1",
+        "cicd-020-mcq-1",
+        "k8s-010-mcq-1"
+      ],
       "cleared_detail": {
         "aws-026-mcq-1": "was D_definition; in the T1.1 slice; pilot exemplar.",
         "cicd-020-mcq-1": "was C_never_correct (correct option starts with 'No long-lived credential...' -> regex matched 'No'); pilot exemplar; would have been mis-handled in T1.3.",
@@ -193,20 +329,34 @@
     "note": "flagged-mcqs.json now holds 135 entries."
   },
   "tier3_absorption_queue": [
-    {"id": "aws-021-mcq-1", "from_tier": "T1.1", "work": "full positive reauthor ('best fit for Spot' with poor-fit distractors); 'worst candidate' = structural NOT-stem"},
-    {"id": "k8s-020-mcq-1", "from_tier": "T1.2", "work": "option-balance pass only — stem already reframed; rebalance one-word correct vs verbose distractors so length isn't a tell. flagged-mcqs.json reclassified D_definition -> B_structural_option_balance. NOTE: domain-based T3 query would route this to T3.1 (kubernetes); Stephen assigned it to T3.2 — honor this queue."}
+    {
+      "id": "aws-021-mcq-1",
+      "from_tier": "T1.1",
+      "work": "full positive reauthor ('best fit for Spot' with poor-fit distractors); 'worst candidate' = structural NOT-stem"
+    },
+    {
+      "id": "k8s-020-mcq-1",
+      "from_tier": "T1.2",
+      "work": "option-balance pass only — stem already reframed; rebalance one-word correct vs verbose distractors so length isn't a tell. flagged-mcqs.json reclassified D_definition -> B_structural_option_balance. NOTE: domain-based T3 query would route this to T3.1 (kubernetes); Stephen assigned it to T3.2 — honor this queue."
+    },
+    {
+      "id": "cicd-001-mcq-1",
+      "from_tier": "T1.3",
+      "work": "full reauthor as applied/scenario-classification — rewrite options from abstract CD-vs-CDep definition-pairs into scenario-classification choices so the manual-approval-gate setup actually pays off. Keyed answer + distractor misconceptions are sound; the inertness is in the OPTIONS, not the stem, so a mechanism-only stem reword does not fix it.",
+      "ruling": "Stephen 2026-06-02 — Tier-1 insufficient; definitional-distinction answered on recall (Chekhov-gun scenario)."
+    }
   ],
   "running_totals": {
-    "tier1_batches_done": 2,
-    "tier1_dropouts_to_tier3": 1,
-    "tier1_attempted_so_far": 33,
-    "tier1_reframed_so_far": 32,
-    "tier1_dropout_rate_pct": 3.03,
+    "tier1_batches_done": 3,
+    "tier1_dropouts_to_tier3": 2,
+    "tier1_attempted_so_far": 49,
+    "tier1_reframed_so_far": 47,
+    "tier1_dropout_rate_pct": 4.08,
     "tier1_5_microedits": 1,
     "pilot_fps_cleared": 3,
     "tier1_borderline_approved_at_bar": 1,
     "tier1_distractors_queued_for_tier2": 1,
-    "tier3_absorption_queue_size": 2,
+    "tier3_absorption_queue_size": 3,
     "tier2_fabrications_caught": 0,
     "tier3_full_rewrites": 0,
     "total_audit_reflags": 0

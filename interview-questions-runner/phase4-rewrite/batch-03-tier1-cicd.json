@@ -1,0 +1,783 @@
+{
+  "batch_id": "T1.3",
+  "tier": 1,
+  "domain_slice": "cicd",
+  "pilot_dupe_preflight": "0 byte-identical-to-pilot in slice (cicd-020-mcq-1 cleared in T1.1; cicd-030-mcq-1 not in D-only slice)",
+  "slice_total": 16,
+  "reframe_attempted": 16,
+  "rewrites": [
+    {
+      "mcq_id": "cicd-001-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "What's the distinction between Continuous Delivery and Continuous Deployment?",
+        "options": {
+          "correct": "Continuous Delivery makes every change deployable to production; Continuous Deployment automatically deploys every successful build to production",
+          "distractor_1": "Continuous Delivery deploys to staging only; Continuous Deployment deploys to staging and then production with a manual promotion step",
+          "distractor_2": "Continuous Delivery refers to deploying compiled artifacts; Continuous Deployment refers to deploying source code or containers directly",
+          "distractor_3": "Continuous Delivery deploys on a fixed schedule; Continuous Deployment deploys whenever the engineer manually triggers a release"
+        },
+        "explanation": "The gap is the production deployment step: Delivery stops at 'deployable artifact, ready when you press the button'; Deployment automates pressing the button. Distractor 1 invents a staging-vs-production split that conflates with environments. Distractor 2 invents an artifact-type distinction. Distractor 3 reverses both terms — neither has a fixed schedule, and Continuous Deployment is automatic, not manual. The boundary matters because most teams claim 'CD' meaning Delivery while saying it like Deployment."
+      },
+      "after": {
+        "question": "Your team automatically builds, tests, and stages every change so it is ready to ship, but a human still clicks to push the final release to production. A teammate calls this Continuous Deployment. Which statement correctly distinguishes Continuous Delivery from Continuous Deployment?",
+        "options": {
+          "correct": "Continuous Delivery makes every change deployable to production; Continuous Deployment automatically deploys every successful build to production",
+          "distractor_1": "Continuous Delivery deploys to staging only; Continuous Deployment deploys to staging and then production with a manual promotion step",
+          "distractor_2": "Continuous Delivery refers to deploying compiled artifacts; Continuous Deployment refers to deploying source code or containers directly",
+          "distractor_3": "Continuous Delivery deploys on a fixed schedule; Continuous Deployment deploys whenever the engineer manually triggers a release"
+        },
+        "explanation": "The gap is the production deployment step: Delivery stops at 'deployable artifact, ready when you press the button'; Deployment automates pressing the button. Distractor 1 invents a staging-vs-production split that conflates with environments. Distractor 2 invents an artifact-type distinction. Distractor 3 reverses both terms — neither has a fixed schedule, and Continuous Deployment is automatic, not manual. The boundary matters because most teams claim 'CD' meaning Delivery while saying it like Deployment."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate maps the Delivery/Deployment boundary onto a staging-vs-production environment split"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks the distinction is about artifact type (compiled vs source/containers)"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate reverses both terms (schedule vs manual trigger)"
+        }
+      ],
+      "dropped_to_tier3": true,
+      "drop_reason": "Tier-1 insufficient (Stephen, 2026-06-02). Keyed answer and distractors are fine, but the question form is definitional-distinction (\"distinguish CD from CDep\"), answered purely on recall. The added scenario and teammate-mislabel are inert (Chekhov gun) — the four options are abstract definition-pairs that no stem edit can make scenario-dependent, so the applied setup never pays off. Making it applied requires rewriting the options into scenario-classifications = option rewrite = Tier 3. Mechanism-only stem reword does NOT fix it; inertness is in the options, not the stem."
+    },
+    {
+      "mcq_id": "cicd-002-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "When designing a CI pipeline, which stage order maximises fast feedback?",
+        "options": {
+          "correct": "Fast checks first (lint, format, security scan), then unit tests, then integration tests, then build/deploy — fail fast on cheap stages",
+          "distractor_1": "Build the container first, then run all tests against the built image to ensure tests reflect production behaviour",
+          "distractor_2": "Integration tests first because they catch the highest-impact bugs; unit tests are a secondary check after integration passes",
+          "distractor_3": "Deploy to dev first, then run all tests against the deployed environment to catch infrastructure-related issues early"
+        },
+        "explanation": "Fail-fast ordering: run the cheapest, fastest checks before expensive ones. A lint catch in 5 seconds saves 5 minutes of integration test waste. Distractor 1 inverts ordering (build before test) — you waste build time on changes that fail trivial checks. Distractor 2 inverts the test pyramid — integration tests are slower and less precise; running them first throws away fast unit signal. Distractor 3 confuses CI with CD — running tests post-deploy is the slowest possible feedback loop."
+      },
+      "after": {
+        "question": "An engineer is designing a CI pipeline and wants build failures to surface as early and as cheaply as possible. Which stage ordering maximises fast feedback?",
+        "options": {
+          "correct": "Fast checks first (lint, format, security scan), then unit tests, then integration tests, then build/deploy — fail fast on cheap stages",
+          "distractor_1": "Build the container first, then run all tests against the built image to ensure tests reflect production behaviour",
+          "distractor_2": "Integration tests first because they catch the highest-impact bugs; unit tests are a secondary check after integration passes",
+          "distractor_3": "Deploy to dev first, then run all tests against the deployed environment to catch infrastructure-related issues early"
+        },
+        "explanation": "Fail-fast ordering: run the cheapest, fastest checks before expensive ones. A lint catch in 5 seconds saves 5 minutes of integration test waste. Distractor 1 inverts ordering (build before test) — you waste build time on changes that fail trivial checks. Distractor 2 inverts the test pyramid — integration tests are slower and less precise; running them first throws away fast unit signal. Distractor 3 confuses CI with CD — running tests post-deploy is the slowest possible feedback loop."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate builds the image before testing, believing tests must run against the built artifact"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate inverts the test pyramid, running slow integration tests before fast unit tests"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate confuses CI with CD, testing post-deploy against a live environment"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-003-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Why are long-lived feature branches incompatible with modern CI/CD practices?",
+        "options": {
+          "correct": "Long-lived branches drift from main, so integration is deferred until merge — the longer the branch lives, the more painful and risky the merge",
+          "distractor_1": "Long-lived branches cannot run CI pipelines because GitHub Actions automatically disables workflows on branches that haven't been pushed in 7 days",
+          "distractor_2": "Long-lived branches duplicate Git storage because each commit is copied to main's history, doubling repository disk usage",
+          "distractor_3": "Long-lived branches break semantic versioning because every commit must increment the major version when the branch merges to main"
+        },
+        "explanation": "Trunk-based development integrates small commits to main constantly so conflicts and integration bugs surface immediately. Long-lived branches defer that signal, accumulating risk silently. Distractor 1 invents a GitHub Actions auto-disable behaviour. Distractor 2 misunderstands Git's content-addressed storage; commits aren't duplicated. Distractor 3 invents a semver-major-on-merge rule that has no basis. The merge pain is the core argument — and feature flags exist specifically to keep branches short."
+      },
+      "after": {
+        "question": "Your team keeps feature branches alive for weeks before merging to main, and merges have become painful and risky. Why are long-lived feature branches incompatible with modern CI/CD practice?",
+        "options": {
+          "correct": "Long-lived branches drift from main, so integration is deferred until merge — the longer the branch lives, the more painful and risky the merge",
+          "distractor_1": "Long-lived branches cannot run CI pipelines because GitHub Actions automatically disables workflows on branches that haven't been pushed in 7 days",
+          "distractor_2": "Long-lived branches duplicate Git storage because each commit is copied to main's history, doubling repository disk usage",
+          "distractor_3": "Long-lived branches break semantic versioning because every commit must increment the major version when the branch merges to main"
+        },
+        "explanation": "Trunk-based development integrates small commits to main constantly so conflicts and integration bugs surface immediately. Long-lived branches defer that signal, accumulating risk silently. Distractor 1 invents a GitHub Actions auto-disable behaviour. Distractor 2 misunderstands Git's content-addressed storage; commits aren't duplicated. Distractor 3 invents a semver-major-on-merge rule that has no basis. The merge pain is the core argument — and feature flags exist specifically to keep branches short."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate believes GitHub Actions auto-disables workflows on stale branches"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate misunderstands Git content-addressed storage as duplicating commits to main"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a semver-major-on-merge rule"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-003-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Trunk-based development with rapid merge cadence depends on which mechanism to ship unfinished features safely?",
+        "options": {
+          "correct": "Feature flags — code paths for incomplete features are merged to main behind flags that gate execution at runtime",
+          "distractor_1": "Code comments — TODO markers and `// disabled` blocks ensure unfinished code is identified by reviewers before merge",
+          "distractor_2": "Branch protection rules — strict required approvals ensure no unfinished feature reaches main without a maintainer's review",
+          "distractor_3": "Squash commits on merge — squashing combines partial commits into one atomic merge, hiding unfinished state from main's history"
+        },
+        "explanation": "Feature flags decouple deploy from release: unfinished code can merge to main and ship to production as long as the flag is off; turning the flag on releases the feature. Distractor 1 confuses code review with runtime gating — comments don't prevent execution. Distractor 2 (branch protection) gates what merges, not what runs. Distractor 3 (squash commits) is purely about commit history shape, not about runtime behaviour of partial features. Without feature flags, trunk-based devs are stuck shipping only complete features, which breaks the small-PR loop."
+      },
+      "after": {
+        "question": "Your team has adopted trunk-based development and merges to main several times a day, but engineers need to land unfinished features without exposing them to users. Which mechanism makes that safe?",
+        "options": {
+          "correct": "Feature flags — code paths for incomplete features are merged to main behind flags that gate execution at runtime",
+          "distractor_1": "Code comments — TODO markers and `// disabled` blocks ensure unfinished code is identified by reviewers before merge",
+          "distractor_2": "Branch protection rules — strict required approvals ensure no unfinished feature reaches main without a maintainer's review",
+          "distractor_3": "Squash commits on merge — squashing combines partial commits into one atomic merge, hiding unfinished state from main's history"
+        },
+        "explanation": "Feature flags decouple deploy from release: unfinished code can merge to main and ship to production as long as the flag is off; turning the flag on releases the feature. Distractor 1 confuses code review with runtime gating — comments don't prevent execution. Distractor 2 (branch protection) gates what merges, not what runs. Distractor 3 (squash commits) is purely about commit history shape, not about runtime behaviour of partial features. Without feature flags, trunk-based devs are stuck shipping only complete features, which breaks the small-PR loop."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks code comments / disabled blocks prevent execution rather than just signalling to reviewers"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate confuses what merges (branch protection) with what runs"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks squashing commit history controls runtime behaviour of partial features"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-010-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Compare GitHub-hosted runners and self-hosted runners. When would you choose self-hosted?",
+        "options": {
+          "correct": "When you need access to private network resources, special hardware (GPUs, ARM, large memory), or want to amortise compute across many jobs at lower marginal cost",
+          "distractor_1": "When you need workflows to run faster — self-hosted runners are 5-10x faster than GitHub-hosted due to dedicated hardware",
+          "distractor_2": "When you want guaranteed isolation — GitHub-hosted runners share state across workflow runs, while self-hosted runners are ephemeral",
+          "distractor_3": "When you need the workflow to run on Linux — GitHub-hosted runners only support Windows and macOS, with Linux being self-hosted only"
+        },
+        "explanation": "Self-hosted runners fit network-locked resources (internal artifact stores, on-prem APIs) and special hardware needs. Cost can also be lower for high-volume teams. Distractor 1 reverses isolation — GitHub-hosted runners are ephemeral by default; self-hosted require deliberate ephemeral setup. Distractor 2 inverts isolation entirely. Distractor 3 fabricates OS support — GitHub-hosted offers Linux, Windows, and macOS. Self-hosted is a real choice but the trade-off is maintenance burden vs flexibility, not raw speed."
+      },
+      "after": {
+        "question": "Your team's CI jobs need to reach an internal artifact store on a private network and occasionally run on GPU hardware. When would you choose self-hosted GitHub Actions runners over GitHub-hosted ones?",
+        "options": {
+          "correct": "When you need access to private network resources, special hardware (GPUs, ARM, large memory), or want to amortise compute across many jobs at lower marginal cost",
+          "distractor_1": "When you need workflows to run faster — self-hosted runners are 5-10x faster than GitHub-hosted due to dedicated hardware",
+          "distractor_2": "When you want guaranteed isolation — GitHub-hosted runners share state across workflow runs, while self-hosted runners are ephemeral",
+          "distractor_3": "When you need the workflow to run on Linux — GitHub-hosted runners only support Windows and macOS, with Linux being self-hosted only"
+        },
+        "explanation": "Self-hosted runners fit network-locked resources (internal artifact stores, on-prem APIs) and special hardware needs. Cost can also be lower for high-volume teams. Distractor 1 reverses isolation — GitHub-hosted runners are ephemeral by default; self-hosted require deliberate ephemeral setup. Distractor 2 inverts isolation entirely. Distractor 3 fabricates OS support — GitHub-hosted offers Linux, Windows, and macOS. Self-hosted is a real choice but the trade-off is maintenance burden vs flexibility, not raw speed."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate assumes self-hosted is inherently 5-10x faster"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate reverses the isolation model (thinks GitHub-hosted share state)"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate fabricates that GitHub-hosted runners lack Linux support"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-011-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "When should you reach for a reusable workflow vs a composite action in GitHub Actions?",
+        "options": {
+          "correct": "Reusable workflow when you need a full pipeline (multiple jobs, env, secrets); composite action when you want to bundle a sequence of steps inside a single job",
+          "distractor_1": "Reusable workflow for self-hosted runners, composite action for GitHub-hosted runners — they target different runner types",
+          "distractor_2": "Reusable workflow for public open-source projects, composite action for private internal projects — the visibility model differs",
+          "distractor_3": "Reusable workflow when written in JavaScript, composite action when written in shell — the language drives the choice"
+        },
+        "explanation": "Reusable workflows are entire workflow files called via `uses:` at the workflow level — they have their own jobs, can call secrets, can target environments. Composite actions are smaller — a bundle of steps that look like one action inside a job. Distractor 1 invents a runner-type targeting. Distractor 2 fabricates a visibility distinction; both types can be public or private. Distractor 3 confuses JavaScript actions (a third action type) with composite actions. Composite is shell/uses; JS is Node-based action code."
+      },
+      "after": {
+        "question": "Your team has a multi-job deployment pipeline they want to share across several repositories, and separately a short sequence of build steps they want to bundle for reuse inside one job. When should you reach for a reusable workflow versus a composite action?",
+        "options": {
+          "correct": "Reusable workflow when you need a full pipeline (multiple jobs, env, secrets); composite action when you want to bundle a sequence of steps inside a single job",
+          "distractor_1": "Reusable workflow for self-hosted runners, composite action for GitHub-hosted runners — they target different runner types",
+          "distractor_2": "Reusable workflow for public open-source projects, composite action for private internal projects — the visibility model differs",
+          "distractor_3": "Reusable workflow when written in JavaScript, composite action when written in shell — the language drives the choice"
+        },
+        "explanation": "Reusable workflows are entire workflow files called via `uses:` at the workflow level — they have their own jobs, can call secrets, can target environments. Composite actions are smaller — a bundle of steps that look like one action inside a job. Distractor 1 invents a runner-type targeting. Distractor 2 fabricates a visibility distinction; both types can be public or private. Distractor 3 confuses JavaScript actions (a third action type) with composite actions. Composite is shell/uses; JS is Node-based action code."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a runner-type targeting distinction"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate fabricates a public-vs-private visibility distinction"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate confuses JavaScript actions (a third type) with composite actions"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-014-mcq-1",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Where do GitHub Actions secrets live, and how do they differ by scope?",
+        "options": {
+          "correct": "Secrets can be set at repository, organization, or environment level — environment secrets are exposed only to jobs targeting that environment",
+          "distractor_1": "All secrets live at the repository level only; organization and environment configurations point back to the same repo storage",
+          "distractor_2": "Secrets live in the runner's filesystem at /etc/gha/secrets and are pre-mounted into every step before execution",
+          "distractor_3": "Secrets live in the workflow's YAML file as encrypted values that GitHub decrypts at runtime using the repo's deploy key"
+        },
+        "explanation": "Three scopes: repo (visible to all workflows in the repo), org (visible to selected repos), environment (visible only when a job declares `environment: <name>`). Environment scope is the strongest gate. Distractor 1 collapses all three scopes incorrectly. Distractor 2 fabricates a filesystem path; secrets are injected as env vars at step time. Distractor 3 invents an in-YAML encrypted store; secrets are out-of-band in GitHub's metadata, never in the workflow file."
+      },
+      "after": {
+        "question": "Your team stores some secrets that every workflow in a repo can use and others that only the production deploy job should ever see. Where do GitHub Actions secrets live, and how do they differ by scope?",
+        "options": {
+          "correct": "Secrets can be set at repository, organization, or environment level — environment secrets are exposed only to jobs targeting that environment",
+          "distractor_1": "All secrets live at the repository level only; organization and environment configurations point back to the same repo storage",
+          "distractor_2": "Secrets live in the runner's filesystem at /etc/gha/secrets and are pre-mounted into every step before execution",
+          "distractor_3": "Secrets live in the workflow's YAML file as encrypted values that GitHub decrypts at runtime using the repo's deploy key"
+        },
+        "explanation": "Three scopes: repo (visible to all workflows in the repo), org (visible to selected repos), environment (visible only when a job declares `environment: <name>`). Environment scope is the strongest gate. Distractor 1 collapses all three scopes incorrectly. Distractor 2 fabricates a filesystem path; secrets are injected as env vars at step time. Distractor 3 invents an in-YAML encrypted store; secrets are out-of-band in GitHub's metadata, never in the workflow file."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate collapses the three scopes into repo-level-only storage"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate fabricates a filesystem path where secrets are pre-mounted"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents an in-YAML encrypted secret store decrypted by a deploy key"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-014-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "A production deploy job needs a manual approval and access to prod-only secrets. Which GitHub Actions feature delivers both?",
+        "options": {
+          "correct": "Environment with required reviewers — the job pauses for the named reviewer's approval, and the environment's secrets become available only after approval",
+          "distractor_1": "Branch protection rules — required reviewers on the protected branch act as the deploy approval and unlock the secret store",
+          "distractor_2": "Workflow concurrency groups — by setting concurrency on the deploy workflow, the second pending run waits for human approval to proceed",
+          "distractor_3": "Repository ruleset 'production' — when a workflow runs against a tag matching the ruleset, secrets become available conditionally"
+        },
+        "explanation": "Environments combine secret scoping with deployment protection rules (required reviewers, wait timers, branch restrictions). The deploy job pauses on environment entry until approved. Distractor 1 conflates branch protection (governs merges) with deployment approval (governs running). Distractor 2 misuses concurrency, which serialises but doesn't add approval gates. Distractor 3 invents a 'production' ruleset that doesn't natively exist. Environments + reviewers is the recommended production-deploy gate."
+      },
+      "after": {
+        "question": "Your team's production deploy job needs a manual approval before it runs, plus access to prod-only secrets. Which GitHub Actions feature delivers both?",
+        "options": {
+          "correct": "Environment with required reviewers — the job pauses for the named reviewer's approval, and the environment's secrets become available only after approval",
+          "distractor_1": "Branch protection rules — required reviewers on the protected branch act as the deploy approval and unlock the secret store",
+          "distractor_2": "Workflow concurrency groups — by setting concurrency on the deploy workflow, the second pending run waits for human approval to proceed",
+          "distractor_3": "Repository ruleset 'production' — when a workflow runs against a tag matching the ruleset, secrets become available conditionally"
+        },
+        "explanation": "Environments combine secret scoping with deployment protection rules (required reviewers, wait timers, branch restrictions). The deploy job pauses on environment entry until approved. Distractor 1 conflates branch protection (governs merges) with deployment approval (governs running). Distractor 2 misuses concurrency, which serialises but doesn't add approval gates. Distractor 3 invents a 'production' ruleset that doesn't natively exist. Environments + reviewers is the recommended production-deploy gate."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate conflates branch protection (governs merges) with deployment approval (governs running)"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate misuses concurrency groups, thinking they add an approval gate"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a native 'production' repository ruleset that conditionally unlocks secrets"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-021-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Push-based and pull-based deployments to EKS differ in which key way?",
+        "options": {
+          "correct": "Push pushes manifests from CI into the cluster (kubectl from GHA); pull has an in-cluster agent (Argo CD, Flux) that watches a Git repo and applies changes itself",
+          "distractor_1": "Push deploys are HTTP-based; pull deploys use a long-polling WebSocket connection from CI to the cluster",
+          "distractor_2": "Push deploys require kubectl on the runner; pull deploys require the runner to have a Kubernetes ServiceAccount with cluster-admin",
+          "distractor_3": "Push deploys are restricted to managed EKS; pull deploys are the only model that works for self-managed Kubernetes clusters"
+        },
+        "explanation": "The architectural shift in pull (GitOps): the cluster is the source of authority and watches Git, so CI's role is just to commit manifests, not to authenticate to the cluster. Distractor 1 invents a transport-protocol distinction; both are just kubectl-equivalent API calls. Distractor 2 inverts auth — push needs runner-side cluster credentials (which is the problem GitOps solves); pull doesn't. Distractor 3 fabricates a managed-only restriction; both models work on any cluster."
+      },
+      "after": {
+        "question": "Your team is deciding between pushing manifests into EKS from GitHub Actions and running an in-cluster agent that pulls from Git. Push-based and pull-based deployments to EKS differ in which key way?",
+        "options": {
+          "correct": "Push pushes manifests from CI into the cluster (kubectl from GHA); pull has an in-cluster agent (Argo CD, Flux) that watches a Git repo and applies changes itself",
+          "distractor_1": "Push deploys are HTTP-based; pull deploys use a long-polling WebSocket connection from CI to the cluster",
+          "distractor_2": "Push deploys require kubectl on the runner; pull deploys require the runner to have a Kubernetes ServiceAccount with cluster-admin",
+          "distractor_3": "Push deploys are restricted to managed EKS; pull deploys are the only model that works for self-managed Kubernetes clusters"
+        },
+        "explanation": "The architectural shift in pull (GitOps): the cluster is the source of authority and watches Git, so CI's role is just to commit manifests, not to authenticate to the cluster. Distractor 1 invents a transport-protocol distinction; both are just kubectl-equivalent API calls. Distractor 2 inverts auth — push needs runner-side cluster credentials (which is the problem GitOps solves); pull doesn't. Distractor 3 fabricates a managed-only restriction; both models work on any cluster."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a transport-protocol distinction (HTTP vs WebSocket)"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate inverts which model needs runner-side cluster credentials"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate fabricates a managed-EKS-only restriction for push"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-031-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "During an expand-contract migration, why is the backfill step often the longest and most fragile?",
+        "options": {
+          "correct": "Backfilling a large table means running an UPDATE across millions of rows, which can lock tables, drive replication lag, or saturate I/O bandwidth on the primary",
+          "distractor_1": "Backfills require taking the database offline because the schema isn't yet aware of the new column's data type",
+          "distractor_2": "Backfills must be run from inside a Lambda function because RDS doesn't support large UPDATE operations from regular client connections",
+          "distractor_3": "Backfills require the application code to be in maintenance mode so that no writes happen during the data migration"
+        },
+        "explanation": "Backfilling at production scale is the operationally hard part — it touches every row, runs for hours, contends with live traffic, and can cause replication lag if not chunked. Common practice: batch the UPDATE in chunks of 10k-100k rows with short transactions. Distractor 1 invents an offline requirement; the column already exists from expand. Distractor 2 fabricates an RDS limitation that doesn't exist. Distractor 3 misses the point of expand-contract — the new code writes to both columns, so live traffic continues during backfill."
+      },
+      "after": {
+        "question": "Your team is running an expand-contract migration on a large production table, and the backfill step keeps dragging on and causing incidents. Why is the backfill step often the longest and most fragile part?",
+        "options": {
+          "correct": "Backfilling a large table means running an UPDATE across millions of rows, which can lock tables, drive replication lag, or saturate I/O bandwidth on the primary",
+          "distractor_1": "Backfills require taking the database offline because the schema isn't yet aware of the new column's data type",
+          "distractor_2": "Backfills must be run from inside a Lambda function because RDS doesn't support large UPDATE operations from regular client connections",
+          "distractor_3": "Backfills require the application code to be in maintenance mode so that no writes happen during the data migration"
+        },
+        "explanation": "Backfilling at production scale is the operationally hard part — it touches every row, runs for hours, contends with live traffic, and can cause replication lag if not chunked. Common practice: batch the UPDATE in chunks of 10k-100k rows with short transactions. Distractor 1 invents an offline requirement; the column already exists from expand. Distractor 2 fabricates an RDS limitation that doesn't exist. Distractor 3 misses the point of expand-contract — the new code writes to both columns, so live traffic continues during backfill."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks the table must go offline because the schema is unaware of the new column"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate fabricates an RDS limitation requiring Lambda for large UPDATEs"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate misunderstands expand-contract, assuming writes must stop during backfill"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-032-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Why are database changes typically excluded from automated rollback?",
+        "options": {
+          "correct": "DB migrations are often forward-only and may have written data the old schema can't read — rolling back the code without a forward-compatible DB risks data loss",
+          "distractor_1": "Database changes are atomic; rolling back the code automatically rolls back the database via transaction logs",
+          "distractor_2": "Database changes are too slow to roll back inside a deploy window; the rollback would exceed the SLA target",
+          "distractor_3": "Database changes are versioned separately and the deploy pipeline has no awareness of which DB version is current"
+        },
+        "explanation": "Forward-only migrations are the norm because reversing arbitrary DDL/DML safely is hard — once production data has been written in the new shape, rolling back the schema loses or corrupts it. The discipline is expand-contract for risky changes and forward-fix for everything else. Distractor 1 invents an auto-rollback-via-transaction-logs feature that doesn't exist. Distractor 2 (too slow) is sometimes true but isn't the root concern. Distractor 3 misstates the cause — pipelines do track DB versions; the issue is data integrity."
+      },
+      "after": {
+        "question": "Your team has automated rollback for application code but deliberately leaves database migrations out of the automated rollback path. Why are database changes typically excluded from automated rollback?",
+        "options": {
+          "correct": "DB migrations are often forward-only and may have written data the old schema can't read — rolling back the code without a forward-compatible DB risks data loss",
+          "distractor_1": "Database changes are atomic; rolling back the code automatically rolls back the database via transaction logs",
+          "distractor_2": "Database changes are too slow to roll back inside a deploy window; the rollback would exceed the SLA target",
+          "distractor_3": "Database changes are versioned separately and the deploy pipeline has no awareness of which DB version is current"
+        },
+        "explanation": "Forward-only migrations are the norm because reversing arbitrary DDL/DML safely is hard — once production data has been written in the new shape, rolling back the schema loses or corrupts it. The discipline is expand-contract for risky changes and forward-fix for everything else. Distractor 1 invents an auto-rollback-via-transaction-logs feature that doesn't exist. Distractor 2 (too slow) is sometimes true but isn't the root concern. Distractor 3 misstates the cause — pipelines do track DB versions; the issue is data integrity."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents auto-rollback-of-DB-via-transaction-logs"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate cites rollback speed/SLA as the root concern"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks pipelines have no awareness of current DB version"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-040-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Where in a CI/CD pipeline should DAST scans run?",
+        "options": {
+          "correct": "After deploy to a non-production environment (staging or pre-prod), so the scanner can probe a running application instance from the outside",
+          "distractor_1": "During the build stage, before the container image is created — DAST analyses the code's runtime behaviour at compile time",
+          "distractor_2": "After deploy to production only — DAST results are only meaningful when probing real user traffic patterns",
+          "distractor_3": "Before any code commit — DAST runs locally on the developer's machine to catch runtime issues before they ever reach the pipeline or remote environments"
+        },
+        "explanation": "DAST is dynamic: it needs a running app to test, but you don't want to test in production. Staging or a dedicated security-test environment is the right place. Distractor 1 confuses DAST with SAST (compile-time). Distractor 2 (production only) creates real-traffic interference and risks the scanner triggering real alerts/outages. Distractor 3 confuses DAST with developer pre-commit hooks; DAST requires a deployed environment, not just source. Most pipelines run DAST nightly or per-release rather than per-commit."
+      },
+      "after": {
+        "question": "Your team is adding DAST (dynamic application security testing) to its pipeline, and the scanner needs to probe a running instance of the app from the outside. Where in the CI/CD pipeline should the DAST scan run?",
+        "options": {
+          "correct": "After deploy to a non-production environment (staging or pre-prod), so the scanner can probe a running application instance from the outside",
+          "distractor_1": "During the build stage, before the container image is created — DAST analyses the code's runtime behaviour at compile time",
+          "distractor_2": "After deploy to production only — DAST results are only meaningful when probing real user traffic patterns",
+          "distractor_3": "Before any code commit — DAST runs locally on the developer's machine to catch runtime issues before they ever reach the pipeline or remote environments"
+        },
+        "explanation": "DAST is dynamic: it needs a running app to test, but you don't want to test in production. Staging or a dedicated security-test environment is the right place. Distractor 1 confuses DAST with SAST (compile-time). Distractor 2 (production only) creates real-traffic interference and risks the scanner triggering real alerts/outages. Distractor 3 confuses DAST with developer pre-commit hooks; DAST requires a deployed environment, not just source. Most pipelines run DAST nightly or per-release rather than per-commit."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate confuses DAST with SAST (compile-time static analysis)"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks DAST is only meaningful against real production traffic"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate confuses DAST with a developer pre-commit hook running locally"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-041-mcq-1",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "SonarQube has a 'Quality Gate' configured on a project. What does the Quality Gate evaluate?",
+        "options": {
+          "correct": "A set of metrics on either the new code or the whole codebase that, if breached, marks the PR as failing the gate",
+          "distractor_1": "Whether the developer has manually marked the PR as ready for review using SonarQube's web UI before merging",
+          "distractor_2": "Whether the PR's commit messages follow the SonarQube-mandated conventional commits format (feat/fix/chore prefixes)",
+          "distractor_3": "Whether the PR has been reviewed by at least two SonarQube-certified reviewers within the configured time window, with quality recorded as a side effect of the human review"
+        },
+        "explanation": "Quality Gates are SonarQube's pass/fail mechanism — metrics like 'no new critical bugs', 'duplication < 3%', 'new code coverage > 80%' are configured and checked on each scan. Distractor 1 invents a manual ready-for-review step. Distractor 2 invents a commit message convention requirement. Distractor 3 invents a SonarQube reviewer certification. The metric set is configurable per project, with sensible defaults for new vs all code."
+      },
+      "after": {
+        "question": "Your team has configured a SonarQube 'Quality Gate' on a project, and a pull request just failed it. What does the Quality Gate evaluate?",
+        "options": {
+          "correct": "A set of metrics on either the new code or the whole codebase that, if breached, marks the PR as failing the gate",
+          "distractor_1": "Whether the developer has manually marked the PR as ready for review using SonarQube's web UI before merging",
+          "distractor_2": "Whether the PR's commit messages follow the SonarQube-mandated conventional commits format (feat/fix/chore prefixes)",
+          "distractor_3": "Whether the PR has been reviewed by at least two SonarQube-certified reviewers within the configured time window, with quality recorded as a side effect of the human review"
+        },
+        "explanation": "Quality Gates are SonarQube's pass/fail mechanism — metrics like 'no new critical bugs', 'duplication < 3%', 'new code coverage > 80%' are configured and checked on each scan. Distractor 1 invents a manual ready-for-review step. Distractor 2 invents a commit message convention requirement. Distractor 3 invents a SonarQube reviewer certification. The metric set is configurable per project, with sensible defaults for new vs all code."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a manual 'ready for review' marking step in the SonarQube UI"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a mandated conventional-commits message format"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a SonarQube reviewer-certification requirement"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-041-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Why does SonarQube focus on 'new code' metrics rather than whole-codebase metrics for Quality Gates?",
+        "options": {
+          "correct": "New-code metrics let teams improve incrementally without backfilling years of legacy debt before the gate ever passes",
+          "distractor_1": "New code is the only code SonarQube can analyse because it can't index files older than 30 days",
+          "distractor_2": "Whole-codebase metrics are slow to compute, while new-code metrics run in under one second regardless of repo size",
+          "distractor_3": "SonarQube charges by line of new code analysed, so whole-codebase mode is disabled in the free tier by default"
+        },
+        "explanation": "The new-code-only approach is what makes SonarQube adoptable in real codebases — old debt is grandfathered while the team enforces a higher bar on new changes. Distractor 1 fabricates a 30-day analysis horizon. Distractor 2 (whole-codebase too slow) isn't accurate — scans index incrementally. Distractor 3 invents a per-line pricing model. The new-code window is configurable (previous release, fixed date, etc.) but the principle of 'don't make it worse' is core."
+      },
+      "after": {
+        "question": "Your team turns on a SonarQube Quality Gate for a large legacy codebase and notices it evaluates only 'new code' rather than the whole repo. Why does SonarQube focus on new-code metrics for Quality Gates?",
+        "options": {
+          "correct": "New-code metrics let teams improve incrementally without backfilling years of legacy debt before the gate ever passes",
+          "distractor_1": "New code is the only code SonarQube can analyse because it can't index files older than 30 days",
+          "distractor_2": "Whole-codebase metrics are slow to compute, while new-code metrics run in under one second regardless of repo size",
+          "distractor_3": "SonarQube charges by line of new code analysed, so whole-codebase mode is disabled in the free tier by default"
+        },
+        "explanation": "The new-code-only approach is what makes SonarQube adoptable in real codebases — old debt is grandfathered while the team enforces a higher bar on new changes. Distractor 1 fabricates a 30-day analysis horizon. Distractor 2 (whole-codebase too slow) isn't accurate — scans index incrementally. Distractor 3 invents a per-line pricing model. The new-code window is configurable (previous release, fixed date, etc.) but the principle of 'don't make it worse' is core."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate fabricates a 30-day analysis horizon limiting what SonarQube can index"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate believes whole-codebase metrics are too slow to compute"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a per-line-of-new-code pricing model gating whole-codebase mode"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-051-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "An experienced pipeline owner is asked to redesign a CI/CD pipeline that takes 40 minutes and ships once a week. Which prioritisation reflects mature production thinking?",
+        "options": {
+          "correct": "Fast signal first (parallelise + shard tests) and tighten the deploy gate (smaller batches, automated rollback) — speed of feedback is the dominant lever",
+          "distractor_1": "Maximise pipeline reliability by adding 3 retries to every stage and disabling flaky tests for the next quarter to stabilise the build",
+          "distractor_2": "Migrate to the newest CI tooling first; tooling churn unlocks 10x improvements that incremental changes cannot match",
+          "distractor_3": "Reduce scope: cut tests that have caught fewer than 5 bugs in the last year and rely on production monitoring for the rest"
+        },
+        "explanation": "The owner's first job is to compress the feedback loop so commits-to-ship is short and reliable — that's where speed and risk both come down. Distractor 1 (retries + disable flakes) trades signal for green checkmarks; production gets worse. Distractor 2 (tooling churn) is the rookie answer — gains rarely come from the tool. Distractor 3 (cut tests) trades coverage for speed without understanding the cost; flaky-and-slow tests get fixed, not deleted. Mature owners prioritise *useful* fast signal."
+      },
+      "after": {
+        "question": "An engineer who owns a CI/CD pipeline is asked to redesign it: today it takes 40 minutes and ships once a week. Which prioritisation reflects mature production thinking?",
+        "options": {
+          "correct": "Fast signal first (parallelise + shard tests) and tighten the deploy gate (smaller batches, automated rollback) — speed of feedback is the dominant lever",
+          "distractor_1": "Maximise pipeline reliability by adding 3 retries to every stage and disabling flaky tests for the next quarter to stabilise the build",
+          "distractor_2": "Migrate to the newest CI tooling first; tooling churn unlocks 10x improvements that incremental changes cannot match",
+          "distractor_3": "Reduce scope: cut tests that have caught fewer than 5 bugs in the last year and rely on production monitoring for the rest"
+        },
+        "explanation": "The owner's first job is to compress the feedback loop so commits-to-ship is short and reliable — that's where speed and risk both come down. Distractor 1 (retries + disable flakes) trades signal for green checkmarks; production gets worse. Distractor 2 (tooling churn) is the rookie answer — gains rarely come from the tool. Distractor 3 (cut tests) trades coverage for speed without understanding the cost; flaky-and-slow tests get fixed, not deleted. Mature owners prioritise *useful* fast signal."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate trades real signal for green checks (retries everywhere, disable flaky tests)"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate believes tooling churn unlocks 10x gains over incremental change"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate cuts test coverage for speed without weighing the cost"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-051-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Which lesson would a pipeline owner most likely take from running a CI/CD system through 18 months of production?",
+        "options": {
+          "correct": "Reduce batch size — large infrequent merges produce most incidents; small, frequent merges produce most boring uneventful deploys",
+          "distractor_1": "Centralise everything — replace decentralised team pipelines with a single org-wide pipeline that all changes flow through for consistency",
+          "distractor_2": "Add gates — every deploy should pass through at least 5 approval gates to ensure no change reaches production without sign-off",
+          "distractor_3": "Move to a custom in-house CI system — third-party CI tools (GitHub Actions, GitLab) cannot meet the reliability needs of mature pipelines"
+        },
+        "explanation": "Small batch size is the single most consistent lesson from pipeline operations — it shrinks the change surface, eases bisection on regression, and keeps reviewers honest. Distractor 1 (centralisation) often slows teams and adds blocking dependencies. Distractor 2 (more gates) trades velocity for false-precision; gates without signal become rubber-stamping. Distractor 3 (build your own CI) is the classic 'not invented here' trap — almost never the right answer."
+      },
+      "after": {
+        "question": "An engineer has run a team's CI/CD system in production for 18 months. Which lesson would they most likely take away from that experience?",
+        "options": {
+          "correct": "Reduce batch size — large infrequent merges produce most incidents; small, frequent merges produce most boring uneventful deploys",
+          "distractor_1": "Centralise everything — replace decentralised team pipelines with a single org-wide pipeline that all changes flow through for consistency",
+          "distractor_2": "Add gates — every deploy should pass through at least 5 approval gates to ensure no change reaches production without sign-off",
+          "distractor_3": "Move to a custom in-house CI system — third-party CI tools (GitHub Actions, GitLab) cannot meet the reliability needs of mature pipelines"
+        },
+        "explanation": "Small batch size is the single most consistent lesson from pipeline operations — it shrinks the change surface, eases bisection on regression, and keeps reviewers honest. Distractor 1 (centralisation) often slows teams and adds blocking dependencies. Distractor 2 (more gates) trades velocity for false-precision; gates without signal become rubber-stamping. Distractor 3 (build your own CI) is the classic 'not invented here' trap — almost never the right answer."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate believes centralising all teams onto one pipeline improves consistency net-positive"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate believes more approval gates always means safer deploys"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate falls for the not-invented-here trap of building a custom CI system"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    }
+  ],
+  "mcqs_completed": 15,
+  "mcqs_dropped_to_tier3": 1,
+  "drop_out_ids": [
+    "cicd-001-mcq-1"
+  ]
+}

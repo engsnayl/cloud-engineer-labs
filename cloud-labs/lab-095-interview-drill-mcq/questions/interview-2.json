@@ -374,7 +374,7 @@
     "subdomain": "github-actions",
     "priority": "critical",
     "difficulty": "medium",
-    "question": "Where do GitHub Actions secrets live, and how do they differ by scope?",
+    "question": "Your team stores some secrets that every workflow in a repo can use and others that only the production deploy job should ever see. Where do GitHub Actions secrets live, and how do they differ by scope?",
     "options": {
       "correct": "Secrets can be set at repository, organization, or environment level \u2014 environment secrets are exposed only to jobs targeting that environment",
       "distractor_1": "All secrets live at the repository level only; organization and environment configurations point back to the same repo storage",
@@ -406,7 +406,7 @@
     "subdomain": "aws-integration",
     "priority": "high",
     "difficulty": "medium",
-    "question": "Push-based and pull-based deployments to EKS differ in which key way?",
+    "question": "Your team is deciding between pushing manifests into EKS from GitHub Actions and running an in-cluster agent that pulls from Git. Push-based and pull-based deployments to EKS differ in which key way?",
     "options": {
       "correct": "Push pushes manifests from CI into the cluster (kubectl from GHA); pull has an in-cluster agent (Argo CD, Flux) that watches a Git repo and applies changes itself",
       "distractor_1": "Push deploys are HTTP-based; pull deploys use a long-polling WebSocket connection from CI to the cluster",
@@ -438,7 +438,7 @@
     "subdomain": "deployment-strategies",
     "priority": "high",
     "difficulty": "medium",
-    "question": "Why are database changes typically excluded from automated rollback?",
+    "question": "Your team has automated rollback for application code but deliberately leaves database migrations out of the automated rollback path. Why are database changes typically excluded from automated rollback?",
     "options": {
       "correct": "DB migrations are often forward-only and may have written data the old schema can't read \u2014 rolling back the code without a forward-compatible DB risks data loss",
       "distractor_1": "Database changes are atomic; rolling back the code automatically rolls back the database via transaction logs",
@@ -454,7 +454,7 @@
     "subdomain": "quality",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "SonarQube has a 'Quality Gate' configured on a project. What does the Quality Gate evaluate?",
+    "question": "Your team has configured a SonarQube 'Quality Gate' on a project, and a pull request just failed it. What does the Quality Gate evaluate?",
     "options": {
       "correct": "A set of metrics on either the new code or the whole codebase that, if breached, marks the PR as failing the gate",
       "distractor_1": "Whether the developer has manually marked the PR as ready for review using SonarQube's web UI before merging",
@@ -486,7 +486,7 @@
     "subdomain": "ownership",
     "priority": "critical",
     "difficulty": "medium",
-    "question": "Which lesson would a pipeline owner most likely take from running a CI/CD system through 18 months of production?",
+    "question": "An engineer has run a team's CI/CD system in production for 18 months. Which lesson would they most likely take away from that experience?",
     "options": {
       "correct": "Reduce batch size \u2014 large infrequent merges produce most incidents; small, frequent merges produce most boring uneventful deploys",
       "distractor_1": "Centralise everything \u2014 replace decentralised team pipelines with a single org-wide pipeline that all changes flow through for consistency",

@@ -294,7 +294,7 @@
     "subdomain": "fundamentals",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "Trunk-based development with rapid merge cadence depends on which mechanism to ship unfinished features safely?",
+    "question": "Your team has adopted trunk-based development and merges to main several times a day, but engineers need to land unfinished features without exposing them to users. Which mechanism makes that safe?",
     "options": {
       "correct": "Feature flags \u2014 code paths for incomplete features are merged to main behind flags that gate execution at runtime",
       "distractor_1": "Code comments \u2014 TODO markers and `// disabled` blocks ensure unfinished code is identified by reviewers before merge",
@@ -310,7 +310,7 @@
     "subdomain": "github-actions",
     "priority": "critical",
     "difficulty": "medium",
-    "question": "Compare GitHub-hosted runners and self-hosted runners. When would you choose self-hosted?",
+    "question": "Your team's CI jobs need to reach an internal artifact store on a private network and occasionally run on GPU hardware. When would you choose self-hosted GitHub Actions runners over GitHub-hosted ones?",
     "options": {
       "correct": "When you need access to private network resources, special hardware (GPUs, ARM, large memory), or want to amortise compute across many jobs at lower marginal cost",
       "distractor_1": "When you need workflows to run faster \u2014 self-hosted runners are 5-10x faster than GitHub-hosted due to dedicated hardware",
@@ -374,7 +374,7 @@
     "subdomain": "github-actions",
     "priority": "critical",
     "difficulty": "medium",
-    "question": "A production deploy job needs a manual approval and access to prod-only secrets. Which GitHub Actions feature delivers both?",
+    "question": "Your team's production deploy job needs a manual approval before it runs, plus access to prod-only secrets. Which GitHub Actions feature delivers both?",
     "options": {
       "correct": "Environment with required reviewers \u2014 the job pauses for the named reviewer's approval, and the environment's secrets become available only after approval",
       "distractor_1": "Branch protection rules \u2014 required reviewers on the protected branch act as the deploy approval and unlock the secret store",
@@ -422,7 +422,7 @@
     "subdomain": "deployment-strategies",
     "priority": "high",
     "difficulty": "hard",
-    "question": "During an expand-contract migration, why is the backfill step often the longest and most fragile?",
+    "question": "Your team is running an expand-contract migration on a large production table, and the backfill step keeps dragging on and causing incidents. Why is the backfill step often the longest and most fragile part?",
     "options": {
       "correct": "Backfilling a large table means running an UPDATE across millions of rows, which can lock tables, drive replication lag, or saturate I/O bandwidth on the primary",
       "distractor_1": "Backfills require taking the database offline because the schema isn't yet aware of the new column's data type",
@@ -438,7 +438,7 @@
     "subdomain": "security",
     "priority": "high",
     "difficulty": "medium",
-    "question": "Where in a CI/CD pipeline should DAST scans run?",
+    "question": "Your team is adding DAST (dynamic application security testing) to its pipeline, and the scanner needs to probe a running instance of the app from the outside. Where in the CI/CD pipeline should the DAST scan run?",
     "options": {
       "correct": "After deploy to a non-production environment (staging or pre-prod), so the scanner can probe a running application instance from the outside",
       "distractor_1": "During the build stage, before the container image is created \u2014 DAST analyses the code's runtime behaviour at compile time",
@@ -454,7 +454,7 @@
     "subdomain": "quality",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "Why does SonarQube focus on 'new code' metrics rather than whole-codebase metrics for Quality Gates?",
+    "question": "Your team turns on a SonarQube Quality Gate for a large legacy codebase and notices it evaluates only 'new code' rather than the whole repo. Why does SonarQube focus on new-code metrics for Quality Gates?",
     "options": {
       "correct": "New-code metrics let teams improve incrementally without backfilling years of legacy debt before the gate ever passes",
       "distractor_1": "New code is the only code SonarQube can analyse because it can't index files older than 30 days",
