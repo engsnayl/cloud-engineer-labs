@@ -17,6 +17,16 @@ Every distractor authored or rewritten in Tiers 2 and 3, and every distractor th
 > **6-month-candidate test (operationalised "A_fabricated" check):**
 > "Could a real candidate with ~6 months of cloud experience but no deep knowledge of this specific feature actually believe this distractor? If answering requires inventing a feature, version, billing detail, or limit that doesn't exist, replace it."
 
+**Operative rule (settled at GATE 1, 2026-06-02 — supersedes any "no inventions" reading):**
+
+The 6-month-candidate test is the bar — *not* "no inventions." Distractors split into two kinds:
+
+- **Named-identifier fabrications fail categorically.** Invented config keys, CLI commands, flags, specific invented numbers/limits, or fabricated version-deprecations. A junior cannot reach these from a misconception — they only "believe" them by falsely thinking they saw them in docs. Examples flagged at GATE 1: `skip-matrix:` (cicd-012-mcq-2), `terraform_module_version:` (tf-003-mcq-2), `aws ecs deploy-now` (cicd-022-mcq-1), `git pull --fork` (git-003-mcq-2), a specific "10 manifest ops/min" limit (cicd-021-mcq-1).
+- **Invented-behaviour-of-a-real-feature passes** *if* a junior could plausibly hold the misconception via a transferred mental model or a natural mis-extension (e.g. "Terraform `count` cannot shrink without a `state mv`" — tf-011-mcq-1, a pilot exemplar; "Git refuses to push a gitignored file" — git-006-mcq-1). It **fails** if it requires swallowing an impossibility (e.g. `minimumHealthyPercent = 200` — cicd-022-mcq-2), leans on false-authority jargon (e.g. "kernel buffer the daemon doesn't drain" — docker-010-mcq-2; "kernel warm-tuning period" — aws-019-mcq-2), or contradicts the feature's basic semantics.
+- **Borderline cases: surface for human review rather than auto-decide.** Reference borderline: **k8s-014-mcq-2** (`externalTrafficPolicy: External` — real field, invented value/behaviour; resolved at-bar as a transferred mental model). When Tier 1/2 work hits a similar judgment, surface it.
+
+The pilot stands unchanged: its invented-behaviour distractors (aws-003-mcq-1, tf-002-mcq-2, tf-011-mcq-1) are at-bar under this rule, and the `audit_suspect.py` constraint/mechanism heuristics over-flag them (useful as a contrast signal, not as a verdict).
+
 Other rubric tightenings (apply when a stem or option is touched):
 
 - **≥70% scenario stems** across the bank — the rewrite must not regress this ratio. Pure recall ("What is X?") allowed only when recall is genuinely the testable point (octal permissions, port numbers, defaults).
