@@ -1,7 +1,58 @@
 {
   "baseline_flagged_count": 126,
   "baseline_snapshot_path": "interview-questions-runner/phase4-rewrite/baseline-snapshot.json",
-  "control_sample_status": "pending",
+  "control_sample_status": "expanded_audit",
+  "control_sample_seed": 4096,
+  "control_sample_ids": [
+    "git-006-mcq-1",
+    "tf-011-mcq-1",
+    "cicd-012-mcq-2",
+    "docker-010-mcq-2",
+    "k8s-002-mcq-2",
+    "aws-020-mcq-2"
+  ],
+  "control_sample_verdicts": {
+    "at_bar": ["k8s-002-mcq-2", "aws-020-mcq-2"],
+    "borderline_treated_as_fail": ["git-006-mcq-1", "tf-011-mcq-1"],
+    "fails_rubric": ["cicd-012-mcq-2", "docker-010-mcq-2"]
+  },
+  "fails_rubric_pending_re_audit": [
+    "cicd-012-mcq-2",
+    "docker-010-mcq-2",
+    "git-006-mcq-1",
+    "tf-011-mcq-1"
+  ],
+  "audit_expansion": {
+    "patterns_added_date": "2026-06-02",
+    "patterns_added": [
+      "mechanism-claim (kernel/buffer/drain/queue as cause-effect agents)",
+      "invented-constraint (cannot X without Y first, refuses to X if Y)",
+      "invented-key (YAML/HCL/CLI keys not in allowlist for major tools)"
+    ],
+    "control_sample_failures_caught_by_new_patterns": {
+      "cicd-012-mcq-2": ["key-not-in-allowlist:skip-matrix"],
+      "docker-010-mcq-2": ["mechanism-kernel-internal", "mechanism-agent-negation"],
+      "git-006-mcq-1": ["constraint-until-you", "constraint-tool-prohibits"],
+      "tf-011-mcq-1": ["constraint-refuses", "constraint-tool-prohibits"]
+    },
+    "suspect_distractors_after_expansion": {
+      "total_distractor_entries": 95,
+      "distinct_mcqs": 73,
+      "mechanism_distinct_mcqs": 3,
+      "constraint_distinct_mcqs": 7,
+      "key_distinct_mcqs": 7,
+      "new_mcqs_added_to_flagged": 11,
+      "expanded_total_flagged": 137
+    },
+    "known_false_positives_to_review_next_session": [
+      "key-not-in-allowlist:python (docker-004-mcq-1) — `python:3.12-alpine` is a Docker image tag, not a fabricated YAML key",
+      "key-not-in-allowlist:ubuntu (docker-004-mcq-1) — `ubuntu:latest` is a Docker image tag",
+      "key-not-in-allowlist:aws (cicd-020-mcq-2) — `aws:MultiFactorAuthPresent` is a real IAM condition key (but the broader distractor claim about JWT MFA inheritance is still suspect — verify manually)",
+      "mechanism-silent-failure on tf-002-mcq-1 distractor_3 — `silently overwrites the first's state` is the literal pilot distractor; this is a false positive"
+    ],
+    "llm_pass_pending": true,
+    "llm_pass_scope": "82 unflagged MCQs minus those now caught by expanded heuristics; LLM should specifically look for invented mechanisms, invented constraints, invented config keys/fields, and any other authoritative-sounding claims that the candidate could not verify against official docs"
+  },
   "batches": [],
   "running_totals": {
     "tier1_dropouts_to_tier3": 0,

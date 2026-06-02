@@ -20,6 +20,15 @@
   {
     "id": "aws-003-mcq-1",
     "bank": 1,
+    "distractor": "distractor_2",
+    "text": "The inbound SYN is dropped at the subnet because NACLs require an outbound rule before evaluating any inbound traffic",
+    "patterns": [
+      "constraint-requires-first"
+    ]
+  },
+  {
+    "id": "aws-003-mcq-1",
+    "bank": 1,
     "distractor": "distractor_3",
     "text": "The connection succeeds because AWS implicitly allows ephemeral-port return traffic at the subnet level once an inbound rule has matched",
     "patterns": [
@@ -73,6 +82,15 @@
     ]
   },
   {
+    "id": "cicd-021-mcq-1",
+    "bank": 1,
+    "distractor": "distractor_3",
+    "text": "kubectl apply runs synchronously and cannot return until every resource is healthy, blocking the workflow indefinitely",
+    "patterns": [
+      "constraint-cannot-without"
+    ]
+  },
+  {
     "id": "cicd-032-mcq-1",
     "bank": 1,
     "distractor": "distractor_3",
@@ -100,12 +118,40 @@
     ]
   },
   {
+    "id": "docker-004-mcq-1",
+    "bank": 1,
+    "distractor": "distractor_1",
+    "text": "Use `python:3.12-alpine`; Alpine is the smallest option and avoids the C-extension compatibility issues that plague Debian-based images for Python",
+    "patterns": [
+      "key-not-in-allowlist:python"
+    ]
+  },
+  {
+    "id": "docker-004-mcq-1",
+    "bank": 1,
+    "distractor": "distractor_3",
+    "text": "Use `ubuntu:latest`; Ubuntu's package manager is more efficient and produces smaller layers than Debian's",
+    "patterns": [
+      "key-not-in-allowlist:ubuntu"
+    ]
+  },
+  {
+    "id": "k8s-014-mcq-1",
+    "bank": 1,
+    "distractor": "distractor_2",
+    "text": "Env vars are limited to 32 entries per pod, so larger deployments hit the limit and silently lose service entries",
+    "patterns": [
+      "mechanism-silent-failure"
+    ]
+  },
+  {
     "id": "k8s-021-mcq-1",
     "bank": 1,
     "distractor": "distractor_2",
     "text": "nodeSelector alone is enough \u2014 adding the label `gpu: required` to the pod automatically schedules it onto labeled nodes only",
     "patterns": [
-      "auto-implicit"
+      "auto-implicit",
+      "key-not-in-allowlist:gpu"
     ]
   },
   {
@@ -136,12 +182,31 @@
     ]
   },
   {
+    "id": "tf-002-mcq-1",
+    "bank": 1,
+    "distractor": "distractor_3",
+    "text": "Both applies succeed but the second silently overwrites the first's state",
+    "patterns": [
+      "mechanism-silent-failure"
+    ]
+  },
+  {
     "id": "tf-005-mcq-1",
     "bank": 1,
     "distractor": "distractor_3",
     "text": "Workspaces are a legacy 0.11-era feature that no longer works with Terraform 1.x \u2014 they were officially deprecated and removed from the CLI in the 1.0 release",
     "patterns": [
       "removed-feature"
+    ]
+  },
+  {
+    "id": "tf-011-mcq-1",
+    "bank": 1,
+    "distractor": "distractor_2",
+    "text": "Terraform refuses to apply because count cannot shrink after the first apply without a terraform state mv first",
+    "patterns": [
+      "constraint-refuses",
+      "constraint-tool-prohibits"
     ]
   },
   {
@@ -231,7 +296,8 @@
     "distractor": "distractor_3",
     "text": "An MFA-required condition (`aws:MultiFactorAuthPresent: true`) on the role, since GitHub-issued JWTs include an implicit MFA claim derived from the user's authenticated GitHub session at workflow start",
     "patterns": [
-      "auto-implicit"
+      "auto-implicit",
+      "key-not-in-allowlist:aws"
     ]
   },
   {
@@ -280,6 +346,16 @@
     ]
   },
   {
+    "id": "docker-010-mcq-2",
+    "bank": 2,
+    "distractor": "distractor_3",
+    "text": "Restart Docker daemon to flush log buffers; transient containers often lose stdout to a kernel buffer that the daemon doesn't drain",
+    "patterns": [
+      "mechanism-kernel-internal",
+      "mechanism-agent-negation"
+    ]
+  },
+  {
     "id": "git-002-mcq-2",
     "bank": 2,
     "distractor": "distractor_2",
@@ -295,6 +371,34 @@
     "text": "Git automatically retroactively removes the file from history once it's added to .gitignore",
     "patterns": [
       "auto-implicit"
+    ]
+  },
+  {
+    "id": "git-006-mcq-1",
+    "bank": 2,
+    "distractor": "distractor_2",
+    "text": "The next push fails because Git refuses to push a file that's now in .gitignore until you delete it from disk",
+    "patterns": [
+      "constraint-until-you",
+      "constraint-tool-prohibits"
+    ]
+  },
+  {
+    "id": "k8s-004-mcq-2",
+    "bank": 2,
+    "distractor": "distractor_1",
+    "text": "Declared in a new `sidecarContainers:` field at the same level as `containers:` and `initContainers:`, with a dedicated lifecycle separate from both",
+    "patterns": [
+      "key-not-in-allowlist:sidecarContainers"
+    ]
+  },
+  {
+    "id": "k8s-004-mcq-2",
+    "bank": 2,
+    "distractor": "distractor_2",
+    "text": "Declared with `containerType: sidecar` on a regular container; the kubelet then defers their startup until all other containers signal readiness",
+    "patterns": [
+      "key-not-in-allowlist:containerType"
     ]
   },
   {
@@ -371,6 +475,15 @@
     ]
   },
   {
+    "id": "tf-003-mcq-2",
+    "bank": 2,
+    "distractor": "distractor_2",
+    "text": "A `terraform_module_version:` field in versions.tf declaring the minimum compatible Terraform CLI version for the Git source",
+    "patterns": [
+      "key-not-in-allowlist:terraform_module_version"
+    ]
+  },
+  {
     "id": "tf-004-mcq-2",
     "bank": 2,
     "distractor": "distractor_2",
@@ -425,6 +538,15 @@
     ]
   },
   {
+    "id": "aws-019-mcq-2",
+    "bank": 3,
+    "distractor": "distractor_3",
+    "text": "m5.xlarge uses a different Nitro generation that requires the AMI to be rebuilt before performance returns to baseline",
+    "patterns": [
+      "constraint-requires-first"
+    ]
+  },
+  {
     "id": "aws-022-mcq-2",
     "bank": 3,
     "distractor": "distractor_3",
@@ -449,6 +571,15 @@
     "text": "Composite actions inherit all repository and organization secrets automatically without any explicit passing required",
     "patterns": [
       "auto-implicit"
+    ]
+  },
+  {
+    "id": "cicd-012-mcq-2",
+    "bank": 3,
+    "distractor": "distractor_3",
+    "text": "Add `skip-matrix:` to the workflow YAML with the combination key, which tells GitHub to not even queue that job run",
+    "patterns": [
+      "key-not-in-allowlist:skip-matrix"
     ]
   },
   {
@@ -590,6 +721,15 @@
     ]
   },
   {
+    "id": "k8s-010-mcq-2",
+    "bank": 3,
+    "distractor": "distractor_2",
+    "text": "When you need TLS termination at the cluster edge, since LoadBalancer Services cannot terminate TLS without an additional sidecar",
+    "patterns": [
+      "constraint-cannot-without"
+    ]
+  },
+  {
     "id": "k8s-012-mcq-2",
     "bank": 3,
     "distractor": "distractor_3",
@@ -599,12 +739,30 @@
     ]
   },
   {
+    "id": "k8s-014-mcq-2",
+    "bank": 3,
+    "distractor": "distractor_2",
+    "text": "LoadBalancer with `externalTrafficPolicy: External` \u2014 provisions a cluster-local DNS entry that proxies traffic to the named external host",
+    "patterns": [
+      "key-not-in-allowlist:externalTrafficPolicy"
+    ]
+  },
+  {
     "id": "k8s-022-mcq-2",
     "bank": 3,
     "distractor": "distractor_1",
     "text": "The kubelet honours the app's actual drain time and waits up to 8 seconds, ignoring terminationGracePeriodSeconds when SIGTERM is being handled",
     "patterns": [
       "specific-duration"
+    ]
+  },
+  {
+    "id": "k8s-031-mcq-2",
+    "bank": 3,
+    "distractor": "distractor_2",
+    "text": "Secrets Manager requires VPC PrivateLink to be enabled before any EKS workload can authenticate; the cluster needs an Interface endpoint",
+    "patterns": [
+      "constraint-requires-first"
     ]
   },
   {
