@@ -1,0 +1,427 @@
+[
+  {
+    "id": "aws-001-mcq-1",
+    "source_id": "aws-001",
+    "domain": "aws",
+    "subdomain": "architecture",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "You're designing a 3-tier app on AWS with an internet-facing Application Load Balancer fronting a web tier Auto Scaling Group, which calls an app tier ASG, which talks to RDS. The web tier ASG needs internet for OS patching but must not accept inbound from the internet directly. Where do the ALB and the web tier ASG belong?",
+    "options": {
+      "correct": "ALB in public subnets, web tier ASG in private subnets — the ALB reaches its targets over private IPs in the same VPC",
+      "distractor_1": "ALB and web tier ASG both in public subnets so the ALB can health-check the instances over public IPs",
+      "distractor_2": "ALB in public subnets and web tier ASG in public subnets behind a NAT Gateway that translates incoming HTTPS into private connections",
+      "distractor_3": "ALB in private subnets and web tier ASG in public subnets, with the ALB exposed via an Internet Gateway route added to the private subnet's route table"
+    },
+    "explanation": "Internet-facing ALBs sit in public subnets; target groups can live in private subnets because the VPC routes traffic to targets over private IPs. The ASG gets inbound only through the ALB and outbound through a NAT Gateway for patching. Distractor 1 wastes the safer pattern by exposing the ASG instances directly. Distractor 2 misuses NAT Gateway as an inbound proxy — NAT is outbound-only. Distractor 3 inverts the placement and invokes an impossible config: adding an IGW route to a private subnet would make it public by definition."
+  },
+  {
+    "id": "aws-001-mcq-2",
+    "source_id": "aws-001",
+    "domain": "aws",
+    "subdomain": "architecture",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "A 3-tier app has three Security Groups: sg-web, sg-app, sg-db. The app tier listens on port 8080 and must only be reachable from web tier instances. Which inbound rule on sg-app is the most secure and operationally robust?",
+    "options": {
+      "correct": "Allow TCP/8080 with source set to sg-web, so the rule applies to whichever instances are currently members of the web tier security group",
+      "distractor_1": "Allow TCP/8080 with source set to the VPC CIDR block, narrow enough that only resources inside this VPC can reach the app tier",
+      "distractor_2": "Allow TCP/8080 with source set to 0.0.0.0/0, since the app tier is in private subnets and the internet can't route to it anyway",
+      "distractor_3": "Allow TCP/8080 with source set to each web tier instance's private IP individually, updated by a Lambda triggered on ASG scaling events"
+    },
+    "explanation": "Security Groups can reference other Security Groups as the source; the rule self-updates as instances enter or leave the referenced SG. Distractor 1 (VPC CIDR) works but permits any resource in the VPC, breaking least privilege. Distractor 2 (0.0.0.0/0) is dangerous — the moment any path to the app tier exists (peering, VPN, a misrouted internet gateway), the rule becomes a wide-open hole. Distractor 3 (per-instance IPs) is the painful manual version of what SG-to-SG referencing solves natively, and Lambda is needless plumbing for a built-in feature."
+  },
+  {
+    "id": "aws-003-mcq-2",
+    "source_id": "aws-003",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "critical",
+    "difficulty": "easy",
+    "bank": 3,
+    "question": "Which statement about NACL rule evaluation is correct?",
+    "options": {
+      "correct": "Rules are evaluated in ascending order of rule number; the first match wins and evaluation stops",
+      "distractor_1": "Rules are evaluated in descending order of rule number so higher-priority rules win in case of conflict",
+      "distractor_2": "All rules are evaluated and the most restrictive match applies to the traffic",
+      "distractor_3": "Rules are evaluated alphabetically by rule name, with deny rules taking precedence over allow rules"
+    },
+    "explanation": "NACL evaluation walks rules in ascending numeric order and stops at the first match. The implicit '*' rule (deny all) applies only if no numbered rule matches. Distractor 1 reverses the order — descending is intuitive but wrong. Distractor 2 invents an aggregation pass over all rules; NACLs short-circuit. Distractor 3 confuses NACLs with some firewall systems that order by name and apply explicit-deny preference — useful to know that AWS NACLs do neither. Lower rule numbers should hold the more specific allows, with broader denies higher up."
+  },
+  {
+    "id": "aws-005-mcq-1",
+    "source_id": "aws-005",
+    "domain": "aws",
+    "subdomain": "databases",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Your application uses RDS for MySQL with Multi-AZ enabled and one read replica in the same region. The primary instance fails. What happens to in-flight transactions and where do read queries go?",
+    "options": {
+      "correct": "RDS fails over to the synchronous standby within 60-120 seconds; in-flight transactions roll back and read queries continue against the unaffected read replica",
+      "distractor_1": "RDS promotes the read replica to primary because it's already a live copy, then attaches a new standby asynchronously to restore Multi-AZ",
+      "distractor_2": "The Multi-AZ standby and the read replica are merged into a single primary endpoint to absorb both write and read traffic during recovery",
+      "distractor_3": "RDS waits for the failed primary to recover because Multi-AZ is asynchronous and forcing a failover would risk data loss"
+    },
+    "explanation": "Multi-AZ uses synchronous replication to a standby in another AZ; on primary failure, RDS performs a DNS-level failover to the standby (typically 60-120s) and rolls back uncommitted transactions. Read replicas (asynchronous) keep serving reads independently. Distractor 1 confuses the two replica types — Multi-AZ failover uses the synchronous standby, not the read replica. Distractor 2 invents a merge operation that doesn't exist. Distractor 3 inverts the replication model: Multi-AZ is synchronous and designed exactly for low-data-loss failover."
+  },
+  {
+    "id": "aws-005-mcq-2",
+    "source_id": "aws-005",
+    "domain": "aws",
+    "subdomain": "databases",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "A team is hitting CPU saturation on their RDS primary during business hours because of heavy read-heavy reporting queries. They enable Multi-AZ hoping it will spread the load. Did this solve their problem?",
+    "options": {
+      "correct": "No — the Multi-AZ standby is not used to serve reads; it's a passive failover target. Read replicas are the right tool for offloading read traffic",
+      "distractor_1": "Yes — Multi-AZ load-balances read traffic across the primary and the standby once both are healthy",
+      "distractor_2": "Partially — reporting queries are routed to the standby automatically, but transactional reads still hit the primary",
+      "distractor_3": "Yes — enabling Multi-AZ promotes the synchronous standby to a hot read replica with consistent reads"
+    },
+    "explanation": "Multi-AZ exists for high availability, not read scaling. The standby is invisible to applications until failover. To offload read traffic you add read replicas (asynchronous) and point reporting workloads at them. Distractor 1 conflates Multi-AZ with a read-balancing setup. Distractor 2 invents a query-routing layer that RDS doesn't provide. Distractor 3 misdescribes how the synchronous standby works — it accepts replication writes only and serves no client traffic. The common candidate trap is assuming both replica types do everything."
+  },
+  {
+    "id": "aws-007-mcq-1",
+    "source_id": "aws-007",
+    "domain": "aws",
+    "subdomain": "architecture",
+    "priority": "high",
+    "difficulty": "hard",
+    "bank": 2,
+    "question": "Match the AWS DR strategy to its typical RTO/RPO profile: which strategy offers the shortest RTO and RPO at the highest cost?",
+    "options": {
+      "correct": "Multi-site active/active — both regions serve traffic continuously, so RTO and RPO are near zero but compute and data-replication cost is paid all the time",
+      "distractor_1": "Pilot light — core services run in the DR region at all times, so failover is fast and data is fully up to date",
+      "distractor_2": "Warm standby — a full-scale replica runs in the DR region and serves traffic concurrently, giving near-zero RTO/RPO",
+      "distractor_3": "Backup and restore — data is replicated continuously to the DR region, so RPO is zero and RTO depends only on AMI launch time"
+    },
+    "explanation": "Multi-site active/active runs the full stack in two regions live, so failover is just traffic shift — RTO and RPO measured in seconds. Distractor 1 (pilot light) keeps only data and core services warm; app servers must scale up on failover, so RTO is minutes-to-hours. Distractor 2 (warm standby) does run scaled-down infrastructure but only the active site serves traffic — failover still needs scale-up. Distractor 3 conflates backup-and-restore (cheapest, slowest) with continuous replication; backups have non-zero RPO and the longest RTO."
+  },
+  {
+    "id": "aws-007-mcq-2",
+    "source_id": "aws-007",
+    "domain": "aws",
+    "subdomain": "architecture",
+    "priority": "high",
+    "difficulty": "hard",
+    "bank": 3,
+    "question": "An e-commerce site can tolerate at most 15 minutes of downtime and 1 minute of lost orders during a regional outage. They want the cheapest DR strategy that meets these constraints. Which fits best?",
+    "options": {
+      "correct": "Warm standby — a scaled-down replica running continuously in the DR region, scaled up on failover; meets a 15-min RTO and 1-min RPO with lower steady-state cost than active/active",
+      "distractor_1": "Multi-site active/active — runs full capacity in both regions to guarantee the RTO/RPO targets without any scaling step on failover",
+      "distractor_2": "Pilot light — keeps only the database replica warm and provisions everything else on failover, comfortably meeting a 15-minute RTO",
+      "distractor_3": "Backup and restore — restores from cross-region backups within the 15-minute window, the cheapest option that meets the constraints"
+    },
+    "explanation": "Warm standby fits the brief: continuously replicated data (sub-minute RPO) plus pre-running scaled-down compute that can scale up inside 15 minutes. Distractor 1 meets the targets but isn't cheapest — it runs full capacity in both regions continuously. Distractor 2 (pilot light) is cheaper but the scale-up step typically blows past 15 minutes for non-trivial stacks. Distractor 3 underestimates restore time (AMI rebuild, RDS restore, DNS propagation), which usually exceeds an hour for real systems."
+  },
+  {
+    "id": "aws-008-mcq-1",
+    "source_id": "aws-008",
+    "domain": "aws",
+    "subdomain": "storage",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 1,
+    "question": "Your application writes logs to S3 every minute. The last 30 days are queried daily, the next 90 days are queried rarely, and after that they're kept for compliance with no access expected. What's the right storage class progression?",
+    "options": {
+      "correct": "S3 Standard for the first 30 days, S3 Standard-IA from 30 to 120 days, S3 Glacier Deep Archive after 120 days",
+      "distractor_1": "S3 Intelligent-Tiering throughout the entire lifecycle so storage class transitions happen automatically without lifecycle rules",
+      "distractor_2": "S3 Standard for the first 30 days, S3 One Zone-IA from 30 to 120 days, S3 Glacier Flexible Retrieval after 120 days",
+      "distractor_3": "S3 Standard throughout — the cost difference of other classes doesn't justify the operational complexity"
+    },
+    "explanation": "Standard fits hot daily access; Standard-IA fits rare access (with a 30-day minimum storage charge that already aligns); Deep Archive fits never-accessed compliance retention at the lowest per-GB cost. Distractor 1 (Intelligent-Tiering) does automate this but adds a monitoring charge per object — for high object counts that overshoots the savings. Distractor 2 picks One Zone-IA (single-AZ durability) for queryable archival, risking data loss, and Flexible Retrieval costs more than Deep Archive for never-accessed data. Distractor 3 ignores cost: archival data sitting in Standard for years is the textbook waste."
+  },
+  {
+    "id": "aws-008-mcq-2",
+    "source_id": "aws-008",
+    "domain": "aws",
+    "subdomain": "storage",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 2,
+    "question": "A team writes thousands of small files per day, transitions them to S3 Standard-IA after 7 days via a lifecycle rule, and is surprised by their monthly bill. What's the most likely cause?",
+    "options": {
+      "correct": "Standard-IA charges for a 30-day minimum storage duration per object plus a per-GB retrieval fee, and small-file workloads amplify both",
+      "distractor_1": "Lifecycle transitions to Standard-IA are billed per object, so frequent transitions add a per-request charge that exceeds the storage savings",
+      "distractor_2": "Standard-IA only stores objects in a single Availability Zone, so cross-AZ replication charges are added on each access",
+      "distractor_3": "Lifecycle rules cannot run more often than once per day, so objects spend longer than expected in the more expensive Standard class"
+    },
+    "explanation": "Standard-IA bills a 30-day minimum per object even if you delete or move it earlier, and applies a per-GB retrieval fee on access. Transitioning at 7 days pays the full 30-day storage charge on objects that may live only briefly there. Distractor 1 invents a transition-per-object charge — there is a small transition request fee, but it's not the dominant cost. Distractor 2 confuses Standard-IA (multi-AZ) with One Zone-IA. Distractor 3 invents a rule-frequency limit; the issue is the storage class economics, not the lifecycle engine."
+  },
+  {
+    "id": "aws-009-mcq-1",
+    "source_id": "aws-009",
+    "domain": "aws",
+    "subdomain": "storage",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 1,
+    "question": "You need shared file storage accessible by 12 EC2 instances across 3 AZs with POSIX semantics. Which storage option fits?",
+    "options": {
+      "correct": "EFS — a managed NFS file system that supports concurrent mounts from multiple instances across AZs",
+      "distractor_1": "EBS gp3 with Multi-Attach enabled, mounted by all 12 instances across the 3 AZs",
+      "distractor_2": "S3 mounted via s3fs-fuse on each instance to provide POSIX semantics over object storage",
+      "distractor_3": "FSx for Lustre, which is AWS's standard managed NFS service for general-purpose shared file storage"
+    },
+    "explanation": "EFS is the AWS-native managed NFS service: multi-AZ, multi-mount, POSIX, scales automatically. Distractor 1 (EBS Multi-Attach) is restricted to io1/io2 volumes within a single AZ and requires a cluster-aware filesystem — not a fit for cross-AZ shared access. Distractor 2 (s3fs) is a common candidate trap: object storage doesn't have POSIX semantics, file locking is unreliable, and atomic operations break. Distractor 3 confuses FSx variants: FSx for Lustre is high-performance scratch for HPC; FSx for NetApp ONTAP or FSx for OpenZFS would do NFS, but not Lustre."
+  },
+  {
+    "id": "aws-009-mcq-2",
+    "source_id": "aws-009",
+    "domain": "aws",
+    "subdomain": "storage",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 3,
+    "question": "Two EC2 instances need to share an EBS volume with concurrent read/write access. Which combination works?",
+    "options": {
+      "correct": "An io1 or io2 EBS volume with Multi-Attach enabled, both instances in the same AZ, and a cluster-aware filesystem like OCFS2 or GFS2 above it",
+      "distractor_1": "A gp3 EBS volume attached to both instances using --multi-attach=true, with ext4 as the filesystem",
+      "distractor_2": "An io2 EBS volume with Multi-Attach, both instances in different AZs, and ext4 — Multi-Attach handles the cross-AZ replication",
+      "distractor_3": "Any EBS volume type, with both instances mounting it read-write — EBS handles concurrent access at the block layer"
+    },
+    "explanation": "EBS Multi-Attach only works with io1/io2 volume types, only within a single AZ, and requires a cluster-aware filesystem because EBS doesn't coordinate writes from multiple instances. Distractor 1 picks the wrong volume type (gp3 doesn't support Multi-Attach) and a non-cluster filesystem that would corrupt under concurrent writes. Distractor 2 invents cross-AZ Multi-Attach — EBS volumes are AZ-scoped. Distractor 3 is the candidate myth that EBS arbitrates concurrent writes itself; it doesn't, which is why a cluster-aware filesystem is mandatory."
+  },
+  {
+    "id": "aws-010-mcq-1",
+    "source_id": "aws-010",
+    "domain": "aws",
+    "subdomain": "storage",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Your S3 bucket has Block Public Access enabled at the bucket level. You add a bucket policy allowing s3:GetObject from a specific external AWS account. What happens?",
+    "options": {
+      "correct": "The bucket policy works for the named account because Block Public Access only blocks policies that grant access to anonymous or public principals — not specific identified principals",
+      "distractor_1": "The bucket policy is rejected at save time because Block Public Access overrides any cross-account bucket policy regardless of principal",
+      "distractor_2": "The bucket policy saves but is silently ignored at request time; Block Public Access wins by precedence and the external account gets a 403",
+      "distractor_3": "The bucket policy works only if Block Public Access is also disabled at the account level, since account-level settings override bucket-level overrides"
+    },
+    "explanation": "Block Public Access targets policies and ACLs that grant access to '*' or 'authenticated users everywhere' — public principals. A policy naming a specific AWS account or role is not public, so BPA doesn't block it. Distractor 1 over-extends BPA to all cross-account access. Distractor 2 invents a silent-ignore behaviour; BPA evaluates at policy save time and at request time, but only against public grants. Distractor 3 reverses the precedence model — account-level BPA is stricter than bucket-level, but neither blocks identified cross-account principals."
+  },
+  {
+    "id": "aws-010-mcq-2",
+    "source_id": "aws-010",
+    "domain": "aws",
+    "subdomain": "storage",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "A user in Account A has an IAM policy granting s3:GetObject on a bucket in Account B. The bucket policy in Account B does not mention Account A. Can the user read objects in the bucket?",
+    "options": {
+      "correct": "No — cross-account S3 access requires both an identity-based allow in the calling account and a bucket policy allow in the bucket-owning account",
+      "distractor_1": "Yes — the IAM policy in Account A is sufficient, because S3 evaluates the caller's permissions and grants access if any policy allows it",
+      "distractor_2": "Yes — but only for objects the user themselves uploaded; objects owned by Account B require an explicit bucket policy grant",
+      "distractor_3": "No — and the user must also have a permissions boundary in Account A that allows cross-account access for the request to succeed"
+    },
+    "explanation": "Cross-account access to S3 requires explicit allow on BOTH sides: the caller's identity policy in their account AND a resource policy on the bucket in the owning account (or an ACL, which is being phased out). Distractor 1 describes the single-account model — within one account, an identity policy is enough. Distractor 2 invents an object-ownership exemption that doesn't match how S3 evaluates GetObject. Distractor 3 invents a permissions-boundary requirement; boundaries are optional and the missing piece here is the bucket policy."
+  },
+  {
+    "id": "aws-012-mcq-1",
+    "source_id": "aws-012",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "You need a load balancer that can route based on the request URL path (/api/* to one target group, /static/* to another) and terminate TLS. Which AWS load balancer type fits?",
+    "options": {
+      "correct": "Application Load Balancer (ALB) — operates at Layer 7 and supports path-based and host-based routing rules and TLS termination",
+      "distractor_1": "Network Load Balancer (NLB) — operates at Layer 4 and supports path-based routing through listener rules, with TLS termination on the listener",
+      "distractor_2": "Gateway Load Balancer (GWLB) — operates at Layer 3 and routes based on URL paths to attached security appliance target groups",
+      "distractor_3": "Classic Load Balancer (CLB) — the only AWS load balancer that supports both path-based routing and TLS termination in a single listener"
+    },
+    "explanation": "ALB operates at Layer 7 with full HTTP awareness — path/host routing, header matching, TLS termination, WebSockets. Distractor 1 misplaces these features on NLB (Layer 4, no URL awareness — TLS termination yes, path routing no). Distractor 2 fabricates URL-aware routing for GWLB, which is purely Layer 3 transparent forwarding to third-party security appliances. Distractor 3 invokes the now-deprecated Classic Load Balancer; CLB never supported path-based routing — that was the gap ALB was built to fill."
+  },
+  {
+    "id": "aws-012-mcq-2",
+    "source_id": "aws-012",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "A team is building a high-volume, low-latency UDP-based game server. They need a load balancer in front. Which AWS load balancer type is the right choice?",
+    "options": {
+      "correct": "Network Load Balancer — it operates at Layer 4 and supports both TCP and UDP listeners with extremely low latency",
+      "distractor_1": "Application Load Balancer — its Layer 7 inspection allows fine-grained UDP packet routing for game traffic",
+      "distractor_2": "Gateway Load Balancer — designed for in-line traffic at any protocol, including UDP, with transparent forwarding",
+      "distractor_3": "Classic Load Balancer in TCP mode — its protocol-agnostic forwarding handles UDP equivalently to TCP"
+    },
+    "explanation": "NLB is the only AWS load balancer that natively supports UDP listeners (and TCP_UDP for combined). Distractor 1 misattributes UDP support to ALB — ALB is HTTP/HTTPS only and cannot handle non-HTTP protocols. Distractor 2 (GWLB) does forward arbitrary protocols, but it's for inserting third-party security appliances in the data path, not for fronting application traffic. Distractor 3 (CLB in TCP mode) is wrong because CLB never supported UDP — the candidate trap is the assumption that 'TCP mode' is protocol-agnostic, which it isn't."
+  },
+  {
+    "id": "aws-013-mcq-1",
+    "source_id": "aws-013",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "An ALB has a target group with deregistration delay (connection draining) set to 300 seconds. An instance is removed from the target group. What happens to its connections?",
+    "options": {
+      "correct": "The instance is marked draining; existing in-flight connections continue for up to 300 seconds and no new connections are routed to it",
+      "distractor_1": "The instance is immediately removed; existing connections are forcibly terminated and clients see TCP resets",
+      "distractor_2": "The instance continues to receive new connections for 300 seconds to drain its backlog, then is removed",
+      "distractor_3": "The instance is removed instantly but the ALB queues incoming requests for it for 300 seconds in case it comes back"
+    },
+    "explanation": "Deregistration delay (also called connection draining) holds an instance in 'draining' state for the configured duration: existing connections finish, new ones go elsewhere. Distractor 1 describes what happens with a zero deregistration delay or a sudden termination. Distractor 2 inverts the logic — draining means no new connections, not more. Distractor 3 invents a request-queue feature that ALB doesn't provide; ALB routes to healthy targets only and doesn't hold requests waiting for a draining instance."
+  },
+  {
+    "id": "aws-013-mcq-2",
+    "source_id": "aws-013",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "An ASG has deregistration delay set to 300 seconds and a scaling policy that frequently scales in during off-peak hours. Users report intermittent slow requests during scale-in. What's the most likely cause?",
+    "options": {
+      "correct": "The application doesn't honour SIGTERM cleanly, so connections to a draining instance keep handling new work until the deregistration window forces them out",
+      "distractor_1": "ALB continues routing new requests to draining instances for the deregistration window, so users hit instances that are about to terminate",
+      "distractor_2": "Deregistration delay is too short — increasing it past 600 seconds would eliminate the latency by giving connections more time to complete",
+      "distractor_3": "ASG terminates instances before deregistration completes by default, which severs in-flight connections and causes client retries"
+    },
+    "explanation": "Slow requests during scale-in usually come from the app not handling SIGTERM: it ignores the signal, keeps accepting work from existing keep-alive connections, and only stops when the deregistration timer expires. Distractor 1 inverts ALB behaviour — draining instances receive NO new connections. Distractor 2 misdiagnoses by treating the symptom as 'too short'; the issue is what the instance does while draining, not how long it gets. Distractor 3 contradicts how ASG and target groups coordinate — ASG waits for deregistration to complete (lifecycle hooks make this explicit)."
+  },
+  {
+    "id": "aws-014-mcq-1",
+    "source_id": "aws-014",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "easy",
+    "bank": 2,
+    "question": "Which statement correctly captures the directionality of an Internet Gateway and a NAT Gateway?",
+    "options": {
+      "correct": "An Internet Gateway allows both inbound and outbound traffic; a NAT Gateway allows only outbound-initiated traffic and the return packets for those flows",
+      "distractor_1": "Both Internet Gateway and NAT Gateway allow inbound and outbound traffic; the difference is that NAT performs source address translation while IGW does not",
+      "distractor_2": "An Internet Gateway is outbound-only; a NAT Gateway adds inbound capability by mapping public IPs to private IPs via PAT rules",
+      "distractor_3": "Both are outbound-only by default; inbound on either requires opening Security Group rules and adding a public IP to the instance"
+    },
+    "explanation": "IGW is the bidirectional VPC-to-internet door; NAT Gateway translates outbound traffic from private subnets and lets the return path back through, with no way to initiate connections inbound. Distractor 1 ignores the inbound asymmetry — NAT Gateway does perform translation, but the directionality is the bigger semantic difference. Distractor 2 reverses the two gateways entirely. Distractor 3 conflates IGW and NAT with Security Groups — SGs control traffic at the ENI level, not the gateway level; an IGW with an SG-allowed public-IP instance is inbound-reachable."
+  },
+  {
+    "id": "aws-014-mcq-2",
+    "source_id": "aws-014",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "easy",
+    "bank": 3,
+    "question": "A team uses one NAT Gateway in a single AZ to serve private subnets in three AZs. They want to reduce cost and improve resilience. What should they do?",
+    "options": {
+      "correct": "Deploy one NAT Gateway per AZ so each private subnet routes to the NAT in its own AZ, eliminating cross-AZ data transfer charges and removing the single-AZ failure mode",
+      "distractor_1": "Replace the NAT Gateway with a single NAT Instance, which scales horizontally across AZs and has no per-AZ data transfer cost",
+      "distractor_2": "Keep the single NAT Gateway but enable Multi-AZ failover on it; AWS will automatically replicate the gateway across AZs at no extra charge",
+      "distractor_3": "Move the NAT Gateway into a transit gateway hub VPC; transit gateway absorbs the cross-AZ data charges as part of its hourly fee"
+    },
+    "explanation": "NAT Gateway is AZ-scoped; cross-AZ traffic from a private subnet to a NAT GW in another AZ incurs inter-AZ data transfer charges and creates an AZ-failure dependency. One NAT per AZ removes both. Distractor 1 conflates NAT Instance (an EC2 you manage, single-AZ, doesn't scale automatically) with NAT Gateway; it doesn't 'scale across AZs'. Distractor 2 invents a Multi-AZ option for NAT GW that doesn't exist. Distractor 3 misunderstands TGW pricing — TGW charges per attachment and per GB processed, on top of the NAT cost; it doesn't subsidise data transfer."
+  },
+  {
+    "id": "aws-015-mcq-1",
+    "source_id": "aws-015",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "hard",
+    "bank": 1,
+    "question": "VPC A is peered to VPC B, and VPC B is peered to VPC C. An instance in VPC A tries to reach an instance in VPC C. What happens?",
+    "options": {
+      "correct": "The connection fails — VPC peering is non-transitive, so traffic from A to C cannot hop through B without a direct A-to-C peering or a Transit Gateway",
+      "distractor_1": "The connection succeeds via VPC B's route table, which forwards transit traffic between its two peers automatically",
+      "distractor_2": "The connection succeeds only if B has enableVgwRoutePropagation set, which permits transitive peering between its connected VPCs",
+      "distractor_3": "The connection succeeds but is rate-limited because transitive peering goes through B's NAT Gateway, which throttles cross-peering bandwidth"
+    },
+    "explanation": "VPC peering is explicitly non-transitive: each peering is a point-to-point relationship, and a VPC will not forward traffic between two of its peers. To connect three or more VPCs in a hub-and-spoke or mesh, you either add direct peerings (N×(N-1)/2) or attach them all to a Transit Gateway. Distractor 1 invents transitive forwarding. Distractor 2 invokes a real setting (VGW route propagation) for a different feature (Virtual Private Gateways). Distractor 3 fabricates a NAT Gateway path through B — peering traffic uses peering connections, not NAT GWs."
+  },
+  {
+    "id": "aws-015-mcq-2",
+    "source_id": "aws-015",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "hard",
+    "bank": 2,
+    "question": "A SaaS provider wants to expose a single internal service to specific customer VPCs without giving those VPCs any visibility into the provider's broader VPC. Which connectivity model fits best?",
+    "options": {
+      "correct": "AWS PrivateLink — the provider publishes the service as a VPC Endpoint Service and customers create Interface endpoints, exposing only that one service over private networking",
+      "distractor_1": "VPC peering between the provider VPC and each customer VPC, with route table entries scoped to the single service's IP range",
+      "distractor_2": "Transit Gateway with route tables that allow each customer attachment to reach only the IP of the single service in the provider VPC",
+      "distractor_3": "Direct Connect Gateway with VIFs configured per customer, scoping each VIF to the single service's IP and port"
+    },
+    "explanation": "PrivateLink is built for exactly this: one-way exposure of a specific service across account/VPC boundaries with no CIDR overlap concerns and no broader VPC connectivity. Distractor 1 (peering) exposes the full provider VPC routing space even if you tighten route tables — there's still discovery risk and CIDR overlap problems. Distractor 2 (TGW) gives more control but still establishes layer-3 connectivity between VPCs, and customers must coordinate CIDRs. Distractor 3 (Direct Connect) is for on-prem to AWS, not VPC-to-VPC, and is hugely overkill for a per-service exposure."
+  },
+  {
+    "id": "aws-016-mcq-1",
+    "source_id": "aws-016",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "An application has users in three continents. You want each user to be routed to the regional endpoint that gives the lowest latency. Which Route 53 routing policy fits?",
+    "options": {
+      "correct": "Latency-based routing — Route 53 maps the user's resolver to the regional endpoint with the lowest measured network latency",
+      "distractor_1": "Geolocation routing — Route 53 returns the regional endpoint nearest the user's country to minimise round-trip time",
+      "distractor_2": "Geoproximity routing — Route 53 selects the endpoint closest to the user based on physical distance from AWS edge locations",
+      "distractor_3": "Weighted routing — Route 53 sends traffic to regional endpoints in proportion to their measured latency from the user's location"
+    },
+    "explanation": "Latency-based routing measures actual network latency (not geographic distance) and routes accordingly — closer-by-geography is not always closer-by-latency. Distractor 1 (geolocation) routes by user country, often used for compliance or content localisation rather than performance. Distractor 2 (geoproximity) routes by physical distance with optional bias weighting, useful when you want to shift traffic for a campaign, not pure performance. Distractor 3 (weighted) splits traffic by static weights — it has no notion of measured latency."
+  },
+  {
+    "id": "aws-016-mcq-2",
+    "source_id": "aws-016",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "You configure a Route 53 failover routing policy with a primary record pointing to a regional ALB and a secondary record pointing to a static S3 website. The primary ALB starts returning 500s but Route 53 keeps sending traffic to it. Why?",
+    "options": {
+      "correct": "Failover routing relies on a Route 53 health check on the primary; if no health check is associated, Route 53 always answers with the primary regardless of its actual health",
+      "distractor_1": "Route 53 detects application errors via ALB target group health, which the failover policy reads automatically",
+      "distractor_2": "Failover only triggers on DNS resolution failures; 500 status codes are above the DNS layer and Route 53 ignores them by design",
+      "distractor_3": "Failover routing requires the secondary to be in a different AWS region; same-region secondaries are silently disabled"
+    },
+    "explanation": "Failover routing is driven by Route 53 health checks attached to the primary record — without one, there's nothing to flip on. Distractor 1 conflates Route 53 with the ALB target group's own health checks; ALB knows its targets are unhealthy but Route 53 doesn't until you point a health check at the ALB. Distractor 2 (DNS-failure trigger) misdescribes failover entirely — Route 53 health checks run HTTP/HTTPS probes against the endpoint. Distractor 3 invents a cross-region constraint; failover works across any record types in any region."
+  },
+  {
+    "id": "aws-017-mcq-1",
+    "source_id": "aws-017",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Which AWS services are accessed via a Gateway endpoint rather than an Interface endpoint?",
+    "options": {
+      "correct": "S3 and DynamoDB only — every other AWS service uses Interface endpoints (PrivateLink)",
+      "distractor_1": "All services that have a public regional endpoint can be reached via a Gateway endpoint, including S3, DynamoDB, KMS, and SNS",
+      "distractor_2": "Only services that are global rather than regional, such as IAM and CloudFront, use Gateway endpoints",
+      "distractor_3": "Gateway endpoints are available for all AWS services in a VPC; Interface endpoints exist only for third-party services exposed via PrivateLink"
+    },
+    "explanation": "Gateway endpoints are a special, free-of-charge type only available for S3 and DynamoDB — they add a prefix list to your route table and traffic stays on the AWS backbone. Every other in-VPC private access uses Interface endpoints (backed by PrivateLink, charged hourly per endpoint and per GB). Distractor 1 over-extends Gateway endpoints to services that use Interface endpoints. Distractor 2 fabricates a global-vs-regional distinction. Distractor 3 reverses the model — third-party PrivateLink services do exist, but Interface endpoints are also how you reach most AWS-native services."
+  },
+  {
+    "id": "aws-017-mcq-2",
+    "source_id": "aws-017",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "An EC2 instance in a private subnet (no NAT Gateway) needs to write to an S3 bucket. You create a Gateway endpoint for S3 in the VPC. The instance still gets a timeout. What's the most likely cause?",
+    "options": {
+      "correct": "The private subnet's route table doesn't have the S3 prefix list pointing at the Gateway endpoint, so traffic still tries to leave via a missing internet route",
+      "distractor_1": "Gateway endpoints require a NAT Gateway to forward the actual data; the endpoint only provides DNS resolution for the bucket name",
+      "distractor_2": "The S3 bucket policy must explicitly allow the VPC endpoint ID; without that condition, the endpoint denies all traffic",
+      "distractor_3": "Gateway endpoints only support read operations like GetObject; for write operations like PutObject the instance must use an Interface endpoint"
+    },
+    "explanation": "Gateway endpoints work by adding a managed prefix list to subnet route tables that points S3 (or DynamoDB) traffic at the endpoint. If you forget to add the route, traffic flows to whatever the default 0.0.0.0/0 route is — which in a NAT-less private subnet is nowhere. Distractor 1 invents a NAT dependency that defeats the purpose of Gateway endpoints. Distractor 2 invokes a bucket-policy condition (aws:sourceVpce) that is optional, not required. Distractor 3 fabricates a read-only restriction; Gateway endpoints fully support reads and writes."
+  }
+]

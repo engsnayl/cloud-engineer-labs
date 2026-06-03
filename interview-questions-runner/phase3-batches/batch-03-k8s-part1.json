@@ -1,0 +1,274 @@
+[
+  {
+    "id": "k8s-001-mcq-2",
+    "source_id": "k8s-001",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "critical",
+    "difficulty": "easy",
+    "bank": 2,
+    "question": "In which situation would you hand-create a ReplicaSet directly instead of using a Deployment?",
+    "options": {
+      "correct": "Essentially never — Deployments are the recommended abstraction, and creating a ReplicaSet directly loses rolling updates, rollback history, and revision tracking",
+      "distractor_1": "When you need a single replica with no rolling updates, since Deployments require at least two replicas to function",
+      "distractor_2": "When the pods need to survive a Deployment rollback — only standalone ReplicaSets are immune to rollback-triggered termination of older pod versions during a deploy",
+      "distractor_3": "When using a custom container runtime, since Deployments only support containerd and CRI-O while ReplicaSets are runtime-agnostic"
+    },
+    "explanation": "ReplicaSets are an implementation detail of Deployments — there's almost no production reason to create one directly. Distractor 1 invents a minimum-replicas constraint that doesn't exist (Deployments work fine at one replica). Distractor 2 fabricates rollback immunity for standalone ReplicaSets. Distractor 3 invents a runtime-compatibility difference; both objects use the same underlying container runtime via the kubelet. The answer is essentially 'don't' — and naming that bluntly is more useful than inventing a clever edge case."
+  },
+  {
+    "id": "k8s-002-mcq-1",
+    "source_id": "k8s-002",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "A pod has been in the `Pending` phase for several minutes. Which is the MOST common reason?",
+    "options": {
+      "correct": "The scheduler cannot find a node with enough free resources to satisfy the pod's requests",
+      "distractor_1": "The container image is being pulled from a registry that's responding slowly",
+      "distractor_2": "The pod's liveness probe is failing, causing the kubelet to hold the pod in Pending until the probe succeeds",
+      "distractor_3": "The pod has been admitted by the API server but the network plugin has not yet allocated it an IP"
+    },
+    "explanation": "Pending almost always means 'not yet assigned to a node' — usually because no node has enough CPU/memory matching the pod's resource requests, or no node tolerates the pod's required affinities/taints. Distractor 1 (image pull) puts the pod in ContainerCreating or ImagePullBackOff once it's scheduled, not Pending. Distractor 2 confuses liveness with startup — liveness runs after the container is up, so the pod has long since left Pending. Distractor 3 invents an IP-allocation phase before scheduling; pods are scheduled first, then the CNI allocates an IP on the assigned node."
+  },
+  {
+    "id": "k8s-002-mcq-2",
+    "source_id": "k8s-002",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "A pod is in `CrashLoopBackOff`. What does this state tell you?",
+    "options": {
+      "correct": "The container has crashed multiple times in quick succession and the kubelet is now restarting it with exponential backoff between attempts",
+      "distractor_1": "The pod's image cannot be pulled and the kubelet is retrying with backoff before giving up",
+      "distractor_2": "The pod is scheduled to a node that's repeatedly running out of memory, causing the pod to be evicted in a loop",
+      "distractor_3": "The pod's readiness probe is failing, so the Service is removing it from endpoints and adding it back as the probe oscillates"
+    },
+    "explanation": "CrashLoopBackOff specifically describes container-level crashes followed by kubelet-controlled restart backoff (10s, 20s, 40s, capped). Distractor 1 describes ImagePullBackOff, a distinct state where the image itself is the problem. Distractor 2 describes eviction churn, which shows as repeated pod termination, not CrashLoop. Distractor 3 describes a readiness flap — the pod stays Running but cycles in and out of Service endpoints, never entering CrashLoopBackOff. Knowing which state means which class of failure shortens triage by minutes."
+  },
+  {
+    "id": "k8s-003-mcq-1",
+    "source_id": "k8s-003",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "What does a failing liveness probe do, and what does a failing readiness probe do?",
+    "options": {
+      "correct": "Liveness failure restarts the container; readiness failure removes the pod from Service endpoints without restarting it",
+      "distractor_1": "Liveness failure removes the pod from endpoints; readiness failure restarts the container after a backoff period",
+      "distractor_2": "Liveness failure marks the pod as Failed and the Deployment provisions a replacement; readiness failure logs a warning event only",
+      "distractor_3": "Both probes have the same restart behaviour, but liveness uses HTTP and readiness uses TCP for their checks"
+    },
+    "explanation": "Liveness = 'is the container alive?', failure = restart it. Readiness = 'should traffic go to this pod?', failure = drop from Service endpoints, leave the container running. Distractor 1 inverts the two — a classic mix-up. Distractor 2 invents Deployment-driven replacement; the kubelet handles restarts, not the Deployment controller. Distractor 3 confuses probe protocol (HTTP, TCP, exec, gRPC — all available to both probes) with probe semantics. The asymmetry is the entire reason both probes exist."
+  },
+  {
+    "id": "k8s-003-mcq-2",
+    "source_id": "k8s-003",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "A Java app takes 90 seconds to warm up. The team configures a liveness probe with `initialDelaySeconds: 30` and `failureThreshold: 3` (every 10 seconds). What happens at startup?",
+    "options": {
+      "correct": "The liveness probe starts at 30s, fails three times (at 30s, 40s, 50s), and the kubelet kills the container before warm-up completes — creating a restart loop",
+      "distractor_1": "The pod stays in CrashLoopBackOff during warm-up because Kubernetes detects the slow start and applies exponential backoff to the liveness probe itself",
+      "distractor_2": "The liveness probe is deferred automatically until the readiness probe passes, so the app warms up safely",
+      "distractor_3": "The pod warms up normally because liveness probes don't kill containers during the first five minutes after pod creation"
+    },
+    "explanation": "Liveness probes don't know about app warm-up — they start at initialDelaySeconds and kill the container if it fails the threshold. The fix is either a `startupProbe` (gates other probes until the app is ready) or a much longer initialDelaySeconds. Distractor 1 invents probe-level backoff, which doesn't exist. Distractor 2 fabricates an implicit liveness-defers-to-readiness rule. Distractor 3 makes up a 5-minute grace period. The slow-start case is the single most common probe misconfiguration in production."
+  },
+  {
+    "id": "k8s-004-mcq-1",
+    "source_id": "k8s-004",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "A pod has two init containers (A then B) and two main containers (C and D). In what order do they start?",
+    "options": {
+      "correct": "A runs to completion, then B runs to completion, then C and D start in parallel",
+      "distractor_1": "A and B run in parallel until both complete, then C and D start in parallel",
+      "distractor_2": "All four containers (A, B, C, D) start in parallel and the init containers exit when done",
+      "distractor_3": "A, B, C, D start in the order declared but with no concurrency — D doesn't start until C exits"
+    },
+    "explanation": "Init containers run sequentially in declared order, each must succeed before the next starts, and all must complete before main containers start. Main containers then start in parallel (no explicit ordering). Distractor 1 ignores the sequential semantics of init containers. Distractor 2 treats init as no-different from main, which defeats the point of init containers. Distractor 3 invents sequential main-container startup; main containers are concurrent. Knowing this ordering matters for setup tasks (DB migrations, downloading models, fetching secrets)."
+  },
+  {
+    "id": "k8s-004-mcq-2",
+    "source_id": "k8s-004",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Kubernetes 1.28 introduced native sidecar containers. How are they declared and how do they differ from regular main containers?",
+    "options": {
+      "correct": "Declared as init containers with `restartPolicy: Always` — they start before main containers, run alongside them, and the pod doesn't terminate until they exit cleanly during shutdown",
+      "distractor_1": "Declared in a new `sidecarContainers:` field at the same level as `containers:` and `initContainers:`, with a dedicated lifecycle separate from both",
+      "distractor_2": "Declared with `containerType: sidecar` on a regular container; the kubelet then defers their startup until all other containers signal readiness",
+      "distractor_3": "Declared identically to regular containers but with the annotation `kubernetes.io/sidecar=true`, which signals the scheduler to delay their termination"
+    },
+    "explanation": "K8s 1.28+ added native sidecars by overloading init containers with `restartPolicy: Always` — they start in init phase, run for the pod's lifetime, and shut down after main containers during pod termination. Distractor 1 fabricates a sidecarContainers field; the language reuses initContainers instead. Distractor 2 invents a containerType field that doesn't exist. Distractor 3 attempts to use annotations, which is the pre-1.28 community workaround pattern but not the native API. Before 1.28, sidecars were just regular containers in the same pod with shutdown ordering hacks."
+  },
+  {
+    "id": "k8s-010-mcq-2",
+    "source_id": "k8s-010",
+    "domain": "kubernetes",
+    "subdomain": "networking",
+    "priority": "critical",
+    "difficulty": "easy",
+    "bank": 3,
+    "question": "When does an Ingress make sense instead of multiple LoadBalancer Services?",
+    "options": {
+      "correct": "When you have several HTTP services that can share one cloud load balancer and be routed by path or hostname — Ingress saves the per-service LB cost",
+      "distractor_1": "When you need TCP load balancing for non-HTTP traffic, since LoadBalancer Services only support HTTP",
+      "distractor_2": "When you need TLS termination at the cluster edge, since LoadBalancer Services cannot terminate TLS without an additional sidecar",
+      "distractor_3": "When you want pods exposed directly to the internet, since LoadBalancer Services keep traffic internal to the cluster network"
+    },
+    "explanation": "Ingress consolidates many HTTP services behind one LB with host/path routing, which both saves cost (cloud LBs are billed per LB) and centralises TLS and routing. Distractor 1 reverses the protocol model: LoadBalancer Services handle TCP/UDP just fine; Ingress is HTTP-focused. Distractor 2 misstates LoadBalancer TLS capability — cloud LBs (ALB, NLB) terminate TLS natively. Distractor 3 inverts internal/external: LoadBalancer Services are externally exposed by default, not internal."
+  },
+  {
+    "id": "k8s-011-mcq-1",
+    "source_id": "k8s-011",
+    "domain": "kubernetes",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "You create an Ingress resource on EKS but external traffic doesn't reach your services. The Ingress shows no Address. What's the most likely cause?",
+    "options": {
+      "correct": "No Ingress controller is installed — the Ingress object is just a routing spec; without a controller (AWS Load Balancer Controller, nginx, etc.) nothing materialises it",
+      "distractor_1": "The Ingress is missing a `LoadBalancer` Service in the same namespace, which the Ingress needs to attach itself to",
+      "distractor_2": "The Ingress is in a namespace that lacks the `ingress-enabled=true` label that EKS requires before traffic is permitted",
+      "distractor_3": "EKS's built-in Ingress provider takes 30-60 minutes to provision an ALB on first install, during which the Ingress shows no Address while AWS reconciles the load balancer"
+    },
+    "explanation": "Ingress is a Kubernetes resource that describes routing rules; an Ingress *controller* (a deployment running in the cluster) is what reads those resources and provisions a real load balancer. Without a controller, nothing happens. Distractor 1 invents a LoadBalancer-Service-as-attachment-target requirement; the controller provisions the LB itself. Distractor 2 fabricates a namespace-label requirement. Distractor 3 invents a built-in Ingress provider in EKS; the AWS LB Controller is an add-on you install, and provisioning is ~1-3 minutes, not 30-60."
+  },
+  {
+    "id": "k8s-011-mcq-2",
+    "source_id": "k8s-011",
+    "domain": "kubernetes",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "On EKS with the AWS Load Balancer Controller, what's the difference between annotating an Ingress with `alb.ingress.kubernetes.io/scheme: internal` versus `internet-facing`?",
+    "options": {
+      "correct": "`internal` provisions an ALB in private subnets reachable only from the VPC; `internet-facing` provisions one in public subnets with a public IP",
+      "distractor_1": "`internal` provisions an ALB attached to private subnets but assigned a public IP, with the AWS LB Controller restricting reachability via Security Group ingress rules added per-target",
+      "distractor_2": "`internal` provisions a Network Load Balancer instead of an Application Load Balancer because internal ALBs don't exist on AWS",
+      "distractor_3": "Both schemes provision the same ALB; `internal` adds a Route 53 private hosted zone record and `internet-facing` adds a public one"
+    },
+    "explanation": "ALB scheme is a real AWS-level distinction: internal ALBs sit in private subnets with no public IP and are reachable only via VPC paths; internet-facing ALBs have public-IP ENIs in public subnets. Distractor 1 invents an SG-based public-IP restriction model. Distractor 2 fabricates an NLB substitution; internal ALBs are a real, supported configuration. Distractor 3 confuses load balancer provisioning with DNS — neither annotation creates Route 53 records (that's external-dns or alb.ingress.kubernetes.io/host)."
+  },
+  {
+    "id": "k8s-012-mcq-1",
+    "source_id": "k8s-012",
+    "domain": "kubernetes",
+    "subdomain": "networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "By default, what is the network policy applied to pods in a fresh Kubernetes cluster?",
+    "options": {
+      "correct": "All traffic is allowed in both directions until a NetworkPolicy is created that selects the pod, at which point that pod becomes default-deny within the policy's scope",
+      "distractor_1": "All ingress is denied and all egress is allowed; NetworkPolicies are needed to allow inbound traffic between pods",
+      "distractor_2": "Pods can only talk to other pods in the same namespace by default; NetworkPolicies are needed for cross-namespace communication",
+      "distractor_3": "Traffic is governed entirely by Kubernetes RBAC role bindings; NetworkPolicies are an alternative not commonly used"
+    },
+    "explanation": "Kubernetes ships with all-pod-to-all-pod allow as the default; isolation is opt-in by creating a NetworkPolicy that selects the pod, which then becomes default-deny for the directions the policy specifies. Distractor 1 inverts the default to deny-ingress. Distractor 2 fabricates a per-namespace isolation default. Distractor 3 confuses RBAC (controls API access) with NetworkPolicy (controls pod traffic) — they govern different things. Many production clusters intentionally start with default-deny NetworkPolicies as a baseline."
+  },
+  {
+    "id": "k8s-012-mcq-2",
+    "source_id": "k8s-012",
+    "domain": "kubernetes",
+    "subdomain": "networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Your EKS cluster uses the AWS VPC CNI plugin. You create a NetworkPolicy but it has no effect. What's the most likely cause?",
+    "options": {
+      "correct": "Network Policy support is opt-in on the AWS VPC CNI and isn't enabled by default — you need to enable it on the add-on or install a separate policy engine like Calico",
+      "distractor_1": "NetworkPolicies require the cluster to be running on Fargate rather than managed nodes",
+      "distractor_2": "The NetworkPolicy uses `podSelector` but EKS clusters require `namespaceSelector` for policy enforcement",
+      "distractor_3": "AWS VPC CNI enforces NetworkPolicies asynchronously through a background reconciliation loop, so policy changes typically take effect 24 hours after the policy is created in the cluster"
+    },
+    "explanation": "The AWS VPC CNI added Network Policy support but it's an opt-in feature flag — fresh clusters don't enforce policies unless you enable it (or install Calico/Cilium as the policy engine alongside VPC CNI). Distractor 1 invents a Fargate-only requirement. Distractor 2 fabricates a podSelector-vs-namespaceSelector restriction; both are valid in any NetworkPolicy. Distractor 3 invents a 24-hour enforcement delay; once enabled, enforcement is near-immediate."
+  },
+  {
+    "id": "k8s-013-mcq-1",
+    "source_id": "k8s-013",
+    "domain": "kubernetes",
+    "subdomain": "networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Within a Kubernetes cluster, what's the fully-qualified DNS name pattern for a Service?",
+    "options": {
+      "correct": "`<service>.<namespace>.svc.cluster.local`",
+      "distractor_1": "`<service>.<namespace>.cluster.local.svc` — `cluster.local` precedes the resource-type segment `svc`",
+      "distractor_2": "`<service>.<namespace>.k8s.local`",
+      "distractor_3": "`<service>-<namespace>.svc.cluster.local`"
+    },
+    "explanation": "Cluster DNS uses `<service>.<namespace>.svc.cluster.local`, with `svc` as the resource type segment and `cluster.local` as the default cluster domain (customisable at install). Distractor 1 swaps the segment order. Distractor 2 invents a domain (`k8s.local`) that's not the default. Distractor 3 swaps the namespace separator from `.` to `-`, which doesn't resolve. Knowing this pattern matters when pods in one namespace need to reach services in another; the short form (`<service>` or `<service>.<namespace>`) works only within the same namespace via the ndots search list."
+  },
+  {
+    "id": "k8s-013-mcq-2",
+    "source_id": "k8s-013",
+    "domain": "kubernetes",
+    "subdomain": "networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "A pod in namespace `app` is making thousands of DNS lookups per second for `db.data` (an external host name) and is causing high CoreDNS CPU. What's the most likely cause?",
+    "options": {
+      "correct": "Pod DNS config has the cluster's search domains and `ndots: 5` set, so `db.data` is tried against every search domain first before resolving as an external name",
+      "distractor_1": "CoreDNS doesn't cache external DNS answers; each lookup re-queries upstream resolvers, which scales linearly with request rate",
+      "distractor_2": "The pod uses IPv6 DNS by default and CoreDNS falls back to IPv4 on every query, doubling the lookup count",
+      "distractor_3": "External DNS lookups bypass CoreDNS entirely and hit the node's local resolver, but CoreDNS still logs each query, causing CPU pressure"
+    },
+    "explanation": "ndots:5 (the K8s default) means any name with fewer than 5 dots is tried with every search domain appended first. For `db.data` (1 dot), CoreDNS sees 6 sequential lookups (`db.data.app.svc.cluster.local`, `db.data.svc.cluster.local`, etc.) before the bare external lookup. Distractor 1 misstates caching — CoreDNS does cache, with a configurable TTL. Distractor 2 invents an IPv6/IPv4 fallback storm. Distractor 3 inverts the model — external lookups go through CoreDNS, not around it. The fix is `ndots: 2` for pods doing external lookups, or use a FQDN with trailing dot."
+  },
+  {
+    "id": "k8s-014-mcq-1",
+    "source_id": "k8s-014",
+    "domain": "kubernetes",
+    "subdomain": "networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Why is environment-variable-based service discovery in Kubernetes considered worse than DNS-based discovery?",
+    "options": {
+      "correct": "Env vars are only set at pod startup, so any Service created after the pod is missing from the pod's environment until restart",
+      "distractor_1": "Env vars expose service IPs in cleartext to every other process in the same pod, while DNS lookups go over TLS-encrypted resolver connections by default",
+      "distractor_2": "Env vars are limited to 32 entries per pod, so larger deployments hit the limit and silently lose service entries",
+      "distractor_3": "Env vars resolve only within the same namespace; DNS works across namespaces with no additional configuration"
+    },
+    "explanation": "The env-var mechanism populates `<SERVICE>_SERVICE_HOST` etc. at pod creation by enumerating Services at that moment — pods can't see Services created later without a restart. DNS, by contrast, is a live lookup. Distractor 1 invents an encryption distinction; DNS is plaintext by default too. Distractor 2 fabricates a 32-entry limit. Distractor 3 reverses the cross-namespace story — env vars are populated for Services in any namespace the pod has list access to, but the env approach is still inferior because of the pod-creation-time snapshot."
+  },
+  {
+    "id": "k8s-014-mcq-2",
+    "source_id": "k8s-014",
+    "domain": "kubernetes",
+    "subdomain": "networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "You need pods inside your cluster to reach an external host `api.partner.com` using the cluster's own DNS so you can swap implementations later by editing the Service. Which Service type fits?",
+    "options": {
+      "correct": "ExternalName — creates a CNAME from `<service>.<ns>.svc.cluster.local` to `api.partner.com`, so pods reach the external host via the cluster DNS name",
+      "distractor_1": "Headless Service (clusterIP: None) — bypasses kube-proxy and lets the pod resolve external hosts directly through the cluster's DNS chain",
+      "distractor_2": "LoadBalancer with `externalTrafficPolicy: External` — provisions a cluster-local DNS entry that proxies traffic to the named external host",
+      "distractor_3": "ClusterIP with no selector and an Endpoints object pointing at the partner's domain name as the IP target"
+    },
+    "explanation": "ExternalName does exactly this — it returns a CNAME from cluster DNS to the external host, so any pod that uses the in-cluster service name reaches the external service, and you can swap the target by editing the Service. Distractor 1 misuses headless Services — they're for direct pod-IP enumeration, not external CNAME aliasing. Distractor 2 invents an `External` traffic policy value (real values are `Cluster` and `Local`) and the LB feature it describes. Distractor 3 confuses Endpoints (need IPs) with names (need ExternalName)."
+  }
+]

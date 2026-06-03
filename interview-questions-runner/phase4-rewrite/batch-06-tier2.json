@@ -1,0 +1,924 @@
+{
+  "batch_id": "T2.1",
+  "tier": 2,
+  "domain_slice": "a_only_fabricated (AWS+CICD+Docker+Git+K8s+Linux+TF)",
+  "scope_note": "25 = 24 live A_fabricated-only (11 original + 12 rebaseline + k8s-014 widening) + git-001-mcq-1 (widening, not flag-reclassified). 8 multi-flag A+D items deferred to Tier-3 per Stephen ruling.",
+  "rewrites": [
+    {
+      "mcq_id": "aws-016-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 2,
+      "change_summary": "swap d3 (fabricated cross-region 'silently disabled' constraint) -> DNS TTL caching, a real failover-delay cause that is wrong here",
+      "before": {
+        "question": "You configure a Route 53 failover routing policy with a primary record pointing to a regional ALB and a secondary record pointing to a static S3 website. The primary ALB starts returning 500s but Route 53 keeps sending traffic to it. Why?",
+        "options": {
+          "correct": "Failover routing relies on a Route 53 health check on the primary; if no health check is associated, Route 53 always answers with the primary regardless of its actual health",
+          "distractor_1": "Route 53 detects application errors via ALB target group health, which the failover policy reads automatically",
+          "distractor_2": "Failover only triggers on DNS resolution failures; 500 status codes are above the DNS layer and Route 53 ignores them by design",
+          "distractor_3": "Failover routing requires the secondary to be in a different AWS region; same-region secondaries are silently disabled"
+        },
+        "explanation": "Failover routing is driven by Route 53 health checks attached to the primary record \u2014 without one, there's nothing to flip on. Distractor 1 conflates Route 53 with the ALB target group's own health checks; ALB knows its targets are unhealthy but Route 53 doesn't until you point a health check at the ALB. Distractor 2 (DNS-failure trigger) misdescribes failover entirely \u2014 Route 53 health checks run HTTP/HTTPS probes against the endpoint. Distractor 3 invents a cross-region constraint; failover works across any record types in any region."
+      },
+      "after": {
+        "question": "You configure a Route 53 failover routing policy with a primary record pointing to a regional ALB and a secondary record pointing to a static S3 website. The primary ALB starts returning 500s but Route 53 keeps sending traffic to it. Why?",
+        "options": {
+          "correct": "Failover routing relies on a Route 53 health check on the primary; if no health check is associated, Route 53 always answers with the primary regardless of its actual health",
+          "distractor_1": "Route 53 detects application errors via ALB target group health, which the failover policy reads automatically",
+          "distractor_2": "Failover only triggers on DNS resolution failures; 500 status codes are above the DNS layer and Route 53 ignores them by design",
+          "distractor_3": "The DNS record's TTL hasn't expired yet, so resolvers are still returning the cached primary record even though Route 53 has already failed over at its end"
+        },
+        "explanation": "Failover routing is driven by Route 53 health checks attached to the primary record \u2014 without one, there's nothing to flip on. Distractor 1 conflates Route 53 with the ALB target group's own health checks; ALB knows its targets are unhealthy but Route 53 doesn't until you point a health check at the ALB. Distractor 2 (DNS-failure trigger) misdescribes failover entirely \u2014 Route 53 health checks run HTTP/HTTPS probes against the endpoint. Distractor 3 reaches for DNS TTL caching \u2014 a real failover-delay cause \u2014 but here Route 53 never flipped at all (no health check is attached), so there's nothing cached to expire."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_3",
+          "touched": true,
+          "real_misconception": "DNS TTL caching genuinely delays failover; a junior who knows DNS caching would reach for it, but with no health check Route 53 never failed over, so nothing is cached."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "aws-019-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 2,
+      "change_summary": "swap all three distractors (all were fabricated post-resize mechanisms) -> cold page cache, per-core clock/contention, bandwidth-split misconceptions",
+      "before": {
+        "question": "An EC2 instance running at 95% CPU prompts a team to switch from m5.large to m5.xlarge. After the change, CPU drops to 50% but the application is now slower. What's the most likely cause?",
+        "options": {
+          "correct": "CPU wasn't the real bottleneck; the larger instance let the actual constraint (memory, disk I/O, network) saturate faster",
+          "distractor_1": "EC2 instance scaling has a one-hour stabilisation period during which CPU is artificially limited",
+          "distractor_2": "Moving up an instance class introduces a multi-hour kernel warm-tuning period during which performance regresses before returning to baseline",
+          "distractor_3": "m5.xlarge uses a different Nitro generation that requires the AMI to be rebuilt before performance returns to baseline"
+        },
+        "explanation": "Right-sizing by CPU metric alone catches the wrong target when CPU is the symptom and not the cause. Increased capacity often unmasks an upstream bottleneck (a connection pool, disk queue, etc.) that now serves more concurrent work. Distractor 1 invents a stabilisation period. Distractor 2 invents a kernel warm-up phase. Distractor 3 fabricates a Nitro generation mismatch story; AMIs work across instance sizes within a family. The methodology lesson: combine CloudWatch with the application's own metrics before resizing."
+      },
+      "after": {
+        "question": "An EC2 instance running at 95% CPU prompts a team to switch from m5.large to m5.xlarge. After the change, CPU drops to 50% but the application is now slower. What's the most likely cause?",
+        "options": {
+          "correct": "CPU wasn't the real bottleneck; the larger instance let the actual constraint (memory, disk I/O, network) saturate faster",
+          "distractor_1": "The stop/start required to resize the instance cleared the OS page cache, so the application stays slow until its filesystem caches warm back up",
+          "distractor_2": "m5.large and m5.xlarge run on the same hardware generation, but the larger size has more vCPUs at the same per-core clock, so any single-threaded hot path runs no faster and added lock contention can slow it",
+          "distractor_3": "Doubling the vCPUs splits the instance's fixed network and EBS bandwidth across more cores, so per-core I/O throughput dropped after the resize"
+        },
+        "explanation": "Right-sizing by CPU metric alone catches the wrong target when CPU is the symptom and not the cause. Increased capacity often unmasks an upstream bottleneck (a connection pool, disk queue, etc.) that now serves more concurrent work. Distractor 1 blames a cold page cache after the resize's stop/start \u2014 real, but transient, and it wouldn't explain sustained slowness at a steady 50% CPU. Distractor 2 assumes a slower per-core clock or lock contention \u2014 but m5.large and m5.xlarge share the same hardware and clock, and the app's own concurrency is the limiter. Distractor 3 inverts the bandwidth story \u2014 larger instances get more network and EBS bandwidth, not a split share. The methodology lesson: combine CloudWatch with the application's own metrics before resizing."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": true,
+          "real_misconception": "Resizing an EC2 instance requires a stop/start, which really does clear the page cache; a junior would attribute post-resize slowness to a cold cache, not realising it's transient."
+        },
+        {
+          "key": "distractor_2",
+          "touched": true,
+          "real_misconception": "Juniors commonly think more vCPUs means a slower per-core clock or more contention; m5.large/xlarge in fact share clock and hardware."
+        },
+        {
+          "key": "distractor_3",
+          "touched": true,
+          "real_misconception": "A natural but wrong 'fixed pool divided among more cores' model; AWS scales bandwidth up with instance size."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "aws-022-mcq-1",
+      "source_bank": 2,
+      "tier_applied": 2,
+      "change_summary": "REVERTED + deferred to Tier-3 Cluster B (superlative), alongside aws-021 (Stephen B1 ruling 2026-06-03): the 'worst fit' stem needs a best-fit reauthor that inverts keying and reshuffles the option set, so a distractor swap now is orphaned work. Tier-3 does the fabrication replacement as part of the whole-item reauthor. Bank restored to original.",
+      "before": {
+        "question": "A team is choosing between ECS Fargate, EKS, and Lambda for a video transcoding service. Individual jobs take 20-90 minutes and run constantly throughout the day. Which compute platform is the WORST fit?",
+        "options": {
+          "correct": "Lambda \u2014 the 15-minute maximum execution time means most transcoding jobs would never complete in a single invocation",
+          "distractor_1": "ECS Fargate \u2014 Fargate tasks have a 15-minute hard timeout to match Lambda's, so the longer jobs would time out",
+          "distractor_2": "EKS \u2014 its pod scheduling adds a 20-minute minimum runtime overhead that makes shorter jobs uneconomical",
+          "distractor_3": "All three are viable; the choice depends only on cost, not runtime constraints"
+        },
+        "explanation": "Lambda's 15-minute timeout is the dealbreaker \u2014 once a job exceeds it, the function is killed mid-work. ECS Fargate has no such limit, EKS has no platform-level timeout at all. Distractor 1 fabricates a Fargate 15-min timeout; Fargate tasks run as long as the container does. Distractor 2 invents an EKS scheduling overhead that doesn't exist (pod startup is seconds, not minutes). Distractor 3 ignores the constraint entirely. The general rule: Lambda for short, event-driven workloads; ECS/EKS for sustained or long-running."
+      },
+      "after": {
+        "question": "A team is choosing between ECS Fargate, EKS, and Lambda for a video transcoding service. Individual jobs take 20-90 minutes and run constantly throughout the day. Which compute platform is the WORST fit?",
+        "options": {
+          "correct": "Lambda \u2014 the 15-minute maximum execution time means most transcoding jobs would never complete in a single invocation",
+          "distractor_1": "ECS Fargate \u2014 Fargate tasks have a 15-minute hard timeout to match Lambda's, so the longer jobs would time out",
+          "distractor_2": "EKS \u2014 its pod scheduling adds a 20-minute minimum runtime overhead that makes shorter jobs uneconomical",
+          "distractor_3": "All three are viable; the choice depends only on cost, not runtime constraints"
+        },
+        "explanation": "Lambda's 15-minute timeout is the dealbreaker \u2014 once a job exceeds it, the function is killed mid-work. ECS Fargate has no such limit, EKS has no platform-level timeout at all. Distractor 1 fabricates a Fargate 15-min timeout; Fargate tasks run as long as the container does. Distractor 2 invents an EKS scheduling overhead that doesn't exist (pod startup is seconds, not minutes). Distractor 3 ignores the constraint entirely. The general rule: Lambda for short, event-driven workloads; ECS/EKS for sustained or long-running."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "real_misconception": "Deferred: the fabricated Fargate 15-min-timeout distractor will be replaced during the Tier-3 superlative reauthor, not in T2.1."
+        }
+      ],
+      "dropped_to_tier3": true,
+      "drop_reason": "REVERTED + deferred to Tier-3 Cluster B (superlative), alongside aws-021 (Stephen B1 ruling 2026-06-03): the 'worst fit' stem needs a best-fit reauthor that inverts keying and reshuffles the option set, so a distractor swap now is orphaned work. Tier-3 does the fabrication replacement as part of the whole-item reauthor. Bank restored to original."
+    },
+    {
+      "mcq_id": "aws-031-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 2,
+      "change_summary": "swap d3 (fabricated CloudWatch billing event) -> belief that restart erases CloudWatch metric history",
+      "before": {
+        "question": "An EC2 instance shows 90% CPU. You see one process (java) consuming most of it. The team's first impulse is to restart it. Why might that be the wrong response?",
+        "options": {
+          "correct": "High CPU is a symptom, not a cause \u2014 restarting hides the underlying driver (a slow query, a JIT warmup loop, a real traffic spike) and you lose the diagnostic window",
+          "distractor_1": "Restarting Java processes triggers a 60-second JVM cold-start period during which CPU spikes higher, making the situation worse",
+          "distractor_2": "ASG would mark the instance unhealthy mid-restart and terminate it before the process recovers",
+          "distractor_3": "Restarting the process triggers a CloudWatch billing event because of the metric stream interruption"
+        },
+        "explanation": "Restart-first is the operational equivalent of unplugging the smoke alarm \u2014 the alarm stops but the fire continues. Capturing thread dumps, profiling the JIT, and correlating with upstream traffic teaches what to fix. Distractor 1 over-states JVM cold start; modern JVMs warm up in seconds, and the issue is diagnosis, not warm-up. Distractor 2 misrepresents ASG behaviour \u2014 process restart isn't an ASG event. Distractor 3 fabricates a billing penalty. The methodology lesson: always capture state before recovering."
+      },
+      "after": {
+        "question": "An EC2 instance shows 90% CPU. You see one process (java) consuming most of it. The team's first impulse is to restart it. Why might that be the wrong response?",
+        "options": {
+          "correct": "High CPU is a symptom, not a cause \u2014 restarting hides the underlying driver (a slow query, a JIT warmup loop, a real traffic spike) and you lose the diagnostic window",
+          "distractor_1": "Restarting Java processes triggers a 60-second JVM cold-start period during which CPU spikes higher, making the situation worse",
+          "distractor_2": "ASG would mark the instance unhealthy mid-restart and terminate it before the process recovers",
+          "distractor_3": "Restarting wipes the CloudWatch metric history for the instance, so you'd lose the record of the spike needed for the post-incident review"
+        },
+        "explanation": "Restart-first is the operational equivalent of unplugging the smoke alarm \u2014 the alarm stops but the fire continues. Capturing thread dumps, profiling the JIT, and correlating with upstream traffic teaches what to fix. Distractor 1 over-states JVM cold start; modern JVMs warm up in seconds, and the issue is diagnosis, not warm-up. Distractor 2 misrepresents ASG behaviour \u2014 process restart isn't an ASG event. Distractor 3 assumes restarting erases CloudWatch history \u2014 but CloudWatch stores metrics as durable time-series independent of the process; what you actually lose by restarting is the live process state (thread dumps, the running JIT profile), not the recorded metrics. The methodology lesson: always capture state before recovering."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_3",
+          "touched": true,
+          "real_misconception": "Juniors often think restarting erases monitoring data; CloudWatch retains metrics independently. A believable wrong reason that mirrors the correct 'lose the diagnostic window' but targets stored metrics, not live state."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "aws-035-mcq-1",
+      "source_bank": 2,
+      "tier_applied": 2,
+      "change_summary": "swap d1 (fabricated 2023 deprecation) -> 'newer = less capable, no custom domains' misconception",
+      "before": {
+        "question": "You're choosing between API Gateway REST API and API Gateway HTTP API for a new serverless backend. Which is the more common right choice today and why?",
+        "options": {
+          "correct": "HTTP API \u2014 lower latency, ~70% cheaper, and covers what most teams need (JWT auth, CORS, Lambda integration)",
+          "distractor_1": "REST API \u2014 HTTP API was deprecated in 2023 and is no longer recommended for new builds",
+          "distractor_2": "REST API \u2014 HTTP API doesn't support Lambda integrations, which makes it unsuitable for most serverless backends",
+          "distractor_3": "HTTP API \u2014 it's the only API Gateway type that supports VPC integrations, making it required for any private backend"
+        },
+        "explanation": "HTTP API is the modern default: cheaper, faster, simpler, with the features most teams actually use. REST API still has a place when you need request validators, complex mappings, WAF, or private edge-optimised endpoints. Distractor 1 fabricates a deprecation. Distractor 2 inverts the truth \u2014 HTTP API supports Lambda integrations natively (in fact more cleanly than REST API). Distractor 3 misstates capability \u2014 both API types support VPC links / integrations."
+      },
+      "after": {
+        "question": "You're choosing between API Gateway REST API and API Gateway HTTP API for a new serverless backend. Which is the more common right choice today and why?",
+        "options": {
+          "correct": "HTTP API \u2014 lower latency, ~70% cheaper, and covers what most teams need (JWT auth, CORS, Lambda integration)",
+          "distractor_1": "REST API \u2014 it's the more mature option; HTTP API still doesn't support custom domain names or TLS certificates, so it can't serve production traffic on a branded endpoint",
+          "distractor_2": "REST API \u2014 HTTP API doesn't support Lambda integrations, which makes it unsuitable for most serverless backends",
+          "distractor_3": "HTTP API \u2014 it's the only API Gateway type that supports VPC integrations, making it required for any private backend"
+        },
+        "explanation": "HTTP API is the modern default: cheaper, faster, simpler, with the features most teams actually use. REST API still has a place when you need request validators, complex mappings, WAF, or private edge-optimised endpoints. Distractor 1 leans on a 'newer means less capable' assumption \u2014 but HTTP API has supported custom domain names and ACM TLS certificates since launch, so the branded-endpoint objection is false. Distractor 2 inverts the truth \u2014 HTTP API supports Lambda integrations natively (in fact more cleanly than REST API). Distractor 3 misstates capability \u2014 both API types support VPC links / integrations."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": true,
+          "real_misconception": "A common 'the newer simpler option must lack enterprise features' assumption; HTTP API has supported custom domains and ACM certs from the start."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-002-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 2,
+      "change_summary": "swap d1: drop the false 'CI speed scales linearly with size' absolute; keep the genuine at-bar 'bigger runner fixes slow CI' instinct",
+      "before": {
+        "question": "Your CI pipeline takes 25 minutes \u2014 too slow for the team's rapid commit cadence. Which optimisation gives the biggest realistic speedup?",
+        "options": {
+          "correct": "Parallelise independent stages (lint, unit tests, security scan) and shard slow test suites across multiple runners",
+          "distractor_1": "Increase the runner's CPU and memory to the maximum tier; CI speed scales linearly with resource size",
+          "distractor_2": "Skip the integration test stage on every PR and run it only on main branch merges, since it's the slowest stage",
+          "distractor_3": "Switch from GitHub-hosted runners to a larger third-party runner provider with faster network throughput between runners"
+        },
+        "explanation": "Parallelisation and sharding give 3-5x speedups on most pipelines because stages and tests are I/O-bound rather than CPU-bound. Distractor 1 over-promises \u2014 bigger runners help marginally if at all; serial test runs don't speed up with more CPU beyond a point. Distractor 2 reduces signal coverage (PRs would merge with integration failures) \u2014 wrong trade-off. Distractor 3 adds infrastructure cost without addressing the fundamental serial-vs-parallel issue."
+      },
+      "after": {
+        "question": "Your CI pipeline takes 25 minutes \u2014 too slow for the team's rapid commit cadence. Which optimisation gives the biggest realistic speedup?",
+        "options": {
+          "correct": "Parallelise independent stages (lint, unit tests, security scan) and shard slow test suites across multiple runners",
+          "distractor_1": "Upgrade to the largest available runner tier so the whole pipeline runs on more CPU and memory",
+          "distractor_2": "Skip the integration test stage on every PR and run it only on main branch merges, since it's the slowest stage",
+          "distractor_3": "Switch from GitHub-hosted runners to a larger third-party runner provider with faster network throughput between runners"
+        },
+        "explanation": "Parallelisation and sharding give 3-5x speedups on most pipelines because stages and tests are I/O-bound rather than CPU-bound. Distractor 1 throws hardware at the problem \u2014 a real instinct, but most CI time is I/O-bound (dependency installs, network, serial test ordering), so a bigger runner barely moves a 25-minute pipeline; the win is parallelism, not raw size. Distractor 2 reduces signal coverage (PRs would merge with integration failures) \u2014 wrong trade-off. Distractor 3 adds infrastructure cost without addressing the fundamental serial-vs-parallel issue."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": true,
+          "real_misconception": "Throwing a bigger runner at slow CI is a near-universal junior instinct; it barely helps because pipelines are I/O-bound and serial. The 'scales linearly' over-claim is removed; the underlying misconception is at-bar."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-011-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 2,
+      "change_summary": "swap d3 (fabricated COMPOSITE_ prefix convention) -> 'cross-repo actions are blocked from secrets' misconception",
+      "before": {
+        "question": "Your composite action needs access to a secret stored at the repository level. What's true about secrets and composite actions?",
+        "options": {
+          "correct": "Composite actions can read secrets passed as inputs from the calling workflow but cannot directly access repository secrets without explicit passthrough",
+          "distractor_1": "Composite actions inherit all repository and organization secrets automatically without any explicit passing required",
+          "distractor_2": "Composite actions cannot use secrets at all; secrets are restricted to job-level steps written directly in the workflow file",
+          "distractor_3": "Composite actions can access secrets only when they're stored in the calling workflow's environment with name prefixed COMPOSITE_"
+        },
+        "explanation": "Composite actions are sandboxed from secrets \u2014 the calling workflow must pass secrets as inputs explicitly (with `secrets:` context in a reusable workflow, or as input values for composite actions). Distractor 1 inverts the access model. Distractor 2 over-tightens \u2014 composite actions can use secrets, just via explicit passthrough. Distractor 3 invents a prefix convention that doesn't exist. This is the most common composite-action gotcha for teams refactoring from inline steps."
+      },
+      "after": {
+        "question": "Your composite action needs access to a secret stored at the repository level. What's true about secrets and composite actions?",
+        "options": {
+          "correct": "Composite actions can read secrets passed as inputs from the calling workflow but cannot directly access repository secrets without explicit passthrough",
+          "distractor_1": "Composite actions inherit all repository and organization secrets automatically without any explicit passing required",
+          "distractor_2": "Composite actions cannot use secrets at all; secrets are restricted to job-level steps written directly in the workflow file",
+          "distractor_3": "Composite actions can use secrets only if the action's YAML lives in the same repository as the calling workflow; actions referenced from another repository are blocked from all secrets"
+        },
+        "explanation": "Composite actions are sandboxed from secrets \u2014 the calling workflow must pass secrets as inputs explicitly (with `secrets:` context in a reusable workflow, or as input values for composite actions). Distractor 1 inverts the access model. Distractor 2 over-tightens \u2014 composite actions can use secrets, just via explicit passthrough. Distractor 3 ties secret access to where the action lives \u2014 but a composite action receives secrets through explicit input passing regardless of which repository hosts it; location isn't the gate. This is the most common composite-action gotcha for teams refactoring from inline steps."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_3",
+          "touched": true,
+          "real_misconception": "Juniors often assume third-party/cross-repo actions can't receive secrets; access depends on explicit passthrough, not action location."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-012-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 2,
+      "change_summary": "swap d3 (invented skip-matrix: key) -> fail-fast:false, a real setting misapplied as 'skip a combo'",
+      "before": {
+        "question": "Your matrix has `os: [ubuntu, macos, windows]` and `node: [18, 20]` but you don't want the macos+node18 combination because it's flaky. How do you skip it?",
+        "options": {
+          "correct": "Use `exclude:` in the strategy with `{os: macos, node: 18}` to remove that one combination while keeping all others",
+          "distractor_1": "Set `continue-on-error: true` on the specific matrix combination so its failures don't fail the workflow",
+          "distractor_2": "Use `if: ${{ !(matrix.os == 'macos' && matrix.node == 18) }}` on every step inside the matrix job to make all steps no-ops for that combo",
+          "distractor_3": "Add `skip-matrix:` to the workflow YAML with the combination key, which tells GitHub to not even queue that job run"
+        },
+        "explanation": "The native solution is `exclude:` (and `include:` adds combinations beyond the cross-product). Distractor 1 keeps the job running and silences failures \u2014 wasteful and noisy. Distractor 2 keeps the job queued and runs through every step as a no-op \u2014 extreme overhead for skipping. Distractor 3 invents a `skip-matrix:` key that doesn't exist. Matrix pruning matters at scale \u2014 a 3\u00d73\u00d73 cross-product is 27 jobs, and `exclude:` keeps the bill in check."
+      },
+      "after": {
+        "question": "Your matrix has `os: [ubuntu, macos, windows]` and `node: [18, 20]` but you don't want the macos+node18 combination because it's flaky. How do you skip it?",
+        "options": {
+          "correct": "Use `exclude:` in the strategy with `{os: macos, node: 18}` to remove that one combination while keeping all others",
+          "distractor_1": "Set `continue-on-error: true` on the specific matrix combination so its failures don't fail the workflow",
+          "distractor_2": "Use `if: ${{ !(matrix.os == 'macos' && matrix.node == 18) }}` on every step inside the matrix job to make all steps no-ops for that combo",
+          "distractor_3": "Set `fail-fast: false` in the strategy so the flaky macos+node18 combination still runs but no longer cancels the other matrix jobs when it fails"
+        },
+        "explanation": "The native solution is `exclude:` (and `include:` adds combinations beyond the cross-product). Distractor 1 keeps the job running and silences failures \u2014 wasteful and noisy. Distractor 2 keeps the job queued and runs through every step as a no-op \u2014 extreme overhead for skipping. Distractor 3 reaches for `fail-fast: false` \u2014 a real strategy setting, but it only stops one leg's failure from cancelling the others; the macos+node18 job still runs, so nothing is skipped. Matrix pruning matters at scale \u2014 a 3\u00d73\u00d73 cross-product is 27 jobs, and `exclude:` keeps the bill in check."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_3",
+          "touched": true,
+          "real_misconception": "fail-fast: false is a real matrix setting; a junior confuses 'stop this combo breaking the build' with 'remove it,' when it only decouples sibling cancellation."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-013-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 2,
+      "change_summary": "swap d1 (fabricated local-cache auto-sync) -> 'a pulled image is reused as build cache automatically' misconception",
+      "before": {
+        "question": "You build a Docker image in CI and want to reuse the layer cache across runs even though each runner is fresh. What pattern works?",
+        "options": {
+          "correct": "BuildKit with a registry-backed cache (`--cache-to type=registry --cache-from type=registry`) \u2014 layers live in a remote registry and are pulled on subsequent runs",
+          "distractor_1": "BuildKit local cache (`--cache-to type=local`) \u2014 local caches are automatically synchronised across runners by GitHub Actions",
+          "distractor_2": "Docker Hub's persistent layer storage \u2014 every image tag pushed to Docker Hub seeds the layer cache for all future builds in the same org",
+          "distractor_3": "Compressed tar of the Docker daemon storage directory uploaded as a build artifact \u2014 restored at the start of each subsequent run"
+        },
+        "explanation": "Registry cache is the standard pattern: BuildKit pushes the build cache to a registry (often the same one as the image), and pulls it on the next run. The runner can be fresh because the cache lives remotely. Distractor 1 invents synchronisation across runners for local cache. Distractor 2 fabricates an org-wide layer-seeding behaviour. Distractor 3 (tar of daemon storage) was a pre-BuildKit hack \u2014 slow, fragile, and not how modern BuildKit works."
+      },
+      "after": {
+        "question": "You build a Docker image in CI and want to reuse the layer cache across runs even though each runner is fresh. What pattern works?",
+        "options": {
+          "correct": "BuildKit with a registry-backed cache (`--cache-to type=registry --cache-from type=registry`) \u2014 layers live in a remote registry and are pulled on subsequent runs",
+          "distractor_1": "Just push the built image to a registry each run and pull it at the start of the next build \u2014 Docker reuses the pulled image's layers as the build cache automatically, no cache flags needed",
+          "distractor_2": "Docker Hub's persistent layer storage \u2014 every image tag pushed to Docker Hub seeds the layer cache for all future builds in the same org",
+          "distractor_3": "Compressed tar of the Docker daemon storage directory uploaded as a build artifact \u2014 restored at the start of each subsequent run"
+        },
+        "explanation": "Registry cache is the standard pattern: BuildKit pushes the build cache to a registry (often the same one as the image), and pulls it on the next run. The runner can be fresh because the cache lives remotely. Distractor 1 assumes pulling a previously-pushed image seeds the build cache for free \u2014 but BuildKit won't treat a pulled image as cache unless you point `--cache-from` at it (or built it with inline cache); a plain pull doesn't populate the layer cache. Distractor 2 fabricates an org-wide layer-seeding behaviour. Distractor 3 (tar of daemon storage) was a pre-BuildKit hack \u2014 slow, fragile, and not how modern BuildKit works."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": true,
+          "real_misconception": "A common belief that push-then-pull gives layer caching for free; BuildKit needs an explicit --cache-from (or inline cache) to reuse a pulled image's layers."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-020-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 2,
+      "change_summary": "swap d2 (fabricated MaxSessionDuration=600s, below the real 3600s floor) -> aud-vs-sub OIDC misconception; d3 (MFA-inheritance, verified-FP) left BYTE-IDENTICAL per Stephen ruling",
+      "before": {
+        "question": "Your OIDC trust policy between GitHub Actions and AWS allows AssumeRole. What condition should you add to prevent any other repo or branch from using the role?",
+        "options": {
+          "correct": "A StringEquals or StringLike condition on `token.actions.githubusercontent.com:sub` that pins the role to your repo and a specific branch or environment",
+          "distractor_1": "An IP-allow condition restricting the AssumeRole call to GitHub's published runner IP ranges so only their infrastructure can assume the role",
+          "distractor_2": "A MaxSessionDuration of 600 seconds, so even if another workflow assumed the role the session would expire before damage could be done",
+          "distractor_3": "An MFA-required condition (`aws:MultiFactorAuthPresent: true`) on the role, since GitHub-issued JWTs include an implicit MFA claim derived from the user's authenticated GitHub session at workflow start"
+        },
+        "explanation": "The `sub` claim is what makes OIDC trust scoped \u2014 without a condition on it, any repo with an OIDC connection to the same AWS account could assume the role. Pin to `repo:org/repo:ref:refs/heads/main` or environment-specific sub formats. Distractor 1 (IP) drifts every time GitHub adds runners and is brittle. Distractor 2 (short duration) limits damage but doesn't prevent assumption. Distractor 3 invents an MFA claim in GitHub OIDC tokens that doesn't exist."
+      },
+      "after": {
+        "question": "Your OIDC trust policy between GitHub Actions and AWS allows AssumeRole. What condition should you add to prevent any other repo or branch from using the role?",
+        "options": {
+          "correct": "A StringEquals or StringLike condition on `token.actions.githubusercontent.com:sub` that pins the role to your repo and a specific branch or environment",
+          "distractor_1": "An IP-allow condition restricting the AssumeRole call to GitHub's published runner IP ranges so only their infrastructure can assume the role",
+          "distractor_2": "An `aud` (audience) condition requiring the token's audience to equal `sts.amazonaws.com`, which ties the role to your repository's OIDC identity",
+          "distractor_3": "An MFA-required condition (`aws:MultiFactorAuthPresent: true`) on the role, since GitHub-issued JWTs include an implicit MFA claim derived from the user's authenticated GitHub session at workflow start"
+        },
+        "explanation": "The `sub` claim is what makes OIDC trust scoped \u2014 without a condition on it, any repo with an OIDC connection to the same AWS account could assume the role. Pin to `repo:org/repo:ref:refs/heads/main` or environment-specific sub formats. Distractor 1 (IP) drifts every time GitHub adds runners and is brittle. Distractor 2 pins the `aud` claim \u2014 but GitHub issues the same `sts.amazonaws.com` audience to every repository, so it can't distinguish yours; only a `sub` condition scopes the trust. Distractor 3 invents an MFA claim in GitHub OIDC tokens that doesn't exist."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_2",
+          "touched": true,
+          "real_misconception": "Confusing the aud claim with the sub claim is a classic OIDC mistake; the audience is identical across all GitHub repos, so it can't scope a role to one repository."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "real_misconception": "OFF-LIMITS / verified-FP per Stephen ruling: MFA-inheritance is a genuine at-bar misconception; left byte-identical, NOT touched."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-021-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 2,
+      "change_summary": "swap d1 (invented '10 manifest ops/min' rate limit) -> 'kubectl can't preview changes' misconception",
+      "before": {
+        "question": "Your GHA workflow deploys to EKS by running `kubectl apply -f manifests/`. What's the main downside compared to using Helm or kustomize?",
+        "options": {
+          "correct": "kubectl apply has no native concept of releases, rollbacks, or templating across environments \u2014 you end up scripting around it for non-trivial deploys",
+          "distractor_1": "kubectl apply is rate-limited at 10 manifest operations per minute, while Helm batches its calls into a single API call",
+          "distractor_2": "kubectl apply doesn't support secrets at all; Helm has a `helm secrets` subcommand that handles them natively",
+          "distractor_3": "kubectl apply runs synchronously and cannot return until every resource is healthy, blocking the workflow indefinitely"
+        },
+        "explanation": "Raw kubectl is fine for simple deploys but lacks release management \u2014 each apply is independent, with no built-in template-per-environment, no `helm history`, no `helm rollback`. Distractor 1 invents an API rate limit on kubectl. Distractor 2 fabricates a `helm secrets` subcommand (it's a third-party plugin) and misstates kubectl secret support. Distractor 3 inverts the behaviour \u2014 `kubectl apply` returns immediately by default; `--wait` is opt-in. Most teams pick Helm or kustomize specifically for the templating + release-management combination."
+      },
+      "after": {
+        "question": "Your GHA workflow deploys to EKS by running `kubectl apply -f manifests/`. What's the main downside compared to using Helm or kustomize?",
+        "options": {
+          "correct": "kubectl apply has no native concept of releases, rollbacks, or templating across environments \u2014 you end up scripting around it for non-trivial deploys",
+          "distractor_1": "kubectl apply has no way to preview changes before they hit the cluster, whereas Helm can show a diff first \u2014 so apply is unsafe for production changes",
+          "distractor_2": "kubectl apply doesn't support secrets at all; Helm has a `helm secrets` subcommand that handles them natively",
+          "distractor_3": "kubectl apply runs synchronously and cannot return until every resource is healthy, blocking the workflow indefinitely"
+        },
+        "explanation": "Raw kubectl is fine for simple deploys but lacks release management \u2014 each apply is independent, with no built-in template-per-environment, no `helm history`, no `helm rollback`. Distractor 1 claims kubectl can't preview changes \u2014 but `kubectl diff` and `--dry-run=server` both show pending changes before they apply, so the preview gap is imaginary. Distractor 2 fabricates a `helm secrets` subcommand (it's a third-party plugin) and misstates kubectl secret support. Distractor 3 inverts the behaviour \u2014 `kubectl apply` returns immediately by default; `--wait` is opt-in. Most teams pick Helm or kustomize specifically for the templating + release-management combination."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": true,
+          "real_misconception": "Many juniors think only Helm/templating tools can preview; kubectl has `kubectl diff` and server-side dry-run."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-022-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 2,
+      "change_summary": "swap d3 (invented 'aws ecs deploy-now' queued state) -> 'ECS restarts tasks in place' misconception",
+      "before": {
+        "question": "An ECS service is updated via `aws ecs update-service --task-definition new-revision`. What does ECS do by default?",
+        "options": {
+          "correct": "A rolling update: starts new tasks with the new revision, deregisters and stops old tasks once new ones are healthy, respecting minimumHealthyPercent and maximumPercent",
+          "distractor_1": "A blue/green deployment: keeps the old revision running, brings up the new one in parallel, and switches the ALB target group when complete",
+          "distractor_2": "An immediate replacement: stops all old tasks first, then starts the new revision; brief downtime is expected during the transition",
+          "distractor_3": "A queued deployment: starts no new tasks until the operator runs `aws ecs deploy-now` to advance the deployment to active state"
+        },
+        "explanation": "The ECS default deployment controller is rolling update via the service scheduler \u2014 it overlaps old and new tasks per the percent settings. Distractor 1 describes the CodeDeploy blue/green pattern, which is opt-in via `deploymentController: CODE_DEPLOY`. Distractor 2 describes a Recreate strategy ECS doesn't default to. Distractor 3 invents a queued deploy state. Knowing the default matters for understanding how rolling deploy behaviour interacts with task definition revisions."
+      },
+      "after": {
+        "question": "An ECS service is updated via `aws ecs update-service --task-definition new-revision`. What does ECS do by default?",
+        "options": {
+          "correct": "A rolling update: starts new tasks with the new revision, deregisters and stops old tasks once new ones are healthy, respecting minimumHealthyPercent and maximumPercent",
+          "distractor_1": "A blue/green deployment: keeps the old revision running, brings up the new one in parallel, and switches the ALB target group when complete",
+          "distractor_2": "An immediate replacement: stops all old tasks first, then starts the new revision; brief downtime is expected during the transition",
+          "distractor_3": "An in-place restart: ECS pulls the new image into each running task and restarts the container inside it, reusing the existing task instances rather than launching new ones"
+        },
+        "explanation": "The ECS default deployment controller is rolling update via the service scheduler \u2014 it overlaps old and new tasks per the percent settings. Distractor 1 describes the CodeDeploy blue/green pattern, which is opt-in via `deploymentController: CODE_DEPLOY`. Distractor 2 describes a Recreate strategy ECS doesn't default to. Distractor 3 imagines ECS mutating tasks in place \u2014 but ECS tasks are immutable; a new revision always launches fresh tasks and stops the old ones, never restarts a container inside an existing task. Knowing the default matters for understanding how rolling deploy behaviour interacts with task definition revisions."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_3",
+          "touched": true,
+          "real_misconception": "A transferred 'docker restart' mental model; ECS tasks are immutable and always replaced, never updated in place."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-022-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 2,
+      "change_summary": "swap d1 (impossible minimumHealthyPercent=200) -> maximumPercent:200, a real setting misapplied as blue/green one-cut",
+      "before": {
+        "question": "Your ECS rolling update is too risky for production releases. You want one-cut traffic switching with automated rollback. What setup fits?",
+        "options": {
+          "correct": "Switch the service's deploymentController to CODE_DEPLOY and configure a CodeDeploy blue/green deployment group with the ALB target groups",
+          "distractor_1": "Increase minimumHealthyPercent to 200 on the ECS rolling update, which causes ECS to run double capacity during the deploy and switch all at once",
+          "distractor_2": "Configure an external load balancer that ECS doesn't know about, then manually shift weights between target groups to simulate blue/green",
+          "distractor_3": "Set ECS service `desiredCount` to zero before the deploy, then ramp it back up with the new task definition to ensure clean traffic switching with no overlap between revisions"
+        },
+        "explanation": "ECS supports two deployment controllers: ECS (rolling, default) and CODE_DEPLOY (blue/green via two target groups). The blue/green flow brings up the new revision in a 'replacement' target group, runs validation, and shifts traffic in one cut with automated rollback support. Distractor 1 invents a 200% setting behaviour that doesn't replicate blue/green. Distractor 2 (external LB) is a workaround that defeats integration. Distractor 3 introduces downtime \u2014 the opposite of what's wanted."
+      },
+      "after": {
+        "question": "Your ECS rolling update is too risky for production releases. You want one-cut traffic switching with automated rollback. What setup fits?",
+        "options": {
+          "correct": "Switch the service's deploymentController to CODE_DEPLOY and configure a CodeDeploy blue/green deployment group with the ALB target groups",
+          "distractor_1": "Set the rolling update's maximumPercent to 200 so ECS stands up a full second set of new tasks alongside the old ones, then cuts all traffic over at once when they're healthy",
+          "distractor_2": "Configure an external load balancer that ECS doesn't know about, then manually shift weights between target groups to simulate blue/green",
+          "distractor_3": "Set ECS service `desiredCount` to zero before the deploy, then ramp it back up with the new task definition to ensure clean traffic switching with no overlap between revisions"
+        },
+        "explanation": "ECS supports two deployment controllers: ECS (rolling, default) and CODE_DEPLOY (blue/green via two target groups). The blue/green flow brings up the new revision in a 'replacement' target group, runs validation, and shifts traffic in one cut with automated rollback support. Distractor 1 reaches for `maximumPercent: 200` \u2014 a real setting that does run double capacity \u2014 but a rolling update still drains old tasks gradually rather than cutting over in one atomic switch, and there's no built-in automated rollback. Distractor 2 (external LB) is a workaround that defeats integration. Distractor 3 introduces downtime \u2014 the opposite of what's wanted."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": true,
+          "real_misconception": "maximumPercent 200 is real and surges to double capacity; a junior equates 'double capacity' with 'blue/green one-cut,' missing that rolling still drains gradually with no automated rollback."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "cicd-031-mcq-1",
+      "source_bank": 2,
+      "tier_applied": 2,
+      "change_summary": "no change \u2014 d2 ('column rename is a metadata-only, no-downtime ALTER TABLE') verified as a real at-bar misconception; the A_fabricated flag is a false positive",
+      "before": {
+        "question": "You need to rename a column in a production database used by 50 web servers, with zero downtime. Which sequence works?",
+        "options": {
+          "correct": "Expand-contract: add the new column, deploy code that writes both columns, backfill, deploy code that reads only the new column, then drop the old column",
+          "distractor_1": "Coordinate a maintenance window, take a snapshot, run the rename, and redeploy all 50 servers from the new schema in one cutover",
+          "distractor_2": "Run the rename online using ALTER TABLE; PostgreSQL/MySQL handle column renames as metadata-only operations with no downtime",
+          "distractor_3": "Use a feature flag to gate the column reference in the app; switch the flag at the same instant as running the ALTER TABLE"
+        },
+        "explanation": "Expand-contract is the canonical no-downtime schema-change pattern: schema and code change in small, backwards-compatible steps so old and new code can coexist. Distractor 1 requires downtime (maintenance window). Distractor 2 over-promises ALTER TABLE \u2014 column rename varies by database engine and version, can take locks, and breaks any in-flight queries referencing the old name. Distractor 3 ignores the 50-server rolling-update window during which some servers reference the old name and some the new."
+      },
+      "after": {
+        "question": "You need to rename a column in a production database used by 50 web servers, with zero downtime. Which sequence works?",
+        "options": {
+          "correct": "Expand-contract: add the new column, deploy code that writes both columns, backfill, deploy code that reads only the new column, then drop the old column",
+          "distractor_1": "Coordinate a maintenance window, take a snapshot, run the rename, and redeploy all 50 servers from the new schema in one cutover",
+          "distractor_2": "Run the rename online using ALTER TABLE; PostgreSQL/MySQL handle column renames as metadata-only operations with no downtime",
+          "distractor_3": "Use a feature flag to gate the column reference in the app; switch the flag at the same instant as running the ALTER TABLE"
+        },
+        "explanation": "Expand-contract is the canonical no-downtime schema-change pattern: schema and code change in small, backwards-compatible steps so old and new code can coexist. Distractor 1 requires downtime (maintenance window). Distractor 2 over-promises ALTER TABLE \u2014 column rename varies by database engine and version, can take locks, and breaks any in-flight queries referencing the old name. Distractor 3 ignores the 50-server rolling-update window during which some servers reference the old name and some the new."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "verified_real_misconception": true,
+          "real_misconception": "VERIFY-NO-CHANGE: 'rename is metadata-only, no downtime' is a genuine, widely-held belief (and partly DB-true in Postgres/MySQL). Wrong here because the 50 running servers still reference the old name and the rename breaks in-flight queries. No invented identifier -> at-bar."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "docker-004-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 2,
+      "change_summary": "swap d2 (invented --no-context flag) -> 'docker build respects .gitignore' misconception",
+      "before": {
+        "question": "Your team is building images in CI but the resulting images include node_modules from local development, plus .git and various .env files. What's missing?",
+        "options": {
+          "correct": "A `.dockerignore` file excluding node_modules, .git, .env, and other build-irrelevant files from the build context",
+          "distractor_1": "A `RUN rm -rf node_modules` step at the end of the Dockerfile to clean up artefacts after they've been added to the image",
+          "distractor_2": "A `--no-context` flag on the docker build command to skip uploading the working directory entirely",
+          "distractor_3": "A symbolic link from /docker-build to a clean directory so the build only sees the explicitly-staged files"
+        },
+        "explanation": "`.dockerignore` is the answer \u2014 it acts like `.gitignore` for `docker build`, preventing the named files from being uploaded to the daemon as build context. Distractor 1 (RUN rm) doesn't shrink the image \u2014 the files are already in earlier layers. Distractor 2 invents a --no-context flag. Distractor 3 invents a symlink-staging convention. Without .dockerignore, every file in the build directory gets uploaded and potentially baked in."
+      },
+      "after": {
+        "question": "Your team is building images in CI but the resulting images include node_modules from local development, plus .git and various .env files. What's missing?",
+        "options": {
+          "correct": "A `.dockerignore` file excluding node_modules, .git, .env, and other build-irrelevant files from the build context",
+          "distractor_1": "A `RUN rm -rf node_modules` step at the end of the Dockerfile to clean up artefacts after they've been added to the image",
+          "distractor_2": "A `.gitignore` file listing node_modules, .git, and .env \u2014 docker build reads `.gitignore` and excludes those paths from the build context automatically",
+          "distractor_3": "A symbolic link from /docker-build to a clean directory so the build only sees the explicitly-staged files"
+        },
+        "explanation": "`.dockerignore` is the answer \u2014 it acts like `.gitignore` for `docker build`, preventing the named files from being uploaded to the daemon as build context. Distractor 1 (RUN rm) doesn't shrink the image \u2014 the files are already in earlier layers. Distractor 2 assumes docker reuses `.gitignore` \u2014 but `docker build` only honours `.dockerignore`; a `.gitignore` has no effect on the build context. Distractor 3 invents a symlink-staging convention. Without .dockerignore, every file in the build directory gets uploaded and potentially baked in."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_2",
+          "touched": true,
+          "real_misconception": "A classic mix-up: developers assume docker build respects .gitignore like other tools; it only reads .dockerignore."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "docker-010-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 2,
+      "change_summary": "swap d3 (fabricated kernel-buffer daemon mechanism) -> 'docker logs only shows stdout' misconception",
+      "before": {
+        "question": "A container starts and exits immediately. `docker logs` shows nothing. What's the next diagnostic step?",
+        "options": {
+          "correct": "Run `docker inspect <container>` and look at State (exit code, error) plus run with `-it --entrypoint=sh` to get an interactive shell instead of executing the original entrypoint",
+          "distractor_1": "Run `docker exec -it <container> sh` to drop into the exited container and inspect its filesystem state",
+          "distractor_2": "Increase the container's stop timeout to 60 seconds, which gives docker logs more time to capture output before exit",
+          "distractor_3": "Restart Docker daemon to flush log buffers; transient containers often lose stdout to a kernel buffer that the daemon doesn't drain"
+        },
+        "explanation": "`docker inspect` shows the exit code and any error message; running with `--entrypoint=sh -it` lets you start the container manually and explore \u2014 bypassing the failing entrypoint. Distractor 1 (docker exec on exited) fails: exec requires a running container. Distractor 2 misunderstands stop timeout (it controls graceful shutdown waits, not log capture). Distractor 3 invents a daemon-restart fix. The entrypoint override is the most useful technique when the container fails before producing usable output."
+      },
+      "after": {
+        "question": "A container starts and exits immediately. `docker logs` shows nothing. What's the next diagnostic step?",
+        "options": {
+          "correct": "Run `docker inspect <container>` and look at State (exit code, error) plus run with `-it --entrypoint=sh` to get an interactive shell instead of executing the original entrypoint",
+          "distractor_1": "Run `docker exec -it <container> sh` to drop into the exited container and inspect its filesystem state",
+          "distractor_2": "Increase the container's stop timeout to 60 seconds, which gives docker logs more time to capture output before exit",
+          "distractor_3": "The application writes to stderr rather than stdout, and `docker logs` only captures stdout \u2014 so the error output exists but isn't shown"
+        },
+        "explanation": "`docker inspect` shows the exit code and any error message; running with `--entrypoint=sh -it` lets you start the container manually and explore \u2014 bypassing the failing entrypoint. Distractor 1 (docker exec on exited) fails: exec requires a running container. Distractor 2 misunderstands stop timeout (it controls graceful shutdown waits, not log capture). Distractor 3 assumes `docker logs` shows only stdout \u2014 but it captures both stdout and stderr, so a silent container isn't hiding output on the 'wrong' stream; it's exiting before it logs anything. The entrypoint override is the most useful technique when the container fails before producing usable output."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_3",
+          "touched": true,
+          "real_misconception": "A common belief that docker logs only shows stdout and stderr needs separate handling; docker logs captures both streams."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "git-003-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 2,
+      "change_summary": "swap d2 (invented 'git pull --fork') -> repoint-origin remote mistake; ALSO swap d3 (invented 'GitHub auto-reroutes the push', a fabrication) -> Sync-fork-button is-server-side misconception (Stephen B4 widening).",
+      "before": {
+        "question": "You've forked an open-source repo on GitHub and cloned your fork locally. What remote setup lets you keep your fork in sync with upstream changes?",
+        "options": {
+          "correct": "Add the original repo as a second remote (commonly called `upstream`); `git fetch upstream` pulls its changes, which you merge or rebase into your fork's branches",
+          "distractor_1": "Configure your fork's webhook to mirror upstream; GitHub will auto-sync your fork on every upstream commit",
+          "distractor_2": "Use `git pull --fork` which is GitHub's specialised pull command that pulls from upstream when the local repo is a fork",
+          "distractor_3": "Push from upstream to your fork as the origin remote; GitHub automatically reroutes the push to your fork"
+        },
+        "explanation": "Two-remote setup is the standard fork workflow: `origin` is your fork, `upstream` is the original. Pull from upstream, push to origin, open PRs from origin to upstream. Distractor 1 invents a webhook-based mirroring. Distractor 2 fabricates a `--fork` flag. Distractor 3 confuses push direction; you don't push from upstream, you fetch from it. GitHub's UI does have a 'Sync fork' button now, but knowing the underlying remote setup matters."
+      },
+      "after": {
+        "question": "You've forked an open-source repo on GitHub and cloned your fork locally. What remote setup lets you keep your fork in sync with upstream changes?",
+        "options": {
+          "correct": "Add the original repo as a second remote (commonly called `upstream`); `git fetch upstream` pulls its changes, which you merge or rebase into your fork's branches",
+          "distractor_1": "Configure your fork's webhook to mirror upstream; GitHub will auto-sync your fork on every upstream commit",
+          "distractor_2": "Repoint `origin` at the original repository with `git remote set-url origin <upstream-url>`, then `git pull` to sync from upstream",
+          "distractor_3": "Use GitHub's 'Sync fork' button \u2014 it updates your fork on GitHub and adds the `upstream` remote to your local clone, so a plain `git fetch` then pulls upstream's changes"
+        },
+        "explanation": "Two-remote setup is the standard fork workflow: `origin` is your fork, `upstream` is the original. Pull from upstream, push to origin, open PRs from origin to upstream. Distractor 1 invents a webhook-based mirroring. Distractor 2 repoints `origin` at upstream \u2014 which does pull upstream changes, but you've now lost your fork as a push target and can't open PRs from it; upstream belongs on a second remote. Distractor 3 reaches for the real 'Sync fork' button \u2014 but it runs server-side on your fork; it never adds an `upstream` remote to your local clone, so a local `git fetch` still has nothing upstream to pull. Knowing the underlying two-remote setup matters even with the UI helpers."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_2",
+          "touched": true,
+          "real_misconception": "A real remote-management mistake: pointing origin at upstream to 'get updates,' which silently breaks pushing to your fork. The fix is a second 'upstream' remote."
+        },
+        {
+          "key": "distractor_3",
+          "touched": true,
+          "real_misconception": "B4 widening: old d3 ('GitHub auto-reroutes the push') was an invented feature (fabrication pole). New d3 uses the REAL 'Sync fork' button but misplaces it as a local-remote configurator; it actually runs server-side on the fork."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "git-006-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 2,
+      "change_summary": "swap d1 (fabricated 24h GitHub auto-purge) -> '.gitignore removes already-committed files from history' misconception",
+      "before": {
+        "question": "An API key was committed and pushed to GitHub two weeks ago. What's the right recovery procedure?",
+        "options": {
+          "correct": "Rotate the key immediately (it's already exposed); then use git filter-repo or BFG to scrub history; then force-push and notify collaborators of the rewrite",
+          "distractor_1": "Delete the file from the latest commit and push; GitHub automatically purges the key from historical commits within 24 hours",
+          "distractor_2": "Rotate the key only \u2014 there's no need to scrub history because Git history is private and only repo collaborators can see it",
+          "distractor_3": "Run `git reset --hard HEAD~10` to roll the repo back past the bad commit, then re-apply later legitimate changes manually"
+        },
+        "explanation": "The order matters: ROTATE first (it's already public, the key is compromised), then clean up to prevent the historical commit being re-exposed. Distractor 1 invents GitHub auto-purge. Distractor 2 misunderstands repo visibility \u2014 even private repos have backups, forks, and clones that retain the history. Distractor 3 (git reset) doesn't remove the commit from remote history without a force push, and rewriting recent history breaks collaborators' work."
+      },
+      "after": {
+        "question": "An API key was committed and pushed to GitHub two weeks ago. What's the right recovery procedure?",
+        "options": {
+          "correct": "Rotate the key immediately (it's already exposed); then use git filter-repo or BFG to scrub history; then force-push and notify collaborators of the rewrite",
+          "distractor_1": "Add the file to `.gitignore` and push the change \u2014 Git stops tracking the file and drops it from the earlier commits where the key appeared",
+          "distractor_2": "Rotate the key only \u2014 there's no need to scrub history because Git history is private and only repo collaborators can see it",
+          "distractor_3": "Run `git reset --hard HEAD~10` to roll the repo back past the bad commit, then re-apply later legitimate changes manually"
+        },
+        "explanation": "The order matters: ROTATE first (it's already public, the key is compromised), then clean up to prevent the historical commit being re-exposed. Distractor 1 expects `.gitignore` to rewrite history \u2014 but it only stops future additions of untracked files; the key stays in every commit it was already part of. Distractor 2 misunderstands repo visibility \u2014 even private repos have backups, forks, and clones that retain the history. Distractor 3 (git reset) doesn't remove the commit from remote history without a force push, and rewriting recent history breaks collaborators' work."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": true,
+          "real_misconception": "A widespread misconception that .gitignore removes already-committed files or scrubs history; it only affects future untracked files."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "git-001-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 2,
+      "change_summary": "Tier-2 distractor-strengthening (logged note + Stephen B2 rework): d2 replaced with a genuinely-WRONG merge misconception (merge auto-resolves conflicts) so the 'strongest reason' superlative is non-contestable; d1 and d3 are plausible misconceptions (rebase-loses-commits; rebase=squash). Keyed answer unchanged.",
+      "before": {
+        "question": "An engineer is integrating a feature branch into `main` and is weighing `git merge` against `git rebase`. Which is the strongest reason to prefer `git merge`?",
+        "options": {
+          "correct": "Merge preserves the actual history of when changes happened, which is valuable for archaeology and debugging long after the merge",
+          "distractor_1": "Merge is faster than rebase on large repositories because rebase rewrites every commit individually",
+          "distractor_2": "Merge avoids creating new commit SHAs for existing commits, which makes rebase impossible to use in CI/CD pipelines",
+          "distractor_3": "Merge is the only way to combine two branches; rebase merely moves commits between branches without combining their changes into the target branch's history"
+        },
+        "explanation": "Merge preserves the actual integration story \u2014 when each branch's commits were made, who was working in parallel, the genuine concurrent history. Rebase creates a clean linear story at the cost of historical accuracy. Distractor 1 (speed) is a wash and not the main reason. Distractor 2 misstates rebase's effect on CI; rebased branches go through CI normally. Distractor 3 misframes rebase as not combining \u2014 rebase does integrate the work, just by re-applying rather than merging."
+      },
+      "after": {
+        "question": "An engineer is integrating a feature branch into `main` and is weighing `git merge` against `git rebase`. Which is the strongest reason to prefer `git merge`?",
+        "options": {
+          "correct": "Merge preserves the actual history of when changes happened, which is valuable for archaeology and debugging long after the merge",
+          "distractor_1": "Merge is safer because an interrupted rebase can permanently lose commits, while a merge is straightforward to undo",
+          "distractor_2": "Merge resolves most conflicts automatically, whereas rebase forces you to resolve every conflict by hand",
+          "distractor_3": "Merge keeps the feature branch's commits exactly as written, while rebase squashes them into a single commit on top of main"
+        },
+        "explanation": "Merge preserves the actual integration story \u2014 when each branch's commits were made, who worked in parallel \u2014 and that's the most durable reason to choose it. Distractor 1 plays on a fear that an interrupted rebase loses commits; it doesn't \u2014 `git reflog` and `ORIG_HEAD` recover the prior state. Distractor 2 imagines merge auto-resolves conflicts while rebase doesn't \u2014 but both surface the same conflicts and both need manual resolution; merge isn't the 'easier' path. Distractor 3 conflates rebase with squash \u2014 a plain rebase re-applies each commit and keeps them all; squashing is separate and opt-in. The honest trade-off: merge for faithful history, rebase for a clean linear story."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": true,
+          "real_misconception": "A common fear that an interrupted rebase loses commits; reflog/ORIG_HEAD recover them. Plausible misconception, genuinely wrong -- not a real merge advantage."
+        },
+        {
+          "key": "distractor_2",
+          "touched": true,
+          "real_misconception": "B2 rework: 'merge auto-resolves conflicts, rebase doesn't' is a believable junior belief and genuinely FALSE (both surface the same conflicts, both manual). Not a true merge advantage, so it can't rival the keyed reason -- the superlative stays decisive."
+        },
+        {
+          "key": "distractor_3",
+          "touched": true,
+          "real_misconception": "Conflating rebase with squash is a very common junior error and genuinely wrong; a plain rebase keeps all commits, squash is separate. Not a real merge advantage."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-014-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 2,
+      "change_summary": "swap d2 (fabricated '32 entries per pod' limit) -> real dash->underscore name-transform with a wrong 'unreachable' conclusion; keyed startup-time reason stays the factual-dominant answer",
+      "before": {
+        "question": "An engineer is choosing between environment-variable and DNS-based service discovery in Kubernetes and asks why the env-var mechanism is the weaker option. What's the main reason?",
+        "options": {
+          "correct": "Env vars are only set at pod startup, so any Service created after the pod is missing from the pod's environment until restart",
+          "distractor_1": "Env vars expose service IPs in cleartext to every other process in the same pod, while DNS lookups go over TLS-encrypted resolver connections by default",
+          "distractor_2": "Env vars are limited to 32 entries per pod, so larger deployments hit the limit and silently lose service entries",
+          "distractor_3": "Env vars resolve only within the same namespace; DNS works across namespaces with no additional configuration"
+        },
+        "explanation": "The env-var mechanism populates `<SERVICE>_SERVICE_HOST` etc. at pod creation by enumerating Services at that moment \u2014 pods can't see Services created later without a restart. DNS, by contrast, is a live lookup. Distractor 1 invents an encryption distinction; DNS is plaintext by default too. Distractor 2 fabricates a 32-entry limit. Distractor 3 reverses the cross-namespace story \u2014 env vars are populated for Services in any namespace the pod has list access to, but the env approach is still inferior because of the pod-creation-time snapshot."
+      },
+      "after": {
+        "question": "An engineer is choosing between environment-variable and DNS-based service discovery in Kubernetes and asks why the env-var mechanism is the weaker option. What's the main reason?",
+        "options": {
+          "correct": "Env vars are only set at pod startup, so any Service created after the pod is missing from the pod's environment until restart",
+          "distractor_1": "Env vars expose service IPs in cleartext to every other process in the same pod, while DNS lookups go over TLS-encrypted resolver connections by default",
+          "distractor_2": "Env vars uppercase the Service name and convert dashes to underscores, so a Service like `my-api` is silently unreachable through env-var discovery because the transformed name no longer matches",
+          "distractor_3": "Env vars resolve only within the same namespace; DNS works across namespaces with no additional configuration"
+        },
+        "explanation": "The env-var mechanism populates `<SERVICE>_SERVICE_HOST` etc. at pod creation by enumerating Services at that moment \u2014 pods can't see Services created later without a restart. DNS, by contrast, is a live lookup. Distractor 1 invents an encryption distinction; DNS is plaintext by default too. Distractor 2 points at the real name transform (dashes become underscores, name uppercased) but draws the wrong conclusion \u2014 the transformed variable `MY_API_SERVICE_HOST` is still populated and usable, so dashed Service names aren't lost. Distractor 3 reverses the cross-namespace story \u2014 env vars are populated for Services in any namespace the pod has list access to, but the env approach is still inferior because of the pod-creation-time snapshot."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_2",
+          "touched": true,
+          "real_misconception": "The uppercase/dash->underscore transform is real; a junior could wrongly conclude it makes dashed Service names unreachable. Stays a WRONG reason, so the keyed startup-time answer remains uniquely correct and factual-dominant (verified)."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-031-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 2,
+      "change_summary": "swap d1 (invented ExternalSecretsViewer ClusterRole) -> K8s-RBAC-vs-AWS-IAM conflation; ALSO swap d3 (invented annotation, an additional fabrication beyond the flagged-mcqs named d1) -> 'secret needs a resource policy' misconception. BORDERLINE -- surfaced for ruling.",
+      "before": {
+        "question": "Your EKS pod uses External Secrets Operator to fetch a secret from AWS Secrets Manager. The pod gets 'AccessDenied' from the AWS API. Which is the most likely cause?",
+        "options": {
+          "correct": "The ServiceAccount used by ESO isn't bound (via IRSA or Pod Identity) to an IAM role with secretsmanager:GetSecretValue on that secret",
+          "distractor_1": "The ESO operator pod lacks the cluster-wide `ExternalSecretsViewer` ClusterRole that grants access to AWS Secrets Manager",
+          "distractor_2": "Secrets Manager requires VPC PrivateLink to be enabled before any EKS workload can authenticate; the cluster needs an Interface endpoint",
+          "distractor_3": "The Kubernetes Secret produced by ESO must be annotated `eks.amazonaws.com/secret-source=secrets-manager` for AWS to allow the read"
+        },
+        "explanation": "ESO fetches secrets using the AWS SDK, which signs requests using credentials. On EKS, that credential chain runs through IRSA (or Pod Identity) \u2014 bind the ESO ServiceAccount to an IAM role with Secrets Manager read permission. Distractor 1 invents a ClusterRole that doesn't grant AWS access (RBAC controls K8s API, not AWS). Distractor 2 fabricates a PrivateLink requirement; PrivateLink is optional, used to keep traffic on the AWS backbone. Distractor 3 invents an annotation gate that doesn't exist."
+      },
+      "after": {
+        "question": "Your EKS pod uses External Secrets Operator to fetch a secret from AWS Secrets Manager. The pod gets 'AccessDenied' from the AWS API. Which is the most likely cause?",
+        "options": {
+          "correct": "The ServiceAccount used by ESO isn't bound (via IRSA or Pod Identity) to an IAM role with secretsmanager:GetSecretValue on that secret",
+          "distractor_1": "ESO's ServiceAccount lacks Kubernetes RBAC permission to create Secret objects, so the controller can't write the synced secret into the cluster",
+          "distractor_2": "Secrets Manager requires VPC PrivateLink to be enabled before any EKS workload can authenticate; the cluster needs an Interface endpoint",
+          "distractor_3": "The Secrets Manager secret needs a resource policy that explicitly allows the cluster's OIDC provider as a principal \u2014 without it, same-account reads are denied"
+        },
+        "explanation": "ESO fetches secrets using the AWS SDK, which signs requests using credentials. On EKS, that credential chain runs through IRSA (or Pod Identity) \u2014 bind the ESO ServiceAccount to an IAM role with Secrets Manager read permission. Distractor 1 blames missing Kubernetes RBAC to create Secrets \u2014 but that would fail K8s-side, whereas the error here is AccessDenied from the AWS API, which is an IRSA/IAM problem, not RBAC. Distractor 2 fabricates a PrivateLink requirement; PrivateLink is optional, used to keep traffic on the AWS backbone. Distractor 3 reaches for a Secrets Manager resource policy \u2014 a real feature, but same-account IRSA reads are authorised by the role's identity policy alone; resource policies are only needed cross-account."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": true,
+          "real_misconception": "Conflating Kubernetes RBAC with AWS IAM is a common EKS mistake; an RBAC gap fails K8s-side, not as an AWS AccessDenied."
+        },
+        {
+          "key": "distractor_3",
+          "touched": true,
+          "real_misconception": "Secrets Manager resource policies are real but only needed cross-account; a junior plausibly thinks the secret must name the cluster as a principal."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-051-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 2,
+      "change_summary": "swap d3 (fabricated Istio ~450ms overhead) -> 'HPA scaling pauses in-flight requests' misconception",
+      "before": {
+        "question": "A pod's response time spikes from 50ms to 500ms intermittently. CloudWatch shows no CPU, memory, or network saturation. What's a common K8s-specific cause worth checking?",
+        "options": {
+          "correct": "CPU throttling at the limit \u2014 the pod hits its cpu limit before saturating the node, so CloudWatch sees idle resources while the pod is throttled",
+          "distractor_1": "kubelet OOM tracking \u2014 even sub-limit pods are throttled when the node's overall memory approaches 90%, regardless of the pod's individual usage profile",
+          "distractor_2": "Container runtime resource isolation \u2014 runc periodically pauses containers to refresh cgroups, causing latency spikes invisible to host metrics",
+          "distractor_3": "Service mesh sidecar latency \u2014 Istio adds ~450ms of fixed per-request overhead once installed, which closely matches the observed spike pattern and is invisible to CloudWatch by default"
+        },
+        "explanation": "CPU throttling at the container's cpu limit is invisible at the node level \u2014 node CPU may show 30% but the pod is throttled because it hit its quota in the cgroup's cfs scheduler. Container-level metrics (cgroup throttled time, kubelet's `container_cpu_cfs_throttled_seconds_total`) show this; node-level CloudWatch metrics don't. Distractor 1 invents a node-memory-driven throttle. Distractor 2 fabricates a runc pause mechanism. Distractor 3 over-states Istio overhead (typically 1-10ms per hop, not 450ms)."
+      },
+      "after": {
+        "question": "A pod's response time spikes from 50ms to 500ms intermittently. CloudWatch shows no CPU, memory, or network saturation. What's a common K8s-specific cause worth checking?",
+        "options": {
+          "correct": "CPU throttling at the limit \u2014 the pod hits its cpu limit before saturating the node, so CloudWatch sees idle resources while the pod is throttled",
+          "distractor_1": "kubelet OOM tracking \u2014 even sub-limit pods are throttled when the node's overall memory approaches 90%, regardless of the pod's individual usage profile",
+          "distractor_2": "Container runtime resource isolation \u2014 runc periodically pauses containers to refresh cgroups, causing latency spikes invisible to host metrics",
+          "distractor_3": "HPA scaling events \u2014 each time the Horizontal Pod Autoscaler adds a replica, the Service briefly pauses in-flight requests while its endpoints are updated, producing the periodic spikes"
+        },
+        "explanation": "CPU throttling at the container's cpu limit is invisible at the node level \u2014 node CPU may show 30% but the pod is throttled because it hit its quota in the cgroup's cfs scheduler. Container-level metrics (cgroup throttled time, kubelet's `container_cpu_cfs_throttled_seconds_total`) show this; node-level CloudWatch metrics don't. Distractor 1 invents a node-memory-driven throttle. Distractor 2 fabricates a runc pause mechanism. Distractor 3 blames HPA scaling \u2014 but adding a replica only appends endpoints; it doesn't pause or reroute in-flight requests, so scaling events don't produce per-request latency spikes."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_3",
+          "touched": true,
+          "real_misconception": "A plausible belief that autoscaling interrupts traffic during endpoint updates; endpoint additions are non-disruptive to in-flight requests."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "linux-006-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 2,
+      "change_summary": "swap d1 (invented --severity/--realtime flags) -> -p crit priority-level confusion; swap d3 (invented 'systemctl follow') -> journalctl|tail -f composition misconception",
+      "before": {
+        "question": "You want to follow logs from nginx in real-time, filtering only entries with priority error or worse. Which command?",
+        "options": {
+          "correct": "`journalctl -u nginx -f -p err`",
+          "distractor_1": "`journalctl -u nginx --follow --severity=error --realtime`",
+          "distractor_2": "`tail -f /var/log/nginx/error.log | grep -E '^[0-9]{4}/'`",
+          "distractor_3": "`systemctl follow nginx --errors-only`"
+        },
+        "explanation": "journalctl uses short flags: `-f` for follow (like tail -f), `-p err` for priority filter (uses syslog priority levels: emerg, alert, crit, err, warning, notice, info, debug). Distractor 1 invents long flags (--severity, --realtime) that don't exist. Distractor 2 reads only nginx's own log file, missing journald-only entries. Distractor 3 fabricates a `systemctl follow` subcommand. Priority filtering is a heavy hitter for noise reduction in incident-response workflows."
+      },
+      "after": {
+        "question": "You want to follow logs from nginx in real-time, filtering only entries with priority error or worse. Which command?",
+        "options": {
+          "correct": "`journalctl -u nginx -f -p err`",
+          "distractor_1": "`journalctl -u nginx -f -p crit`",
+          "distractor_2": "`tail -f /var/log/nginx/error.log | grep -E '^[0-9]{4}/'`",
+          "distractor_3": "`journalctl -u nginx -p err | tail -f`"
+        },
+        "explanation": "journalctl uses short flags: `-f` for follow (like tail -f), `-p err` for priority filter (uses syslog priority levels: emerg, alert, crit, err, warning, notice, info, debug). Distractor 1 uses real flags but the wrong level \u2014 `-p crit` shows crit/alert/emerg and silently drops the `err` level the task needs; 'error or worse' starts at `-p err`. Distractor 2 reads only nginx's own log file, missing journald-only entries. Distractor 3 pipes a non-following journalctl into `tail -f` \u2014 but journalctl without `-f` prints existing entries and exits, so `tail -f` just follows a stream that has already closed; real-time needs journalctl's own `-f`. Priority filtering is a heavy hitter for noise reduction in incident-response workflows."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": true,
+          "real_misconception": "Priority-level confusion: a junior may pick `crit` thinking it's 'error or worse,' not realising it excludes the err level."
+        },
+        {
+          "key": "distractor_3",
+          "touched": true,
+          "real_misconception": "A common shell misconception that piping into `tail -f` adds real-time following; journalctl needs its own -f."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "tf-003-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 2,
+      "change_summary": "swap d2 (invented terraform_module_version: field) -> 'version argument on a Git module' misconception",
+      "before": {
+        "question": "Your module's `main.tf` calls a Git-sourced module: `source = \"git::https://github.com/acme/tf-vpc.git\"`. What's missing for production use?",
+        "options": {
+          "correct": "A `ref=` query parameter pinning to a specific tag or commit; without it Terraform always pulls the default branch and you can't control upgrades",
+          "distractor_1": "An explicit `provider:` block mapping the module's providers; Git-sourced modules cannot inherit providers from the calling configuration",
+          "distractor_2": "A `terraform_module_version:` field in versions.tf declaring the minimum compatible Terraform CLI version for the Git source",
+          "distractor_3": "An access token in the URL; Git-sourced modules require an HTTPS token to be embedded in the source string for Terraform to authenticate to private or public repositories alike"
+        },
+        "explanation": "Without `?ref=v1.2.0`, the module floats on whatever the default branch is right now \u2014 a non-reproducible source that breaks reruns. Pinning is mandatory in production. Distractor 1 misstates provider inheritance; Git-sourced modules inherit providers fine. Distractor 2 fabricates a configuration field. Distractor 3 over-states auth requirements; public Git modules work without tokens, and private ones use either SSH keys or HTTPS tokens via standard Git mechanisms, not in the URL."
+      },
+      "after": {
+        "question": "Your module's `main.tf` calls a Git-sourced module: `source = \"git::https://github.com/acme/tf-vpc.git\"`. What's missing for production use?",
+        "options": {
+          "correct": "A `ref=` query parameter pinning to a specific tag or commit; without it Terraform always pulls the default branch and you can't control upgrades",
+          "distractor_1": "An explicit `provider:` block mapping the module's providers; Git-sourced modules cannot inherit providers from the calling configuration",
+          "distractor_2": "A `version` argument in the module block (e.g. `version = \"~> 1.2.0\"`) to constrain which release of the Git module Terraform pulls",
+          "distractor_3": "An access token in the URL; Git-sourced modules require an HTTPS token to be embedded in the source string for Terraform to authenticate to private or public repositories alike"
+        },
+        "explanation": "Without `?ref=v1.2.0`, the module floats on whatever the default branch is right now \u2014 a non-reproducible source that breaks reruns. Pinning is mandatory in production. Distractor 1 misstates provider inheritance; Git-sourced modules inherit providers fine. Distractor 2 reaches for the `version` argument \u2014 real, but it only works for registry modules; for a `git::` source Terraform rejects it, and you must pin with `?ref=` instead. Distractor 3 over-states auth requirements; public Git modules work without tokens, and private ones use either SSH keys or HTTPS tokens via standard Git mechanisms, not in the URL."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_2",
+          "touched": true,
+          "real_misconception": "Using the version argument on a Git-sourced module is a common mistake; version constraints apply only to registry modules, while Git sources pin with ?ref=."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "tf-010-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 2,
+      "change_summary": "swap d3 (invented --ami-from-packer flag) -> aws_ami_copy, a real resource misapplied as the Packer handoff",
+      "before": {
+        "question": "Your team uses Packer + Terraform. How does Terraform consume the AMI Packer produced?",
+        "options": {
+          "correct": "A data source (e.g. `data \"aws_ami\"`) queries for the latest AMI matching the team's name/tag filters, and that ID is used in the EC2/ASG resource",
+          "distractor_1": "Packer writes the AMI ID into a shared S3 bucket that Terraform reads as part of its remote state backend",
+          "distractor_2": "Packer creates a Terraform module containing the AMI ID, which is published to the registry and referenced via `module \"image\"`",
+          "distractor_3": "Terraform's `--ami-from-packer` CLI flag tells the apply to fetch the latest Packer build directly from the build pipeline"
+        },
+        "explanation": "The standard handshake is via data source: query AWS for AMIs matching name patterns / tags that Packer applied, sort by creation date, use the latest. This keeps the two tools coupled only through AWS metadata. Distractor 1 invents a shared-state mechanism. Distractor 2 fabricates a Packer-to-module pipeline. Distractor 3 invents a CLI flag. The data-source approach is robust because it gracefully handles AMI updates without code changes."
+      },
+      "after": {
+        "question": "Your team uses Packer + Terraform. How does Terraform consume the AMI Packer produced?",
+        "options": {
+          "correct": "A data source (e.g. `data \"aws_ami\"`) queries for the latest AMI matching the team's name/tag filters, and that ID is used in the EC2/ASG resource",
+          "distractor_1": "Packer writes the AMI ID into a shared S3 bucket that Terraform reads as part of its remote state backend",
+          "distractor_2": "Packer creates a Terraform module containing the AMI ID, which is published to the registry and referenced via `module \"image\"`",
+          "distractor_3": "An `aws_ami_copy` resource that imports the Packer-built AMI into your Terraform state, after which you reference it by ID"
+        },
+        "explanation": "The standard handshake is via data source: query AWS for AMIs matching name patterns / tags that Packer applied, sort by creation date, use the latest. This keeps the two tools coupled only through AWS metadata. Distractor 1 invents a shared-state mechanism. Distractor 2 fabricates a Packer-to-module pipeline. Distractor 3 reaches for the real `aws_ami_copy` resource \u2014 but that duplicates an existing AMI (cross-region or re-encryption); it doesn't look up a Packer build, which is what the data source does. The data-source approach is robust because it gracefully handles AMI updates without code changes."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_3",
+          "touched": true,
+          "real_misconception": "aws_ami_copy is a real resource but copies/re-encrypts an AMI; a junior could mistake it for the Packer-to-Terraform handoff, which is a data-source lookup."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    }
+  ]
+}

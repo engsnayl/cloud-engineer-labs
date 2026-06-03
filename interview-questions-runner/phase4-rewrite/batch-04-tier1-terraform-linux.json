@@ -1,0 +1,1144 @@
+{
+  "batch_id": "T1.4",
+  "tier": 1,
+  "domain_slice": "terraform+linux",
+  "pilot_dupe_preflight": "0 byte-identical-to-pilot in slice (tf-002-mcq-2 and tf-011-mcq-1 are pilot exemplars but not in the D-only slice)",
+  "slice_total": 22,
+  "recall_buckets": {
+    "bucket1_tier1_reframe": [
+      "tf-001-mcq-1",
+      "tf-001-mcq-2",
+      "tf-003-mcq-1",
+      "tf-004-mcq-2",
+      "tf-005-mcq-2",
+      "tf-006-mcq-1",
+      "tf-006-mcq-2",
+      "tf-007-mcq-1",
+      "tf-007-mcq-2",
+      "tf-008-mcq-1",
+      "tf-008-mcq-2",
+      "tf-009-mcq-2",
+      "tf-013-mcq-2",
+      "linux-002-mcq-1",
+      "linux-003-mcq-2",
+      "linux-004-mcq-2",
+      "linux-005-mcq-1",
+      "linux-005-mcq-2",
+      "linux-006-mcq-1",
+      "linux-007-mcq-1",
+      "linux-007-mcq-2"
+    ],
+    "bucket2_tier3_rewrite_dropout": [
+      "tf-012-mcq-2"
+    ],
+    "bucket3_intentional_recall_exempt": []
+  },
+  "reframe_attempted": 21,
+  "rewrites": [
+    {
+      "mcq_id": "tf-001-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "What does `terraform plan` actually do?",
+        "options": {
+          "correct": "Reads the current state, compares it to the desired configuration, and prints the set of changes that `terraform apply` would make — without making them",
+          "distractor_1": "Validates the configuration syntax and prints a list of any HCL parse errors found in .tf files",
+          "distractor_2": "Generates a graph of resource dependencies as DOT format and writes it to terraform.plan for visualisation",
+          "distractor_3": "Connects to the cloud provider, dry-runs every resource API call against the production account using ephemeral credentials, and reports the responses while making no changes"
+        },
+        "explanation": "Plan is a three-way comparison: state, config, and live infrastructure (after refresh). It prints the diff and writes an optional plan file but makes no changes. Distractor 1 describes `terraform validate` only — syntax checking, no state inspection. Distractor 2 describes `terraform graph` — a separate command for dependency visualisation. Distractor 3 misunderstands provider behaviour; plan reads current state and computes differences using the provider's schema, not via dry-run API calls."
+      },
+      "after": {
+        "question": "An engineer is about to run `terraform apply` against a production account and first runs `terraform plan` to be sure nothing changes yet. What does `terraform plan` actually do?",
+        "options": {
+          "correct": "Reads the current state, compares it to the desired configuration, and prints the set of changes that `terraform apply` would make — without making them",
+          "distractor_1": "Validates the configuration syntax and prints a list of any HCL parse errors found in .tf files",
+          "distractor_2": "Generates a graph of resource dependencies as DOT format and writes it to terraform.plan for visualisation",
+          "distractor_3": "Connects to the cloud provider, dry-runs every resource API call against the production account using ephemeral credentials, and reports the responses while making no changes"
+        },
+        "explanation": "Plan is a three-way comparison: state, config, and live infrastructure (after refresh). It prints the diff and writes an optional plan file but makes no changes. Distractor 1 describes `terraform validate` only — syntax checking, no state inspection. Distractor 2 describes `terraform graph` — a separate command for dependency visualisation. Distractor 3 misunderstands provider behaviour; plan reads current state and computes differences using the provider's schema, not via dry-run API calls."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate confuses plan with `terraform validate` (syntax-only checking)"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a DOT-graph-to-terraform.plan side effect"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks plan dry-runs real API calls against the live account"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "tf-001-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Compared to AWS CloudFormation, what's a key advantage of Terraform?",
+        "options": {
+          "correct": "Provider-agnostic — manages AWS, Azure, GCP, Kubernetes, and many SaaS services in a single language and state model",
+          "distractor_1": "Free tier — CloudFormation charges per stack operation while Terraform is open source and incurs no licence fees in any sensible team workflow",
+          "distractor_2": "Faster execution — Terraform runs in parallel by default while CloudFormation runs all stack changes serially",
+          "distractor_3": "Built into AWS CLI — `aws terraform apply` is included with the AWS CLI and requires no separate installation"
+        },
+        "explanation": "Multi-provider support is Terraform's real advantage: one tool spans AWS, Azure, Kubernetes, GitHub, Datadog, etc. Distractor 1 fabricates a CloudFormation pricing model — both are free at the basic level. Distractor 2 over-states parallelism difference — CloudFormation parallelises within stacks too. Distractor 3 invents a built-in AWS CLI subcommand. The trade-off going the other way: CloudFormation has tighter AWS-native integration and IAM-driven access control."
+      },
+      "after": {
+        "question": "Your team runs workloads across AWS, Azure, and GCP and is choosing between CloudFormation and Terraform. Compared to CloudFormation, what's a key advantage of Terraform?",
+        "options": {
+          "correct": "Provider-agnostic — manages AWS, Azure, GCP, Kubernetes, and many SaaS services in a single language and state model",
+          "distractor_1": "Free tier — CloudFormation charges per stack operation while Terraform is open source and incurs no licence fees in any sensible team workflow",
+          "distractor_2": "Faster execution — Terraform runs in parallel by default while CloudFormation runs all stack changes serially",
+          "distractor_3": "Built into AWS CLI — `aws terraform apply` is included with the AWS CLI and requires no separate installation"
+        },
+        "explanation": "Multi-provider support is Terraform's real advantage: one tool spans AWS, Azure, Kubernetes, GitHub, Datadog, etc. Distractor 1 fabricates a CloudFormation pricing model — both are free at the basic level. Distractor 2 over-states parallelism difference — CloudFormation parallelises within stacks too. Distractor 3 invents a built-in AWS CLI subcommand. The trade-off going the other way: CloudFormation has tighter AWS-native integration and IAM-driven access control."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate fixates on licensing cost as the differentiator"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate believes CloudFormation runs serially while Terraform parallelises (overstated)"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents an `aws terraform apply` built into the AWS CLI"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "tf-003-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "What's the canonical structure of a well-designed Terraform module?",
+        "options": {
+          "correct": "Separate files for variables (inputs), outputs (return values), main resource definitions, and provider/version requirements — with a README documenting the interface",
+          "distractor_1": "A single main.tf file containing all resources, variables, outputs, and provider declarations in one place for atomic deployment",
+          "distractor_2": "A folder per resource type (one for vpc, one for subnet, one for security_group) so each resource is reusable independently across modules",
+          "distractor_3": "A modules/ subdirectory containing one file per environment (dev.tf, staging.tf, prod.tf) so environment-specific values are scoped"
+        },
+        "explanation": "Standard module shape: variables.tf (inputs), outputs.tf (return values), main.tf (resources), versions.tf (provider constraints), README.md (interface docs). The split makes the contract explicit. Distractor 1 collapses everything into one file — works for tiny modules, painful at scale. Distractor 2 over-decomposes; a module is the unit of reuse, not a folder per resource. Distractor 3 confuses modules with environments — environments use the module via tfvars, not by splitting the module itself."
+      },
+      "after": {
+        "question": "An engineer is extracting shared infrastructure into a reusable Terraform module for the team. What's the canonical structure of a well-designed module?",
+        "options": {
+          "correct": "Separate files for variables (inputs), outputs (return values), main resource definitions, and provider/version requirements — with a README documenting the interface",
+          "distractor_1": "A single main.tf file containing all resources, variables, outputs, and provider declarations in one place for atomic deployment",
+          "distractor_2": "A folder per resource type (one for vpc, one for subnet, one for security_group) so each resource is reusable independently across modules",
+          "distractor_3": "A modules/ subdirectory containing one file per environment (dev.tf, staging.tf, prod.tf) so environment-specific values are scoped"
+        },
+        "explanation": "Standard module shape: variables.tf (inputs), outputs.tf (return values), main.tf (resources), versions.tf (provider constraints), README.md (interface docs). The split makes the contract explicit. Distractor 1 collapses everything into one file — works for tiny modules, painful at scale. Distractor 2 over-decomposes; a module is the unit of reuse, not a folder per resource. Distractor 3 confuses modules with environments — environments use the module via tfvars, not by splitting the module itself."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks one monolithic main.tf is best for atomicity"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate over-decomposes into a folder per resource type"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate scopes environments by file (dev.tf/staging.tf/prod.tf) inside the module"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "tf-004-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "When should you use `locals` rather than `variable`?",
+        "options": {
+          "correct": "When the value is computed from inputs or other locals and isn't meant to be overridden — locals can't accept external values",
+          "distractor_1": "When the value is sensitive and shouldn't appear in plan output — only locals are excluded from CLI display",
+          "distractor_2": "When the value is shared between modules — locals are exported between modules automatically while variables are module-local",
+          "distractor_3": "When the value is a list or map — locals support complex types while variables can only declare a primitive string or number"
+        },
+        "explanation": "Locals are derived values (`local.bucket_name = \"${var.env}-${var.app}-data\"`) — computed from inputs, never set externally. Variables are inputs from outside. Distractor 1 invents an exclusion-from-output for locals. Distractor 2 reverses sharing — locals are scoped to the module that defines them; outputs/variables are how modules share values. Distractor 3 fabricates a type restriction on variables, which support all complex types. The boundary: variables are inputs, locals are computed."
+      },
+      "after": {
+        "question": "An engineer has a value computed from two input variables that should never be overridden from outside the module. Should they use `locals` or a `variable`, and why?",
+        "options": {
+          "correct": "When the value is computed from inputs or other locals and isn't meant to be overridden — locals can't accept external values",
+          "distractor_1": "When the value is sensitive and shouldn't appear in plan output — only locals are excluded from CLI display",
+          "distractor_2": "When the value is shared between modules — locals are exported between modules automatically while variables are module-local",
+          "distractor_3": "When the value is a list or map — locals support complex types while variables can only declare a primitive string or number"
+        },
+        "explanation": "Locals are derived values (`local.bucket_name = \"${var.env}-${var.app}-data\"`) — computed from inputs, never set externally. Variables are inputs from outside. Distractor 1 invents an exclusion-from-output for locals. Distractor 2 reverses sharing — locals are scoped to the module that defines them; outputs/variables are how modules share values. Distractor 3 fabricates a type restriction on variables, which support all complex types. The boundary: variables are inputs, locals are computed."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks only locals are excluded from CLI display (sensitivity belongs to variables)"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate believes locals are auto-exported between modules"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks variables can only hold primitives while locals do complex types"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "tf-005-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "The recommended modern pattern for dev/staging/prod with Terraform is:",
+        "options": {
+          "correct": "Separate state file per environment, with environment-specific tfvars (and often a wrapper like Terragrunt) to DRY shared configuration",
+          "distractor_1": "Single shared state with environment as a variable, branched logic in the config for environment-specific resources",
+          "distractor_2": "Workspaces — Hashicorp's official recommendation for production environment separation since Terraform 1.0",
+          "distractor_3": "Stateless apply with `-target` flags scoped to environment-prefixed resource names, regenerated on every run"
+        },
+        "explanation": "Per-environment state isolates blast radius (a corrupt staging state doesn't risk prod), and tfvars-per-env keeps the same module code. Terragrunt formalises this with explicit per-env configurations. Distractor 1 produces conditional infrastructure that's harder to reason about. Distractor 2 misrepresents Hashicorp's actual guidance — they explicitly call out that workspaces don't fit environment separation well. Distractor 3 invents a stateless pattern; Terraform fundamentally needs state."
+      },
+      "after": {
+        "question": "Your team is setting up separate dev, staging, and prod environments in Terraform and wants the recommended modern pattern. Which approach fits?",
+        "options": {
+          "correct": "Separate state file per environment, with environment-specific tfvars (and often a wrapper like Terragrunt) to DRY shared configuration",
+          "distractor_1": "Single shared state with environment as a variable, branched logic in the config for environment-specific resources",
+          "distractor_2": "Workspaces — Hashicorp's official recommendation for production environment separation since Terraform 1.0",
+          "distractor_3": "Stateless apply with `-target` flags scoped to environment-prefixed resource names, regenerated on every run"
+        },
+        "explanation": "Per-environment state isolates blast radius (a corrupt staging state doesn't risk prod), and tfvars-per-env keeps the same module code. Terragrunt formalises this with explicit per-env configurations. Distractor 1 produces conditional infrastructure that's harder to reason about. Distractor 2 misrepresents Hashicorp's actual guidance — they explicitly call out that workspaces don't fit environment separation well. Distractor 3 invents a stateless pattern; Terraform fundamentally needs state."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate prefers a single shared state with branched per-env logic"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate believes workspaces are HashiCorp's recommended prod separation"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate proposes stateless `-target` runs scoped by name prefix"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "tf-006-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Why is putting database passwords in `terraform.tfvars` (with the file in .gitignore) still a bad practice?",
+        "options": {
+          "correct": "The password ends up in the state file in cleartext regardless of the tfvars file location, so the secret lives in state forever",
+          "distractor_1": "tfvars files are uploaded to Terraform Cloud on every apply, where they're visible to all org members regardless of permissions",
+          "distractor_2": "tfvars files are parsed at plan time and embedded in the binary plan file, which is then transmitted to every apply target",
+          "distractor_3": ".gitignore is unreliable; the file occasionally gets committed by mistake and the password leaks into version control history"
+        },
+        "explanation": "The real issue is state — even if tfvars stays out of Git, the value ends up persisted in the state file. State files end up in backups, in Terraform Cloud audit logs, in `terraform show` output. Distractor 1 invents a Terraform Cloud upload of tfvars (TC does store variables, but with access controls). Distractor 2 fabricates an embedded-in-binary-plan story; secrets in plan files are also a problem but not for that reason. Distractor 3 (gitignore unreliability) is a real risk but a smaller one than state."
+      },
+      "after": {
+        "question": "An engineer puts a database password in `terraform.tfvars` and adds the file to `.gitignore`, assuming the secret is now safe. Why is this still a bad practice?",
+        "options": {
+          "correct": "The password ends up in the state file in cleartext regardless of the tfvars file location, so the secret lives in state forever",
+          "distractor_1": "tfvars files are uploaded to Terraform Cloud on every apply, where they're visible to all org members regardless of permissions",
+          "distractor_2": "tfvars files are parsed at plan time and embedded in the binary plan file, which is then transmitted to every apply target",
+          "distractor_3": ".gitignore is unreliable; the file occasionally gets committed by mistake and the password leaks into version control history"
+        },
+        "explanation": "The real issue is state — even if tfvars stays out of Git, the value ends up persisted in the state file. State files end up in backups, in Terraform Cloud audit logs, in `terraform show` output. Distractor 1 invents a Terraform Cloud upload of tfvars (TC does store variables, but with access controls). Distractor 2 fabricates an embedded-in-binary-plan story; secrets in plan files are also a problem but not for that reason. Distractor 3 (gitignore unreliability) is a real risk but a smaller one than state."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents tfvars auto-upload to Terraform Cloud visible to all org members"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks tfvars are embedded into a transmitted binary plan"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate fixates on .gitignore reliability rather than the state-file leak"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "tf-006-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "The recommended pattern for fetching a secret like an RDS password into Terraform is:",
+        "options": {
+          "correct": "Use a `data \"aws_secretsmanager_secret_version\"` block at apply time to fetch the current value, then pass it to the resource without persisting it in tfvars",
+          "distractor_1": "Set the secret as a `terraform.tfvars` value and add the file to .gitignore — keeping the secret out of version control is the standard safe practice in production stacks",
+          "distractor_2": "Read the secret in a `provisioner \"local-exec\"` block, since provisioners run outside the state machine and don't persist values",
+          "distractor_3": "Pass the secret via the `password` argument literal in the config, marked `sensitive = true` so Terraform encrypts it in state"
+        },
+        "explanation": "The data-source pattern keeps secrets in the secret store (Secrets Manager, Vault), fetched at apply time, scoped by IAM, never stored in config files. The value still ends up in state but that's a separate problem mitigated by state encryption. Distractor 1 is the bad practice the previous MCQ called out. Distractor 2 misuses provisioners (and provisioners aren't run during plan — secret would still be visible). Distractor 3 over-claims encryption from sensitive; that's display masking only."
+      },
+      "after": {
+        "question": "An engineer needs to supply an RDS master password to Terraform without leaving the secret lying around in the repo or tfvars. What's the recommended pattern?",
+        "options": {
+          "correct": "Use a `data \"aws_secretsmanager_secret_version\"` block at apply time to fetch the current value, then pass it to the resource without persisting it in tfvars",
+          "distractor_1": "Set the secret as a `terraform.tfvars` value and add the file to .gitignore — keeping the secret out of version control is the standard safe practice in production stacks",
+          "distractor_2": "Read the secret in a `provisioner \"local-exec\"` block, since provisioners run outside the state machine and don't persist values",
+          "distractor_3": "Pass the secret via the `password` argument literal in the config, marked `sensitive = true` so Terraform encrypts it in state"
+        },
+        "explanation": "The data-source pattern keeps secrets in the secret store (Secrets Manager, Vault), fetched at apply time, scoped by IAM, never stored in config files. The value still ends up in state but that's a separate problem mitigated by state encryption. Distractor 1 is the bad practice the previous MCQ called out. Distractor 2 misuses provisioners (and provisioners aren't run during plan — secret would still be visible). Distractor 3 over-claims encryption from sensitive; that's display masking only."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate believes gitignored tfvars is the safe standard"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks local-exec provisioners avoid persisting the value"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks `sensitive = true` encrypts the literal in state"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "tf-007-mcq-1",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Why does HashiCorp warn against using Terraform provisioners (local-exec, remote-exec)?",
+        "options": {
+          "correct": "Provisioners run once at create time and aren't tracked in state, so Terraform has no way to know if the provisioned step succeeded, drifted, or needs re-running",
+          "distractor_1": "Provisioners are deprecated in Terraform 1.x and will be removed in a future major version, so any use creates immediate technical debt",
+          "distractor_2": "Provisioners run on the Terraform CLI machine rather than the target, which means they can't actually configure remote infrastructure",
+          "distractor_3": "Provisioners require root access to the target machine and bypass standard SSH key management, creating audit and compliance issues"
+        },
+        "explanation": "The state-tracking gap is the core issue: Terraform's reconciliation model depends on knowing the current state of every managed resource; provisioners run outside that model. Distractor 1 invents a deprecation (provisioners are de-emphasised but still supported). Distractor 2 reverses local vs remote — local-exec runs locally, remote-exec runs on the target. Distractor 3 (root access) is unrelated to the underlying state-tracking concern. Better alternatives: cloud-init/user data, configuration management (Ansible), or baked AMIs."
+      },
+      "after": {
+        "question": "Your team relies on `local-exec` and `remote-exec` provisioners in several modules and keeps hitting unpredictable behaviour. Why does HashiCorp warn against using provisioners?",
+        "options": {
+          "correct": "Provisioners run once at create time and aren't tracked in state, so Terraform has no way to know if the provisioned step succeeded, drifted, or needs re-running",
+          "distractor_1": "Provisioners are deprecated in Terraform 1.x and will be removed in a future major version, so any use creates immediate technical debt",
+          "distractor_2": "Provisioners run on the Terraform CLI machine rather than the target, which means they can't actually configure remote infrastructure",
+          "distractor_3": "Provisioners require root access to the target machine and bypass standard SSH key management, creating audit and compliance issues"
+        },
+        "explanation": "The state-tracking gap is the core issue: Terraform's reconciliation model depends on knowing the current state of every managed resource; provisioners run outside that model. Distractor 1 invents a deprecation (provisioners are de-emphasised but still supported). Distractor 2 reverses local vs remote — local-exec runs locally, remote-exec runs on the target. Distractor 3 (root access) is unrelated to the underlying state-tracking concern. Better alternatives: cloud-init/user data, configuration management (Ansible), or baked AMIs."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate believes provisioners are deprecated/being removed in 1.x"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks provisioners always run on the CLI machine and can't configure remotes"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a root-access/SSH-bypass compliance issue"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "tf-007-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Despite the warnings, when is a Terraform `local-exec` provisioner genuinely the right tool?",
+        "options": {
+          "correct": "When you need to run a one-shot command that doesn't have a Terraform provider — like calling a CLI to perform a side effect (kube context update, vendor API webhook)",
+          "distractor_1": "When you need to install software on the newly-provisioned EC2 instance, since local-exec runs on the target machine via SSH",
+          "distractor_2": "When you need to configure the database schema after RDS is created, since local-exec is the standard way to run migrations from Terraform",
+          "distractor_3": "When the resource has no `lifecycle` block, since local-exec implicitly provides the lifecycle management that resources lack"
+        },
+        "explanation": "Side-effect commands that lack a provider (or that you don't want to wrap in a custom provider) are the narrow legitimate use. Distractor 1 confuses local-exec (runs on the CLI machine) with remote-exec (runs on the target). Distractor 2 (DB migrations from Terraform) is a common anti-pattern — migrations should be code-deployed, not infra-deployed. Distractor 3 fabricates a relationship between provisioners and lifecycle blocks; they're unrelated concepts."
+      },
+      "after": {
+        "question": "An engineer needs to call a vendor API webhook that has no Terraform provider, right after a resource is created. Despite the warnings, when is a `local-exec` provisioner genuinely the right tool?",
+        "options": {
+          "correct": "When you need to run a one-shot command that doesn't have a Terraform provider — like calling a CLI to perform a side effect (kube context update, vendor API webhook)",
+          "distractor_1": "When you need to install software on the newly-provisioned EC2 instance, since local-exec runs on the target machine via SSH",
+          "distractor_2": "When you need to configure the database schema after RDS is created, since local-exec is the standard way to run migrations from Terraform",
+          "distractor_3": "When the resource has no `lifecycle` block, since local-exec implicitly provides the lifecycle management that resources lack"
+        },
+        "explanation": "Side-effect commands that lack a provider (or that you don't want to wrap in a custom provider) are the narrow legitimate use. Distractor 1 confuses local-exec (runs on the CLI machine) with remote-exec (runs on the target). Distractor 2 (DB migrations from Terraform) is a common anti-pattern — migrations should be code-deployed, not infra-deployed. Distractor 3 fabricates a relationship between provisioners and lifecycle blocks; they're unrelated concepts."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks local-exec runs on the target EC2 via SSH (that's remote-exec)"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks local-exec is the standard way to run RDS migrations"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a lifecycle-management role for local-exec"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "tf-008-mcq-1",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "What does `terraform refresh` do (now the default behaviour at the start of `terraform plan`)?",
+        "options": {
+          "correct": "Reads the current state of each managed resource from the cloud provider and updates the state file to match what's actually there",
+          "distractor_1": "Re-runs the configuration files against the provider to recreate any resources that have been deleted out-of-band",
+          "distractor_2": "Empties the state file completely and rebuilds it from scratch by querying every resource type the provider supports",
+          "distractor_3": "Validates the syntax of the state file and repairs any corruption introduced by partial applies or interrupted operations, leaving the resources in the cloud untouched"
+        },
+        "explanation": "Refresh is the read-only sync step — bringing state into line with reality. It's what lets plan detect drift (resources changed outside Terraform). Distractor 1 invents a recreate-deleted-resources behaviour; refresh only updates state, doesn't change infra. Distractor 2 fabricates a full rebuild; refresh only touches managed resources. Distractor 3 confuses refresh with `terraform state` repair commands. Since Terraform 0.15ish, refresh runs implicitly during plan unless you pass `-refresh=false`."
+      },
+      "after": {
+        "question": "An engineer notices `terraform plan` reports drift before any config change and learns it refreshes state first. What does `terraform refresh` do (now the default at the start of `terraform plan`)?",
+        "options": {
+          "correct": "Reads the current state of each managed resource from the cloud provider and updates the state file to match what's actually there",
+          "distractor_1": "Re-runs the configuration files against the provider to recreate any resources that have been deleted out-of-band",
+          "distractor_2": "Empties the state file completely and rebuilds it from scratch by querying every resource type the provider supports",
+          "distractor_3": "Validates the syntax of the state file and repairs any corruption introduced by partial applies or interrupted operations, leaving the resources in the cloud untouched"
+        },
+        "explanation": "Refresh is the read-only sync step — bringing state into line with reality. It's what lets plan detect drift (resources changed outside Terraform). Distractor 1 invents a recreate-deleted-resources behaviour; refresh only updates state, doesn't change infra. Distractor 2 fabricates a full rebuild; refresh only touches managed resources. Distractor 3 confuses refresh with `terraform state` repair commands. Since Terraform 0.15ish, refresh runs implicitly during plan unless you pass `-refresh=false`."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks refresh recreates out-of-band-deleted resources"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks refresh empties and rebuilds the whole state"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks refresh validates/repairs the state file without touching the cloud"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "tf-008-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "How do you intentionally accept drift in Terraform without losing the resource from state?",
+        "options": {
+          "correct": "Use a `lifecycle { ignore_changes = [<attribute>] }` block so Terraform stops trying to reconcile that attribute on apply",
+          "distractor_1": "Remove the resource from `terraform.tfstate` manually with a text editor; Terraform will rediscover it on next apply",
+          "distractor_2": "Add a `prevent_destroy = true` lifecycle rule, which freezes the resource's current state and pauses reconciliation",
+          "distractor_3": "Run `terraform state rm <resource>`, which detaches the resource from Terraform state while keeping the live resource intact in the cloud account, and accept the drift externally"
+        },
+        "explanation": "`ignore_changes` is the surgical tool: keep the resource managed but stop policing specific attributes that drift legitimately (auto-rotated passwords, autoscaling-managed counts, etc.). Distractor 1 (manual state edit) is risky and the recommended path is `terraform state` commands. Distractor 2 (prevent_destroy) only stops destroys; updates still happen. Distractor 3 (state rm) removes the resource from management entirely — Terraform no longer sees it. The right tool depends on what 'accept drift' means."
+      },
+      "after": {
+        "question": "An engineer changed a resource attribute manually in the cloud console and wants Terraform to stop trying to revert it, without dropping the resource from state. How do you intentionally accept that drift?",
+        "options": {
+          "correct": "Use a `lifecycle { ignore_changes = [<attribute>] }` block so Terraform stops trying to reconcile that attribute on apply",
+          "distractor_1": "Remove the resource from `terraform.tfstate` manually with a text editor; Terraform will rediscover it on next apply",
+          "distractor_2": "Add a `prevent_destroy = true` lifecycle rule, which freezes the resource's current state and pauses reconciliation",
+          "distractor_3": "Run `terraform state rm <resource>`, which detaches the resource from Terraform state while keeping the live resource intact in the cloud account, and accept the drift externally"
+        },
+        "explanation": "`ignore_changes` is the surgical tool: keep the resource managed but stop policing specific attributes that drift legitimately (auto-rotated passwords, autoscaling-managed counts, etc.). Distractor 1 (manual state edit) is risky and the recommended path is `terraform state` commands. Distractor 2 (prevent_destroy) only stops destroys; updates still happen. Distractor 3 (state rm) removes the resource from management entirely — Terraform no longer sees it. The right tool depends on what 'accept drift' means."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate hand-edits terraform.tfstate to remove the attribute"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate misuses `prevent_destroy` as a reconciliation freeze"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate uses `state rm` (which un-manages the resource entirely)"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "tf-009-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Two Terraform apply jobs are queued in CI against the same state. What happens?",
+        "options": {
+          "correct": "The first acquires the state lock and runs; the second fails immediately with a state-lock error (DynamoDB) unless the CI tool queues runs explicitly",
+          "distractor_1": "Both runs proceed in parallel; Terraform merges the resulting states automatically once both complete",
+          "distractor_2": "The second run waits indefinitely for the first to finish, with the state-lock acting as a built-in queue",
+          "distractor_3": "Both runs fail because the state-lock mechanism prevents any concurrent or parallel apply, including back-to-back queued ones submitted from the same CI pipeline within a short window"
+        },
+        "explanation": "DynamoDB locking is fail-fast: hold the lock or fail immediately. CI systems that need queueing implement it at the pipeline layer (concurrency groups in GHA, etc.). Distractor 1 invents state merging. Distractor 2 inverts behaviour — Terraform doesn't queue on lock contention. Distractor 3 misstates the lock — sequential runs (first finishes, second starts) work fine because the lock is released between runs. The trap is treating advisory locking as a queue."
+      },
+      "after": {
+        "question": "Two engineers each kick off a `terraform apply` in CI against the same state at nearly the same time. What happens?",
+        "options": {
+          "correct": "The first acquires the state lock and runs; the second fails immediately with a state-lock error (DynamoDB) unless the CI tool queues runs explicitly",
+          "distractor_1": "Both runs proceed in parallel; Terraform merges the resulting states automatically once both complete",
+          "distractor_2": "The second run waits indefinitely for the first to finish, with the state-lock acting as a built-in queue",
+          "distractor_3": "Both runs fail because the state-lock mechanism prevents any concurrent or parallel apply, including back-to-back queued ones submitted from the same CI pipeline within a short window"
+        },
+        "explanation": "DynamoDB locking is fail-fast: hold the lock or fail immediately. CI systems that need queueing implement it at the pipeline layer (concurrency groups in GHA, etc.). Distractor 1 invents state merging. Distractor 2 inverts behaviour — Terraform doesn't queue on lock contention. Distractor 3 misstates the lock — sequential runs (first finishes, second starts) work fine because the lock is released between runs. The trap is treating advisory locking as a queue."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks both run in parallel and states auto-merge"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks the state lock acts as a built-in queue (waits indefinitely)"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks the lock blocks even back-to-back queued runs"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "tf-012-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "recall_bucket": 2,
+      "change_summary": "Tier-3 rewrite dropout (cicd-001 structure) — bank stem reverted to original",
+      "before": {
+        "question": "Compare `terraform state mv` and `terraform import`.",
+        "options": {
+          "correct": "`state mv` moves an existing in-state resource to a new address; `import` brings an out-of-state live resource into state at a given address",
+          "distractor_1": "Both commands do the same thing; `import` is the older name and `state mv` is the new name introduced in Terraform 1.0",
+          "distractor_2": "`state mv` is for moving resources between modules; `import` is for moving resources between Terraform workspaces in the same backend",
+          "distractor_3": "`state mv` requires the resource to exist in both old and new positions in the configuration; `import` requires the resource to exist only in the source address of the state file"
+        },
+        "explanation": "Two different operations: state mv = rename inside state, no provider interaction. import = bring real-world resource into state, requires provider call. Distractor 1 conflates them; both still exist for distinct purposes. Distractor 2 invents a module-vs-workspace split that doesn't match the commands. Distractor 3 inverts state mv's behaviour (the resource exists only in the source). Both are state-manipulation tools used together during migrations."
+      },
+      "after": {
+        "question": "Compare `terraform state mv` and `terraform import`.",
+        "options": {
+          "correct": "`state mv` moves an existing in-state resource to a new address; `import` brings an out-of-state live resource into state at a given address",
+          "distractor_1": "Both commands do the same thing; `import` is the older name and `state mv` is the new name introduced in Terraform 1.0",
+          "distractor_2": "`state mv` is for moving resources between modules; `import` is for moving resources between Terraform workspaces in the same backend",
+          "distractor_3": "`state mv` requires the resource to exist in both old and new positions in the configuration; `import` requires the resource to exist only in the source address of the state file"
+        },
+        "explanation": "Two different operations: state mv = rename inside state, no provider interaction. import = bring real-world resource into state, requires provider call. Distractor 1 conflates them; both still exist for distinct purposes. Distractor 2 invents a module-vs-workspace split that doesn't match the commands. Distractor 3 inverts state mv's behaviour (the resource exists only in the source). Both are state-manipulation tools used together during migrations."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks state mv and import are the same command renamed"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks state mv is cross-module and import is cross-workspace"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a both-positions / source-only precondition split"
+        }
+      ],
+      "dropped_to_tier3": true,
+      "drop_reason": "Bucket 2 / Tier-3 dropout (Stephen 2026-06-03). cicd-001 signature present: abstract-comparison ask (\"how does state mv differ from import\") + definition-pair options. Scenario is severable from option selection; answerable on recall. Strong scenario, so the Tier-3 rewrite should rebuild options into scenario-classifications (e.g. already-managed resource -> import is wrong) to make the reasoning load-bearing.",
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "tf-013-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "How do you enable detailed Terraform logging to debug a hanging apply?",
+        "options": {
+          "correct": "Set `TF_LOG=DEBUG` (or TRACE) and `TF_LOG_PATH=./tf.log` before re-running — Terraform writes provider RPCs and state operations to the log file",
+          "distractor_1": "Re-run the apply with `--debug` flag; Terraform writes detailed logs to ./debug.txt by default",
+          "distractor_2": "Run `terraform debug` to attach to the hanging process and inspect provider calls in real time",
+          "distractor_3": "Check `terraform.tfstate.lock.info` for the running operation's pid, then attach a system debugger (gdb or dlv) to that process to inspect the live stack"
+        },
+        "explanation": "`TF_LOG=DEBUG` (or TRACE for even more detail) is the standard verbose-logging knob, paired with TF_LOG_PATH to send output to a file. Distractor 1 invents a `--debug` CLI flag. Distractor 2 fabricates a `terraform debug` subcommand. Distractor 3 (state lock + system debugger) is hostile overkill and isn't how Terraform debugging works. TF_LOG output is verbose; grep for the provider operation that hangs to localise the issue."
+      },
+      "after": {
+        "question": "An engineer is debugging a `terraform apply` that hangs with no output. How do you enable detailed Terraform logging to see what it's doing?",
+        "options": {
+          "correct": "Set `TF_LOG=DEBUG` (or TRACE) and `TF_LOG_PATH=./tf.log` before re-running — Terraform writes provider RPCs and state operations to the log file",
+          "distractor_1": "Re-run the apply with `--debug` flag; Terraform writes detailed logs to ./debug.txt by default",
+          "distractor_2": "Run `terraform debug` to attach to the hanging process and inspect provider calls in real time",
+          "distractor_3": "Check `terraform.tfstate.lock.info` for the running operation's pid, then attach a system debugger (gdb or dlv) to that process to inspect the live stack"
+        },
+        "explanation": "`TF_LOG=DEBUG` (or TRACE for even more detail) is the standard verbose-logging knob, paired with TF_LOG_PATH to send output to a file. Distractor 1 invents a `--debug` CLI flag. Distractor 2 fabricates a `terraform debug` subcommand. Distractor 3 (state lock + system debugger) is hostile overkill and isn't how Terraform debugging works. TF_LOG output is verbose; grep for the provider operation that hangs to localise the issue."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a `--debug` flag writing ./debug.txt"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a `terraform debug` attach command"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate proposes attaching gdb/dlv via the lock-info pid"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "linux-002-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "What's the practical difference between SIGTERM and SIGKILL?",
+        "options": {
+          "correct": "SIGTERM (15) can be caught or ignored by the process and allows graceful shutdown; SIGKILL (9) is forced by the kernel and cannot be caught, blocked, or handled",
+          "distractor_1": "SIGTERM kills the process immediately; SIGKILL gives the process 30 seconds to clean up before forced termination",
+          "distractor_2": "SIGTERM only works on background processes; SIGKILL is required for foreground processes and shell builtins",
+          "distractor_3": "SIGTERM is the legacy signal name; SIGKILL is its modern replacement and both have identical behaviour in current Linux kernels"
+        },
+        "explanation": "The catchability distinction is the entire reason both exist. Graceful shutdown patterns (drain connections, flush buffers, close DB handles) rely on SIGTERM being catchable. SIGKILL is the no-questions-asked tool of last resort. Distractor 1 reverses the two. Distractor 2 invents a foreground/background distinction. Distractor 3 (modern replacement) is fiction — both signals have been stable since early Unix. Production apps should handle SIGTERM properly so SIGKILL is never needed."
+      },
+      "after": {
+        "question": "An engineer sends a process a graceful shutdown signal, but it ignores the request and keeps running. What's the practical difference between SIGTERM and SIGKILL that explains this?",
+        "options": {
+          "correct": "SIGTERM (15) can be caught or ignored by the process and allows graceful shutdown; SIGKILL (9) is forced by the kernel and cannot be caught, blocked, or handled",
+          "distractor_1": "SIGTERM kills the process immediately; SIGKILL gives the process 30 seconds to clean up before forced termination",
+          "distractor_2": "SIGTERM only works on background processes; SIGKILL is required for foreground processes and shell builtins",
+          "distractor_3": "SIGTERM is the legacy signal name; SIGKILL is its modern replacement and both have identical behaviour in current Linux kernels"
+        },
+        "explanation": "The catchability distinction is the entire reason both exist. Graceful shutdown patterns (drain connections, flush buffers, close DB handles) rely on SIGTERM being catchable. SIGKILL is the no-questions-asked tool of last resort. Distractor 1 reverses the two. Distractor 2 invents a foreground/background distinction. Distractor 3 (modern replacement) is fiction — both signals have been stable since early Unix. Production apps should handle SIGTERM properly so SIGKILL is never needed."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate inverts which signal is immediate vs graceful (invents a 30s grace on SIGKILL)"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a background-vs-foreground signal split"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks SIGTERM is legacy and identical to SIGKILL"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "linux-003-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Which command shows only the logs from the nginx service since 9am this morning?",
+        "options": {
+          "correct": "`journalctl -u nginx --since 09:00`",
+          "distractor_1": "`journalctl --service nginx --start-time 09:00`",
+          "distractor_2": "`systemctl logs nginx --since today --time 09:00`",
+          "distractor_3": "`journalctl --tag nginx --from 09:00`"
+        },
+        "explanation": "`journalctl -u <unit>` filters by systemd unit, `--since <time>` filters by timestamp; both flags accept relative or absolute times. Distractor 1 invents flags (--service, --start-time) that don't exist. Distractor 2 invents a `systemctl logs` subcommand. Distractor 3 invents --tag and --from. journalctl's filter flags are the daily-driver knowledge that separates 'I know systemd' from 'I've used systemd'."
+      },
+      "after": {
+        "question": "An engineer needs to see only the nginx service's logs since 9am this morning. Which command shows exactly that?",
+        "options": {
+          "correct": "`journalctl -u nginx --since 09:00`",
+          "distractor_1": "`journalctl --service nginx --start-time 09:00`",
+          "distractor_2": "`systemctl logs nginx --since today --time 09:00`",
+          "distractor_3": "`journalctl --tag nginx --from 09:00`"
+        },
+        "explanation": "`journalctl -u <unit>` filters by systemd unit, `--since <time>` filters by timestamp; both flags accept relative or absolute times. Distractor 1 invents flags (--service, --start-time) that don't exist. Distractor 2 invents a `systemctl logs` subcommand. Distractor 3 invents --tag and --from. journalctl's filter flags are the daily-driver knowledge that separates 'I know systemd' from 'I've used systemd'."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a `journalctl --service ... --start-time` syntax"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a `systemctl logs` subcommand"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents `journalctl --tag ... --from` flags"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "linux-004-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Why is `ss` preferred over `netstat` on modern Linux?",
+        "options": {
+          "correct": "`ss` reads kernel data structures directly via netlink, which is faster and less I/O-intensive than netstat parsing `/proc`",
+          "distractor_1": "`ss` was rewritten to give cleaner output; `netstat` still uses the same kernel calls, so performance is identical",
+          "distractor_2": "`netstat` requires root privileges to read socket info; `ss` works as any user without elevation",
+          "distractor_3": "`netstat` has been removed from modern Linux distros; running it returns 'command not found' unless installed from a legacy package"
+        },
+        "explanation": "ss uses netlink (a kernel API specifically for sockets); netstat parses /proc/net/tcp etc. On a busy system with 50k sockets, netstat is dramatically slower. Distractor 1 (same kernel calls) collapses the actual implementation difference. Distractor 2 inverts privilege requirements — neither requires root for basic listing. Distractor 3 over-states removal — netstat is still available on most distros, just considered legacy."
+      },
+      "after": {
+        "question": "An engineer on a busy host notices `ss` returns socket information noticeably faster than `netstat`. Why is `ss` preferred over `netstat` on modern Linux?",
+        "options": {
+          "correct": "`ss` reads kernel data structures directly via netlink, which is faster and less I/O-intensive than netstat parsing `/proc`",
+          "distractor_1": "`ss` was rewritten to give cleaner output; `netstat` still uses the same kernel calls, so performance is identical",
+          "distractor_2": "`netstat` requires root privileges to read socket info; `ss` works as any user without elevation",
+          "distractor_3": "`netstat` has been removed from modern Linux distros; running it returns 'command not found' unless installed from a legacy package"
+        },
+        "explanation": "ss uses netlink (a kernel API specifically for sockets); netstat parses /proc/net/tcp etc. On a busy system with 50k sockets, netstat is dramatically slower. Distractor 1 (same kernel calls) collapses the actual implementation difference. Distractor 2 inverts privilege requirements — neither requires root for basic listing. Distractor 3 over-states removal — netstat is still available on most distros, just considered legacy."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks the speedup is cosmetic and the kernel calls are identical"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a root-privilege requirement for netstat"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks netstat has been removed from modern distros"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "linux-005-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "`df -h` reports 95% full but `du -sh /*` totals only 60% of the disk. What's the most likely cause?",
+        "options": {
+          "correct": "A process has a deleted-but-open file holding inode space — the file is gone from the directory tree (du can't see it) but the inode lives until the process closes the descriptor",
+          "distractor_1": "df reports compressed-on-disk size while du reports uncompressed; the difference is the filesystem's compression overhead",
+          "distractor_2": "df includes the journal and metadata while du only includes user data; the gap is the filesystem's overhead",
+          "distractor_3": "du was run without sudo and missed files in directories the user can't read, accounting for the discrepancy"
+        },
+        "explanation": "Deleted-but-open files are the classic gotcha — a log rotation or unlink while a process holds the descriptor means the file disappears from `ls` but the blocks stay allocated. `lsof +L1` finds these; restarting the process releases the space. Distractor 1 (compression) doesn't apply to default ext4/xfs. Distractor 2 (journal/metadata) is too small to explain a 35% gap. Distractor 3 (permissions) is real but rarely accounts for a 35% gap on a properly-permissioned system."
+      },
+      "after": {
+        "question": "An engineer sees `df -h` report a disk 95% full, but `du -sh /*` totals only 60% of the disk. What's the most likely cause?",
+        "options": {
+          "correct": "A process has a deleted-but-open file holding inode space — the file is gone from the directory tree (du can't see it) but the inode lives until the process closes the descriptor",
+          "distractor_1": "df reports compressed-on-disk size while du reports uncompressed; the difference is the filesystem's compression overhead",
+          "distractor_2": "df includes the journal and metadata while du only includes user data; the gap is the filesystem's overhead",
+          "distractor_3": "du was run without sudo and missed files in directories the user can't read, accounting for the discrepancy"
+        },
+        "explanation": "Deleted-but-open files are the classic gotcha — a log rotation or unlink while a process holds the descriptor means the file disappears from `ls` but the blocks stay allocated. `lsof +L1` finds these; restarting the process releases the space. Distractor 1 (compression) doesn't apply to default ext4/xfs. Distractor 2 (journal/metadata) is too small to explain a 35% gap. Distractor 3 (permissions) is real but rarely accounts for a 35% gap on a properly-permissioned system."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a compression-overhead explanation for the gap"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate attributes the gap to journal/metadata overhead"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate blames a non-sudo du missing unreadable files"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "linux-005-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "`df -h` shows 50% capacity but writes are failing with 'No space left on device'. What's the most likely cause?",
+        "options": {
+          "correct": "Inode exhaustion — the filesystem has run out of inodes (each file consumes one) even though plenty of space remains; check with `df -i`",
+          "distractor_1": "Disk write quotas — the user account has hit its individual quota even though the filesystem has free space",
+          "distractor_2": "Filesystem reserved blocks — ext4 reserves 5% for root by default, and a non-root user is hitting that ceiling sooner",
+          "distractor_3": "RAID degradation — the underlying array has lost a member, dropping write capacity even though `df` still reports the full original size of the array"
+        },
+        "explanation": "Inode exhaustion happens when you have lots of small files (mail spools, cache directories with many tiny files, container layers). `df -i` shows inode usage separately. Distractor 1 (quota) is real but usually shows a different error message. Distractor 2 (reserved blocks) is real on ext4 but caps at ~5%, so doesn't explain failure at 50% disk usage. Distractor 3 (RAID degradation) doesn't reduce reported size."
+      },
+      "after": {
+        "question": "An engineer finds `df -h` shows only 50% capacity, yet writes are failing with 'No space left on device'. What's the most likely cause?",
+        "options": {
+          "correct": "Inode exhaustion — the filesystem has run out of inodes (each file consumes one) even though plenty of space remains; check with `df -i`",
+          "distractor_1": "Disk write quotas — the user account has hit its individual quota even though the filesystem has free space",
+          "distractor_2": "Filesystem reserved blocks — ext4 reserves 5% for root by default, and a non-root user is hitting that ceiling sooner",
+          "distractor_3": "RAID degradation — the underlying array has lost a member, dropping write capacity even though `df` still reports the full original size of the array"
+        },
+        "explanation": "Inode exhaustion happens when you have lots of small files (mail spools, cache directories with many tiny files, container layers). `df -i` shows inode usage separately. Distractor 1 (quota) is real but usually shows a different error message. Distractor 2 (reserved blocks) is real on ext4 but caps at ~5%, so doesn't explain failure at 50% disk usage. Distractor 3 (RAID degradation) doesn't reduce reported size."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate reaches for per-user disk quotas"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate blames ext4's 5% root-reserved blocks"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents RAID degradation dropping write capacity"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "linux-006-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Which is the most efficient way to find all log entries between 14:00 and 14:30 today across all systemd units?",
+        "options": {
+          "correct": "`journalctl --since '14:00' --until '14:30'`",
+          "distractor_1": "`grep '14:0[0-9]\\|14:[12][0-9]' /var/log/messages`",
+          "distractor_2": "`awk '$1 == \"14:00\" || $1 == \"14:30\"' /var/log/syslog`",
+          "distractor_3": "`sed -n '/14:00/,/14:30/p' /var/log/journal/*.journal`"
+        },
+        "explanation": "journalctl's --since and --until are the right tools for journald — they parse times correctly, handle the day boundary, and work on the binary journal format. Distractor 1 attempts text grep on a file that may not even have all journal data (only legacy syslog forwarding does). Distractor 2 is brittle and assumes a specific log format. Distractor 3 attempts to text-process journal binary files, which doesn't work. Knowing journalctl's filter flags saves enormous time."
+      },
+      "after": {
+        "question": "An engineer needs to pull all log entries between 14:00 and 14:30 today across every systemd unit. Which approach is the most efficient?",
+        "options": {
+          "correct": "`journalctl --since '14:00' --until '14:30'`",
+          "distractor_1": "`grep '14:0[0-9]\\|14:[12][0-9]' /var/log/messages`",
+          "distractor_2": "`awk '$1 == \"14:00\" || $1 == \"14:30\"' /var/log/syslog`",
+          "distractor_3": "`sed -n '/14:00/,/14:30/p' /var/log/journal/*.journal`"
+        },
+        "explanation": "journalctl's --since and --until are the right tools for journald — they parse times correctly, handle the day boundary, and work on the binary journal format. Distractor 1 attempts text grep on a file that may not even have all journal data (only legacy syslog forwarding does). Distractor 2 is brittle and assumes a specific log format. Distractor 3 attempts to text-process journal binary files, which doesn't work. Knowing journalctl's filter flags saves enormous time."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate greps /var/log/messages with a time-range regex"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate awks /var/log/syslog matching only the two boundary timestamps"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate seds the binary .journal files as if they were text"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "linux-007-mcq-1",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "What does `set -euo pipefail` enable in a bash script?",
+        "options": {
+          "correct": "Exit on any command failure (`-e`), error on unset variables (`-u`), and treat pipe failures as command failures (`-o pipefail`)",
+          "distractor_1": "Exit on any error (`-e`), strict utf-8 encoding (`-u`), and disable shell expansion in pipelines (`-o pipefail`)",
+          "distractor_2": "Enable verbose mode (`-e`), unconditional argument substitution (`-u`), and pipeline output buffering (`-o pipefail`)",
+          "distractor_3": "Set environment variable scope (`-e`), unbuffer stdout (`-u`), and force POSIX pipe semantics that match the behaviour of /bin/sh (`-o pipefail`)"
+        },
+        "explanation": "These three flags transform bash from forgiving (errors silently ignored, undefined variables become empty strings, pipe failures swallowed) to strict (fail fast on everything that could be a bug). They're the first line of any production bash script. Distractor 1, 2, 3 each invent fictional meanings. Real bash flags are well-defined; memorise these three because they catch most defensive-scripting bugs."
+      },
+      "after": {
+        "question": "An engineer's bash script kept running after a failed command and silently used an unset variable, so a colleague suggests adding `set -euo pipefail`. What does that enable?",
+        "options": {
+          "correct": "Exit on any command failure (`-e`), error on unset variables (`-u`), and treat pipe failures as command failures (`-o pipefail`)",
+          "distractor_1": "Exit on any error (`-e`), strict utf-8 encoding (`-u`), and disable shell expansion in pipelines (`-o pipefail`)",
+          "distractor_2": "Enable verbose mode (`-e`), unconditional argument substitution (`-u`), and pipeline output buffering (`-o pipefail`)",
+          "distractor_3": "Set environment variable scope (`-e`), unbuffer stdout (`-u`), and force POSIX pipe semantics that match the behaviour of /bin/sh (`-o pipefail`)"
+        },
+        "explanation": "These three flags transform bash from forgiving (errors silently ignored, undefined variables become empty strings, pipe failures swallowed) to strict (fail fast on everything that could be a bug). They're the first line of any production bash script. Distractor 1, 2, 3 each invent fictional meanings. Real bash flags are well-defined; memorise these three because they catch most defensive-scripting bugs."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents utf-8/expansion meanings for the flags"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents verbose/buffering meanings for the flags"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents env-scope/unbuffer/POSIX meanings for the flags"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    },
+    {
+      "mcq_id": "linux-007-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "When should you stop using bash and switch to Python (or another higher-level language)?",
+        "options": {
+          "correct": "When you need data structures (hashmaps, lists), structured error handling, multiple functions calling each other, or testing — bash gets painful past ~100 lines",
+          "distractor_1": "When the script accesses network resources, since bash has no built-in HTTP client and shells out to curl for every request",
+          "distractor_2": "When the script needs to run on multiple platforms, since bash syntax differs between distributions in incompatible ways",
+          "distractor_3": "When the script needs to be sourced from another script, since bash's sourcing semantics break encapsulation for non-trivial code"
+        },
+        "explanation": "The line is usually programmability and testability — once you need maps, structured errors, real testing, or function composition, Python pays for itself. Distractor 1 over-states bash's network limitation (curl is fine for most cases). Distractor 2 over-states cross-platform issues; bash itself is consistent on POSIX systems. Distractor 3 fabricates a sourcing problem. The 100-line heuristic is rough but useful: if you're past it, you're probably reinventing functions and structures."
+      },
+      "after": {
+        "question": "An engineer's bash script has grown past 150 lines with nested data and tangled error handling. When should they stop using bash and switch to Python (or another higher-level language)?",
+        "options": {
+          "correct": "When you need data structures (hashmaps, lists), structured error handling, multiple functions calling each other, or testing — bash gets painful past ~100 lines",
+          "distractor_1": "When the script accesses network resources, since bash has no built-in HTTP client and shells out to curl for every request",
+          "distractor_2": "When the script needs to run on multiple platforms, since bash syntax differs between distributions in incompatible ways",
+          "distractor_3": "When the script needs to be sourced from another script, since bash's sourcing semantics break encapsulation for non-trivial code"
+        },
+        "explanation": "The line is usually programmability and testability — once you need maps, structured errors, real testing, or function composition, Python pays for itself. Distractor 1 over-states bash's network limitation (curl is fine for most cases). Distractor 2 over-states cross-platform issues; bash itself is consistent on POSIX systems. Distractor 3 fabricates a sourcing problem. The 100-line heuristic is rough but useful: if you're past it, you're probably reinventing functions and structures."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks network access is the trigger (bash shells out to curl)"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks multi-platform need is the trigger (bash syntax differences)"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks sourcing semantics are the trigger"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "intentional_recall_exempt": false
+    }
+  ],
+  "mcqs_completed": 21,
+  "mcqs_dropped_to_tier3": 1,
+  "drop_out_ids": [
+    "tf-012-mcq-2"
+  ]
+}

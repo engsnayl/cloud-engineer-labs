@@ -1,0 +1,1122 @@
+[
+  {
+    "id": "aws-001-mcq-1",
+    "source_id": "aws-001",
+    "domain": "aws",
+    "subdomain": "architecture",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "You're designing a 3-tier app on AWS with an internet-facing Application Load Balancer fronting a web tier Auto Scaling Group, which calls an app tier ASG, which talks to RDS. The web tier ASG needs internet for OS patching but must not accept inbound from the internet directly. Where do the ALB and the web tier ASG belong?",
+    "options": {
+      "correct": "ALB in public subnets, web tier ASG in private subnets \u2014 the ALB reaches its targets over private IPs in the same VPC",
+      "distractor_1": "ALB and web tier ASG both in public subnets so the ALB can health-check the instances over public IPs",
+      "distractor_2": "ALB in public subnets and web tier ASG in public subnets behind a NAT Gateway that translates incoming HTTPS into private connections",
+      "distractor_3": "ALB in private subnets and web tier ASG in public subnets, with the ALB exposed via an Internet Gateway route added to the private subnet's route table"
+    },
+    "explanation": "Internet-facing ALBs sit in public subnets; target groups can live in private subnets because the VPC routes traffic to targets over private IPs. The ASG gets inbound only through the ALB and outbound through a NAT Gateway for patching. Distractor 1 wastes the safer pattern by exposing the ASG instances directly. Distractor 2 misuses NAT Gateway as an inbound proxy \u2014 NAT is outbound-only. Distractor 3 inverts the placement and invokes an impossible config: adding an IGW route to a private subnet would make it public by definition."
+  },
+  {
+    "id": "aws-002-mcq-1",
+    "source_id": "aws-002",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "easy",
+    "question": "An engineer inspects a subnet in an AWS VPC and needs to determine whether it is public or private. Which property actually decides this?",
+    "options": {
+      "correct": "The subnet has a route in its route table sending 0.0.0.0/0 to an Internet Gateway",
+      "distractor_1": "The subnet's CIDR block is within the VPC's public IP range",
+      "distractor_2": "Instances launched in the subnet automatically receive a public IP address",
+      "distractor_3": "The subnet is associated with a security group that allows inbound traffic from 0.0.0.0/0"
+    },
+    "explanation": "Nothing about a subnet is intrinsically 'public' or 'private' \u2014 the distinction is purely the route table. Auto-assign public IP (distractor 2) is a real, separate setting (MapPublicIpOnLaunch) but an instance needs BOTH the IGW route AND a public IP to be reachable. CIDR blocks within a VPC aren't categorised as public or private. Security groups operate at the instance level and never define subnet type."
+  },
+  {
+    "id": "aws-003-mcq-1",
+    "source_id": "aws-003",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "critical",
+    "difficulty": "easy",
+    "question": "An EC2 instance has a Security Group that allows inbound TCP/443 from 0.0.0.0/0. The NACL on its subnet allows inbound TCP/443 from 0.0.0.0/0 but has no outbound rules other than the default explicit deny. A client opens an HTTPS connection. What happens?",
+    "options": {
+      "correct": "The SYN-ACK reply is dropped on egress at the NACL \u2014 NACLs are stateless and need an explicit outbound rule on ephemeral ports",
+      "distractor_1": "The connection succeeds because the Security Group is stateful and automatically permits the corresponding outbound return traffic at both the SG and NACL layers",
+      "distractor_2": "The inbound SYN is dropped at the subnet because NACLs require an outbound rule before evaluating any inbound traffic",
+      "distractor_3": "The connection succeeds because AWS implicitly allows ephemeral-port return traffic at the subnet level once an inbound rule has matched"
+    },
+    "explanation": "NACLs evaluate each direction independently and have no notion of established connections \u2014 return traffic on ephemeral ports must be explicitly allowed outbound. The SG (stateful) does permit the reply, but the NACL drops it first. Distractor 1 misattributes the SG's statefulness to the NACL. Distractor 2 inverts the failure direction \u2014 NACLs evaluate inbound and outbound separately, so inbound succeeds and outbound is where this connection actually dies. Distractor 3 invents an implicit-allow that doesn't exist; NACLs default to explicit deny on anything not matched."
+  },
+  {
+    "id": "aws-005-mcq-1",
+    "source_id": "aws-005",
+    "domain": "aws",
+    "subdomain": "databases",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "Your application uses RDS for MySQL with Multi-AZ enabled and one read replica in the same region. The primary instance fails. What happens to in-flight transactions and where do read queries go?",
+    "options": {
+      "correct": "RDS fails over to the synchronous standby within 60-120 seconds; in-flight transactions roll back and read queries continue against the unaffected read replica",
+      "distractor_1": "RDS promotes the read replica to primary because it's already a live copy, then attaches a new standby asynchronously to restore Multi-AZ",
+      "distractor_2": "The Multi-AZ standby and the read replica are merged into a single primary endpoint to absorb both write and read traffic during recovery",
+      "distractor_3": "RDS waits for the failed primary to recover because Multi-AZ is asynchronous and forcing a failover would risk data loss"
+    },
+    "explanation": "Multi-AZ uses synchronous replication to a standby in another AZ; on primary failure, RDS performs a DNS-level failover to the standby (typically 60-120s) and rolls back uncommitted transactions. Read replicas (asynchronous) keep serving reads independently. Distractor 1 confuses the two replica types \u2014 Multi-AZ failover uses the synchronous standby, not the read replica. Distractor 2 invents a merge operation that doesn't exist. Distractor 3 inverts the replication model: Multi-AZ is synchronous and designed exactly for low-data-loss failover."
+  },
+  {
+    "id": "aws-008-mcq-1",
+    "source_id": "aws-008",
+    "domain": "aws",
+    "subdomain": "storage",
+    "priority": "medium",
+    "difficulty": "easy",
+    "question": "Your application writes logs to S3 every minute. The last 30 days are queried daily, the next 90 days are queried rarely, and after that they're kept for compliance with no access expected. What's the right storage class progression?",
+    "options": {
+      "correct": "S3 Standard for the first 30 days, S3 Standard-IA from 30 to 120 days, S3 Glacier Deep Archive after 120 days",
+      "distractor_1": "S3 Intelligent-Tiering throughout the entire lifecycle so storage class transitions happen automatically without lifecycle rules",
+      "distractor_2": "S3 Standard for the first 30 days, S3 One Zone-IA from 30 to 120 days, S3 Glacier Flexible Retrieval after 120 days",
+      "distractor_3": "S3 Standard throughout \u2014 the cost difference of other classes doesn't justify the operational complexity"
+    },
+    "explanation": "Standard fits hot daily access; Standard-IA fits rare access (with a 30-day minimum storage charge that already aligns); Deep Archive fits never-accessed compliance retention at the lowest per-GB cost. Distractor 1 (Intelligent-Tiering) does automate this but adds a monitoring charge per object \u2014 for high object counts that overshoots the savings. Distractor 2 picks One Zone-IA (single-AZ durability) for queryable archival, risking data loss, and Flexible Retrieval costs more than Deep Archive for never-accessed data. Distractor 3 ignores cost: archival data sitting in Standard for years is the textbook waste."
+  },
+  {
+    "id": "aws-009-mcq-1",
+    "source_id": "aws-009",
+    "domain": "aws",
+    "subdomain": "storage",
+    "priority": "medium",
+    "difficulty": "easy",
+    "question": "You need shared file storage accessible by 12 EC2 instances across 3 AZs with POSIX semantics. Which storage option fits?",
+    "options": {
+      "correct": "EFS \u2014 a managed NFS file system that supports concurrent mounts from multiple instances across AZs",
+      "distractor_1": "EBS gp3 with Multi-Attach enabled, mounted by all 12 instances across the 3 AZs",
+      "distractor_2": "S3 mounted via s3fs-fuse on each instance to provide POSIX semantics over object storage",
+      "distractor_3": "FSx for Lustre, which is AWS's standard managed NFS service for general-purpose shared file storage"
+    },
+    "explanation": "EFS is the AWS-native managed NFS service: multi-AZ, multi-mount, POSIX, scales automatically. Distractor 1 (EBS Multi-Attach) is restricted to io1/io2 volumes within a single AZ and requires a cluster-aware filesystem \u2014 not a fit for cross-AZ shared access. Distractor 2 (s3fs) is a common candidate trap: object storage doesn't have POSIX semantics, file locking is unreliable, and atomic operations break. Distractor 3 confuses FSx variants: FSx for Lustre is high-performance scratch for HPC; FSx for NetApp ONTAP or FSx for OpenZFS would do NFS, but not Lustre."
+  },
+  {
+    "id": "aws-010-mcq-1",
+    "source_id": "aws-010",
+    "domain": "aws",
+    "subdomain": "storage",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "Your S3 bucket has Block Public Access enabled at the bucket level. You add a bucket policy allowing s3:GetObject from a specific external AWS account. What happens?",
+    "options": {
+      "correct": "The bucket policy works for the named account because Block Public Access only blocks policies that grant access to anonymous or public principals \u2014 not specific identified principals",
+      "distractor_1": "The bucket policy is rejected at save time because Block Public Access overrides any cross-account bucket policy regardless of principal",
+      "distractor_2": "The bucket policy saves but is silently ignored at request time; Block Public Access wins by precedence and the external account gets a 403",
+      "distractor_3": "The bucket policy works only if Block Public Access is also disabled at the account level, since account-level settings override bucket-level overrides"
+    },
+    "explanation": "Block Public Access targets policies and ACLs that grant access to '*' or 'authenticated users everywhere' \u2014 public principals. A policy naming a specific AWS account or role is not public, so BPA doesn't block it. Distractor 1 over-extends BPA to all cross-account access. Distractor 2 invents a silent-ignore behaviour; BPA evaluates at policy save time and at request time, but only against public grants. Distractor 3 reverses the precedence model \u2014 account-level BPA is stricter than bucket-level, but neither blocks identified cross-account principals."
+  },
+  {
+    "id": "aws-012-mcq-1",
+    "source_id": "aws-012",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "You need a load balancer that can route based on the request URL path (/api/* to one target group, /static/* to another) and terminate TLS. Which AWS load balancer type fits?",
+    "options": {
+      "correct": "Application Load Balancer (ALB) \u2014 operates at Layer 7 and supports path-based and host-based routing rules and TLS termination",
+      "distractor_1": "Network Load Balancer (NLB) \u2014 operates at Layer 4 and supports path-based routing through listener rules, with TLS termination on the listener",
+      "distractor_2": "Gateway Load Balancer (GWLB) \u2014 operates at Layer 3 and routes based on URL paths to attached security appliance target groups",
+      "distractor_3": "Classic Load Balancer (CLB) \u2014 the only AWS load balancer that supports both path-based routing and TLS termination in a single listener"
+    },
+    "explanation": "ALB operates at Layer 7 with full HTTP awareness \u2014 path/host routing, header matching, TLS termination, WebSockets. Distractor 1 misplaces these features on NLB (Layer 4, no URL awareness \u2014 TLS termination yes, path routing no). Distractor 2 fabricates URL-aware routing for GWLB, which is purely Layer 3 transparent forwarding to third-party security appliances. Distractor 3 invokes the now-deprecated Classic Load Balancer; CLB never supported path-based routing \u2014 that was the gap ALB was built to fill."
+  },
+  {
+    "id": "aws-015-mcq-1",
+    "source_id": "aws-015",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "hard",
+    "question": "VPC A is peered to VPC B, and VPC B is peered to VPC C. An instance in VPC A tries to reach an instance in VPC C. What happens?",
+    "options": {
+      "correct": "The connection fails \u2014 VPC peering is non-transitive, so traffic from A to C cannot hop through B without a direct A-to-C peering or a Transit Gateway",
+      "distractor_1": "The connection succeeds via VPC B's route table, which forwards transit traffic between its two peers automatically",
+      "distractor_2": "The connection succeeds only if B has enableVgwRoutePropagation set, which permits transitive peering between its connected VPCs",
+      "distractor_3": "The connection succeeds but is rate-limited because transitive peering goes through B's NAT Gateway, which throttles cross-peering bandwidth"
+    },
+    "explanation": "VPC peering is explicitly non-transitive: each peering is a point-to-point relationship, and a VPC will not forward traffic between two of its peers. To connect three or more VPCs in a hub-and-spoke or mesh, you either add direct peerings (N\u00d7(N-1)/2) or attach them all to a Transit Gateway. Distractor 1 invents transitive forwarding. Distractor 2 invokes a real setting (VGW route propagation) for a different feature (Virtual Private Gateways). Distractor 3 fabricates a NAT Gateway path through B \u2014 peering traffic uses peering connections, not NAT GWs."
+  },
+  {
+    "id": "aws-016-mcq-1",
+    "source_id": "aws-016",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "question": "An application has users in three continents. You want each user to be routed to the regional endpoint that gives the lowest latency. Which Route 53 routing policy fits?",
+    "options": {
+      "correct": "Latency-based routing \u2014 Route 53 maps the user's resolver to the regional endpoint with the lowest measured network latency",
+      "distractor_1": "Geolocation routing \u2014 Route 53 returns the regional endpoint nearest the user's country to minimise round-trip time",
+      "distractor_2": "Geoproximity routing \u2014 Route 53 selects the endpoint closest to the user based on physical distance from AWS edge locations",
+      "distractor_3": "Weighted routing \u2014 Route 53 sends traffic to regional endpoints in proportion to their measured latency from the user's location"
+    },
+    "explanation": "Latency-based routing measures actual network latency (not geographic distance) and routes accordingly \u2014 closer-by-geography is not always closer-by-latency. Distractor 1 (geolocation) routes by user country, often used for compliance or content localisation rather than performance. Distractor 2 (geoproximity) routes by physical distance with optional bias weighting, useful when you want to shift traffic for a campaign, not pure performance. Distractor 3 (weighted) splits traffic by static weights \u2014 it has no notion of measured latency."
+  },
+  {
+    "id": "aws-017-mcq-1",
+    "source_id": "aws-017",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "An engineer setting up private VPC access notices that S3 and DynamoDB offer a free 'Gateway' endpoint type while other services do not. Which statement correctly captures the scope of Gateway endpoints?",
+    "options": {
+      "correct": "S3 and DynamoDB only \u2014 every other AWS service uses Interface endpoints (PrivateLink)",
+      "distractor_1": "All services that have a public regional endpoint can be reached via a Gateway endpoint, including S3, DynamoDB, KMS, and SNS",
+      "distractor_2": "Only services that are global rather than regional, such as IAM and CloudFront, use Gateway endpoints",
+      "distractor_3": "Gateway endpoints are available for all AWS services in a VPC; Interface endpoints exist only for third-party services exposed via PrivateLink"
+    },
+    "explanation": "Gateway endpoints are a special, free-of-charge type only available for S3 and DynamoDB \u2014 they add a prefix list to your route table and traffic stays on the AWS backbone. Every other in-VPC private access uses Interface endpoints (backed by PrivateLink, charged hourly per endpoint and per GB). Distractor 1 over-extends Gateway endpoints to services that use Interface endpoints. Distractor 2 fabricates a global-vs-regional distinction. Distractor 3 reverses the model \u2014 third-party PrivateLink services do exist, but Interface endpoints are also how you reach most AWS-native services."
+  },
+  {
+    "id": "aws-019-mcq-1",
+    "source_id": "aws-019",
+    "domain": "aws",
+    "subdomain": "compute",
+    "priority": "medium",
+    "difficulty": "easy",
+    "question": "You're right-sizing EC2 for a RAM-bound in-memory database such as Redis or SAP HANA, not a CPU-bound workload. Which instance family letter (M, C, R, T, G) is purpose-built for this?",
+    "options": {
+      "correct": "R \u2014 memory-optimised family with a higher memory-to-vCPU ratio",
+      "distractor_1": "M \u2014 the 'memory' letter indicates memory-optimised general-purpose instances",
+      "distractor_2": "C \u2014 compute-optimised with the highest memory allocation per vCPU in the family lineup",
+      "distractor_3": "T \u2014 burstable instances with deep memory pools to handle in-memory database working sets"
+    },
+    "explanation": "R-family instances (R5, R6i, R7i, etc.) are memory-optimised \u2014 designed for Redis, SAP HANA, large in-memory analytics. Distractor 1 traps the candidate on letter-meaning: M is general purpose, despite the M; the memory letter is R. Distractor 2 swaps compute (C) for memory \u2014 C is the opposite end, high vCPU per memory unit. Distractor 3 picks T (burstable, low cost) which is for variable low-load workloads, not sustained memory pressure. Right-sizing starts with knowing the family naming."
+  },
+  {
+    "id": "aws-021-mcq-1",
+    "source_id": "aws-021",
+    "domain": "aws",
+    "subdomain": "cost",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "Your team wants to cut compute cost by moving exactly one of these workloads onto 100% Spot with no on-demand fallback, and a node reclaim (two-minute warning) must cause zero user-visible impact. Which workload is the BEST fit?",
+    "options": {
+      "correct": "A nightly Spark batch job that checkpoints its progress and restarts from the last checkpoint after an interruption \u2014 it runs asynchronously, so a reclaim delays no user-facing request",
+      "distractor_1": "A stateless web tier behind an ALB with autoscaling and at least a 50% on-demand baseline, leaning on that baseline to keep serving users whenever Spot capacity is reclaimed",
+      "distractor_2": "A synchronous payment API where each in-flight request must finish, so a reclaimed node fails the customer's transaction mid-flight",
+      "distractor_3": "A 12-hour ML training run that holds all state in memory and writes no checkpoints, losing everything if the node is reclaimed near the end"
+    },
+    "explanation": "With a 100%-Spot, no-fallback, zero-user-impact constraint, only an asynchronous job that resumes cleanly after reclamation qualifies \u2014 the checkpointing batch fits exactly. Distractor 1 (stateless web tier) is ruled out twice: it depends on the on-demand baseline the constraint forbids, and a reclaim drops in-flight user requests, which is user-visible. Distractor 2 (synchronous payment API) is the most user-visible failure \u2014 a reclaimed node fails a live customer transaction. Distractor 3 (un-checkpointed ML run) tolerates no interruption: a reclaim near hour 11 discards the whole run. Interruption tolerance plus no user-facing path is what Spot needs here; only the batch job has both."
+  },
+  {
+    "id": "aws-024-mcq-1",
+    "source_id": "aws-024",
+    "domain": "aws",
+    "subdomain": "cost",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "Your AWS monthly bill jumped by 30% with no obvious cause. What's the right first step to investigate?",
+    "options": {
+      "correct": "Open Cost Explorer, group by service, and filter to the spike's timeframe to identify which service drove the increase",
+      "distractor_1": "Open the Trusted Advisor cost dashboard, which surfaces only the unexpected charges and ignores baseline spend",
+      "distractor_2": "Pull the detailed billing CSV from S3 and grep for resource ARNs that didn't appear in the previous month's bill \u2014 net-new resources stand out as the cause",
+      "distractor_3": "Open CloudWatch Billing alarms and read the alarm history to see which resources triggered cost thresholds"
+    },
+    "explanation": "Cost Explorer with grouping by service (and a daily granularity) is the fastest tool to localise an unexpected spike to a specific service, then drill down by tag, usage type, or linked account. Distractor 1 overstates Trusted Advisor \u2014 it surfaces optimisation recommendations, not arbitrary spend deltas. Distractor 2 (raw billing CSV) works but is slow and noisy compared to Cost Explorer's grouping. Distractor 3 misuses CloudWatch alarms \u2014 they fire on thresholds but don't tell you which underlying resource caused the increase."
+  },
+  {
+    "id": "aws-026-mcq-1",
+    "source_id": "aws-026",
+    "domain": "aws",
+    "subdomain": "iam",
+    "priority": "critical",
+    "difficulty": "easy",
+    "question": "A Python service running on an EC2 instance needs to read objects from an S3 bucket. Which approach grants access using AWS best practice?",
+    "options": {
+      "correct": "Attach an IAM role to the EC2 instance with the needed S3 permissions; the SDK retrieves temporary credentials from IMDSv2",
+      "distractor_1": "Create an IAM user with the required S3 permissions, generate an access key, and place it in ~/.aws/credentials on the instance",
+      "distractor_2": "Create an IAM user, generate an access key, and store it as a Kubernetes-style environment variable in the instance's user data",
+      "distractor_3": "Add a Security Group rule on the EC2 instance permitting outbound traffic to the S3 service so the instance can reach the bucket"
+    },
+    "explanation": "IAM roles are designed for workload identity: EC2 retrieves short-lived, auto-rotating credentials via IMDSv2, so no secret sits on the host. Distractor 1 uses a static access key, which has no rotation and lands as plain text on the instance \u2014 a common path to credential leaks. Distractor 2 just moves the same long-lived key into user data, which is even worse (visible to anyone with describe-instance permissions). Distractor 3 confuses network-layer reachability with IAM authorization; opening an SG to S3 doesn't grant any S3 permissions. VPC endpoints help with reachability but still require IAM."
+  },
+  {
+    "id": "aws-028-mcq-1",
+    "source_id": "aws-028",
+    "domain": "aws",
+    "subdomain": "iam",
+    "priority": "medium",
+    "difficulty": "medium",
+    "question": "Account A wants to let a Lambda function in Account B read objects from an S3 bucket in Account A. What is the minimum set of changes required?",
+    "options": {
+      "correct": "Account A: bucket policy granting s3:GetObject to the Lambda execution role in Account B. Account B: execution role with s3:GetObject permission and the bucket as resource",
+      "distractor_1": "Account A: bucket policy granting s3:GetObject to '*'. Account B: nothing \u2014 the public-style policy is automatically scoped to the calling account",
+      "distractor_2": "Account A: create an IAM user with bucket access and share its access keys with Account B's Lambda environment variables",
+      "distractor_3": "Account B: create a peering connection from Account B's VPC to Account A's bucket, then assign IAM permissions in Account B only"
+    },
+    "explanation": "Cross-account S3 access needs explicit allow on BOTH sides: the bucket policy in the owning account names the cross-account principal, AND the calling principal's identity policy grants the action. Distractor 1 uses '*' as principal which is a public grant blocked by Block Public Access; even without BPA, it's a serious overshare. Distractor 2 is the anti-pattern that IAM roles are meant to replace \u2014 long-lived keys in another account's environment. Distractor 3 invents 'peering to a bucket'; S3 is not in a VPC and peering doesn't grant IAM."
+  },
+  {
+    "id": "aws-030-mcq-1",
+    "source_id": "aws-030",
+    "domain": "aws",
+    "subdomain": "observability",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "Your app currently emits CloudWatch metrics at 60-second granularity. You want sub-second alerting for latency spikes. What needs to change?",
+    "options": {
+      "correct": "Publish the metrics as high-resolution custom metrics (1-second granularity), which costs more per metric but enables alarms with periods as short as 10 seconds",
+      "distractor_1": "Enable Detailed Monitoring on the EC2 instances \u2014 it upgrades all metrics from 1-minute to 1-second granularity at no extra cost",
+      "distractor_2": "Switch the metric stream to CloudWatch Logs Insights \u2014 logs are evaluated at sub-second granularity, with alarms attached to query results",
+      "distractor_3": "Use composite alarms \u2014 they evaluate underlying metric alarms at sub-second resolution, regardless of the source metric's granularity"
+    },
+    "explanation": "CloudWatch supports two metric resolutions: standard (1-minute, default for AWS-provided and user metrics) and high-resolution (1-second, opt-in for custom metrics via PutMetricData's StorageResolution=1). Alarm minimum period drops accordingly. Distractor 1 misstates Detailed Monitoring \u2014 it's 1-minute, not 1-second, and only for EC2. Distractor 2 confuses metrics with logs; Logs Insights is for ad-hoc queries, not real-time alarms at sub-second cadence. Distractor 3 invents sub-second evaluation for composite alarms; they're bound by the underlying metric resolution."
+  },
+  {
+    "id": "aws-031-mcq-1",
+    "source_id": "aws-031",
+    "domain": "aws",
+    "subdomain": "operations",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "CloudWatch alerts a production EC2 instance at 95% CPU. You SSH in. Which command set is the right first move?",
+    "options": {
+      "correct": "Run `top` or `htop` to see which process is consuming CPU, then `pidstat -p <PID> 1` for sustained per-process detail",
+      "distractor_1": "Run `iostat -x 1` first to see which disk is saturated, since high CPU on EC2 is most often a wait-state symptom of disk I/O",
+      "distractor_2": "Run `aws ec2 describe-instance-status` to confirm the instance is healthy, then schedule a forced reboot to clear the spike",
+      "distractor_3": "Run `cat /proc/meminfo` first to check memory pressure \u2014 sustained high CPU usually traces back to memory swapping under load"
+    },
+    "explanation": "On a CPU alarm, look at processes first: `top`/`htop` shows the running CPU offenders in seconds and tells you whether it's one process or many. `pidstat` then gives sustained per-process numbers. Distractor 1 jumps to a specific theory (disk wait) before evidence \u2014 premature. Distractor 2 (reboot first) discards the diagnostic window without learning anything. Distractor 3 chases another theory (memory swap) \u2014 possible but not the default first step; the data needed to disprove it comes from top anyway."
+  },
+  {
+    "id": "aws-034-mcq-1",
+    "source_id": "aws-034",
+    "domain": "aws",
+    "subdomain": "serverless",
+    "priority": "medium",
+    "difficulty": "medium",
+    "question": "You're optimising a Lambda function whose cold starts are too slow and need to decide what to address first. Which factor has the biggest impact on cold start duration?",
+    "options": {
+      "correct": "Deployment package size \u2014 larger packages take longer to download and unpack into the execution environment, dominating the init phase",
+      "distractor_1": "Memory configuration \u2014 higher memory increases cold start time proportionally because more memory has to be allocated to the runtime container before the init phase can begin running user code",
+      "distractor_2": "Concurrent invocation count at the moment of cold start \u2014 the more concurrent invocations, the slower each one initialises",
+      "distractor_3": "The size of the event payload \u2014 cold start parsing time scales linearly with input JSON size"
+    },
+    "explanation": "Package size and runtime choice (the JVM/.NET cold start is much slower than Python/Node) are the dominant cold start factors. Distractor 1 inverts the memory story \u2014 higher memory allocations actually speed up cold starts because Lambda allocates proportional CPU. Distractor 2 misdescribes concurrency \u2014 high concurrency means MORE cold starts (each new execution environment is one), but each individual cold start isn't slower. Distractor 3 fabricates event-size-driven cold start cost; payload parsing is request-time, not init-time."
+  },
+  {
+    "id": "cicd-001-mcq-1",
+    "source_id": "cicd-001",
+    "domain": "cicd",
+    "subdomain": "fundamentals",
+    "priority": "high",
+    "difficulty": "easy",
+    "question": "Your team's pipeline runs build \u2192 test \u2192 deploy-to-staging, then stops at a manual 'Promote to prod' gate a release manager clicks during business hours. Leadership now wants every commit that passes tests to reach production automatically, with no human in the loop. What single change accomplishes that?",
+    "options": {
+      "correct": "Remove the manual promotion gate so each passing build deploys to prod on its own \u2014 that gate is the only thing separating their current Continuous Delivery from the Continuous Deployment leadership is describing",
+      "distractor_1": "Add another pre-prod environment after staging; what makes a pipeline Continuous Deployment is deploying through a chain of staged environments, not whether a human approves the final step",
+      "distractor_2": "Rebuild the pipeline to ship container images instead of its current build artifacts; Continuous Deployment is defined by the artifact type, and the approval gate is a separate concern",
+      "distractor_3": "Schedule the prod deploy to fire automatically each night at a fixed time without the release manager; a scheduled, hands-off release is what Continuous Deployment means"
+    },
+    "explanation": "Continuous Delivery automates everything up to a deploy-ready artifact and stops at a human gate; Continuous Deployment removes that gate so every passing commit ships itself. Deleting the manual promotion step is the whole difference. Distractor 1 invents an environments-count definition \u2014 staging chains are orthogonal to the gate. Distractor 2 ties the term to artifact type, but auto-vs-manual is the real axis. Distractor 3 conflates 'scheduled at 2am' with Continuous Deployment, which triggers on each commit, not a clock \u2014 and the scenario's automatic-at-night wording is the bait."
+  },
+  {
+    "id": "cicd-002-mcq-1",
+    "source_id": "cicd-002",
+    "domain": "cicd",
+    "subdomain": "fundamentals",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "An engineer is designing a CI pipeline and wants build failures to surface as early and as cheaply as possible. Which stage ordering maximises fast feedback?",
+    "options": {
+      "correct": "Fast checks first (lint, format, security scan), then unit tests, then integration tests, then build/deploy \u2014 fail fast on cheap stages",
+      "distractor_1": "Build the container first, then run all tests against the built image to ensure tests reflect production behaviour",
+      "distractor_2": "Integration tests first because they catch the highest-impact bugs; unit tests are a secondary check after integration passes",
+      "distractor_3": "Deploy to dev first, then run all tests against the deployed environment to catch infrastructure-related issues early"
+    },
+    "explanation": "Fail-fast ordering: run the cheapest, fastest checks before expensive ones. A lint catch in 5 seconds saves 5 minutes of integration test waste. Distractor 1 inverts ordering (build before test) \u2014 you waste build time on changes that fail trivial checks. Distractor 2 inverts the test pyramid \u2014 integration tests are slower and less precise; running them first throws away fast unit signal. Distractor 3 confuses CI with CD \u2014 running tests post-deploy is the slowest possible feedback loop."
+  },
+  {
+    "id": "cicd-003-mcq-1",
+    "source_id": "cicd-003",
+    "domain": "cicd",
+    "subdomain": "fundamentals",
+    "priority": "medium",
+    "difficulty": "medium",
+    "question": "Your team keeps feature branches alive for weeks before merging to main, and merges have become painful and risky. Why are long-lived feature branches incompatible with modern CI/CD practice?",
+    "options": {
+      "correct": "Long-lived branches drift from main, so integration is deferred until merge \u2014 the longer the branch lives, the more painful and risky the merge",
+      "distractor_1": "Long-lived branches cannot run CI pipelines because GitHub Actions automatically disables workflows on branches that haven't been pushed in 7 days",
+      "distractor_2": "Long-lived branches duplicate Git storage because each commit is copied to main's history, doubling repository disk usage",
+      "distractor_3": "Long-lived branches break semantic versioning because every commit must increment the major version when the branch merges to main"
+    },
+    "explanation": "Trunk-based development integrates small commits to main constantly so conflicts and integration bugs surface immediately. Long-lived branches defer that signal, accumulating risk silently. Distractor 1 invents a GitHub Actions auto-disable behaviour. Distractor 2 misunderstands Git's content-addressed storage; commits aren't duplicated. Distractor 3 invents a semver-major-on-merge rule that has no basis. The merge pain is the core argument \u2014 and feature flags exist specifically to keep branches short."
+  },
+  {
+    "id": "cicd-010-mcq-1",
+    "source_id": "cicd-010",
+    "domain": "cicd",
+    "subdomain": "github-actions",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "An engineer needs two shell commands to run on the same fresh runner VM sharing one working directory, while a third command runs on a different operating system. How should they structure this GitHub Actions workflow?",
+    "options": {
+      "correct": "Put the two commands as two steps in one job (steps in a job share the same runner and filesystem), and put the third command in a separate job that targets the other OS",
+      "distractor_1": "Put the two commands in one job and the third in a second workflow file, since a different operating system requires its own workflow rather than another job",
+      "distractor_2": "Put all three commands as separate jobs in one workflow; jobs in a workflow share a runner and working directory, so the first two still see each other's files",
+      "distractor_3": "Put the two commands as two actions inside a single step, and the third as another step, since actions are how you pin work to one runner"
+    },
+    "explanation": "The hierarchy is workflow \u2192 job \u2192 step: steps within a job share one runner and its filesystem, while each job gets a fresh runner (and can target its own OS). So two co-located commands belong as steps in one job; the differently-OS'd command needs its own job. Distractor 1 invents a one-workflow-per-OS rule \u2014 a job already selects its runner OS. Distractor 2 has it backwards: separate jobs do not share a runner or filesystem, so the first two commands would lose their shared directory. Distractor 3 misuses 'action' as a runner-pinning unit; actions are reusable step bodies, not a placement mechanism."
+  },
+  {
+    "id": "cicd-011-mcq-1",
+    "source_id": "cicd-011",
+    "domain": "cicd",
+    "subdomain": "github-actions",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "Your team has a multi-job deployment pipeline they want to share across several repositories, and separately a short sequence of build steps they want to bundle for reuse inside one job. When should you reach for a reusable workflow versus a composite action?",
+    "options": {
+      "correct": "Reusable workflow when you need a full pipeline (multiple jobs, env, secrets); composite action when you want to bundle a sequence of steps inside a single job",
+      "distractor_1": "Reusable workflow for self-hosted runners, composite action for GitHub-hosted runners \u2014 they target different runner types",
+      "distractor_2": "Reusable workflow for public open-source projects, composite action for private internal projects \u2014 the visibility model differs",
+      "distractor_3": "Reusable workflow when written in JavaScript, composite action when written in shell \u2014 the language drives the choice"
+    },
+    "explanation": "Reusable workflows are entire workflow files called via `uses:` at the workflow level \u2014 they have their own jobs, can call secrets, can target environments. Composite actions are smaller \u2014 a bundle of steps that look like one action inside a job. Distractor 1 invents a runner-type targeting. Distractor 2 fabricates a visibility distinction; both types can be public or private. Distractor 3 confuses JavaScript actions (a third action type) with composite actions. Composite is shell/uses; JS is Node-based action code."
+  },
+  {
+    "id": "cicd-020-mcq-1",
+    "source_id": "cicd-020",
+    "domain": "cicd",
+    "subdomain": "aws-integration",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "Your team is migrating GitHub Actions deployments from static AWS IAM access keys (stored as repository secrets) to OIDC federation with sts:AssumeRoleWithWebIdentity. Which statement most accurately captures the security improvement?",
+    "options": {
+      "correct": "No long-lived credential is stored; each run exchanges a short-lived GitHub token for a temporary STS session",
+      "distractor_1": "The IAM access key is encrypted in transit between GitHub and AWS instead of being sent in plaintext as before",
+      "distractor_2": "Every AWS API call from the workflow now requires MFA, which static access keys could not enforce",
+      "distractor_3": "The IAM access key is automatically rotated every 24 hours by GitHub instead of remaining valid until manually rotated"
+    },
+    "explanation": "OIDC federation removes the stored secret entirely: the workflow presents a GitHub-signed JWT to STS and receives a temporary session keyed to that run. Distractor 1 misidentifies the threat \u2014 TLS already protected keys in transit; the gap was the stored secret itself. Distractor 2 invents an MFA tie-in OIDC doesn't provide; OIDC trust policies can restrict by sub claim (branch, environment, repo), but MFA is a separate IAM concept. Distractor 3 reduces 'no key at all' to 'rotated often,' which misses the point \u2014 there is no key to rotate."
+  },
+  {
+    "id": "cicd-021-mcq-1",
+    "source_id": "cicd-021",
+    "domain": "cicd",
+    "subdomain": "aws-integration",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "Your GHA workflow deploys to EKS by running `kubectl apply -f manifests/`. What's the main downside compared to using Helm or kustomize?",
+    "options": {
+      "correct": "kubectl apply has no native concept of releases, rollbacks, or templating across environments \u2014 you end up scripting around it for non-trivial deploys",
+      "distractor_1": "kubectl apply has no way to preview changes before they hit the cluster, whereas Helm can show a diff first \u2014 so apply is unsafe for production changes",
+      "distractor_2": "kubectl apply doesn't support secrets at all; Helm has a `helm secrets` subcommand that handles them natively",
+      "distractor_3": "kubectl apply runs synchronously and cannot return until every resource is healthy, blocking the workflow indefinitely"
+    },
+    "explanation": "Raw kubectl is fine for simple deploys but lacks release management \u2014 each apply is independent, with no built-in template-per-environment, no `helm history`, no `helm rollback`. Distractor 1 claims kubectl can't preview changes \u2014 but `kubectl diff` and `--dry-run=server` both show pending changes before they apply, so the preview gap is imaginary. Distractor 2 fabricates a `helm secrets` subcommand (it's a third-party plugin) and misstates kubectl secret support. Distractor 3 inverts the behaviour \u2014 `kubectl apply` returns immediately by default; `--wait` is opt-in. Most teams pick Helm or kustomize specifically for the templating + release-management combination."
+  },
+  {
+    "id": "cicd-022-mcq-1",
+    "source_id": "cicd-022",
+    "domain": "cicd",
+    "subdomain": "aws-integration",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "An ECS service is updated via `aws ecs update-service --task-definition new-revision`. What does ECS do by default?",
+    "options": {
+      "correct": "A rolling update: starts new tasks with the new revision, deregisters and stops old tasks once new ones are healthy, respecting minimumHealthyPercent and maximumPercent",
+      "distractor_1": "A blue/green deployment: keeps the old revision running, brings up the new one in parallel, and switches the ALB target group when complete",
+      "distractor_2": "An immediate replacement: stops all old tasks first, then starts the new revision; brief downtime is expected during the transition",
+      "distractor_3": "An in-place restart: ECS pulls the new image into each running task and restarts the container inside it, reusing the existing task instances rather than launching new ones"
+    },
+    "explanation": "The ECS default deployment controller is rolling update via the service scheduler \u2014 it overlaps old and new tasks per the percent settings. Distractor 1 describes the CodeDeploy blue/green pattern, which is opt-in via `deploymentController: CODE_DEPLOY`. Distractor 2 describes a Recreate strategy ECS doesn't default to. Distractor 3 imagines ECS mutating tasks in place \u2014 but ECS tasks are immutable; a new revision always launches fresh tasks and stops the old ones, never restarts a container inside an existing task. Knowing the default matters for understanding how rolling deploy behaviour interacts with task definition revisions."
+  },
+  {
+    "id": "cicd-030-mcq-1",
+    "source_id": "cicd-030",
+    "domain": "cicd",
+    "subdomain": "deployment-strategies",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "A team is deploying a new version of a stateless API behind an ALB. They want to keep blast radius small if the release is bad (limit how many users hit it) and are willing to run extra infrastructure during the rollout. Which strategy fits best?",
+    "options": {
+      "correct": "Canary \u2014 shift a small percentage of traffic to the new version, monitor, and progressively widen the split if healthy",
+      "distractor_1": "Rolling update \u2014 replace instances one at a time so the service stays available, with no extra infrastructure required",
+      "distractor_2": "Blue-green \u2014 keep the old version live until the new version is fully warmed up, then cut all traffic over in a single switch",
+      "distractor_3": "Recreate \u2014 terminate the old version, then deploy the new version, minimising the overlap window and extra infrastructure"
+    },
+    "explanation": "Canary progressively exposes users to the new version (1% \u2192 10% \u2192 50% \u2192 100%), so a bad release affects only a fraction of traffic before it's caught and rolled back. Distractor 1 reduces deployment risk by avoiding full outage, but each replaced instance still serves 100% of its routed traffic \u2014 there's no blast-radius limiting by percentage. Distractor 2 is fast to roll back and uses extra infrastructure, but the cutover is all-or-nothing \u2014 every user hits the new version at once. Distractor 3 produces a hard outage window, the opposite of what's wanted. Canary requires traffic-splitting (weighted target groups or a service mesh)."
+  },
+  {
+    "id": "cicd-032-mcq-1",
+    "source_id": "cicd-032",
+    "domain": "cicd",
+    "subdomain": "deployment-strategies",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "Your CD pipeline auto-rolls-back when health checks fail. What trigger condition makes this safe and effective?",
+    "options": {
+      "correct": "Sustained health check failure rate over a defined window (e.g., 5% errors for 2 minutes), not single failures \u2014 to avoid rolling back on transient noise",
+      "distractor_1": "Any single 5xx response from any new instance triggers immediate rollback to ensure prompt detection",
+      "distractor_2": "Rollback fires only when the user-reported tickets exceed the daily average, since synthetic checks miss real-world impact",
+      "distractor_3": "Rollback runs at fixed intervals (every 15 minutes) checking the current deployment's health and reverting if any error is detected"
+    },
+    "explanation": "Autorollback works on sustained signal (rate \u00d7 duration), not single events \u2014 single 5xx spikes happen during any deploy and rolling back on them would create rollback-loops. Distractor 1 over-triggers \u2014 every deploy would roll back on the first stray request. Distractor 2 delays detection too long for fast rollback to matter. Distractor 3 invents a periodic check pattern that doesn't match how rollback triggers work in real deploy tools (CodeDeploy, Argo Rollouts, etc.)."
+  },
+  {
+    "id": "cicd-040-mcq-1",
+    "source_id": "cicd-040",
+    "domain": "cicd",
+    "subdomain": "security",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "Your team wants its pipeline to catch known-vulnerable versions of third-party libraries pulled in through the dependency manifest, before any code is built or run. Which scan type targets exactly that?",
+    "options": {
+      "correct": "SCA (software composition analysis) \u2014 it reads the dependency manifest/lockfile and flags libraries with known CVEs, independent of building or running the app",
+      "distractor_1": "SAST \u2014 it statically analyses your own source code for insecure patterns and hardcoded secrets, which is where vulnerable dependencies surface",
+      "distractor_2": "DAST \u2014 it probes the running application from the outside, so it detects vulnerable libraries as they're exercised at runtime",
+      "distractor_3": "Container image scanning \u2014 it inspects built image layers, which is the stage where third-party library versions are actually recorded"
+    },
+    "explanation": "SCA exists precisely to inventory declared dependencies and match them against vulnerability databases, with no build or run required. Distractor 1 confuses SCA with SAST \u2014 SAST examines first-party code, not the dependency tree. Distractor 2 picks DAST, but dynamic testing needs a deployed, running app and finds behavioural flaws, not manifest versions. Distractor 3 is the closest miss: container scanning does catch library CVEs, but only after an image is built and mostly for OS-level packages \u2014 it's later and broader than reading the manifest up front. SCA is the earliest, most targeted fit."
+  },
+  {
+    "id": "cicd-051-mcq-1",
+    "source_id": "cicd-051",
+    "domain": "cicd",
+    "subdomain": "ownership",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "An engineer who owns a CI/CD pipeline is asked to redesign it: today it takes 40 minutes and ships once a week. Which prioritisation reflects mature production thinking?",
+    "options": {
+      "correct": "Fast signal first (parallelise + shard tests) and tighten the deploy gate (smaller batches, automated rollback) \u2014 speed of feedback is the dominant lever",
+      "distractor_1": "Maximise pipeline reliability by adding 3 retries to every stage and disabling flaky tests for the next quarter to stabilise the build",
+      "distractor_2": "Migrate to the newest CI tooling first; tooling churn unlocks 10x improvements that incremental changes cannot match",
+      "distractor_3": "Reduce scope: cut tests that have caught fewer than 5 bugs in the last year and rely on production monitoring for the rest"
+    },
+    "explanation": "The owner's first job is to compress the feedback loop so commits-to-ship is short and reliable \u2014 that's where speed and risk both come down. Distractor 1 (retries + disable flakes) trades signal for green checkmarks; production gets worse. Distractor 2 (tooling churn) is the rookie answer \u2014 gains rarely come from the tool. Distractor 3 (cut tests) trades coverage for speed without understanding the cost; flaky-and-slow tests get fixed, not deleted. Mature owners prioritise *useful* fast signal."
+  },
+  {
+    "id": "docker-001-mcq-1",
+    "source_id": "docker-001",
+    "domain": "docker",
+    "subdomain": "fundamentals",
+    "priority": "high",
+    "difficulty": "easy",
+    "question": "A container on a shared host is compromised through a kernel-level container-escape CVE. Why can this potentially impact the other containers on that host, when other VMs on a hypervisor would be unaffected?",
+    "options": {
+      "correct": "All containers on the host share its single kernel (isolated only by namespaces and cgroups), so a kernel exploit crosses that boundary; each VM runs its own kernel under a hypervisor, so the blast radius stops at one VM",
+      "distractor_1": "Containers and VMs both share the host kernel, but containers lack the hypervisor layer; inserting a lightweight hypervisor like containerd between the container and the host kernel would have contained the escape",
+      "distractor_2": "Sibling containers inherit the compromised container's namespaces at creation time, so the exploit propagates down the shared namespace tree to them",
+      "distractor_3": "Each container runs its own kernel but mounts the same host root filesystem, so a kernel exploit in one corrupts the shared filesystem the others depend on"
+    },
+    "explanation": "The shared-kernel shape is the whole point: namespaces/cgroups partition a single kernel, so a kernel-level escape is not contained the way a hypervisor contains separate-kernel VMs. Distractor 1 invents containerd-as-hypervisor \u2014 containerd is a runtime, not an isolation boundary, and containers don't share the VM model. Distractor 2 fabricates namespace inheritance between siblings; each container gets its own namespaces. Distractor 3 inverts the kernel relationship \u2014 containers share the host kernel, they don't each run one. That shared kernel is exactly the larger attack surface."
+  },
+  {
+    "id": "docker-002-mcq-1",
+    "source_id": "docker-002",
+    "domain": "docker",
+    "subdomain": "images",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "An engineer notices every Docker build reinstalls all dependencies even when only the source code changed. Which Dockerfile pattern maximises layer cache hits across builds?",
+    "options": {
+      "correct": "Copy dependency manifests (package.json, requirements.txt) and install dependencies BEFORE copying source code, so source changes don't invalidate the deps layer",
+      "distractor_1": "Copy the entire source tree first as a single COPY, then install dependencies \u2014 fewer layers means fewer cache invalidation points",
+      "distractor_2": "Use `--no-cache` on every build to ensure clean state; predictable rebuilds matter more than cache hit rate",
+      "distractor_3": "Combine all RUN commands into one mega-RUN with chained `&&`, so the entire build is a single cacheable layer"
+    },
+    "explanation": "Order layers from least-frequently-changed to most-frequently-changed: dependencies first (lock file), source code last. Distractor 1 inverts the order so source changes bust the deps install layer every time. Distractor 2 (--no-cache always) discards the cache benefit entirely. Distractor 3 combines layers, which does reduce image size, but doesn't help cache reuse \u2014 a single mega-layer is invalidated by any change to any file in it."
+  },
+  {
+    "id": "docker-003-mcq-1",
+    "source_id": "docker-003",
+    "domain": "docker",
+    "subdomain": "images",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "An engineer's production image is huge because it still ships compilers and build dependencies. What problem do multi-stage Docker builds primarily solve here?",
+    "options": {
+      "correct": "Keeping build-time tooling (compilers, build deps) out of the final runtime image, dramatically reducing image size",
+      "distractor_1": "Parallelising the build by running multiple stages on different machines simultaneously",
+      "distractor_2": "Allowing multiple developers to contribute different stages without conflicts in version control",
+      "distractor_3": "Avoiding the 127-layer hard limit by splitting builds across multiple FROM statements"
+    },
+    "explanation": "Multi-stage lets you build in one stage (with full toolchain) and COPY only artefacts to a minimal runtime stage \u2014 final image carries no build tools. Distractor 1 invents a cross-machine parallelism. Distractor 2 misframes multi-stage as a collaboration feature. Distractor 3 invents a 127-layer hard limit (the actual limit was 127 in older Docker, now 256, but multi-stage doesn't exist to dodge it). The size reduction can be 10x for compiled-language builds."
+  },
+  {
+    "id": "docker-004-mcq-1",
+    "source_id": "docker-004",
+    "domain": "docker",
+    "subdomain": "images",
+    "priority": "medium",
+    "difficulty": "medium",
+    "question": "An engineer wants to shrink a Python service's Docker image and is weighing base-image options. Which choice is the most effective?",
+    "options": {
+      "correct": "Use `python:3.12-slim` (Debian minimal) or a distroless Python image; avoid `python:3.12` (full Debian) which carries unnecessary OS packages",
+      "distractor_1": "Use `python:3.12-alpine`; Alpine is the smallest option and avoids the C-extension compatibility issues that plague Debian-based images for Python",
+      "distractor_2": "Use `scratch` as the base and copy the Python binary in, since scratch is the absolute minimum at zero bytes",
+      "distractor_3": "Use `ubuntu:latest`; Ubuntu's package manager is more efficient and produces smaller layers than Debian's"
+    },
+    "explanation": "Slim variants (or distroless) hit the sweet spot: small enough, glibc-compatible, well-supported. Distractor 1 over-states Alpine \u2014 its musl libc breaks many Python wheels (numpy, pandas, cryptography), forcing source builds. Distractor 2 (scratch) means no shell, no libc, no Python runtime to invoke. Distractor 3 (Ubuntu) is usually LARGER than Debian-slim for the same package set. The right answer depends on the workload, but slim is the safe default."
+  },
+  {
+    "id": "docker-006-mcq-1",
+    "source_id": "docker-006",
+    "domain": "docker",
+    "subdomain": "networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "question": "An engineer wants a container's ports to appear directly on the host's network interfaces, with no NAT and no separate port-publishing step. Which Docker network mode does that?",
+    "options": {
+      "correct": "`host` \u2014 the container uses the host's network stack directly with no NAT or port mapping",
+      "distractor_1": "`bridge` \u2014 the default network mode in which container ports are exposed directly on the host without translation",
+      "distractor_2": "`overlay` \u2014 used for multi-host networking; exposes container ports on the host's interfaces by routing across nodes",
+      "distractor_3": "`none` \u2014 disables the container's network namespace, falling back to the host's stack for all traffic"
+    },
+    "explanation": "`host` mode skips container network isolation entirely \u2014 container port 8080 is host port 8080, no `-p` mapping. Distractor 1 (bridge) is the default but uses NAT/port mapping. Distractor 2 (overlay) is for swarm-style multi-host networking and doesn't directly share the host's stack. Distractor 3 inverts none mode \u2014 none disables networking entirely, doesn't fall back to host. Host mode is faster but loses isolation, often used for performance-sensitive monitoring/proxy workloads."
+  },
+  {
+    "id": "docker-008-mcq-1",
+    "source_id": "docker-008",
+    "domain": "docker",
+    "subdomain": "compose",
+    "priority": "medium",
+    "difficulty": "easy",
+    "question": "An engineer wants to know whether Docker Compose is appropriate for a production multi-host cluster. What's the recommended scope for Docker Compose?",
+    "options": {
+      "correct": "Local development and simple single-host deployments \u2014 Compose orchestrates multiple containers on one host with no clustering",
+      "distractor_1": "Production multi-host clusters at any scale \u2014 Compose is the cluster scheduler that replaced Docker Swarm in 2022",
+      "distractor_2": "Standalone development only \u2014 Compose cannot deploy to remote hosts and isn't suitable for any kind of production use",
+      "distractor_3": "Single-container deployments \u2014 Compose is the modern replacement for `docker run` with friendlier YAML configuration"
+    },
+    "explanation": "Compose is single-host, multi-container \u2014 perfect for local dev stacks (app + db + cache) and small production deployments where one host is enough. Distractor 1 over-extends Compose to clustering territory it doesn't occupy (Kubernetes/Nomad do that). Distractor 2 under-states Compose; small production deployments on a single host are fine. Distractor 3 misframes Compose as a single-container tool \u2014 its whole point is multi-container coordination."
+  },
+  {
+    "id": "docker-010-mcq-1",
+    "source_id": "docker-010",
+    "domain": "docker",
+    "subdomain": "operations",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "A container exits with code 137 immediately. What's the most likely cause?",
+    "options": {
+      "correct": "OOMKilled \u2014 the container exceeded its memory limit and the kernel sent SIGKILL (137 = 128 + signal 9)",
+      "distractor_1": "The container exited normally with code 137 as its application-defined success indicator",
+      "distractor_2": "Network unreachable \u2014 the container couldn't reach its configured endpoints and exited with the standard 137 network failure code",
+      "distractor_3": "Permission denied \u2014 exit code 137 indicates a filesystem permission error from running as non-root"
+    },
+    "explanation": "Exit code 137 is the convention for SIGKILL (kernel forced termination): 128 + signal number 9. The most common cause in containers is the OOM killer when the container's cgroup memory limit is exceeded. Distractor 1 invents an application convention for 137. Distractor 2 fabricates a network failure code. Distractor 3 fabricates a permission code. Other useful codes: 139 = SIGSEGV (segfault), 130 = SIGINT (Ctrl+C), 143 = SIGTERM (graceful)."
+  },
+  {
+    "id": "git-001-mcq-1",
+    "source_id": "git-001",
+    "domain": "git",
+    "subdomain": "workflow",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "An engineer is integrating a feature branch into `main` and is weighing `git merge` against `git rebase`. Which is the strongest reason to prefer `git merge`?",
+    "options": {
+      "correct": "Merge preserves the actual history of when changes happened, which is valuable for archaeology and debugging long after the merge",
+      "distractor_1": "Merge is safer because an interrupted rebase can permanently lose commits, while a merge is straightforward to undo",
+      "distractor_2": "Merge resolves most conflicts automatically, whereas rebase forces you to resolve every conflict by hand",
+      "distractor_3": "Merge keeps the feature branch's commits exactly as written, while rebase squashes them into a single commit on top of main"
+    },
+    "explanation": "Merge preserves the actual integration story \u2014 when each branch's commits were made, who worked in parallel \u2014 and that's the most durable reason to choose it. Distractor 1 plays on a fear that an interrupted rebase loses commits; it doesn't \u2014 `git reflog` and `ORIG_HEAD` recover the prior state. Distractor 2 imagines merge auto-resolves conflicts while rebase doesn't \u2014 but both surface the same conflicts and both need manual resolution; merge isn't the 'easier' path. Distractor 3 conflates rebase with squash \u2014 a plain rebase re-applies each commit and keeps them all; squashing is separate and opt-in. The honest trade-off: merge for faithful history, rebase for a clean linear story."
+  },
+  {
+    "id": "git-002-mcq-1",
+    "source_id": "git-002",
+    "domain": "git",
+    "subdomain": "workflow",
+    "priority": "medium",
+    "difficulty": "easy",
+    "question": "An engineer is hardening the production `main` branch and wants the strongest baseline of branch-protection rules. Which combination fits?",
+    "options": {
+      "correct": "Require pull request reviews, require status checks to pass, restrict force pushes, and require linear history (or signed commits) for tighter auditability",
+      "distractor_1": "Require pull request reviews and allow administrators to bypass them \u2014 admins need bypass for emergency hotfixes",
+      "distractor_2": "Allow force pushes from CI service accounts so deployment pipelines can rewrite history when promoting commits to main",
+      "distractor_3": "Disable all branch protections during incidents to allow direct commits, then re-enable them after the incident is resolved"
+    },
+    "explanation": "Reviews + status checks + no force push + linear history is the standard production baseline. Distractor 1 (admin bypass) creates a gap large enough to be the actual breach path. Distractor 2 (CI force-push) breaks audit trail and creates the exact pattern that branch protection should prevent. Distractor 3 (disable during incidents) is the path to skipping protections that gets normalised. Defensive defaults > emergency exceptions."
+  },
+  {
+    "id": "git-003-mcq-1",
+    "source_id": "git-003",
+    "domain": "git",
+    "subdomain": "fundamentals",
+    "priority": "medium",
+    "difficulty": "easy",
+    "question": "An engineer without write access to an open-source repo wants to propose a change. They clone the repo directly, commit a branch, and try to push it back \u2014 GitHub rejects the push. What did they skip, and why does it fix the problem?",
+    "options": {
+      "correct": "They skipped forking \u2014 a fork creates a server-side copy of the repo under their own account that they CAN push to; you then open a pull request from that fork. A plain clone gives no write path back to a repo you don't own",
+      "distractor_1": "They skipped adding an `upstream` remote; once `upstream` is set, `git push upstream` writes the branch straight into the original maintainer's repository, which is how outside contributors submit changes",
+      "distractor_2": "They cloned over HTTPS, which is read-only; re-cloning over SSH makes the working copy writeable so the push to origin is accepted",
+      "distractor_3": "Nothing structural \u2014 they just need `git push --force`; the rejection is a fast-forward conflict, not a permissions problem"
+    },
+    "explanation": "A fork is a GitHub-side copy in your own namespace that you have push rights to; contribution flows fork \u2192 push to your fork \u2192 pull request. A direct clone of someone else's repo has no writeable remote for you. Distractor 1 misreads `upstream` \u2014 that remote is for pulling the original's changes (the sibling MCQ's topic), not pushing to it. Distractor 2 invents an SSH-vs-HTTPS write difference; write access is governed by account permissions, not protocol. Distractor 3 mistakes a permission denial for a fast-forward conflict; `--force` can't grant access you don't have."
+  },
+  {
+    "id": "git-005-mcq-1",
+    "source_id": "git-005",
+    "domain": "git",
+    "subdomain": "workflow",
+    "priority": "medium",
+    "difficulty": "medium",
+    "question": "An engineer opens a file mid-merge and sees `<<<<<<<`, `=======`, and `>>>>>>>` markers. What do they mean?",
+    "options": {
+      "correct": "Content above `=======` is from HEAD (your current branch); content below is from the branch being merged in; markers must be removed and the file edited to resolve",
+      "distractor_1": "Content above `=======` is the older version; content below is the newer version regardless of branch direction",
+      "distractor_2": "Content above `=======` is the change being merged in; content below is HEAD \u2014 opposite order from rebase",
+      "distractor_3": "Content above `=======` is read-only and reflects the lockfile state; content below is the editor's working copy"
+    },
+    "explanation": "Standard conflict format: `<<<<<<< HEAD` to `=======` is your side, `=======` to `>>>>>>> branch-name` is theirs. Three-way merges add `|||||||` showing the common ancestor too. Distractor 1 (older/newer) ignores branch direction. Distractor 2 reverses the convention. Distractor 3 invents a lockfile/working-copy semantics. Knowing the layout is muscle memory for any production code reviewer."
+  },
+  {
+    "id": "k8s-001-mcq-1",
+    "source_id": "k8s-001",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "critical",
+    "difficulty": "easy",
+    "question": "During a rolling update, you observe two ReplicaSets owned by the same Deployment: an old RS at 2 replicas and a new RS at 1 replica. Which controller is actively driving this in-progress state?",
+    "options": {
+      "correct": "The Deployment controller \u2014 it owns both ReplicaSets and drives the scale-up and scale-down per the rollout strategy",
+      "distractor_1": "The new ReplicaSet \u2014 once created it takes ownership of the old ReplicaSet's pods and terminates them on its own schedule",
+      "distractor_2": "The pods themselves \u2014 each pod watches the Deployment spec and self-coordinates the order of replacement",
+      "distractor_3": "The kube-scheduler \u2014 it manages ReplicaSet transitions during rollouts as part of scheduling new pods"
+    },
+    "explanation": "The Deployment controller orchestrates rolling updates: it creates a new ReplicaSet, scales it up, and scales the old one down per the rollout strategy. A ReplicaSet only maintains its own pod count \u2014 it doesn't know about sibling ReplicaSets. Distractor 1 puts orchestration in the wrong place; the new RS just owns its own pods. Distractor 2 imagines a peer-to-peer model that doesn't exist \u2014 Kubernetes is hierarchical (Deployment \u2192 ReplicaSet \u2192 Pod). Distractor 3 confuses the scheduler (decides which node a pod runs on) with workload controllers (decide what should exist)."
+  },
+  {
+    "id": "k8s-002-mcq-1",
+    "source_id": "k8s-002",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "A pod has been in the `Pending` phase for several minutes. Which is the MOST common reason?",
+    "options": {
+      "correct": "The scheduler cannot find a node with enough free resources to satisfy the pod's requests",
+      "distractor_1": "The container image is being pulled from a registry that's responding slowly",
+      "distractor_2": "The pod's liveness probe is failing, causing the kubelet to hold the pod in Pending until the probe succeeds",
+      "distractor_3": "The pod has been admitted by the API server but the network plugin has not yet allocated it an IP"
+    },
+    "explanation": "Pending almost always means 'not yet assigned to a node' \u2014 usually because no node has enough CPU/memory matching the pod's resource requests, or no node tolerates the pod's required affinities/taints. Distractor 1 (image pull) puts the pod in ContainerCreating or ImagePullBackOff once it's scheduled, not Pending. Distractor 2 confuses liveness with startup \u2014 liveness runs after the container is up, so the pod has long since left Pending. Distractor 3 invents an IP-allocation phase before scheduling; pods are scheduled first, then the CNI allocates an IP on the assigned node."
+  },
+  {
+    "id": "k8s-003-mcq-1",
+    "source_id": "k8s-003",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "A pod's liveness probe starts failing while its readiness probe keeps passing. What does each probe's failure cause Kubernetes to do?",
+    "options": {
+      "correct": "Liveness failure restarts the container; readiness failure removes the pod from Service endpoints without restarting it",
+      "distractor_1": "Liveness failure removes the pod from endpoints; readiness failure restarts the container after a backoff period",
+      "distractor_2": "Liveness failure marks the pod as Failed and the Deployment provisions a replacement; readiness failure logs a warning event only",
+      "distractor_3": "Both probes have the same restart behaviour, but liveness uses HTTP and readiness uses TCP for their checks"
+    },
+    "explanation": "Liveness = 'is the container alive?', failure = restart it. Readiness = 'should traffic go to this pod?', failure = drop from Service endpoints, leave the container running. Distractor 1 inverts the two \u2014 a classic mix-up. Distractor 2 invents Deployment-driven replacement; the kubelet handles restarts, not the Deployment controller. Distractor 3 confuses probe protocol (HTTP, TCP, exec, gRPC \u2014 all available to both probes) with probe semantics. The asymmetry is the entire reason both probes exist."
+  },
+  {
+    "id": "k8s-004-mcq-1",
+    "source_id": "k8s-004",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "medium",
+    "difficulty": "medium",
+    "question": "A pod has two init containers (A then B) and two main containers (C and D). In what order do they start?",
+    "options": {
+      "correct": "A runs to completion, then B runs to completion, then C and D start in parallel",
+      "distractor_1": "A and B run in parallel until both complete, then C and D start in parallel",
+      "distractor_2": "All four containers (A, B, C, D) start in parallel and the init containers exit when done",
+      "distractor_3": "A, B, C, D start in the order declared but with no concurrency \u2014 D doesn't start until C exits"
+    },
+    "explanation": "Init containers run sequentially in declared order, each must succeed before the next starts, and all must complete before main containers start. Main containers then start in parallel (no explicit ordering). Distractor 1 ignores the sequential semantics of init containers. Distractor 2 treats init as no-different from main, which defeats the point of init containers. Distractor 3 invents sequential main-container startup; main containers are concurrent. Knowing this ordering matters for setup tasks (DB migrations, downloading models, fetching secrets)."
+  },
+  {
+    "id": "k8s-005-mcq-1",
+    "source_id": "k8s-005",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "A pod has cpu requests: 200m, limits: 500m and memory requests: 256Mi, limits: 512Mi. The pod tries to use 600m of CPU and 600Mi of memory. What happens?",
+    "options": {
+      "correct": "The pod is throttled on CPU and OOMKilled on memory",
+      "distractor_1": "The pod is OOMKilled immediately on both CPU and memory",
+      "distractor_2": "The pod is throttled on CPU and throttled on memory",
+      "distractor_3": "The pod is allowed to burst on both since the node has spare capacity"
+    },
+    "explanation": "CPU is a compressible resource \u2014 exceeding the limit results in throttling, not termination. Memory is incompressible \u2014 exceeding the limit results in the kernel OOM-killing the container. Distractor 1 is the half-remembered 'limits = killed' rule without nuance. Distractor 2 is symmetric but wrong (memory doesn't throttle). Distractor 3 describes how requests behave when the node has spare capacity, not limits \u2014 a real concept, wrong context."
+  },
+  {
+    "id": "k8s-012-mcq-1",
+    "source_id": "k8s-012",
+    "domain": "kubernetes",
+    "subdomain": "networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "question": "A developer deploys pods to a fresh Kubernetes cluster that has no NetworkPolicies and wants to know what pod-to-pod traffic is permitted by default. What is the default?",
+    "options": {
+      "correct": "All traffic is allowed in both directions until a NetworkPolicy is created that selects the pod, at which point that pod becomes default-deny within the policy's scope",
+      "distractor_1": "All ingress is denied and all egress is allowed; NetworkPolicies are needed to allow inbound traffic between pods",
+      "distractor_2": "Pods can only talk to other pods in the same namespace by default; NetworkPolicies are needed for cross-namespace communication",
+      "distractor_3": "Traffic is governed entirely by Kubernetes RBAC role bindings; NetworkPolicies are an alternative not commonly used"
+    },
+    "explanation": "Kubernetes ships with all-pod-to-all-pod allow as the default; isolation is opt-in by creating a NetworkPolicy that selects the pod, which then becomes default-deny for the directions the policy specifies. Distractor 1 inverts the default to deny-ingress. Distractor 2 fabricates a per-namespace isolation default. Distractor 3 confuses RBAC (controls API access) with NetworkPolicy (controls pod traffic) \u2014 they govern different things. Many production clusters intentionally start with default-deny NetworkPolicies as a baseline."
+  },
+  {
+    "id": "k8s-014-mcq-1",
+    "source_id": "k8s-014",
+    "domain": "kubernetes",
+    "subdomain": "networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "question": "An engineer is choosing between environment-variable and DNS-based service discovery in Kubernetes and asks why the env-var mechanism is the weaker option. What's the main reason?",
+    "options": {
+      "correct": "Env vars are only set at pod startup, so any Service created after the pod is missing from the pod's environment until restart",
+      "distractor_1": "Env vars expose service IPs in cleartext to every other process in the same pod, while DNS lookups go over TLS-encrypted resolver connections by default",
+      "distractor_2": "Env vars uppercase the Service name and convert dashes to underscores, so a Service like `my-api` is silently unreachable through env-var discovery because the transformed name no longer matches",
+      "distractor_3": "Env vars resolve only within the same namespace; DNS works across namespaces with no additional configuration"
+    },
+    "explanation": "The env-var mechanism populates `<SERVICE>_SERVICE_HOST` etc. at pod creation by enumerating Services at that moment \u2014 pods can't see Services created later without a restart. DNS, by contrast, is a live lookup. Distractor 1 invents an encryption distinction; DNS is plaintext by default too. Distractor 2 points at the real name transform (dashes become underscores, name uppercased) but draws the wrong conclusion \u2014 the transformed variable `MY_API_SERVICE_HOST` is still populated and usable, so dashed Service names aren't lost. Distractor 3 reverses the cross-namespace story \u2014 env vars are populated for Services in any namespace the pod has list access to, but the env approach is still inferior because of the pod-creation-time snapshot."
+  },
+  {
+    "id": "k8s-020-mcq-1",
+    "source_id": "k8s-020",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "Your team is deploying a clustered database that needs a stable network identity and its own persistent storage per replica. Which Kubernetes workload object fits?",
+    "options": {
+      "correct": "StatefulSet \u2014 gives each replica a stable identity and its own PersistentVolumeClaim across restarts",
+      "distractor_1": "Deployment with a PersistentVolumeClaim template attached for stable storage across pods",
+      "distractor_2": "DaemonSet, which pins one pod per node and gives each a deterministic name based on the node",
+      "distractor_3": "Job with parallelism set to the replica count and a backoffLimit to keep replicas alive indefinitely"
+    },
+    "explanation": "StatefulSets are designed for exactly this: stable network identity (pod-0, pod-1, pod-2 with predictable DNS names), persistent volume claims that follow the pod across restarts, and ordered rollout/teardown. Distractor 1 confuses Deployment behaviour \u2014 Deployments don't give pods stable names, and the PVC template is a StatefulSet feature, not a Deployment one. Distractor 2 misuses DaemonSet (one-per-node, not one-per-replica), wrong for a clustered DB that may want fewer replicas than nodes. Distractor 3 fundamentally misunderstands Jobs (which run to completion)."
+  },
+  {
+    "id": "k8s-021-mcq-1",
+    "source_id": "k8s-021",
+    "domain": "kubernetes",
+    "subdomain": "scheduling",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "You want pods with the label `gpu: required` to ONLY run on nodes tainted with `gpu=true:NoSchedule`. Which mechanism does what?",
+    "options": {
+      "correct": "Toleration on the pod lets it land on tainted nodes; nodeSelector or required affinity ensures it ONLY lands on those nodes",
+      "distractor_1": "The taint alone is enough \u2014 pods without a matching toleration are repelled from non-GPU nodes",
+      "distractor_2": "nodeSelector alone is enough \u2014 adding the label `gpu: required` to the pod automatically schedules it onto labeled nodes only",
+      "distractor_3": "Pod affinity with `preferredDuringSchedulingIgnoredDuringExecution` forces the pod onto GPU nodes and prevents it from running elsewhere"
+    },
+    "explanation": "Taints repel non-tolerating pods from a node, but tolerations don't pin a pod to that node \u2014 a tolerating pod will happily land on any untainted node too. You need BOTH: toleration (so the pod can land on the GPU node) AND nodeSelector/requiredAffinity (so it ONLY lands there). Distractor 1 inverts the direction \u2014 taints work on nodes repelling pods, not the other way around. Distractor 2 ignores that without a toleration the pod can't land on the tainted node at all. Distractor 3 misreads 'preferred' (soft) as 'required' (hard) \u2014 preferred doesn't prevent fallback."
+  },
+  {
+    "id": "k8s-022-mcq-1",
+    "source_id": "k8s-022",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "A node drain is in progress for kernel patching. A Pod Disruption Budget on a 3-replica app requires `minAvailable: 2`. What does the PDB do here?",
+    "options": {
+      "correct": "It blocks voluntary disruption from evicting the second pod until the cluster can satisfy the budget, slowing or pausing the drain",
+      "distractor_1": "It schedules an extra pod somewhere else before allowing the drain to evict the current one, so availability stays at 3",
+      "distractor_2": "It does nothing \u2014 PDBs apply only to involuntary disruptions like node failures, not voluntary ones like drain",
+      "distractor_3": "It marks the drain as failed if the budget would be violated, so the operator must manually approve each eviction step before the drain can continue"
+    },
+    "explanation": "PDBs gate voluntary disruption (drain, autoscaler scale-in, planned node updates): the eviction API checks the budget and refuses if eviction would violate it, causing the drain to retry. Distractor 1 invents auto-scaling-up behaviour during drain; the workload controller scales independently, but PDB itself doesn't pre-create pods. Distractor 2 inverts the scope \u2014 PDBs apply specifically to voluntary disruption (node-level failures aren't gated). Distractor 3 invents a per-step approval flow that doesn't exist."
+  },
+  {
+    "id": "k8s-023-mcq-1",
+    "source_id": "k8s-023",
+    "domain": "kubernetes",
+    "subdomain": "scheduling",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "Your cluster has several pods stuck in Pending because every existing node is already full, even though the running pods are correctly right-sized. Which autoscaler resolves this?",
+    "options": {
+      "correct": "Cluster Autoscaler \u2014 it adds nodes when pods can't be scheduled for lack of capacity, then removes them when they're no longer needed",
+      "distractor_1": "Horizontal Pod Autoscaler \u2014 it raises the replica count, which schedules more pods so Kubernetes can place the Pending ones",
+      "distractor_2": "Vertical Pod Autoscaler \u2014 it increases the pods' CPU and memory requests so they fit onto the existing nodes",
+      "distractor_3": "Horizontal Pod Autoscaler combined with VPA \u2014 together they rebalance pods across the current nodes to free up room for the Pending ones"
+    },
+    "explanation": "Pending pods with all nodes full is a capacity problem, and only the Cluster Autoscaler changes node count to fix it. Distractor 1 picks HPA, but adding replicas creates more pods needing capacity \u2014 it worsens Pending, not resolves it. Distractor 2 picks VPA, which changes resource requests; raising requests makes pods harder to fit, and the pods are already right-sized. Distractor 3 imagines HPA+VPA rebalancing across nodes, but neither moves pods to manufacture capacity \u2014 that's the Cluster Autoscaler's job. The three operate on orthogonal axes: replicas, pod size, node count."
+  },
+  {
+    "id": "k8s-032-mcq-1",
+    "source_id": "k8s-032",
+    "domain": "kubernetes",
+    "subdomain": "security",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "An engineer needs to grant a teammate permissions in a single namespace and is unsure whether to use a Role or a ClusterRole. What's the actual difference between them?",
+    "options": {
+      "correct": "Role grants permissions scoped to a single namespace; ClusterRole grants permissions at the cluster scope (and can also be reused per-namespace via RoleBindings)",
+      "distractor_1": "Role grants read-only access; ClusterRole grants write access \u2014 the names indicate the level of permission",
+      "distractor_2": "Role applies to namespaced resources only; ClusterRole applies to cluster-scoped resources only \u2014 they cannot overlap",
+      "distractor_3": "Role is for service accounts; ClusterRole is for human users authenticated via OIDC \u2014 the audience is the difference"
+    },
+    "explanation": "The split is scope, not permission level. A Role grants access in a namespace; a ClusterRole can grant cluster-wide or be referenced by a namespaced RoleBinding for cross-namespace reuse. Distractor 1 invents a read/write split \u2014 both Role and ClusterRole can grant any verb. Distractor 2 (resource-scope split) misses that ClusterRole can grant access to namespaced resources too; what matters is the binding type. Distractor 3 fabricates a service-account-vs-human split that has no basis."
+  },
+  {
+    "id": "k8s-041-mcq-1",
+    "source_id": "k8s-041",
+    "domain": "kubernetes",
+    "subdomain": "eks",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "A pod on EKS needs AWS credentials without any long-lived keys, and a teammate suggests using IRSA. What is IRSA?",
+    "options": {
+      "correct": "IAM Roles for Service Accounts \u2014 a way for pods to assume an IAM role using a projected OIDC token from the cluster's IAM identity provider",
+      "distractor_1": "Instance Role Service Account \u2014 assigns the EC2 instance role to all pods running on that node, so they share node credentials",
+      "distractor_2": "Inter-Region Service Account \u2014 a feature for cross-region EKS access where service accounts in one cluster authenticate to another region's API",
+      "distractor_3": "Internal Replicated Service Account \u2014 synchronises Kubernetes ServiceAccounts across EKS clusters for multi-cluster workloads"
+    },
+    "explanation": "IRSA stands for IAM Roles for Service Accounts; the cluster has an OIDC identity provider registered in IAM, each pod's projected service-account token is exchanged for AWS credentials via AssumeRoleWithWebIdentity. Distractor 1 describes the legacy 'node role' anti-pattern (every pod gets the EC2 instance's role) that IRSA was designed to replace. Distractor 2 invents a cross-region feature. Distractor 3 fabricates a multi-cluster sync. IRSA is the answer to 'how do pods get AWS credentials without long-lived keys'."
+  },
+  {
+    "id": "k8s-042-mcq-1",
+    "source_id": "k8s-042",
+    "domain": "kubernetes",
+    "subdomain": "eks",
+    "priority": "high",
+    "difficulty": "hard",
+    "question": "Your EKS cluster using the AWS VPC CNI is hitting 'IP exhaustion' on its nodes. What's the underlying mechanism causing it?",
+    "options": {
+      "correct": "Each pod gets a real VPC IP via an ENI on its node; node ENI count and IPs-per-ENI are EC2-instance-size bound, so pod density per node is capped by those AWS limits",
+      "distractor_1": "Each pod gets a Cluster IP from a /16 cluster CIDR, which exhausts after ~65k pods regardless of node size",
+      "distractor_2": "The VPC CNI uses NAT for each pod to reach external services, and the NAT Gateway's port range exhausts after a few thousand simultaneous connections",
+      "distractor_3": "EKS allocates pod IPs from a dedicated /28 per pod for isolation, so a single pod consumes 16 VPC addresses each"
+    },
+    "explanation": "VPC CNI's mode is 'each pod is a first-class VPC IP': ENIs and secondary IPs come from real VPC address space, and each EC2 instance type has hard limits on ENI count and IPs per ENI (e.g., m5.large = 3 ENIs \u00d7 10 IPs = ~30 pod IPs max). Smaller subnets fill quickly. Distractor 1 confuses pod IPs (VPC) with Service Cluster IPs (cluster CIDR). Distractor 2 fabricates a NAT-port-exhaustion story; pods talk directly via their VPC IPs. Distractor 3 invents a /28-per-pod allocation; each pod consumes exactly one IP."
+  },
+  {
+    "id": "k8s-050-mcq-1",
+    "source_id": "k8s-050",
+    "domain": "kubernetes",
+    "subdomain": "operations",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "A pod is in `ImagePullBackOff`. What's the first command to run for diagnosis?",
+    "options": {
+      "correct": "`kubectl describe pod <name>` to see the Events section, which will show the exact pull error (auth failure, image not found, network timeout, etc.)",
+      "distractor_1": "`kubectl logs <name> --previous` to see what the container reported before the image pull failed",
+      "distractor_2": "`docker pull <image>` from your local machine to reproduce the error and confirm whether the image is reachable",
+      "distractor_3": "`kubectl get events --field-selector reason=ImagePullBackOff` to list all the affected pods first before drilling in"
+    },
+    "explanation": "`kubectl describe pod` is the right move for any pod-state issue: the Events section at the bottom shows the exact registry-side message (manifest unknown, unauthorized, network refused). Distractor 1 misunderstands the state \u2014 the container never started, so there are no logs to fetch. Distractor 2 reproduces from a different network with different credentials and doesn't capture the cluster's pull context. Distractor 3 lists affected pods (a valid second step) but doesn't get you the actual error message."
+  },
+  {
+    "id": "linux-001-mcq-1",
+    "source_id": "linux-001",
+    "domain": "linux",
+    "subdomain": "filesystem",
+    "priority": "high",
+    "difficulty": "easy",
+    "question": "A file has permissions `-rwxr-x---`. What is its octal representation?",
+    "options": {
+      "correct": "750",
+      "distractor_1": "755",
+      "distractor_2": "740",
+      "distractor_3": "770 (rwx for owner and group, --- for other) \u2014 typical for shared team directories"
+    },
+    "explanation": "Each triplet is read as binary then converted: owner rwx = 7, group r-x = 5, other --- = 0, giving 750. Distractor 1 (755) sets other to r-x instead of ---. Distractor 2 (740) drops execute from group. Distractor 3 (770) sets group to rwx instead of r-x. The arithmetic is r=4, w=2, x=1 \u2014 sum them per triplet. Quick recall of the octal-to-symbolic mapping is essential for daily ops work."
+  },
+  {
+    "id": "linux-002-mcq-1",
+    "source_id": "linux-002",
+    "domain": "linux",
+    "subdomain": "processes",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "An engineer sends a process a graceful shutdown signal, but it ignores the request and keeps running. What's the practical difference between SIGTERM and SIGKILL that explains this?",
+    "options": {
+      "correct": "SIGTERM (15) can be caught or ignored by the process and allows graceful shutdown; SIGKILL (9) is forced by the kernel and cannot be caught, blocked, or handled",
+      "distractor_1": "SIGTERM kills the process immediately; SIGKILL gives the process 30 seconds to clean up before forced termination",
+      "distractor_2": "SIGTERM only works on background processes; SIGKILL is required for foreground processes and shell builtins",
+      "distractor_3": "SIGTERM is the legacy signal name; SIGKILL is its modern replacement and both have identical behaviour in current Linux kernels"
+    },
+    "explanation": "The catchability distinction is the entire reason both exist. Graceful shutdown patterns (drain connections, flush buffers, close DB handles) rely on SIGTERM being catchable. SIGKILL is the no-questions-asked tool of last resort. Distractor 1 reverses the two. Distractor 2 invents a foreground/background distinction. Distractor 3 (modern replacement) is fiction \u2014 both signals have been stable since early Unix. Production apps should handle SIGTERM properly so SIGKILL is never needed."
+  },
+  {
+    "id": "linux-004-mcq-1",
+    "source_id": "linux-004",
+    "domain": "linux",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "A web server seems unreachable. You're SSH'd into the box. What's the right ordered investigation?",
+    "options": {
+      "correct": "DNS (`dig`/`getent hosts`) \u2192 routing (`ip route`) \u2192 listening port (`ss -lntp`) \u2192 packet capture (`tcpdump`) \u2014 work from name to packet",
+      "distractor_1": "Packet capture first (`tcpdump`) \u2014 capture everything, then filter by what looks wrong",
+      "distractor_2": "Run a port scan with `nmap` against the local interface first to enumerate every open port and pick the offender",
+      "distractor_3": "Restart the systemd service immediately; most network issues are application crashes that clear with a fresh process"
+    },
+    "explanation": "Top-down: confirm the name resolves, confirm the route exists, confirm something is listening on the port, then look at packets if all of those are healthy. Each step eliminates a class of failure. Distractor 1 (tcpdump first) drowns you in noise. Distractor 2 (nmap) is unnecessary when you already know what should be there. Distractor 3 (restart first) discards diagnostic state and trains the wrong reflex."
+  },
+  {
+    "id": "linux-005-mcq-1",
+    "source_id": "linux-005",
+    "domain": "linux",
+    "subdomain": "operations",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "An engineer sees `df -h` report a disk 95% full, but `du -sh /*` totals only 60% of the disk. What's the most likely cause?",
+    "options": {
+      "correct": "A process has a deleted-but-open file holding inode space \u2014 the file is gone from the directory tree (du can't see it) but the inode lives until the process closes the descriptor",
+      "distractor_1": "df reports compressed-on-disk size while du reports uncompressed; the difference is the filesystem's compression overhead",
+      "distractor_2": "df includes the journal and metadata while du only includes user data; the gap is the filesystem's overhead",
+      "distractor_3": "du was run without sudo and missed files in directories the user can't read, accounting for the discrepancy"
+    },
+    "explanation": "Deleted-but-open files are the classic gotcha \u2014 a log rotation or unlink while a process holds the descriptor means the file disappears from `ls` but the blocks stay allocated. `lsof +L1` finds these; restarting the process releases the space. Distractor 1 (compression) doesn't apply to default ext4/xfs. Distractor 2 (journal/metadata) is too small to explain a 35% gap. Distractor 3 (permissions) is real but rarely accounts for a 35% gap on a properly-permissioned system."
+  },
+  {
+    "id": "linux-006-mcq-1",
+    "source_id": "linux-006",
+    "domain": "linux",
+    "subdomain": "operations",
+    "priority": "medium",
+    "difficulty": "medium",
+    "question": "An engineer needs to pull all log entries between 14:00 and 14:30 today across every systemd unit. Which approach is the most efficient?",
+    "options": {
+      "correct": "`journalctl --since '14:00' --until '14:30'`",
+      "distractor_1": "`grep '14:0[0-9]\\|14:[12][0-9]' /var/log/messages`",
+      "distractor_2": "`awk '$1 == \"14:00\" || $1 == \"14:30\"' /var/log/syslog`",
+      "distractor_3": "`sed -n '/14:00/,/14:30/p' /var/log/journal/*.journal`"
+    },
+    "explanation": "journalctl's --since and --until are the right tools for journald \u2014 they parse times correctly, handle the day boundary, and work on the binary journal format. Distractor 1 attempts text grep on a file that may not even have all journal data (only legacy syslog forwarding does). Distractor 2 is brittle and assumes a specific log format. Distractor 3 attempts to text-process journal binary files, which doesn't work. Knowing journalctl's filter flags saves enormous time."
+  },
+  {
+    "id": "tf-001-mcq-1",
+    "source_id": "tf-001",
+    "domain": "terraform",
+    "subdomain": "fundamentals",
+    "priority": "critical",
+    "difficulty": "easy",
+    "question": "An engineer is about to run `terraform apply` against a production account and first runs `terraform plan` to be sure nothing changes yet. What does `terraform plan` actually do?",
+    "options": {
+      "correct": "Reads the current state, compares it to the desired configuration, and prints the set of changes that `terraform apply` would make \u2014 without making them",
+      "distractor_1": "Validates the configuration syntax and prints a list of any HCL parse errors found in .tf files",
+      "distractor_2": "Generates a graph of resource dependencies as DOT format and writes it to terraform.plan for visualisation",
+      "distractor_3": "Connects to the cloud provider, dry-runs every resource API call against the production account using ephemeral credentials, and reports the responses while making no changes"
+    },
+    "explanation": "Plan is a three-way comparison: state, config, and live infrastructure (after refresh). It prints the diff and writes an optional plan file but makes no changes. Distractor 1 describes `terraform validate` only \u2014 syntax checking, no state inspection. Distractor 2 describes `terraform graph` \u2014 a separate command for dependency visualisation. Distractor 3 misunderstands provider behaviour; plan reads current state and computes differences using the provider's schema, not via dry-run API calls."
+  },
+  {
+    "id": "tf-002-mcq-1",
+    "source_id": "tf-002",
+    "domain": "terraform",
+    "subdomain": "state",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "Two engineers run terraform apply simultaneously against the same S3 remote backend. State locking via DynamoDB is configured. What happens?",
+    "options": {
+      "correct": "The second apply fails immediately with a state lock error",
+      "distractor_1": "Both applies succeed; Terraform merges the resulting state files",
+      "distractor_2": "The second apply waits for the first to complete, then proceeds",
+      "distractor_3": "Both applies succeed but the second silently overwrites the first's state"
+    },
+    "explanation": "DynamoDB state locking is advisory and fail-fast, not a queue. The second apply attempts to acquire the lock, sees it's held, and exits with an error. Distractor 1: Terraform never merges state files \u2014 that's a deliberate design choice. Distractor 2: it doesn't queue (some CI systems do, Terraform doesn't). Distractor 3 is literally what happens WITHOUT locking \u2014 the question is testing what locking actually prevents."
+  },
+  {
+    "id": "tf-003-mcq-1",
+    "source_id": "tf-003",
+    "domain": "terraform",
+    "subdomain": "modules",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "An engineer is extracting shared infrastructure into a reusable Terraform module for the team. What's the canonical structure of a well-designed module?",
+    "options": {
+      "correct": "Separate files for variables (inputs), outputs (return values), main resource definitions, and provider/version requirements \u2014 with a README documenting the interface",
+      "distractor_1": "A single main.tf file containing all resources, variables, outputs, and provider declarations in one place for atomic deployment",
+      "distractor_2": "A folder per resource type (one for vpc, one for subnet, one for security_group) so each resource is reusable independently across modules",
+      "distractor_3": "A modules/ subdirectory containing one file per environment (dev.tf, staging.tf, prod.tf) so environment-specific values are scoped"
+    },
+    "explanation": "Standard module shape: variables.tf (inputs), outputs.tf (return values), main.tf (resources), versions.tf (provider constraints), README.md (interface docs). The split makes the contract explicit. Distractor 1 collapses everything into one file \u2014 works for tiny modules, painful at scale. Distractor 2 over-decomposes; a module is the unit of reuse, not a folder per resource. Distractor 3 confuses modules with environments \u2014 environments use the module via tfvars, not by splitting the module itself."
+  },
+  {
+    "id": "tf-004-mcq-1",
+    "source_id": "tf-004",
+    "domain": "terraform",
+    "subdomain": "configuration",
+    "priority": "medium",
+    "difficulty": "medium",
+    "question": "An engineer sets a variable's default to t3.micro, puts t3.small in terraform.tfvars, exports TF_VAR_instance_type=t3.medium, and also runs `terraform apply -var instance_type=t3.large`. Which value wins, and why?",
+    "options": {
+      "correct": "t3.large \u2014 the `-var` CLI flag has the highest precedence; CLI flags override files like terraform.tfvars, files override TF_VAR_ environment variables, and all of those override the variable's default",
+      "distractor_1": "t3.medium \u2014 the TF_VAR_ environment variable wins, because environment configuration is resolved last in the chain and so overrides both the CLI flag and the tfvars files loaded earlier",
+      "distractor_2": "t3.small \u2014 terraform.tfvars is loaded automatically and is treated as authoritative, overriding ad-hoc CLI flags and environment variables",
+      "distractor_3": "The apply fails \u2014 Terraform detects four conflicting sources for one variable and errors out rather than silently choosing one"
+    },
+    "explanation": "Terraform resolves variables explicit-over-implicit: `-var` (and `-var-file`) on the CLI beat tfvars files, which beat TF_VAR_ env vars, which beat the default \u2014 so t3.large wins. Distractor 1 inverts the env-var position, treating 'resolved last' as 'wins'; env vars are actually near the bottom. Distractor 2 over-ranks terraform.tfvars; it loses to the CLI. Distractor 3 invents an error-on-conflict rule; precedence resolves silently per variable, which is exactly why knowing the order matters when debugging an unexpected value."
+  },
+  {
+    "id": "tf-005-mcq-1",
+    "source_id": "tf-005",
+    "domain": "terraform",
+    "subdomain": "environments",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "Your team models dev, staging, and prod as three Terraform workspaces over one backend and configuration. Prod now needs a different region, larger instance sizes, and a stricter IAM setup than dev. Why does the workspace approach struggle here?",
+    "options": {
+      "correct": "Workspaces share one configuration and backend and differ only by state, so genuinely different infrastructure (region, sizing, IAM) can only be expressed by piling conditionals into one config \u2014 separate state per environment is the cleaner pattern",
+      "distractor_1": "Workspaces can't be selected non-interactively, so a CI pipeline can't target a specific environment without a human running `terraform workspace select` first",
+      "distractor_2": "All workspaces write to a single shared state file, so a prod apply can reach across and corrupt dev's resources stored in the same file",
+      "distractor_3": "Variable values can't differ between workspaces \u2014 every workspace must use identical inputs, so you can't change instance sizes or regions per environment without editing the one shared configuration for everyone"
+    },
+    "explanation": "Workspaces vary state, not configuration, so they fit minor variants of one config but break down when environments differ structurally \u2014 which is the scenario exactly. Distractor 1 misstates CI integration: workspaces can be selected non-interactively (`terraform workspace select` scripts fine, or `TF_WORKSPACE`). Distractor 2 invents a single-state-file design; each workspace has its own isolated state. Distractor 3 overstates the limit \u2014 you can vary values via `terraform.workspace` lookups; what you can't do cleanly is vary structure. Separate root configs/state per environment is the standard answer."
+  },
+  {
+    "id": "tf-006-mcq-1",
+    "source_id": "tf-006",
+    "domain": "terraform",
+    "subdomain": "secrets",
+    "priority": "medium",
+    "difficulty": "medium",
+    "question": "An engineer puts a database password in `terraform.tfvars` and adds the file to `.gitignore`, assuming the secret is now safe. Why is this still a bad practice?",
+    "options": {
+      "correct": "The password ends up in the state file in cleartext regardless of the tfvars file location, so the secret lives in state forever",
+      "distractor_1": "tfvars files are uploaded to Terraform Cloud on every apply, where they're visible to all org members regardless of permissions",
+      "distractor_2": "tfvars files are parsed at plan time and embedded in the binary plan file, which is then transmitted to every apply target",
+      "distractor_3": ".gitignore is unreliable; the file occasionally gets committed by mistake and the password leaks into version control history"
+    },
+    "explanation": "The real issue is state \u2014 even if tfvars stays out of Git, the value ends up persisted in the state file. State files end up in backups, in Terraform Cloud audit logs, in `terraform show` output. Distractor 1 invents a Terraform Cloud upload of tfvars (TC does store variables, but with access controls). Distractor 2 fabricates an embedded-in-binary-plan story; secrets in plan files are also a problem but not for that reason. Distractor 3 (gitignore unreliability) is a real risk but a smaller one than state."
+  },
+  {
+    "id": "tf-011-mcq-1",
+    "source_id": "tf-011",
+    "domain": "terraform",
+    "subdomain": "configuration",
+    "priority": "medium",
+    "difficulty": "medium",
+    "question": "You manage 5 AWS IAM users with `resource \"aws_iam_user\" \"team\" { count = length(var.usernames) ... }`, where var.usernames is a list. You remove the username at index 2 from the list and run terraform apply. What happens?",
+    "options": {
+      "correct": "Terraform recreates the IAM users at indices 2, 3, and 4 because count addresses by position \u2014 the resource at team[2] now refers to a different username, so Terraform destroys the old one and creates a new one in its place",
+      "distractor_1": "Terraform destroys only the IAM user at index 2 and leaves the remaining users untouched in place",
+      "distractor_2": "Terraform refuses to apply because count cannot shrink after the first apply without a terraform state mv first",
+      "distractor_3": "Terraform destroys the IAM user at index 4 since count drops from 5 to 4, treating the change as a tail removal"
+    },
+    "explanation": "The correct option spells out why count's positional addressing causes the cascade. Distractor 1 assumes Terraform tracks identity (the username) rather than address (the index). Distractor 2 invents a count-can't-shrink constraint that doesn't exist. Distractor 3 assumes tail-removal semantics \u2014 natural-sounding, but count doesn't behave that way. The fix is to switch to for_each with a set or map keyed on the username, so each address (team[\"alice\"]) stays stable across list edits. For IAM specifically the recreation is destructive: access keys, MFA devices, and group memberships rebuild from scratch."
+  },
+  {
+    "id": "tf-013-mcq-1",
+    "source_id": "tf-013",
+    "domain": "terraform",
+    "subdomain": "operations",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "You see an unexpected diff on `terraform plan`. Which is the right first step?",
+    "options": {
+      "correct": "Read the diff carefully \u2014 Terraform's plan output names each attribute change. Check if a teammate or out-of-band tool changed the resource",
+      "distractor_1": "Run `terraform apply` to force-write the desired state, then investigate after the fix is applied",
+      "distractor_2": "Delete the state file and re-import all resources from scratch; this is the standard recovery for unexpected drift",
+      "distractor_3": "Run `terraform destroy` followed by `terraform apply` to ensure the infrastructure matches config exactly"
+    },
+    "explanation": "Reading the plan is the first investigative step \u2014 Terraform tells you precisely which attribute changed on which resource, which usually points at the cause (clickops, automation, another Terraform config, an auto-rotation). Distractor 1 (apply first) discards diagnostic state. Distractor 2 (recreate state) destroys recoverability. Distractor 3 (destroy + apply) is the nuclear option and risks data loss for non-trivial resources. The triage path: read \u2192 identify cause \u2192 choose `ignore_changes`, `state mv`, or accept the diff."
+  }
+]

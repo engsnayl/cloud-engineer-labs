@@ -1,0 +1,393 @@
+[
+  {
+    "id": "tf-001-mcq-1",
+    "source_id": "tf-001",
+    "domain": "terraform",
+    "subdomain": "fundamentals",
+    "priority": "critical",
+    "difficulty": "easy",
+    "bank": 1,
+    "question": "What does `terraform plan` actually do?",
+    "options": {
+      "correct": "Reads the current state, compares it to the desired configuration, and prints the set of changes that `terraform apply` would make — without making them",
+      "distractor_1": "Validates the configuration syntax and prints a list of any HCL parse errors found in .tf files",
+      "distractor_2": "Generates a graph of resource dependencies as DOT format and writes it to terraform.plan for visualisation",
+      "distractor_3": "Connects to the cloud provider, dry-runs every resource API call against the production account using ephemeral credentials, and reports the responses while making no changes"
+    },
+    "explanation": "Plan is a three-way comparison: state, config, and live infrastructure (after refresh). It prints the diff and writes an optional plan file but makes no changes. Distractor 1 describes `terraform validate` only — syntax checking, no state inspection. Distractor 2 describes `terraform graph` — a separate command for dependency visualisation. Distractor 3 misunderstands provider behaviour; plan reads current state and computes differences using the provider's schema, not via dry-run API calls."
+  },
+  {
+    "id": "tf-001-mcq-2",
+    "source_id": "tf-001",
+    "domain": "terraform",
+    "subdomain": "fundamentals",
+    "priority": "critical",
+    "difficulty": "easy",
+    "bank": 2,
+    "question": "Compared to AWS CloudFormation, what's a key advantage of Terraform?",
+    "options": {
+      "correct": "Provider-agnostic — manages AWS, Azure, GCP, Kubernetes, and many SaaS services in a single language and state model",
+      "distractor_1": "Free tier — CloudFormation charges per stack operation while Terraform is open source and incurs no licence fees in any sensible team workflow",
+      "distractor_2": "Faster execution — Terraform runs in parallel by default while CloudFormation runs all stack changes serially",
+      "distractor_3": "Built into AWS CLI — `aws terraform apply` is included with the AWS CLI and requires no separate installation"
+    },
+    "explanation": "Multi-provider support is Terraform's real advantage: one tool spans AWS, Azure, Kubernetes, GitHub, Datadog, etc. Distractor 1 fabricates a CloudFormation pricing model — both are free at the basic level. Distractor 2 over-states parallelism difference — CloudFormation parallelises within stacks too. Distractor 3 invents a built-in AWS CLI subcommand. The trade-off going the other way: CloudFormation has tighter AWS-native integration and IAM-driven access control."
+  },
+  {
+    "id": "tf-003-mcq-1",
+    "source_id": "tf-003",
+    "domain": "terraform",
+    "subdomain": "modules",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "What's the canonical structure of a well-designed Terraform module?",
+    "options": {
+      "correct": "Separate files for variables (inputs), outputs (return values), main resource definitions, and provider/version requirements — with a README documenting the interface",
+      "distractor_1": "A single main.tf file containing all resources, variables, outputs, and provider declarations in one place for atomic deployment",
+      "distractor_2": "A folder per resource type (one for vpc, one for subnet, one for security_group) so each resource is reusable independently across modules",
+      "distractor_3": "A modules/ subdirectory containing one file per environment (dev.tf, staging.tf, prod.tf) so environment-specific values are scoped"
+    },
+    "explanation": "Standard module shape: variables.tf (inputs), outputs.tf (return values), main.tf (resources), versions.tf (provider constraints), README.md (interface docs). The split makes the contract explicit. Distractor 1 collapses everything into one file — works for tiny modules, painful at scale. Distractor 2 over-decomposes; a module is the unit of reuse, not a folder per resource. Distractor 3 confuses modules with environments — environments use the module via tfvars, not by splitting the module itself."
+  },
+  {
+    "id": "tf-003-mcq-2",
+    "source_id": "tf-003",
+    "domain": "terraform",
+    "subdomain": "modules",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Your module's `main.tf` calls a Git-sourced module: `source = \"git::https://github.com/acme/tf-vpc.git\"`. What's missing for production use?",
+    "options": {
+      "correct": "A `ref=` query parameter pinning to a specific tag or commit; without it Terraform always pulls the default branch and you can't control upgrades",
+      "distractor_1": "An explicit `provider:` block mapping the module's providers; Git-sourced modules cannot inherit providers from the calling configuration",
+      "distractor_2": "A `terraform_module_version:` field in versions.tf declaring the minimum compatible Terraform CLI version for the Git source",
+      "distractor_3": "An access token in the URL; Git-sourced modules require an HTTPS token to be embedded in the source string for Terraform to authenticate to private or public repositories alike"
+    },
+    "explanation": "Without `?ref=v1.2.0`, the module floats on whatever the default branch is right now — a non-reproducible source that breaks reruns. Pinning is mandatory in production. Distractor 1 misstates provider inheritance; Git-sourced modules inherit providers fine. Distractor 2 fabricates a configuration field. Distractor 3 over-states auth requirements; public Git modules work without tokens, and private ones use either SSH keys or HTTPS tokens via standard Git mechanisms, not in the URL."
+  },
+  {
+    "id": "tf-004-mcq-1",
+    "source_id": "tf-004",
+    "domain": "terraform",
+    "subdomain": "configuration",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "What's the order of precedence for Terraform variable values (highest to lowest)?",
+    "options": {
+      "correct": "`-var` CLI flag > `-var-file` CLI flag > `TF_VAR_<name>` env var > terraform.tfvars > variable default",
+      "distractor_1": "Variable default > terraform.tfvars > `TF_VAR_<name>` env var > `-var-file` > `-var` CLI flag",
+      "distractor_2": "All sources are merged and the union of all values is applied; conflicting values fail with an error",
+      "distractor_3": "terraform.tfvars > `-var` CLI flag > variable default > `TF_VAR_<name>` env var > `-var-file`"
+    },
+    "explanation": "Precedence runs explicit > implicit: CLI overrides files, files override env vars, env vars override defaults. This lets you set environment defaults in files and override per-run on the CLI. Distractor 1 reverses the order entirely. Distractor 2 invents a merge semantics; one source wins per variable. Distractor 3 partially scrambles. Knowing the order matters when debugging 'why is this value getting set' — you walk the chain from highest to lowest."
+  },
+  {
+    "id": "tf-004-mcq-2",
+    "source_id": "tf-004",
+    "domain": "terraform",
+    "subdomain": "configuration",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "When should you use `locals` rather than `variable`?",
+    "options": {
+      "correct": "When the value is computed from inputs or other locals and isn't meant to be overridden — locals can't accept external values",
+      "distractor_1": "When the value is sensitive and shouldn't appear in plan output — only locals are excluded from CLI display",
+      "distractor_2": "When the value is shared between modules — locals are exported between modules automatically while variables are module-local",
+      "distractor_3": "When the value is a list or map — locals support complex types while variables can only declare a primitive string or number"
+    },
+    "explanation": "Locals are derived values (`local.bucket_name = \"${var.env}-${var.app}-data\"`) — computed from inputs, never set externally. Variables are inputs from outside. Distractor 1 invents an exclusion-from-output for locals. Distractor 2 reverses sharing — locals are scoped to the module that defines them; outputs/variables are how modules share values. Distractor 3 fabricates a type restriction on variables, which support all complex types. The boundary: variables are inputs, locals are computed."
+  },
+  {
+    "id": "tf-005-mcq-1",
+    "source_id": "tf-005",
+    "domain": "terraform",
+    "subdomain": "environments",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Why do experienced Terraform teams avoid using workspaces to model dev/staging/prod environments?",
+    "options": {
+      "correct": "Workspaces share the same backend and configuration; they can't model genuinely different infrastructure (different regions, different IAM, different sizes) cleanly",
+      "distractor_1": "Workspaces require manual switching that can't be automated in CI, so they don't integrate with deployment pipelines",
+      "distractor_2": "Workspaces store all environments' state in a single state file, so a prod operation can accidentally affect dev resources",
+      "distractor_3": "Workspaces are a legacy 0.11-era feature that no longer works with Terraform 1.x — they were officially deprecated and removed from the CLI in the 1.0 release"
+    },
+    "explanation": "Workspaces are great for 'minor variants of the same config' (a region split, a tenant split) but break down when environments differ meaningfully — different backends, different providers, different module versions. The standard pattern is separate state per environment. Distractor 1 misstates CI integration — workspaces can be selected non-interactively. Distractor 2 invents a single-state-file design; each workspace has its own state file. Distractor 3 fabricates a deprecation."
+  },
+  {
+    "id": "tf-005-mcq-2",
+    "source_id": "tf-005",
+    "domain": "terraform",
+    "subdomain": "environments",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "The recommended modern pattern for dev/staging/prod with Terraform is:",
+    "options": {
+      "correct": "Separate state file per environment, with environment-specific tfvars (and often a wrapper like Terragrunt) to DRY shared configuration",
+      "distractor_1": "Single shared state with environment as a variable, branched logic in the config for environment-specific resources",
+      "distractor_2": "Workspaces — Hashicorp's official recommendation for production environment separation since Terraform 1.0",
+      "distractor_3": "Stateless apply with `-target` flags scoped to environment-prefixed resource names, regenerated on every run"
+    },
+    "explanation": "Per-environment state isolates blast radius (a corrupt staging state doesn't risk prod), and tfvars-per-env keeps the same module code. Terragrunt formalises this with explicit per-env configurations. Distractor 1 produces conditional infrastructure that's harder to reason about. Distractor 2 misrepresents Hashicorp's actual guidance — they explicitly call out that workspaces don't fit environment separation well. Distractor 3 invents a stateless pattern; Terraform fundamentally needs state."
+  },
+  {
+    "id": "tf-006-mcq-1",
+    "source_id": "tf-006",
+    "domain": "terraform",
+    "subdomain": "secrets",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Why is putting database passwords in `terraform.tfvars` (with the file in .gitignore) still a bad practice?",
+    "options": {
+      "correct": "The password ends up in the state file in cleartext regardless of the tfvars file location, so the secret lives in state forever",
+      "distractor_1": "tfvars files are uploaded to Terraform Cloud on every apply, where they're visible to all org members regardless of permissions",
+      "distractor_2": "tfvars files are parsed at plan time and embedded in the binary plan file, which is then transmitted to every apply target",
+      "distractor_3": ".gitignore is unreliable; the file occasionally gets committed by mistake and the password leaks into version control history"
+    },
+    "explanation": "The real issue is state — even if tfvars stays out of Git, the value ends up persisted in the state file. State files end up in backups, in Terraform Cloud audit logs, in `terraform show` output. Distractor 1 invents a Terraform Cloud upload of tfvars (TC does store variables, but with access controls). Distractor 2 fabricates an embedded-in-binary-plan story; secrets in plan files are also a problem but not for that reason. Distractor 3 (gitignore unreliability) is a real risk but a smaller one than state."
+  },
+  {
+    "id": "tf-006-mcq-2",
+    "source_id": "tf-006",
+    "domain": "terraform",
+    "subdomain": "secrets",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "The recommended pattern for fetching a secret like an RDS password into Terraform is:",
+    "options": {
+      "correct": "Use a `data \"aws_secretsmanager_secret_version\"` block at apply time to fetch the current value, then pass it to the resource without persisting it in tfvars",
+      "distractor_1": "Set the secret as a `terraform.tfvars` value and add the file to .gitignore — keeping the secret out of version control is the standard safe practice in production stacks",
+      "distractor_2": "Read the secret in a `provisioner \"local-exec\"` block, since provisioners run outside the state machine and don't persist values",
+      "distractor_3": "Pass the secret via the `password` argument literal in the config, marked `sensitive = true` so Terraform encrypts it in state"
+    },
+    "explanation": "The data-source pattern keeps secrets in the secret store (Secrets Manager, Vault), fetched at apply time, scoped by IAM, never stored in config files. The value still ends up in state but that's a separate problem mitigated by state encryption. Distractor 1 is the bad practice the previous MCQ called out. Distractor 2 misuses provisioners (and provisioners aren't run during plan — secret would still be visible). Distractor 3 over-claims encryption from sensitive; that's display masking only."
+  },
+  {
+    "id": "tf-007-mcq-1",
+    "source_id": "tf-007",
+    "domain": "terraform",
+    "subdomain": "configuration",
+    "priority": "low",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Why does HashiCorp warn against using Terraform provisioners (local-exec, remote-exec)?",
+    "options": {
+      "correct": "Provisioners run once at create time and aren't tracked in state, so Terraform has no way to know if the provisioned step succeeded, drifted, or needs re-running",
+      "distractor_1": "Provisioners are deprecated in Terraform 1.x and will be removed in a future major version, so any use creates immediate technical debt",
+      "distractor_2": "Provisioners run on the Terraform CLI machine rather than the target, which means they can't actually configure remote infrastructure",
+      "distractor_3": "Provisioners require root access to the target machine and bypass standard SSH key management, creating audit and compliance issues"
+    },
+    "explanation": "The state-tracking gap is the core issue: Terraform's reconciliation model depends on knowing the current state of every managed resource; provisioners run outside that model. Distractor 1 invents a deprecation (provisioners are de-emphasised but still supported). Distractor 2 reverses local vs remote — local-exec runs locally, remote-exec runs on the target. Distractor 3 (root access) is unrelated to the underlying state-tracking concern. Better alternatives: cloud-init/user data, configuration management (Ansible), or baked AMIs."
+  },
+  {
+    "id": "tf-007-mcq-2",
+    "source_id": "tf-007",
+    "domain": "terraform",
+    "subdomain": "configuration",
+    "priority": "low",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Despite the warnings, when is a Terraform `local-exec` provisioner genuinely the right tool?",
+    "options": {
+      "correct": "When you need to run a one-shot command that doesn't have a Terraform provider — like calling a CLI to perform a side effect (kube context update, vendor API webhook)",
+      "distractor_1": "When you need to install software on the newly-provisioned EC2 instance, since local-exec runs on the target machine via SSH",
+      "distractor_2": "When you need to configure the database schema after RDS is created, since local-exec is the standard way to run migrations from Terraform",
+      "distractor_3": "When the resource has no `lifecycle` block, since local-exec implicitly provides the lifecycle management that resources lack"
+    },
+    "explanation": "Side-effect commands that lack a provider (or that you don't want to wrap in a custom provider) are the narrow legitimate use. Distractor 1 confuses local-exec (runs on the CLI machine) with remote-exec (runs on the target). Distractor 2 (DB migrations from Terraform) is a common anti-pattern — migrations should be code-deployed, not infra-deployed. Distractor 3 fabricates a relationship between provisioners and lifecycle blocks; they're unrelated concepts."
+  },
+  {
+    "id": "tf-008-mcq-1",
+    "source_id": "tf-008",
+    "domain": "terraform",
+    "subdomain": "operations",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "What does `terraform refresh` do (now the default behaviour at the start of `terraform plan`)?",
+    "options": {
+      "correct": "Reads the current state of each managed resource from the cloud provider and updates the state file to match what's actually there",
+      "distractor_1": "Re-runs the configuration files against the provider to recreate any resources that have been deleted out-of-band",
+      "distractor_2": "Empties the state file completely and rebuilds it from scratch by querying every resource type the provider supports",
+      "distractor_3": "Validates the syntax of the state file and repairs any corruption introduced by partial applies or interrupted operations, leaving the resources in the cloud untouched"
+    },
+    "explanation": "Refresh is the read-only sync step — bringing state into line with reality. It's what lets plan detect drift (resources changed outside Terraform). Distractor 1 invents a recreate-deleted-resources behaviour; refresh only updates state, doesn't change infra. Distractor 2 fabricates a full rebuild; refresh only touches managed resources. Distractor 3 confuses refresh with `terraform state` repair commands. Since Terraform 0.15ish, refresh runs implicitly during plan unless you pass `-refresh=false`."
+  },
+  {
+    "id": "tf-008-mcq-2",
+    "source_id": "tf-008",
+    "domain": "terraform",
+    "subdomain": "operations",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "How do you intentionally accept drift in Terraform without losing the resource from state?",
+    "options": {
+      "correct": "Use a `lifecycle { ignore_changes = [<attribute>] }` block so Terraform stops trying to reconcile that attribute on apply",
+      "distractor_1": "Remove the resource from `terraform.tfstate` manually with a text editor; Terraform will rediscover it on next apply",
+      "distractor_2": "Add a `prevent_destroy = true` lifecycle rule, which freezes the resource's current state and pauses reconciliation",
+      "distractor_3": "Run `terraform state rm <resource>`, which detaches the resource from Terraform state while keeping the live resource intact in the cloud account, and accept the drift externally"
+    },
+    "explanation": "`ignore_changes` is the surgical tool: keep the resource managed but stop policing specific attributes that drift legitimately (auto-rotated passwords, autoscaling-managed counts, etc.). Distractor 1 (manual state edit) is risky and the recommended path is `terraform state` commands. Distractor 2 (prevent_destroy) only stops destroys; updates still happen. Distractor 3 (state rm) removes the resource from management entirely — Terraform no longer sees it. The right tool depends on what 'accept drift' means."
+  },
+  {
+    "id": "tf-009-mcq-1",
+    "source_id": "tf-009",
+    "domain": "terraform",
+    "subdomain": "ci-cd",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "The standard GitOps-style Terraform CI/CD pattern is:",
+    "options": {
+      "correct": "Run `terraform plan` on PR with the plan posted as a comment; run `terraform apply` only on merge to main (or via a manual approval gate)",
+      "distractor_1": "Run `terraform apply` on every PR push so reviewers can see the actual effect, then revert if the PR is rejected",
+      "distractor_2": "Run `terraform plan` only locally; CI should not interact with Terraform state to avoid lock contention with developers",
+      "distractor_3": "Run a single `terraform apply` weekly that batches all merged PRs into one large change, so production sees fewer changes"
+    },
+    "explanation": "Plan-on-PR / apply-on-merge gives reviewers concrete evidence of what will change and gates the actual application behind merge approval. Distractor 1 inverts safety — applying before review can break production with no rollback path. Distractor 2 puts state management on developer laptops, which doesn't scale. Distractor 3 (weekly batched applies) increases batch size and risk — the opposite of CD principles."
+  },
+  {
+    "id": "tf-009-mcq-2",
+    "source_id": "tf-009",
+    "domain": "terraform",
+    "subdomain": "ci-cd",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Two Terraform apply jobs are queued in CI against the same state. What happens?",
+    "options": {
+      "correct": "The first acquires the state lock and runs; the second fails immediately with a state-lock error (DynamoDB) unless the CI tool queues runs explicitly",
+      "distractor_1": "Both runs proceed in parallel; Terraform merges the resulting states automatically once both complete",
+      "distractor_2": "The second run waits indefinitely for the first to finish, with the state-lock acting as a built-in queue",
+      "distractor_3": "Both runs fail because the state-lock mechanism prevents any concurrent or parallel apply, including back-to-back queued ones submitted from the same CI pipeline within a short window"
+    },
+    "explanation": "DynamoDB locking is fail-fast: hold the lock or fail immediately. CI systems that need queueing implement it at the pipeline layer (concurrency groups in GHA, etc.). Distractor 1 invents state merging. Distractor 2 inverts behaviour — Terraform doesn't queue on lock contention. Distractor 3 misstates the lock — sequential runs (first finishes, second starts) work fine because the lock is released between runs. The trap is treating advisory locking as a queue."
+  },
+  {
+    "id": "tf-010-mcq-1",
+    "source_id": "tf-010",
+    "domain": "terraform",
+    "subdomain": "tooling",
+    "priority": "low",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Match the tool to its primary job: Terraform vs Packer.",
+    "options": {
+      "correct": "Terraform provisions running infrastructure (instances, networks); Packer builds machine images (AMIs) that Terraform then consumes",
+      "distractor_1": "Terraform builds machine images; Packer provisions running infrastructure from those images",
+      "distractor_2": "Terraform and Packer both provision infrastructure; the difference is that Packer is faster on AWS and Terraform is faster on Azure",
+      "distractor_3": "Terraform provisions stateful resources; Packer provisions stateless resources — Lambdas and ECS tasks specifically"
+    },
+    "explanation": "Packer bakes (creates AMIs / VM images with everything pre-installed); Terraform deploys (uses those images to spin up running infrastructure). The two compose as the golden-image pattern. Distractor 1 swaps them entirely. Distractor 2 invents a speed-by-cloud difference. Distractor 3 fabricates a stateful-vs-stateless split. Knowing the split matters because teams using only Terraform with provisioners are often reinventing what Packer does much better."
+  },
+  {
+    "id": "tf-010-mcq-2",
+    "source_id": "tf-010",
+    "domain": "terraform",
+    "subdomain": "tooling",
+    "priority": "low",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Your team uses Packer + Terraform. How does Terraform consume the AMI Packer produced?",
+    "options": {
+      "correct": "A data source (e.g. `data \"aws_ami\"`) queries for the latest AMI matching the team's name/tag filters, and that ID is used in the EC2/ASG resource",
+      "distractor_1": "Packer writes the AMI ID into a shared S3 bucket that Terraform reads as part of its remote state backend",
+      "distractor_2": "Packer creates a Terraform module containing the AMI ID, which is published to the registry and referenced via `module \"image\"`",
+      "distractor_3": "Terraform's `--ami-from-packer` CLI flag tells the apply to fetch the latest Packer build directly from the build pipeline"
+    },
+    "explanation": "The standard handshake is via data source: query AWS for AMIs matching name patterns / tags that Packer applied, sort by creation date, use the latest. This keeps the two tools coupled only through AWS metadata. Distractor 1 invents a shared-state mechanism. Distractor 2 fabricates a Packer-to-module pipeline. Distractor 3 invents a CLI flag. The data-source approach is robust because it gracefully handles AMI updates without code changes."
+  },
+  {
+    "id": "tf-011-mcq-2",
+    "source_id": "tf-011",
+    "domain": "terraform",
+    "subdomain": "configuration",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "You switch a resource from `count = length(var.users)` to `for_each = toset(var.users)`. What changes about how Terraform addresses each resource?",
+    "options": {
+      "correct": "Resources change from index-addressed (`team[0]`, `team[1]`) to key-addressed (`team[\"alice\"]`, `team[\"bob\"]`), and removing one user no longer cascades into recreates",
+      "distractor_1": "Resources keep the same addresses; `for_each` is purely cosmetic and aliases count-based addressing under the hood",
+      "distractor_2": "Resources lose all addresses; for_each-managed resources are accessed only as a collection through the resource name root",
+      "distractor_3": "Resources gain numeric AND string addresses (`team[0]` and `team[\"alice\"]` both work); Terraform tracks both keys per resource so existing references continue to resolve"
+    },
+    "explanation": "The address shift is the entire point: key-addressed resources are stable across list edits. After switching you'll need to migrate state (`terraform state mv` or `moved` blocks) so existing resources aren't destroyed-and-recreated. Distractor 1 invents an alias relationship that doesn't exist. Distractor 2 over-states the change — addresses still exist, they're keyed differently. Distractor 3 invents a dual-addressing scheme; for_each gives only key access."
+  },
+  {
+    "id": "tf-012-mcq-1",
+    "source_id": "tf-012",
+    "domain": "terraform",
+    "subdomain": "operations",
+    "priority": "medium",
+    "difficulty": "hard",
+    "bank": 2,
+    "question": "You move a resource from `aws_iam_user.alice` to `aws_iam_user.users[\"alice\"]` (in a for_each migration). What's the cleanest way to update state without destroying and recreating the IAM user?",
+    "options": {
+      "correct": "Add a `moved {}` block in config (Terraform 1.1+) pointing from the old address to the new, then run `terraform apply` — Terraform handles the state transition automatically",
+      "distractor_1": "Add a `lifecycle { prevent_destroy = true }` block so apply errors out instead of recreating, then manually copy the user via the AWS Console",
+      "distractor_2": "Run `terraform import aws_iam_user.users[\"alice\"] alice` to attach the live user to the new address; the old address is then orphaned in state",
+      "distractor_3": "Edit the .tfstate file directly with a text editor to rename the resource key, then run apply with `-refresh=false` to suppress drift detection"
+    },
+    "explanation": "`moved` blocks are the modern, declarative way to refactor addresses without state surgery — Terraform reads them as 'this resource was renamed' and adjusts state at apply. Distractor 1 (prevent_destroy + manual) is a workaround that introduces hand-rolled drift. Distractor 2 (import) leaves the old address as a destroy in the plan — you'd need to also `state rm` the old one. Distractor 3 (manual state edit) works but is fragile. Pre-1.1 the only option was `terraform state mv` from the CLI."
+  },
+  {
+    "id": "tf-012-mcq-2",
+    "source_id": "tf-012",
+    "domain": "terraform",
+    "subdomain": "operations",
+    "priority": "medium",
+    "difficulty": "hard",
+    "bank": 3,
+    "question": "Compare `terraform state mv` and `terraform import`.",
+    "options": {
+      "correct": "`state mv` moves an existing in-state resource to a new address; `import` brings an out-of-state live resource into state at a given address",
+      "distractor_1": "Both commands do the same thing; `import` is the older name and `state mv` is the new name introduced in Terraform 1.0",
+      "distractor_2": "`state mv` is for moving resources between modules; `import` is for moving resources between Terraform workspaces in the same backend",
+      "distractor_3": "`state mv` requires the resource to exist in both old and new positions in the configuration; `import` requires the resource to exist only in the source address of the state file"
+    },
+    "explanation": "Two different operations: state mv = rename inside state, no provider interaction. import = bring real-world resource into state, requires provider call. Distractor 1 conflates them; both still exist for distinct purposes. Distractor 2 invents a module-vs-workspace split that doesn't match the commands. Distractor 3 inverts state mv's behaviour (the resource exists only in the source). Both are state-manipulation tools used together during migrations."
+  },
+  {
+    "id": "tf-013-mcq-1",
+    "source_id": "tf-013",
+    "domain": "terraform",
+    "subdomain": "operations",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "You see an unexpected diff on `terraform plan`. Which is the right first step?",
+    "options": {
+      "correct": "Read the diff carefully — Terraform's plan output names each attribute change. Check if a teammate or out-of-band tool changed the resource",
+      "distractor_1": "Run `terraform apply` to force-write the desired state, then investigate after the fix is applied",
+      "distractor_2": "Delete the state file and re-import all resources from scratch; this is the standard recovery for unexpected drift",
+      "distractor_3": "Run `terraform destroy` followed by `terraform apply` to ensure the infrastructure matches config exactly"
+    },
+    "explanation": "Reading the plan is the first investigative step — Terraform tells you precisely which attribute changed on which resource, which usually points at the cause (clickops, automation, another Terraform config, an auto-rotation). Distractor 1 (apply first) discards diagnostic state. Distractor 2 (recreate state) destroys recoverability. Distractor 3 (destroy + apply) is the nuclear option and risks data loss for non-trivial resources. The triage path: read → identify cause → choose `ignore_changes`, `state mv`, or accept the diff."
+  },
+  {
+    "id": "tf-013-mcq-2",
+    "source_id": "tf-013",
+    "domain": "terraform",
+    "subdomain": "operations",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "How do you enable detailed Terraform logging to debug a hanging apply?",
+    "options": {
+      "correct": "Set `TF_LOG=DEBUG` (or TRACE) and `TF_LOG_PATH=./tf.log` before re-running — Terraform writes provider RPCs and state operations to the log file",
+      "distractor_1": "Re-run the apply with `--debug` flag; Terraform writes detailed logs to ./debug.txt by default",
+      "distractor_2": "Run `terraform debug` to attach to the hanging process and inspect provider calls in real time",
+      "distractor_3": "Check `terraform.tfstate.lock.info` for the running operation's pid, then attach a system debugger (gdb or dlv) to that process to inspect the live stack"
+    },
+    "explanation": "`TF_LOG=DEBUG` (or TRACE for even more detail) is the standard verbose-logging knob, paired with TF_LOG_PATH to send output to a file. Distractor 1 invents a `--debug` CLI flag. Distractor 2 fabricates a `terraform debug` subcommand. Distractor 3 (state lock + system debugger) is hostile overkill and isn't how Terraform debugging works. TF_LOG output is verbose; grep for the provider operation that hangs to localise the issue."
+  }
+]

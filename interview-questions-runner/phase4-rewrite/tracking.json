@@ -1,0 +1,968 @@
+{
+  "baseline_flagged_count": 126,
+  "baseline_snapshot_path": "interview-questions-runner/phase4-rewrite/baseline-snapshot.json",
+  "control_sample_status": "expanded_audit_resolved",
+  "control_sample_seed": 4096,
+  "control_sample_ids": [
+    "git-006-mcq-1",
+    "tf-011-mcq-1",
+    "cicd-012-mcq-2",
+    "docker-010-mcq-2",
+    "k8s-002-mcq-2",
+    "aws-020-mcq-2"
+  ],
+  "control_sample_verdicts_final": {
+    "at_bar": [
+      "k8s-002-mcq-2",
+      "aws-020-mcq-2",
+      "git-006-mcq-1",
+      "tf-011-mcq-1"
+    ],
+    "fabrication_confirmed": [
+      "cicd-012-mcq-2",
+      "docker-010-mcq-2"
+    ]
+  },
+  "control_sample_note": "git-006-mcq-1 and tf-011-mcq-1 re-resolved as false positives at GATE 1 under the operative rubric (invented-behaviour-of-real-feature, plausible transferred mental model; tf-011 is a pilot exemplar). cicd-012-mcq-2 and docker-010-mcq-2 confirmed fabrications, now flagged.",
+  "audit_expansion": {
+    "patterns_added_date": "2026-06-02",
+    "patterns_added": [
+      "mechanism-claim (kernel/buffer/drain/queue as cause-effect agents)",
+      "invented-constraint (cannot X without Y first, refuses to X if Y)",
+      "invented-key (YAML/HCL/CLI keys not in allowlist for major tools)"
+    ],
+    "verdict_on_expansion": "OVERREACHING BUT USEFUL. The constraint/mechanism heuristics over-flag invented-behaviour-of-real-feature distractors that are at-bar under the operative rubric (including 3 pilot exemplars). They did catch the 6 Tier A named-identifier cases and gave a useful contrast set for the Tier B judgment calls. Treat their output as a contrast signal, not a verdict. To be documented honestly in final-report.md.",
+    "of_11_heuristic_adds": {
+      "flagged_confirmed": [
+        "cicd-012-mcq-2",
+        "docker-010-mcq-2",
+        "aws-019-mcq-2",
+        "cicd-021-mcq-1",
+        "tf-003-mcq-2"
+      ],
+      "resolved_false_positive": [
+        "aws-003-mcq-1",
+        "git-006-mcq-1",
+        "tf-011-mcq-1",
+        "tf-002-mcq-1",
+        "k8s-021-mcq-1",
+        "k8s-014-mcq-2"
+      ]
+    },
+    "false_positives_resolved": {
+      "aws-003-mcq-1": "pilot exemplar; NACL stateful/implicit-allow distractors are at-bar (invented behaviour, plausible)",
+      "tf-002-mcq-1": "literal pilot distractor (silently overwrites state)",
+      "tf-011-mcq-1": "pilot exemplar; count-cannot-shrink is at-bar invented behaviour",
+      "git-006-mcq-1": "Git refuses-to-push is at-bar invented behaviour (transferred mental model)",
+      "k8s-021-mcq-1": "key-not-in-allowlist:gpu is a label DEFINED IN THE STEM, not a fabricated key",
+      "k8s-014-mcq-2": "externalTrafficPolicy:External — real field, invented value/behaviour; BORDERLINE, resolved at-bar; reference borderline case for future judgment",
+      "docker-004-mcq-1": "image tags python:/ubuntu: are not fabricated keys; MCQ stays flagged on independent D_definition",
+      "cicd-020-mcq-2": "aws:MultiFactorAuthPresent is a real IAM key; MCQ stays flagged on independent A_fabricated; JWT-MFA-inheritance verified as a real misconception (pilot cicd-020-mcq-1)"
+    },
+    "allowlist_refinements_todo": [
+      "image tags (python:, ubuntu:, etc.)",
+      "real IAM condition keys (aws:*)",
+      "real k8s fields/resources (externalTrafficPolicy, nvidia.com/gpu)",
+      "exempt pilot-distractor text"
+    ]
+  },
+  "llm_pass": {
+    "pending": false,
+    "date": "2026-06-02",
+    "scope_mcqs": 71,
+    "method": "5 domain-sliced agents (AWS x2, K8s, CI/CD, Docker+Git+Linux+TF) + reviewer verification of every suspect against source/real tooling",
+    "result_clean": 62,
+    "result_fabrications": 9,
+    "fabrications_from_llm_pass": [
+      "cicd-011-mcq-2",
+      "cicd-022-mcq-1",
+      "docker-004-mcq-2",
+      "git-003-mcq-2",
+      "linux-006-mcq-2",
+      "tf-010-mcq-2",
+      "cicd-022-mcq-2"
+    ],
+    "tier_b_resolved_at_bar": [
+      "cicd-012-mcq-1",
+      "cicd-013-mcq-1"
+    ],
+    "deliverables": [
+      "interview-questions-runner/phase4-rewrite/llm-fabrication-scan.json",
+      "interview-questions-runner/phase4-rewrite/llm-fabrication-scan.md"
+    ],
+    "reliability_notes": [
+      "Docker/Git/Linux/TF agent first rated invented flags at-bar citing pilot examples that do NOT exist in pilot.json (hallucinated precedent); reviewer revised to suspect.",
+      "Kubernetes agent first run failed on API-overload; re-run returned clean."
+    ]
+  },
+  "rebaseline": {
+    "expanded_total_flagged": 138,
+    "math": "126 original + 12 net-new A_fabricated (7 LLM + 2 control-sample-confirmed + 3 heuristic-adjudicated) = 138; 6 heuristic FPs resolved (not added)",
+    "unflagged_remaining": 70,
+    "new_fabrication_ids": [
+      "cicd-011-mcq-2",
+      "cicd-022-mcq-1",
+      "docker-004-mcq-2",
+      "git-003-mcq-2",
+      "linux-006-mcq-2",
+      "tf-010-mcq-2",
+      "cicd-022-mcq-2",
+      "cicd-012-mcq-2",
+      "docker-010-mcq-2",
+      "aws-019-mcq-2",
+      "cicd-021-mcq-1",
+      "tf-003-mcq-2"
+    ]
+  },
+  "gate1": {
+    "status": "closed",
+    "resample_seed": 7919,
+    "resample_result": "6/6 at-bar",
+    "resample_ids": [
+      "aws-003-mcq-1",
+      "tf-002-mcq-1",
+      "k8s-032-mcq-2",
+      "docker-005-mcq-1",
+      "cicd-050-mcq-1",
+      "git-006-mcq-1"
+    ],
+    "checkpoint": "interview-questions-runner/phase4-rewrite/control-sample-checkpoint-2.md",
+    "caveat": "LLM pass covered the entire unflagged set, so the re-sample confirms rather than independently probes; substantive assurance is the exhaustive pass.",
+    "next": "Tier 1 may begin — Task 3, batch T1.1 (AWS D-only stem reframes)."
+  },
+  "batches": [
+    {
+      "batch_id": "T1.1",
+      "tier": 1,
+      "domain_slice": "aws",
+      "mcq_ids_attempted": [
+        "aws-002-mcq-1",
+        "aws-003-mcq-2",
+        "aws-007-mcq-2",
+        "aws-009-mcq-2",
+        "aws-014-mcq-1",
+        "aws-015-mcq-2",
+        "aws-017-mcq-1",
+        "aws-019-mcq-1",
+        "aws-020-mcq-1",
+        "aws-021-mcq-1",
+        "aws-026-mcq-1",
+        "aws-026-mcq-2",
+        "aws-029-mcq-2",
+        "aws-032-mcq-1",
+        "aws-034-mcq-1",
+        "aws-034-mcq-2",
+        "aws-035-mcq-2"
+      ],
+      "slice_total": 17,
+      "reframe_attempted": 16,
+      "mcqs_completed": 15,
+      "completed_breakdown": {
+        "tier1_pure_stem_reframe": 14,
+        "tier1_5_stem_reframe_plus_option_microedit": 1
+      },
+      "tier1_5_microedits": [
+        "aws-009-mcq-2/distractor_1: --multi-attach=true -> --multi-attach-enabled=true (spelling correction, not a reframe; gp3 misconception trap unchanged). Approved by Stephen 2026-06-02 as at-bar with micro-correction."
+      ],
+      "mcqs_dropped_to_tier3": 1,
+      "drop_out_ids": [
+        "aws-021-mcq-1"
+      ],
+      "drop_out_note": "aws-021-mcq-1 ('worst candidate for Spot') dropped to Tier 3 (Stephen, 2026-06-02): superlative framing = same structural problem as NOT/never; needs positive reauthor ('best fit for Spot' with poor-fit distractors). Queued for T3.2 absorption. Bank stem reverted to original.",
+      "cleared_false_positive": [
+        "aws-026-mcq-1"
+      ],
+      "cleared_fp_note": "aws-026-mcq-1 cleared as a pilot_byte_identical false positive (see heuristic_fp_classes). Removed from flagged-mcqs.json.",
+      "reconciliation": "17 slice = 15 completed (14 pure Tier-1 + 1 Tier-1.5) + 1 dropped to Tier 3 (aws-021-mcq-1) + 1 cleared FP (aws-026-mcq-1). Dropout rate = 1/16 reframe-attempts = 6.25%.",
+      "distractor_self_check_records": 45,
+      "fabrications_caught_at_selfreview": 0,
+      "audit_reflag_ids_after_batch": [],
+      "validate_mcqs_status": "pass",
+      "drift_status": "PASS (touched_count=15, no still-flagged, no regressions)",
+      "checkpoint_date": "2026-06-02",
+      "status": "approved"
+    },
+    {
+      "batch_id": "T1.2",
+      "tier": 1,
+      "domain_slice": "kubernetes",
+      "mcq_ids_attempted": [
+        "k8s-003-mcq-1",
+        "k8s-003-mcq-2",
+        "k8s-004-mcq-2",
+        "k8s-010-mcq-2",
+        "k8s-011-mcq-2",
+        "k8s-012-mcq-1",
+        "k8s-013-mcq-1",
+        "k8s-014-mcq-1",
+        "k8s-020-mcq-1",
+        "k8s-023-mcq-2",
+        "k8s-030-mcq-1",
+        "k8s-030-mcq-2",
+        "k8s-032-mcq-1",
+        "k8s-040-mcq-1",
+        "k8s-041-mcq-1",
+        "k8s-042-mcq-1",
+        "k8s-042-mcq-2"
+      ],
+      "slice_total": 17,
+      "pilot_dupe_preflight": "0 byte-identical-to-pilot in slice (k8s-010-mcq-1 already cleared in T1.1)",
+      "reframe_attempted": 17,
+      "mcqs_completed": 17,
+      "completed_breakdown": {
+        "tier1_pure_stem_reframe": 17,
+        "tier1_5_stem_reframe_plus_option_microedit": 0
+      },
+      "mcqs_dropped_to_tier3": 0,
+      "drop_out_ids": [],
+      "cleared_false_positive": [],
+      "borderline_surfaced": [
+        "k8s-004-mcq-2",
+        "k8s-014-mcq-1",
+        "k8s-020-mcq-1"
+      ],
+      "dispositions_applied": {
+        "k8s-004-mcq-2": "AT-BAR (transferred-mental-model); recorded in borderline_approved.",
+        "k8s-014-mcq-1": "d2 '32 entries' = fabrication -> Tier 2 swap (widens T2.1); 'weaker than' framing KEPT (rubric distinction added to PLAN.md).",
+        "k8s-020-mcq-1": "Tier-3 option-balance pass -> T3.2 (stem stays reframed)."
+      },
+      "distractor_self_check_records": 51,
+      "fabrications_caught_at_selfreview": 0,
+      "audit_reflag_ids_after_batch": [],
+      "validate_mcqs_status": "pass",
+      "drift_status": "PASS (touched_count=17, no still-flagged, no regressions)",
+      "checkpoint_date": "2026-06-02",
+      "status": "approved"
+    },
+    {
+      "batch_id": "T1.3",
+      "tier": 1,
+      "domain_slice": "cicd",
+      "mcq_ids_attempted": [
+        "cicd-001-mcq-1",
+        "cicd-002-mcq-1",
+        "cicd-003-mcq-1",
+        "cicd-003-mcq-2",
+        "cicd-010-mcq-2",
+        "cicd-011-mcq-1",
+        "cicd-014-mcq-1",
+        "cicd-014-mcq-2",
+        "cicd-021-mcq-2",
+        "cicd-031-mcq-2",
+        "cicd-032-mcq-2",
+        "cicd-040-mcq-2",
+        "cicd-041-mcq-1",
+        "cicd-041-mcq-2",
+        "cicd-051-mcq-1",
+        "cicd-051-mcq-2"
+      ],
+      "slice_total": 16,
+      "pilot_dupe_preflight": "0 byte-identical-to-pilot in slice (cicd-020-mcq-1 cleared in T1.1 as pilot_byte_identical; cicd-030-mcq-1 is a pilot exemplar but not in the D-only slice)",
+      "reframe_attempted": 16,
+      "mcqs_completed": 15,
+      "completed_breakdown": {
+        "tier1_pure_stem_reframe": 15,
+        "tier1_5_stem_reframe_plus_option_microedit": 0
+      },
+      "mcqs_dropped_to_tier3": 1,
+      "drop_out_ids": [
+        "cicd-001-mcq-1"
+      ],
+      "cleared_false_positive": [],
+      "borderline_surfaced": [
+        "cicd-001-mcq-1",
+        "cicd-051-mcq-2"
+      ],
+      "reconciliation": "16 slice = 15 completed (15 pure Tier-1 stem reframes) + 1 dropped to Tier 3 (cicd-001-mcq-1) + 0 cleared FP. Dropout rate = 1/16 reframe-attempts = 6.25%. Options + explanation byte-identical before<->after on the 15 applied.",
+      "distractor_self_check_records": 45,
+      "fabrications_caught_at_selfreview": 0,
+      "audit_reflag_ids_after_batch": [],
+      "validate_mcqs_status": "pass",
+      "drift_status": "PASS (touched_count=15, no still-flagged, no regressions)",
+      "checkpoint_date": "2026-06-02",
+      "status": "pending",
+      "drop_out_note": "cicd-001-mcq-1 dropped to Tier 3 (Stephen, 2026-06-02). Tier-1 insufficient: definitional-distinction question form answered on recall; the scenario + teammate-mislabel are inert (Chekhov gun) because the four options are abstract definition-pairs no stem edit can make scenario-dependent. Applied form requires rewriting options into scenario-classifications = option rewrite = Tier 3. Bank stem reverted to original. Queued for Tier-3 absorption.",
+      "dispositions_applied": {
+        "cicd-001-mcq-1": "DROPPED to Tier 3 (option rewrite required; see drop_out_note).",
+        "cicd-051-mcq-2": "CLEARED / at-bar (Stephen): judgement genre was inherent pre-reframe; testability settled at GATE 1; not a superlative."
+      }
+    },
+    {
+      "batch_id": "T1.4",
+      "tier": 1,
+      "domain_slice": "terraform+linux",
+      "mcq_ids_attempted": [
+        "tf-001-mcq-1",
+        "tf-001-mcq-2",
+        "tf-003-mcq-1",
+        "tf-004-mcq-2",
+        "tf-005-mcq-2",
+        "tf-006-mcq-1",
+        "tf-006-mcq-2",
+        "tf-007-mcq-1",
+        "tf-007-mcq-2",
+        "tf-008-mcq-1",
+        "tf-008-mcq-2",
+        "tf-009-mcq-2",
+        "tf-013-mcq-2",
+        "linux-002-mcq-1",
+        "linux-003-mcq-2",
+        "linux-004-mcq-2",
+        "linux-005-mcq-1",
+        "linux-005-mcq-2",
+        "linux-006-mcq-1",
+        "linux-007-mcq-1",
+        "linux-007-mcq-2"
+      ],
+      "slice_total": 22,
+      "pilot_dupe_preflight": "0 byte-identical-to-pilot in slice (tf-002-mcq-2 and tf-011-mcq-1 are pilot exemplars but not in the D-only slice)",
+      "recall_three_way_split": {
+        "bucket1_tier1_reframe": [
+          "tf-001-mcq-1",
+          "tf-001-mcq-2",
+          "tf-003-mcq-1",
+          "tf-004-mcq-2",
+          "tf-005-mcq-2",
+          "tf-006-mcq-1",
+          "tf-006-mcq-2",
+          "tf-007-mcq-1",
+          "tf-007-mcq-2",
+          "tf-008-mcq-1",
+          "tf-008-mcq-2",
+          "tf-009-mcq-2",
+          "tf-013-mcq-2",
+          "linux-002-mcq-1",
+          "linux-003-mcq-2",
+          "linux-004-mcq-2",
+          "linux-005-mcq-1",
+          "linux-005-mcq-2",
+          "linux-006-mcq-1",
+          "linux-007-mcq-1",
+          "linux-007-mcq-2"
+        ],
+        "bucket2_tier3_rewrite_dropout": [
+          "tf-012-mcq-2"
+        ],
+        "bucket3_intentional_recall_exempt": []
+      },
+      "reframe_attempted": 21,
+      "mcqs_completed": 21,
+      "completed_breakdown": {
+        "tier1_pure_stem_reframe": 21,
+        "tier1_5_stem_reframe_plus_option_microedit": 0
+      },
+      "mcqs_dropped_to_tier3": 1,
+      "drop_out_ids": [
+        "tf-012-mcq-2"
+      ],
+      "intentional_recall_exempt": [],
+      "cleared_false_positive": [],
+      "borderline_surfaced": [
+        "tf-012-mcq-2"
+      ],
+      "dispositions_applied": {
+        "tf-012-mcq-2": "DROPPED to Tier 3 (Bucket 2). See drop_out_note."
+      },
+      "recall_topic_notes": "No octal-permissions item in the slice. Signals (linux-002) and set -euo pipefail (linux-007-mcq-1) are the most recall-leaning; both gain a real troubleshooting payoff under reframe (unresponsive process / script-kept-running symptoms), so bucket 1 not bucket 3.",
+      "triggers": {
+        "recall_dropouts_ge9_of_22": "not fired (1 Tier-3 dropout, and it is a cicd-001 structural dropout, not a recall-topic dropout)",
+        "linux_bucket23_ge4_of_8": "not fired (0 of 8 — tf-012 is a Terraform item)"
+      },
+      "distractor_self_check_records": 63,
+      "fabrications_caught_at_selfreview": 0,
+      "audit_reflag_ids_after_batch": [],
+      "validate_mcqs_status": "pass",
+      "drift_status": "PASS (touched_count=21, no still-flagged, no regressions)",
+      "checkpoint_date": "2026-06-02",
+      "status": "pending",
+      "drop_out_note": "tf-012-mcq-2 -> Bucket 2 / Tier-3 (Stephen 2026-06-03). cicd-001 signature: abstract-comparison ask (\"how does state mv differ from import\") + definition-pair options; scenario severable from option selection, answerable on recall. Bank stem reverted to original; queued for Tier-3 rewrite that rebuilds options into scenario-classifications.",
+      "reconciliation": "22 slice = 21 completed (21 pure Tier-1 stem reframes) + 1 Tier-3 dropout (tf-012-mcq-2, Bucket 2) + 0 exempt. Dropout rate = 1/22 reframe-attempts = 4.55%. Options + explanation byte-identical before<->after on the 21 applied."
+    },
+    {
+      "batch_id": "T1.5",
+      "tier": 1,
+      "domain_slice": "docker+git",
+      "mcq_ids_attempted": [
+        "docker-001-mcq-2",
+        "docker-002-mcq-1",
+        "docker-003-mcq-1",
+        "docker-004-mcq-1",
+        "docker-005-mcq-2",
+        "docker-006-mcq-1",
+        "docker-006-mcq-2",
+        "docker-007-mcq-2",
+        "docker-008-mcq-1",
+        "docker-008-mcq-2",
+        "docker-009-mcq-1",
+        "git-001-mcq-1",
+        "git-001-mcq-2",
+        "git-002-mcq-1",
+        "git-002-mcq-2",
+        "git-004-mcq-1",
+        "git-004-mcq-2",
+        "git-005-mcq-1"
+      ],
+      "slice_total": 21,
+      "pilot_dupe_preflight": "0 byte-identical-to-pilot in slice (no docker/git pilot exemplars exist)",
+      "new_triage_step_applied": "compare/definition-pair pre-flag at read-back (Stephen 2026-06-03): 3 routed straight to Tier-3 without authoring.",
+      "recall_three_way_split": {
+        "bucket1_tier1_reframe": [
+          "docker-001-mcq-2",
+          "docker-002-mcq-1",
+          "docker-003-mcq-1",
+          "docker-004-mcq-1",
+          "docker-005-mcq-2",
+          "docker-006-mcq-1",
+          "docker-006-mcq-2",
+          "docker-007-mcq-2",
+          "docker-008-mcq-1",
+          "docker-008-mcq-2",
+          "docker-009-mcq-1",
+          "git-001-mcq-1",
+          "git-001-mcq-2",
+          "git-002-mcq-1",
+          "git-002-mcq-2",
+          "git-004-mcq-1",
+          "git-004-mcq-2",
+          "git-005-mcq-1"
+        ],
+        "bucket2_tier3_triaged_at_readback": [
+          "docker-001-mcq-1",
+          "docker-007-mcq-1",
+          "git-003-mcq-1"
+        ],
+        "bucket3_intentional_recall_exempt": []
+      },
+      "reframe_attempted": 18,
+      "mcqs_completed": 18,
+      "mcqs_completed_status": "FINAL — git-001-mcq-1 confirmed Tier-1 by Stephen (2026-06-03). T1.5 = 18 reframes + 3 triaged-to-Tier-3.",
+      "completed_breakdown": {
+        "tier1_pure_stem_reframe": 18,
+        "tier1_5_stem_reframe_plus_option_microedit": 0
+      },
+      "mcqs_dropped_to_tier3": 3,
+      "drop_out_ids": [
+        "docker-001-mcq-1",
+        "docker-007-mcq-1",
+        "git-003-mcq-1"
+      ],
+      "drop_out_subcount": {
+        "triaged_at_readback": [
+          "docker-001-mcq-1",
+          "docker-007-mcq-1",
+          "git-003-mcq-1"
+        ],
+        "authored_then_dropped": []
+      },
+      "provisional_item": {
+        "id": "git-001-mcq-1",
+        "status": "Tier-1 CONFIRMED (Stephen 2026-06-03)"
+      },
+      "distractor_self_check_records": 54,
+      "fabrications_caught_at_selfreview": 0,
+      "audit_reflag_ids_after_batch": [],
+      "validate_mcqs_status": "pass",
+      "drift_status": "PASS (touched_count=18, no still-flagged, no regressions)",
+      "checkpoint_date": "2026-06-03",
+      "status": "approved",
+      "stem_wording_fixes": [
+        "docker-006-mcq-1: \"port-translation layer\" -> \"no separate port-publishing step\" (standard Docker phrasing); options untouched."
+      ]
+    },
+    {
+      "batch_id": "T2.1",
+      "tier": 2,
+      "domain_slice": "a_only_fabricated",
+      "mcq_ids_attempted": [
+        "aws-016-mcq-2",
+        "aws-019-mcq-2",
+        "aws-022-mcq-1",
+        "aws-031-mcq-2",
+        "aws-035-mcq-1",
+        "cicd-002-mcq-2",
+        "cicd-011-mcq-2",
+        "cicd-012-mcq-2",
+        "cicd-013-mcq-2",
+        "cicd-020-mcq-2",
+        "cicd-021-mcq-1",
+        "cicd-022-mcq-1",
+        "cicd-022-mcq-2",
+        "cicd-031-mcq-1",
+        "docker-004-mcq-2",
+        "docker-010-mcq-2",
+        "git-003-mcq-2",
+        "git-006-mcq-2",
+        "git-001-mcq-1",
+        "k8s-014-mcq-1",
+        "k8s-031-mcq-2",
+        "k8s-051-mcq-2",
+        "linux-006-mcq-2",
+        "tf-003-mcq-2",
+        "tf-010-mcq-2"
+      ],
+      "slice_total": 25,
+      "scope_derivation": "24 live A_fabricated-only (11 original + 12 rebaseline + k8s-014 widening) + git-001-mcq-1 (widening, not flag-reclassified) = 25. 8 multi-flag A+D deferred to Tier-3.",
+      "pilot_dupe_preflight": "0 byte-identical-to-pilot in the 25-id slice",
+      "swaps_items": 23,
+      "distractors_rewritten_total": 30,
+      "distractors_breakdown": {
+        "confirmed_categorical_fabrication_swapped": 26,
+        "over_claim_tightened": 1,
+        "filler_strengthened_git001": 3
+      },
+      "verify_no_change_items": 1,
+      "verify_no_change_ids": [
+        "cicd-031-mcq-1"
+      ],
+      "dropped_deferred_items": 1,
+      "dropped_deferred_ids": [
+        "aws-022-mcq-1"
+      ],
+      "rulings_applied": {
+        "B1_aws-022-mcq-1": "REVERTED swap; deferred whole item to Tier-3 Cluster B (superlative) alongside aws-021. Bank restored to original.",
+        "B2_git-001-mcq-1": "d2 REWORKED from a true merge advantage to a genuinely-wrong misconception (merge auto-resolves conflicts) so the strongest-reason superlative is non-contestable. d1/d3 confirmed genuinely wrong (not real advantages). Keyed answer unchanged.",
+        "B3_k8s-031-mcq-2": "ACCEPTED both swaps; d3 recorded as explicit widening (detector-coverage gap: audit named only d1).",
+        "B4_git-003-mcq-2": "d3 SWAPPED as widening (old auto-reroute was a fabrication) -> Sync-fork-button-is-server-side misconception."
+      },
+      "multi_distractor_items": {
+        "aws-019-mcq-2": "all 3 distractors were fabricated post-resize mechanisms -> 3 swaps",
+        "git-001-mcq-1": "3 distractors (d2 reworked per B2; d1/d3 misconceptions)",
+        "k8s-031-mcq-2": "2 swaps (d1 named + d3 widening)",
+        "linux-006-mcq-2": "2 swaps (d1 + d3, both invented-flag fabrications)",
+        "git-003-mcq-2": "2 swaps (d2 named + d3 widening per B4)"
+      },
+      "off_limits_preserved": {
+        "cicd-020-mcq-2": "distractor_3 (MFA-inheritance verified-FP) left byte-identical; only d2 swapped"
+      },
+      "distractor_self_check_records": 33,
+      "validate_mcqs_status": "pass (soft length-balance warnings pre-existing only)",
+      "drift_status": "PASS (touched_count=24, no still-flagged, no regressions; aws-022 excluded as deferred)",
+      "audit_suspect_diff": "7 rows on touched: 6 pre-existing kept at-bar distractors (documented over-flag) + 1 newly-introduced FP (cicd-020-mcq-2 d2: sts.amazonaws.com is the real OIDC audience -> specific-domain-path FP, not a fabrication). git-003 d3 reworded to clear a self-introduced auto-implicit FP.",
+      "rebaseline_12_split": "all 12 rebaseline fabrications = SWAP, 0 verify-no-change",
+      "checkpoint_date": "2026-06-03",
+      "status": "pending"
+    },
+    {
+      "batch_id": "T3.1",
+      "tier": 3,
+      "domain_slice": "tier3_reslice_part1 (structural / compare / superlative / multi-flag)",
+      "mcq_ids_attempted": [
+        "cicd-001-mcq-1",
+        "aws-021-mcq-1",
+        "aws-022-mcq-1",
+        "k8s-001-mcq-2",
+        "k8s-011-mcq-1",
+        "k8s-021-mcq-2",
+        "k8s-041-mcq-2",
+        "aws-005-mcq-2",
+        "aws-007-mcq-1",
+        "aws-010-mcq-2",
+        "aws-027-mcq-2",
+        "cicd-010-mcq-1",
+        "cicd-040-mcq-1",
+        "cicd-050-mcq-2",
+        "k8s-023-mcq-1"
+      ],
+      "slice_total": 15,
+      "scope_derivation": "Locked Tier-3 reslice T3.1 (Stephen 2026-06-03): aws struct 4 + aws-021/aws-022 (superlative) + cicd struct 3 + cicd-001 (compare) + k8s struct 5. PLAN's pre-reslice count of 13 is superseded by the locked 15.",
+      "pilot_dupe_preflight": "0 byte-identical-to-pilot in the 15-id slice",
+      "full_reauthors": 15,
+      "dropouts": 0,
+      "dropped_to_tier3_ids": [],
+      "cluster_breakdown": {
+        "compare_definition_pair": 1,
+        "superlative_not_stem": 2,
+        "multi_flag_a_plus_d": 4,
+        "plain_structural": 8
+      },
+      "cluster_targets_confirmed": "Each item transformed per its flag combination (not a generic reauthor): cicd-001 rebuilt to load-bearing scenario (strike-test passes); aws-021/aws-022 positive factual best-fit with uniquely-keyed answer; 4 multi-flag items fixed actor-marker stem (clears D/C) AND replaced every fabrication with a real misconception unambiguously wrong vs the new stem.",
+      "rulings_applied": {
+        "B1_auto_implicit_fps": "Stephen confirmed all three 'automatically' suspect hits as real misconceptions; KEPT, recorded as FPs, no reword. Standing rule continues.",
+        "B2_length_tell": "Accepted T3.1 as-is (0/15 trip the per-item giveaway threshold). From T3.2: lengthen distractors to carry their own mechanism (do not shorten correct). Bank-wide correct-is-longest check deferred to Tier-3 close.",
+        "B3_aws-021": "Applied version B: added constraint ('100% Spot, no on-demand fallback, zero user-visible impact on reclaim'); dropped single-node Postgres (lowest discrimination); restored the stateless-web tier ONLY as the constraint-ruled-out distractor; kept payment-API + un-checkpointed-ML; single-select. Distractor_1 lengthened to clear the resulting length-tell per B2."
+      },
+      "suspect_fps_recorded": [
+        "cicd-001-mcq-1/d3",
+        "k8s-001-mcq-2/d2",
+        "aws-005-mcq-2/d2"
+      ],
+      "absorption_queue_items_landed": [
+        "cicd-001-mcq-1 (Cluster A compare)",
+        "aws-021-mcq-1 (Cluster B superlative)",
+        "aws-022-mcq-1 (T2.1 deferral, superlative)"
+      ],
+      "multi_distractor_items": 15,
+      "validate_mcqs_status": "OK (banks 1/2/3, 0 errors)",
+      "drift_status": "PASS — 15/15 touched cleared, 0 regressions",
+      "audit_suspect_diff": "3 new entries on touched ids, all 'auto-implicit' pattern — recorded false positives (cicd-001/d3, k8s-001/d2, aws-005/d2); no new fabrications.",
+      "length_tell": "0/15 trip the per-item giveaway threshold; correct-is-longest 12/15 (inherent to load-bearing-correct). Bank-wide check at Tier-3 close per B2.",
+      "before_integrity_note": "batch-07 'before' fields were reconstructed from git HEAD after an in-session builder re-run-after-apply had polluted them with intermediate 'after' values. Builder hardened to source 'before' from HEAD (idempotent). Pollution isolated to batch-07 and never committed; drift integrity unaffected (check_drift uses baseline-snapshot.json + touched_ids, never 'before'). Committed batches 01-05 clean; batch-06's single before==after is the intended verify-no-change FP cicd-031-mcq-1.",
+      "checkpoint_date": "2026-06-03",
+      "status": "COMPLETE"
+    },
+    {
+      "batch_id": "T3.2",
+      "tier": 3,
+      "domain_slice": "tier3_reslice_part2 (compare-pair / multi-flag A+D / plain structural / option-balance)",
+      "mcq_ids_attempted": [
+        "tf-012-mcq-2",
+        "docker-001-mcq-1",
+        "docker-007-mcq-1",
+        "git-003-mcq-1",
+        "tf-005-mcq-1",
+        "tf-009-mcq-1",
+        "docker-002-mcq-2",
+        "docker-009-mcq-2",
+        "tf-004-mcq-1",
+        "tf-010-mcq-1",
+        "docker-003-mcq-2",
+        "linux-003-mcq-1",
+        "k8s-020-mcq-1"
+      ],
+      "slice_total": 13,
+      "scope_derivation": "Locked Tier-3 reslice T3.2: tf struct 4 (incl. tf-012 compare) + docker struct 3 (incl. docker-001/007 compare) + git-003-mcq-1 (compare) + linux-003 + k8s-020 (option-balance). Completes the 28-item Tier-3 universe (T3.1 15 + T3.2 13).",
+      "pilot_dupe_preflight": "0 byte-identical-to-pilot in the 13-id slice",
+      "full_reauthors": 12,
+      "option_balance_items": 1,
+      "dropouts": 0,
+      "dropped_to_tier3_ids": [],
+      "cluster_breakdown": {
+        "compare_definition_pair": 4,
+        "multi_flag_a_plus_d": 4,
+        "plain_structural": 4,
+        "option_balance": 1
+      },
+      "strike_test_compare_pairs": "All 4 compare-pairs (tf-012-mcq-2, docker-001-mcq-1, docker-007-mcq-1, git-003-mcq-1) COLLAPSE when the scenario sentence is struck — options are scenario-classifications, not reworded definition-pairs.",
+      "cross_tier_distinctness": "git-003-mcq-1 (fork = writeable server-side copy under your account enabling PRs) tests a distinct facet from the committed sibling git-003-mcq-2 (upstream-remote sync workflow, T2.1). The upstream-remote idea is used as a deliberate wrong distractor here.",
+      "rulings_applied": {
+        "B2_length_tell": "Distractor-lengthening applied: 8 items initially tripped the per-item threshold after authoring; cleared by extending the closest distractor with its own wrong mechanism (correct never shortened). k8s-020 correct lengthened to parity (tied with the longest distractor, not an outlier). Final: 0/13 trip."
+      },
+      "suspect_fps_recorded": [
+        "git-003-mcq-1/d3 (specific-flag: --force)",
+        "tf-004-mcq-1/d2 (auto-implicit)",
+        "docker-002-mcq-2/d2 (auto-implicit)",
+        "docker-003-mcq-2/d1 (auto-implicit)",
+        "tf-005-mcq-1/d1 (constraint-cannot-without)"
+      ],
+      "multi_distractor_items": 13,
+      "validate_mcqs_status": "OK (banks 1/2/3, 0 errors)",
+      "drift_status": "PASS — 13/13 touched cleared, 0 regressions",
+      "audit_suspect_diff": "5 new entries on touched ids (1 specific-flag, 3 auto-implicit, 1 constraint-cannot-without) — all recorded false positives; no new fabrications.",
+      "length_tell": "0/13 trip the per-item giveaway threshold; correct-longest 13/13 but within the parity band (distractors carry their own mechanism). Bank-wide check at Tier-3 close per B2.",
+      "checkpoint_date": "2026-06-03",
+      "status": "COMPLETE"
+    }
+  ],
+  "borderline_approved": [
+    {
+      "id": "k8s-004-mcq-2",
+      "tier": "T1.2",
+      "reason": "Invented K8s API field names in distractors (sidecarContainers:, containerType: sidecar, kubernetes.io/sidecar annotation) judged AT-BAR by Stephen (2026-06-02): transferred-mental-model — Kubernetes does name things this way, and a junior would plausibly guess them. Not a false-authority fabrication.",
+      "watch": "If Tier 1 produces 3+ invented-identifier-as-transferred-model cases, revisit the bar mid-flight."
+    }
+  ],
+  "tier2_widening_queue": [
+    {
+      "id": "k8s-014-mcq-1",
+      "distractor": "distractor_2",
+      "from_tier": "T1.2",
+      "reason": "'Env vars are limited to 32 entries per pod' — specific fabricated number (Stephen 2026-06-02, same class as Istio-450ms). Replace with a real env-var-discovery misconception. Stem already reframed in T1.2 (D resolved); flagged-mcqs.json reclassified D_definition -> A_fabricated so T2.1's query picks it up.",
+      "note": "Widens T2.1 beyond the original 11 A-only MCQs (in addition to the 12 rebaseline fabrications already noted).",
+      "status": "ACTIONED in T2.1"
+    },
+    {
+      "id": "git-001-mcq-1",
+      "from_tier": "T1.5",
+      "distractor": "distractor_2 (and review all three)",
+      "reason": "All three distractors are false, so \"strongest reason\" over-promises and distractor_2 (\"rebase impossible in CI/CD\") is filler. Tier-2 distractor-strengthening: replace with a real-but-weaker legitimate reason (e.g. linear history / fewer integration points) so \"strongest\" becomes load-bearing.",
+      "note": "Stephen 2026-06-03. No action now; first-class Tier-2 distractor-review candidate. Stem stays as the confirmed Tier-1 reframe.",
+      "status": "ACTIONED in T2.1"
+    }
+  ],
+  "heuristic_fp_classes": {
+    "pilot_byte_identical": {
+      "rule": "Any bank MCQ byte-identical to a phase2-pilot/pilot.json exemplar (question + options + explanation) auto-clears as a heuristic false positive — it IS the bar by definition. Never reframe or reauthor it.",
+      "established_date": "2026-06-02",
+      "established_by": "Stephen, at T1.1 checkpoint",
+      "detection": "interview-questions-runner/scripts/pilot_dupe_check.py (now a per-batch pre-flight step)",
+      "cleared_ids": [
+        "aws-026-mcq-1",
+        "cicd-020-mcq-1",
+        "k8s-010-mcq-1"
+      ],
+      "cleared_detail": {
+        "aws-026-mcq-1": "was D_definition; in the T1.1 slice; pilot exemplar.",
+        "cicd-020-mcq-1": "was C_never_correct (correct option starts with 'No long-lived credential...' -> regex matched 'No'); pilot exemplar; would have been mis-handled in T1.3.",
+        "k8s-010-mcq-1": "was D_definition; pilot exemplar; would have been in the T1.2 K8s slice (now 18->17)."
+      }
+    },
+    "suspect_real_identifier_introduced": {
+      "rule": "A Tier-2 swap-in may re-trip a suspect pattern when it legitimately contains a REAL identifier (endpoint, audience, key). Real identifiers are not fabrications; record as FP, do not rework.",
+      "established_date": "2026-06-03",
+      "established_by": "T2.1 audit_suspect diff",
+      "cleared_ids": {
+        "cicd-020-mcq-2/distractor_2": "sts.amazonaws.com is the real default GitHub-OIDC audience; the aud-vs-sub misconception is at-bar. specific-domain-path FP, same class as aws:MultiFactorAuthPresent."
+      }
+    }
+  },
+  "flagged_total_after_t1_1": {
+    "value": 135,
+    "math": "138 - 3 pilot_byte_identical FPs cleared (aws-026-mcq-1, cicd-020-mcq-1, k8s-010-mcq-1) = 135. The 15 reframed + aws-021 dropout remain 'resolved-in-place' but stay accounted; aws-021 still flagged pending its Tier-3 reauthor.",
+    "note": "flagged-mcqs.json now holds 135 entries."
+  },
+  "tier3_absorption_queue": [
+    {
+      "id": "aws-021-mcq-1",
+      "from_tier": "T1.1",
+      "work": "full positive reauthor ('best fit for Spot' with poor-fit distractors); 'worst candidate' = structural NOT-stem",
+      "cluster": "superlative_not_stem"
+    },
+    {
+      "id": "k8s-020-mcq-1",
+      "from_tier": "T1.2",
+      "work": "option-balance pass only — stem already reframed; rebalance one-word correct vs verbose distractors so length isn't a tell. flagged-mcqs.json reclassified D_definition -> B_structural_option_balance. NOTE: domain-based T3 query would route this to T3.1 (kubernetes); Stephen assigned it to T3.2 — honor this queue.",
+      "cluster": "option_balance"
+    },
+    {
+      "id": "cicd-001-mcq-1",
+      "from_tier": "T1.3",
+      "work": "full reauthor as applied/scenario-classification — rewrite options from abstract CD-vs-CDep definition-pairs into scenario-classification choices so the manual-approval-gate setup actually pays off. Keyed answer + distractor misconceptions are sound; the inertness is in the OPTIONS, not the stem, so a mechanism-only stem reword does not fix it.",
+      "ruling": "Stephen 2026-06-02 — Tier-1 insufficient; definitional-distinction answered on recall (Chekhov-gun scenario).",
+      "cluster": "compare_definition_pair"
+    },
+    {
+      "id": "tf-012-mcq-2",
+      "from_tier": "T1.4",
+      "work": "full Tier-3 rewrite: rebuild the four options from comparative definition-pairs (state mv vs import) into scenario-classifications so the reasoning is load-bearing — e.g. for an already-managed resource being moved, import is the wrong tool; correct = state mv. Keep the strong move-into-module scenario as the stem.",
+      "ruling": "Stephen 2026-06-03 — Bucket 2; cicd-001 signature (abstract-comparison ask + definition-pair options, scenario severable).",
+      "cluster": "compare_definition_pair"
+    },
+    {
+      "id": "docker-001-mcq-1",
+      "from_tier": "T1.5",
+      "cluster": "compare_definition_pair",
+      "work": "full Tier-3 rewrite: rebuild the definition-pair options into scenario-classifications so reasoning is load-bearing.",
+      "ruling": "Stephen 2026-06-03 — triaged at read-back; compare ask (containers vs VMs isolation) + definition-pair options"
+    },
+    {
+      "id": "docker-007-mcq-1",
+      "from_tier": "T1.5",
+      "cluster": "compare_definition_pair",
+      "work": "full Tier-3 rewrite: rebuild the definition-pair options into scenario-classifications so reasoning is load-bearing.",
+      "ruling": "Stephen 2026-06-03 — triaged at read-back; Compare named volumes vs bind mounts + definition-pair options"
+    },
+    {
+      "id": "git-003-mcq-1",
+      "from_tier": "T1.5",
+      "cluster": "compare_definition_pair",
+      "work": "full Tier-3 rewrite: rebuild the definition-pair options into scenario-classifications so reasoning is load-bearing.",
+      "ruling": "Stephen 2026-06-03 — triaged at read-back; difference between git clone vs GitHub fork + definition-pair options"
+    },
+    {
+      "id": "docker-002-mcq-2",
+      "from_tier": "T2.1",
+      "cluster": "multi_flag_a_plus_d",
+      "work": "whole-item Tier-3 rewrite: carries BOTH an unresolved D_definition stem and an A_fabricated distractor; fix stem + distractor together.",
+      "ruling": "Stephen 2026-06-03 (T2.1 read-back) -- defer to Tier-3; new cluster so not orphaned."
+    },
+    {
+      "id": "docker-009-mcq-2",
+      "from_tier": "T2.1",
+      "cluster": "multi_flag_a_plus_d",
+      "work": "whole-item Tier-3 rewrite: carries BOTH an unresolved D_definition stem and an A_fabricated distractor; fix stem + distractor together.",
+      "ruling": "Stephen 2026-06-03 (T2.1 read-back) -- defer to Tier-3; new cluster so not orphaned."
+    },
+    {
+      "id": "k8s-001-mcq-2",
+      "from_tier": "T2.1",
+      "cluster": "multi_flag_a_plus_d",
+      "work": "whole-item Tier-3 rewrite: carries BOTH an unresolved D_definition stem and an A_fabricated distractor; fix stem + distractor together.",
+      "ruling": "Stephen 2026-06-03 (T2.1 read-back) -- defer to Tier-3; new cluster so not orphaned."
+    },
+    {
+      "id": "k8s-011-mcq-1",
+      "from_tier": "T2.1",
+      "cluster": "multi_flag_a_plus_d",
+      "work": "whole-item Tier-3 rewrite: carries BOTH an unresolved D_definition stem and an A_fabricated distractor; fix stem + distractor together.",
+      "ruling": "Stephen 2026-06-03 (T2.1 read-back) -- defer to Tier-3; new cluster so not orphaned."
+    },
+    {
+      "id": "k8s-021-mcq-2",
+      "from_tier": "T2.1",
+      "cluster": "multi_flag_a_plus_d",
+      "work": "whole-item Tier-3 rewrite: carries BOTH an unresolved D_definition stem and an A_fabricated distractor; fix stem + distractor together.",
+      "ruling": "Stephen 2026-06-03 (T2.1 read-back) -- defer to Tier-3; new cluster so not orphaned."
+    },
+    {
+      "id": "k8s-041-mcq-2",
+      "from_tier": "T2.1",
+      "cluster": "multi_flag_a_plus_d",
+      "work": "whole-item Tier-3 rewrite: carries BOTH an unresolved D_definition stem and an A_fabricated distractor; fix stem + distractor together.",
+      "ruling": "Stephen 2026-06-03 (T2.1 read-back) -- defer to Tier-3; new cluster so not orphaned."
+    },
+    {
+      "id": "tf-005-mcq-1",
+      "from_tier": "T2.1",
+      "cluster": "multi_flag_a_plus_d",
+      "work": "whole-item Tier-3 rewrite: carries BOTH an unresolved D_definition stem and an A_fabricated distractor; fix stem + distractor together.",
+      "ruling": "Stephen 2026-06-03 (T2.1 read-back) -- defer to Tier-3; new cluster so not orphaned."
+    },
+    {
+      "id": "tf-009-mcq-1",
+      "from_tier": "T2.1",
+      "cluster": "multi_flag_a_plus_d",
+      "work": "whole-item Tier-3 rewrite: carries BOTH an unresolved D_definition stem and an A_fabricated distractor; fix stem + distractor together.",
+      "ruling": "Stephen 2026-06-03 (T2.1 read-back) -- defer to Tier-3; new cluster so not orphaned."
+    },
+    {
+      "id": "aws-022-mcq-1",
+      "from_tier": "T2.1",
+      "cluster": "superlative_not_stem",
+      "work": "full positive reauthor: WORST-fit stem -> best-fit (inverts keying, reshuffles options); replace the fabricated Fargate 15-min-timeout distractor as part of the whole-item reauthor.",
+      "ruling": "Stephen B1 2026-06-03 -- T2.1 swap reverted; same superlative cluster as aws-021."
+    }
+  ],
+  "running_totals": {
+    "tier1_batches_done": 5,
+    "tier1_dropouts_to_tier3": 6,
+    "tier1_attempted_so_far": 92,
+    "tier1_reframed_so_far": 86,
+    "tier1_dropout_rate_pct": 6.52,
+    "tier1_5_microedits": 1,
+    "pilot_fps_cleared": 3,
+    "tier1_borderline_approved_at_bar": 1,
+    "tier1_distractors_queued_for_tier2": 1,
+    "tier3_absorption_queue_size": 16,
+    "tier2_fabrications_caught": 26,
+    "tier3_full_rewrites": 27,
+    "total_audit_reflags": 0,
+    "tier1_intentional_recall_exempt": 0,
+    "tier1_complete": true,
+    "tier1_dropout_subcounts": {
+      "triaged_at_readback": 3,
+      "authored_then_dropped": 3
+    },
+    "tier1_dropout_status": "FINAL — git-001-mcq-1 confirmed Tier-1; dropout 6/92 = 6.52% (triaged 3 / authored-dropped 3).",
+    "judgment_superlative_stayed_tier1": [
+      "k8s-014-mcq-1",
+      "cicd-051-mcq-1",
+      "cicd-051-mcq-2",
+      "git-002-mcq-1",
+      "git-001-mcq-1"
+    ],
+    "tier2_batches_done": 1,
+    "tier2_distractors_rewritten_total": 30,
+    "tier2_verify_no_change": 1,
+    "tier2_dropped_to_tier3": 1,
+    "tier2_widening_actioned": [
+      "k8s-014-mcq-1",
+      "git-001-mcq-1",
+      "git-003-mcq-2/d3",
+      "k8s-031-mcq-2/d3"
+    ],
+    "tier3_batches_done": 2,
+    "tier3_dropouts": 0,
+    "tier3_suspect_fps_recorded": 8,
+    "tier3_absorption_queue_landed_in_t3_1": 3,
+    "tier3_option_balance": 1,
+    "tier3_items_total": 28,
+    "tier3_complete": true,
+    "phase4_complete": true
+  },
+  "detector_coverage_gaps": [
+    {
+      "id": "k8s-031-mcq-2/distractor_3",
+      "noted": "T2.1 (Stephen B3)",
+      "gap": "audit/flagged-mcqs named only d1 (invented ExternalSecretsViewer ClusterRole); d3 also fabricated a named identifier (eks.amazonaws.com/secret-source annotation) but was not flagged. Swapped as a widening."
+    }
+  ],
+  "tier3_reslice": {
+    "status": "LOCKED (Stephen 2026-06-03)",
+    "universe": 28,
+    "derivation": "PLAN structural query (21) UNION absorption queue (16) = 28 unique. 9 overlap (8 multi_flag_a_plus_d + k8s-020); 7 dropouts/deferrals not in struct-query (aws-021, aws-022, cicd-001, tf-012, docker-001, docker-007, git-003-mcq-1).",
+    "split": "15 / 13 (rebalanced from PLAN 13/8 to absorb the 7 dropouts + slot git-003-mcq-1 which has no domain home in the PLAN slices)",
+    "assignments": {
+      "k8s-020-mcq-1": "T3.2 (honors prior Stephen assignment; option-balance is domain-light)",
+      "git-003-mcq-1": "T3.2 (with the compare-pair cluster; Git rode with Docker in T1.5)"
+    },
+    "sequence_rule": "Within each batch, author by rewrite-pattern cluster as a run (compare-pairs, then superlatives, then multi-flag A+D, then plain structural) so pattern application stays consistent across the domain-mixed batch.",
+    "cross_tier_distinctness": "Source-distinctness check runs CROSS-TIER against FINALIZED siblings, not just in-batch. Specifically git-003-mcq-1 (T3.2 reauthor) must test a distinct facet from the already-committed git-003-mcq-2 (T2.1, c2a9bfd). Generally: every reauthor checks its same-source_id sibling wherever that sibling now lives.",
+    "T3_1": {
+      "count": 15,
+      "compare_definition_pair": [
+        "cicd-001-mcq-1"
+      ],
+      "superlative_not_stem": [
+        "aws-021-mcq-1",
+        "aws-022-mcq-1"
+      ],
+      "multi_flag_a_plus_d": [
+        "k8s-001-mcq-2",
+        "k8s-011-mcq-1",
+        "k8s-021-mcq-2",
+        "k8s-041-mcq-2"
+      ],
+      "plain_structural": [
+        "aws-005-mcq-2",
+        "aws-007-mcq-1",
+        "aws-010-mcq-2",
+        "aws-027-mcq-2",
+        "cicd-010-mcq-1",
+        "cicd-040-mcq-1",
+        "cicd-050-mcq-2",
+        "k8s-023-mcq-1"
+      ]
+    },
+    "T3_2": {
+      "count": 13,
+      "compare_definition_pair": [
+        "tf-012-mcq-2",
+        "docker-001-mcq-1",
+        "docker-007-mcq-1",
+        "git-003-mcq-1"
+      ],
+      "option_balance": [
+        "k8s-020-mcq-1"
+      ],
+      "multi_flag_a_plus_d": [
+        "tf-005-mcq-1",
+        "tf-009-mcq-1",
+        "docker-002-mcq-2",
+        "docker-009-mcq-2"
+      ],
+      "plain_structural": [
+        "tf-004-mcq-1",
+        "tf-010-mcq-1",
+        "docker-003-mcq-2",
+        "linux-003-mcq-1"
+      ]
+    }
+  },
+  "phase4_final": {
+    "report": "interview-questions-runner/phase4-rewrite/final-report.md",
+    "date": "2026-06-03",
+    "flagged_resolved": "135 originally-flagged -> 0 residual structural flags",
+    "bank_size": 208,
+    "items_cut": 0,
+    "reaudit_clean_state": {
+      "audit_flags": 3,
+      "audit_flags_note": "all 3 are pilot exemplars (aws-026-mcq-1, cicd-020-mcq-1, k8s-010-mcq-1); byte-identical to pilot.json and flags match baseline-snapshot.json -> at-bar FPs, not regressions",
+      "validate": "OK (banks 1/2/3, 0 errors)",
+      "audit_suspect_distinct_mcqs": 62,
+      "audit_suspect_note": "fabrication-PRONE pattern net for manual review; reviewed -> residuals are real misconceptions / recorded FPs"
+    },
+    "tier_totals": {
+      "tier1_reframes": 86,
+      "tier2_swap_items": 23,
+      "tier2_distractors_swapped": 30,
+      "tier3_items": 28
+    },
+    "fp_ledger": {
+      "pilot_exemplar": 3,
+      "tier2_verify_no_change": 1,
+      "tier3_suspect": 8
+    },
+    "length_tell_decision": "Accept the Tier-3 soft residual (92.9% correct-is-longest); the integrity bar is the giveaway threshold and Tier-3 trips=0. No parity pass (Stephen 2026-06-03). 18 trips elsewhere are pre-existing original-author tells in untouched options.",
+    "pr_readiness": "All Phase-4 commits on origin; banks validate; reconciliation clean. PR NOT opened or merged — held for Stephen."
+  }
+}

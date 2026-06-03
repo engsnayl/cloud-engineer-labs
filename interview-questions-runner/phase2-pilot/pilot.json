@@ -1,0 +1,172 @@
+[
+  {
+    "id": "aws-002-mcq-2",
+    "source_id": "aws-002",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "high",
+    "difficulty": "easy",
+    "bank": 2,
+    "question": "An EC2 instance in a private subnet needs to pull OS package updates from the public internet. The subnet must not accept any inbound connections from the internet. What setup achieves this?",
+    "options": {
+      "correct": "A NAT Gateway placed in a public subnet, with a route from the private subnet's route table sending 0.0.0.0/0 to the NAT Gateway",
+      "distractor_1": "An Internet Gateway attached to the VPC, with a route from the private subnet's route table sending 0.0.0.0/0 to the Internet Gateway",
+      "distractor_2": "A NAT Gateway placed in the private subnet itself, with a route to the VPC's Internet Gateway",
+      "distractor_3": "A VPC Gateway Endpoint for EC2, with a route from the private subnet's route table to the endpoint"
+    },
+    "explanation": "A NAT Gateway sits in a public subnet (which has the IGW route) and translates outbound traffic from private-subnet workloads, with no inbound from the internet. Distractor 1 confuses 'needs internet' with 'needs IGW route' — adding 0.0.0.0/0 to IGW in the private subnet makes it public and exposes the instance to inbound. Distractor 2 puts the NAT in the wrong subnet; a NAT GW in a private subnet has no IGW route itself and cannot reach the internet. Distractor 3 invokes a real feature (VPC endpoints) for the wrong purpose — endpoints reach specific AWS services like S3, not the public internet."
+  },
+  {
+    "id": "aws-003-mcq-1",
+    "source_id": "aws-003",
+    "domain": "aws",
+    "subdomain": "networking",
+    "priority": "critical",
+    "difficulty": "easy",
+    "bank": 1,
+    "question": "An EC2 instance has a Security Group that allows inbound TCP/443 from 0.0.0.0/0. The NACL on its subnet allows inbound TCP/443 from 0.0.0.0/0 but has no outbound rules other than the default explicit deny. A client opens an HTTPS connection. What happens?",
+    "options": {
+      "correct": "The SYN-ACK reply is dropped on egress at the NACL — NACLs are stateless and need an explicit outbound rule on ephemeral ports",
+      "distractor_1": "The connection succeeds because the Security Group is stateful and automatically permits the corresponding outbound return traffic at both the SG and NACL layers",
+      "distractor_2": "The inbound SYN is dropped at the subnet because NACLs require an outbound rule before evaluating any inbound traffic",
+      "distractor_3": "The connection succeeds because AWS implicitly allows ephemeral-port return traffic at the subnet level once an inbound rule has matched"
+    },
+    "explanation": "NACLs evaluate each direction independently and have no notion of established connections — return traffic on ephemeral ports must be explicitly allowed outbound. The SG (stateful) does permit the reply, but the NACL drops it first. Distractor 1 misattributes the SG's statefulness to the NACL. Distractor 2 inverts the failure direction — NACLs evaluate inbound and outbound separately, so inbound succeeds and outbound is where this connection actually dies. Distractor 3 invents an implicit-allow that doesn't exist; NACLs default to explicit deny on anything not matched."
+  },
+  {
+    "id": "aws-026-mcq-1",
+    "source_id": "aws-026",
+    "domain": "aws",
+    "subdomain": "iam",
+    "priority": "critical",
+    "difficulty": "easy",
+    "bank": 1,
+    "question": "A Python service running on an EC2 instance needs to read objects from an S3 bucket. Which approach grants access using AWS best practice?",
+    "options": {
+      "correct": "Attach an IAM role to the EC2 instance with the needed S3 permissions; the SDK retrieves temporary credentials from IMDSv2",
+      "distractor_1": "Create an IAM user with the required S3 permissions, generate an access key, and place it in ~/.aws/credentials on the instance",
+      "distractor_2": "Create an IAM user, generate an access key, and store it as a Kubernetes-style environment variable in the instance's user data",
+      "distractor_3": "Add a Security Group rule on the EC2 instance permitting outbound traffic to the S3 service so the instance can reach the bucket"
+    },
+    "explanation": "IAM roles are designed for workload identity: EC2 retrieves short-lived, auto-rotating credentials via IMDSv2, so no secret sits on the host. Distractor 1 uses a static access key, which has no rotation and lands as plain text on the instance — a common path to credential leaks. Distractor 2 just moves the same long-lived key into user data, which is even worse (visible to anyone with describe-instance permissions). Distractor 3 confuses network-layer reachability with IAM authorization; opening an SG to S3 doesn't grant any S3 permissions. VPC endpoints help with reachability but still require IAM."
+  },
+  {
+    "id": "k8s-001-mcq-1",
+    "source_id": "k8s-001",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "critical",
+    "difficulty": "easy",
+    "bank": 1,
+    "question": "During a rolling update, you observe two ReplicaSets owned by the same Deployment: an old RS at 2 replicas and a new RS at 1 replica. Which controller is actively driving this in-progress state?",
+    "options": {
+      "correct": "The Deployment controller — it owns both ReplicaSets and drives the scale-up and scale-down per the rollout strategy",
+      "distractor_1": "The new ReplicaSet — once created it takes ownership of the old ReplicaSet's pods and terminates them on its own schedule",
+      "distractor_2": "The pods themselves — each pod watches the Deployment spec and self-coordinates the order of replacement",
+      "distractor_3": "The kube-scheduler — it manages ReplicaSet transitions during rollouts as part of scheduling new pods"
+    },
+    "explanation": "The Deployment controller orchestrates rolling updates: it creates a new ReplicaSet, scales it up, and scales the old one down per the rollout strategy. A ReplicaSet only maintains its own pod count — it doesn't know about sibling ReplicaSets. Distractor 1 puts orchestration in the wrong place; the new RS just owns its own pods. Distractor 2 imagines a peer-to-peer model that doesn't exist — Kubernetes is hierarchical (Deployment → ReplicaSet → Pod). Distractor 3 confuses the scheduler (decides which node a pod runs on) with workload controllers (decide what should exist)."
+  },
+  {
+    "id": "k8s-005-mcq-2",
+    "source_id": "k8s-005",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "A pod has cpu requests: 100m, limits: 200m and memory requests: 128Mi, limits: 128Mi. Which QoS class does Kubernetes assign it?",
+    "options": {
+      "correct": "Burstable — because at least one resource (CPU here) has its request and limit set to different values",
+      "distractor_1": "Burstable — because CPU has different request and limit values, but only the CPU side is evaluated for QoS class assignment",
+      "distractor_2": "Guaranteed — because every resource has both a request and a limit explicitly set",
+      "distractor_3": "BestEffort — because the limits are low enough that the kubelet treats the pod as opportunistic"
+    },
+    "explanation": "Guaranteed requires every container to have requests equal to limits for both CPU and memory; here CPU 100m vs 200m breaks that, so the pod falls to Burstable. Distractor 1 lands on the right class for the wrong reason — QoS evaluates CPU and memory together, not the CPU side in isolation. Distractor 2 conflates 'requests and limits set' with 'requests equal limits' — having both isn't enough. Distractor 3 misuses BestEffort, which applies only when no requests or limits are set anywhere. QoS class drives eviction order under node memory pressure (BestEffort first, then Burstable, Guaranteed last), so it matters in production."
+  },
+  {
+    "id": "k8s-010-mcq-1",
+    "source_id": "k8s-010",
+    "domain": "kubernetes",
+    "subdomain": "networking",
+    "priority": "critical",
+    "difficulty": "easy",
+    "bank": 2,
+    "question": "A backend microservice will only be called by other services running in the same Kubernetes cluster. It should not be reachable from anywhere outside the cluster. Which Service type is correct?",
+    "options": {
+      "correct": "ClusterIP — exposes the service on an internal virtual IP reachable only from within the cluster",
+      "distractor_1": "NodePort — required for service discovery between pods because it opens a stable port on every node",
+      "distractor_2": "LoadBalancer — provisions an internal-only cloud load balancer by default when no annotation is set",
+      "distractor_3": "ExternalName — creates a CNAME alias inside cluster DNS so other pods can resolve and reach the service"
+    },
+    "explanation": "ClusterIP is the default Service type and the right choice for in-cluster-only traffic: pods resolve and reach the service via cluster DNS over the virtual IP. Distractor 1 misattributes a role to NodePort; it's used to expose a service externally on each node and is unnecessary (and a needless attack surface) for internal traffic. Distractor 2 reverses the LoadBalancer default — it provisions an externally-exposed cloud LB unless explicitly annotated internal-only. Distractor 3 misuses ExternalName, which maps a cluster DNS name to an external host (the reverse of what's needed)."
+  },
+  {
+    "id": "tf-002-mcq-2",
+    "source_id": "tf-002",
+    "domain": "terraform",
+    "subdomain": "state",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Your Terraform configuration creates an RDS instance and supplies the master password through a variable. The variable is declared with sensitive = true, and state is stored in S3 with versioning enabled. What is the security implication?",
+    "options": {
+      "correct": "The password is written to the state file in cleartext; sensitive = true only masks CLI output",
+      "distractor_1": "The password is encrypted at rest in the state file by Terraform because the variable is marked sensitive",
+      "distractor_2": "The password is hashed in the state file using an envelope key derived from the DynamoDB state lock entry for the workspace",
+      "distractor_3": "The password is held in provider memory during apply and does not persist to the state file once the run completes"
+    },
+    "explanation": "Terraform persists every resource attribute to state as plain JSON, including secrets. The sensitive flag only masks values in plan/apply output and shows '(sensitive value)' in the CLI — it has no effect on the file contents. Protections are external: SSE-KMS on the S3 bucket, least-privilege IAM on the bucket, and fetching secrets at apply time via Secrets Manager data sources rather than passing them in. Distractor 1 conflates display masking with encryption. Distractor 2 invents a hashing scheme tied to DynamoDB that doesn't exist. Distractor 3 represents the wishful candidate model; state IS the database of resource attributes."
+  },
+  {
+    "id": "tf-011-mcq-1",
+    "source_id": "tf-011",
+    "domain": "terraform",
+    "subdomain": "configuration",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "You manage 5 AWS IAM users with `resource \"aws_iam_user\" \"team\" { count = length(var.usernames) ... }`, where var.usernames is a list. You remove the username at index 2 from the list and run terraform apply. What happens?",
+    "options": {
+      "correct": "Terraform recreates the IAM users at indices 2, 3, and 4 because count addresses by position — the resource at team[2] now refers to a different username, so Terraform destroys the old one and creates a new one in its place",
+      "distractor_1": "Terraform destroys only the IAM user at index 2 and leaves the remaining users untouched in place",
+      "distractor_2": "Terraform refuses to apply because count cannot shrink after the first apply without a terraform state mv first",
+      "distractor_3": "Terraform destroys the IAM user at index 4 since count drops from 5 to 4, treating the change as a tail removal"
+    },
+    "explanation": "The correct option spells out why count's positional addressing causes the cascade. Distractor 1 assumes Terraform tracks identity (the username) rather than address (the index). Distractor 2 invents a count-can't-shrink constraint that doesn't exist. Distractor 3 assumes tail-removal semantics — natural-sounding, but count doesn't behave that way. The fix is to switch to for_each with a set or map keyed on the username, so each address (team[\"alice\"]) stays stable across list edits. For IAM specifically the recreation is destructive: access keys, MFA devices, and group memberships rebuild from scratch."
+  },
+  {
+    "id": "cicd-020-mcq-1",
+    "source_id": "cicd-020",
+    "domain": "cicd",
+    "subdomain": "aws-integration",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Your team is migrating GitHub Actions deployments from static AWS IAM access keys (stored as repository secrets) to OIDC federation with sts:AssumeRoleWithWebIdentity. Which statement most accurately captures the security improvement?",
+    "options": {
+      "correct": "No long-lived credential is stored; each run exchanges a short-lived GitHub token for a temporary STS session",
+      "distractor_1": "The IAM access key is encrypted in transit between GitHub and AWS instead of being sent in plaintext as before",
+      "distractor_2": "Every AWS API call from the workflow now requires MFA, which static access keys could not enforce",
+      "distractor_3": "The IAM access key is automatically rotated every 24 hours by GitHub instead of remaining valid until manually rotated"
+    },
+    "explanation": "OIDC federation removes the stored secret entirely: the workflow presents a GitHub-signed JWT to STS and receives a temporary session keyed to that run. Distractor 1 misidentifies the threat — TLS already protected keys in transit; the gap was the stored secret itself. Distractor 2 invents an MFA tie-in OIDC doesn't provide; OIDC trust policies can restrict by sub claim (branch, environment, repo), but MFA is a separate IAM concept. Distractor 3 reduces 'no key at all' to 'rotated often,' which misses the point — there is no key to rotate."
+  },
+  {
+    "id": "cicd-030-mcq-1",
+    "source_id": "cicd-030",
+    "domain": "cicd",
+    "subdomain": "deployment-strategies",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "A team is deploying a new version of a stateless API behind an ALB. They want to keep blast radius small if the release is bad (limit how many users hit it) and are willing to run extra infrastructure during the rollout. Which strategy fits best?",
+    "options": {
+      "correct": "Canary — shift a small percentage of traffic to the new version, monitor, and progressively widen the split if healthy",
+      "distractor_1": "Rolling update — replace instances one at a time so the service stays available, with no extra infrastructure required",
+      "distractor_2": "Blue-green — keep the old version live until the new version is fully warmed up, then cut all traffic over in a single switch",
+      "distractor_3": "Recreate — terminate the old version, then deploy the new version, minimising the overlap window and extra infrastructure"
+    },
+    "explanation": "Canary progressively exposes users to the new version (1% → 10% → 50% → 100%), so a bad release affects only a fraction of traffic before it's caught and rolled back. Distractor 1 reduces deployment risk by avoiding full outage, but each replaced instance still serves 100% of its routed traffic — there's no blast-radius limiting by percentage. Distractor 2 is fast to roll back and uses extra infrastructure, but the cutover is all-or-nothing — every user hits the new version at once. Distractor 3 produces a hard outage window, the opposite of what's wanted. Canary requires traffic-splitting (weighted target groups or a service mesh)."
+  }
+]

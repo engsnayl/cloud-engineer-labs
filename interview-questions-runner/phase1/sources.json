@@ -1,0 +1,1643 @@
+[
+  {
+    "id": "aws-001",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Architecture",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "Design a highly available, scalable multi-tier application on AWS",
+    "concepts": [
+      "Multi-tier architecture separation (web, app, data)",
+      "VPC design with public and private subnets across AZs",
+      "Load balancing strategy and placement",
+      "Database high availability (Multi-AZ, read replicas)",
+      "Defence-in-depth security layering"
+    ]
+  },
+  {
+    "id": "aws-002",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Networking",
+    "priority": "high",
+    "difficulty": "easy",
+    "stem": "What's the difference between a public and private subnet, and when do you use each?",
+    "concepts": [
+      "Route table behaviour as the actual differentiator",
+      "Internet Gateway vs NAT Gateway role",
+      "Practical workload placement",
+      "Common architecture patterns"
+    ]
+  },
+  {
+    "id": "aws-003",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Networking",
+    "priority": "critical",
+    "difficulty": "easy",
+    "stem": "What's the difference between NACLs and Security Groups, and when would you use each?",
+    "concepts": [
+      "Stateful vs stateless firewalling",
+      "VPC layered security model",
+      "Practical placement of each control",
+      "Default behaviours"
+    ]
+  },
+  {
+    "id": "aws-005",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Databases",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Explain the difference between RDS Multi-AZ and Read Replicas \u2014 when do you use each?",
+    "concepts": [
+      "High availability vs read scaling \u2014 different problems",
+      "Synchronous vs asynchronous replication",
+      "Failover behaviour",
+      "Cost and architectural trade-offs"
+    ]
+  },
+  {
+    "id": "aws-007",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Architecture",
+    "priority": "high",
+    "difficulty": "hard",
+    "stem": "Design a disaster recovery strategy for an e-commerce site that can't have downtime but needs to be cost-effective",
+    "concepts": [
+      "The four standard DR strategies and their trade-offs",
+      "RTO/RPO terminology",
+      "Cost vs availability balancing",
+      "Multi-region patterns and pitfalls"
+    ]
+  },
+  {
+    "id": "aws-008",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Storage",
+    "priority": "medium",
+    "difficulty": "easy",
+    "stem": "Walk me through S3 storage classes and when you'd use lifecycle policies",
+    "concepts": [
+      "S3 storage class trade-offs (cost vs access latency)",
+      "Lifecycle policy mechanics",
+      "Cost optimisation through tiering",
+      "Retrieval cost awareness"
+    ]
+  },
+  {
+    "id": "aws-009",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Storage",
+    "priority": "medium",
+    "difficulty": "easy",
+    "stem": "Compare EBS, EFS, and FSx \u2014 when do you use each?",
+    "concepts": [
+      "Storage type fundamentals (block vs file vs object)",
+      "Single-attach vs multi-attach access patterns",
+      "Performance characteristics",
+      "Use case fit"
+    ]
+  },
+  {
+    "id": "aws-010",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Storage",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "How do you secure an S3 bucket? Walk me through the layers",
+    "concepts": [
+      "Defence-in-depth thinking",
+      "Bucket policy vs IAM policy interaction",
+      "Encryption options",
+      "Practical security operational concerns"
+    ]
+  },
+  {
+    "id": "aws-012",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Networking",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Walk me through the AWS load balancer types \u2014 which have you used and what are the others for?",
+    "concepts": [
+      "ALB vs NLB vs GWLB use cases",
+      "OSI layer awareness",
+      "Real-world placement decisions",
+      "Trade-offs (latency, features, cost)"
+    ]
+  },
+  {
+    "id": "aws-013",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "What is connection draining (deregistration delay) and why does it matter?",
+    "concepts": [
+      "Graceful shutdown patterns",
+      "ALB target lifecycle",
+      "Practical impact on deployments and scaling"
+    ]
+  },
+  {
+    "id": "aws-014",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Networking",
+    "priority": "high",
+    "difficulty": "easy",
+    "stem": "Explain Internet Gateway, NAT Gateway, and NAT Instance \u2014 when do you use each?",
+    "concepts": [
+      "Inbound vs outbound internet access",
+      "Managed vs self-managed services",
+      "Cost implications",
+      "Practical placement"
+    ]
+  },
+  {
+    "id": "aws-015",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Networking",
+    "priority": "high",
+    "difficulty": "hard",
+    "stem": "How do you connect VPCs together? Compare VPC Peering, Transit Gateway, and PrivateLink",
+    "concepts": [
+      "Multi-VPC connectivity patterns",
+      "Scaling characteristics of each option",
+      "Trade-offs in cost, complexity, and access control",
+      "When each is appropriate"
+    ]
+  },
+  {
+    "id": "aws-016",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "Walk me through Route 53 routing policies \u2014 when do you use each?",
+    "concepts": [
+      "DNS-based traffic management",
+      "Failover and multi-region patterns",
+      "Health check integration",
+      "Practical use cases"
+    ]
+  },
+  {
+    "id": "aws-017",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Networking",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Explain VPC endpoints \u2014 Gateway vs Interface, and when do you use them?",
+    "concepts": [
+      "Private connectivity to AWS services",
+      "Cost optimisation via NAT avoidance",
+      "Security via keeping traffic off the public internet",
+      "Differences between endpoint types"
+    ]
+  },
+  {
+    "id": "aws-019",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Compute",
+    "priority": "medium",
+    "difficulty": "easy",
+    "stem": "How do you choose an EC2 instance type for a workload?",
+    "concepts": [
+      "Understanding of instance family naming",
+      "Workload-to-resource matching",
+      "Right-sizing methodology",
+      "Cost vs performance trade-offs"
+    ]
+  },
+  {
+    "id": "aws-020",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Compute",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Walk me through Auto Scaling Group strategies \u2014 target tracking, step scaling, scheduled scaling",
+    "concepts": [
+      "Auto-scaling decision logic",
+      "Metric selection",
+      "Practical use cases",
+      "Cooldowns and scaling protection"
+    ]
+  },
+  {
+    "id": "aws-021",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Cost",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Compare Spot, On-Demand, Reserved Instances, and Savings Plans \u2014 when do you use each?",
+    "concepts": [
+      "Pricing model trade-offs",
+      "Workload characteristics that drive pricing choice",
+      "Practical cost optimisation",
+      "Risk management"
+    ]
+  },
+  {
+    "id": "aws-022",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Compute",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "When would you choose ECS vs EKS vs Lambda for a workload?",
+    "concepts": [
+      "Trade-offs between container orchestration options",
+      "Operational overhead and cost considerations",
+      "When serverless is the right answer",
+      "Practical workload-fit reasoning"
+    ]
+  },
+  {
+    "id": "aws-024",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Cost",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Your AWS bill needs to come down by 30%. Walk me through your approach",
+    "concepts": [
+      "Systematic cost analysis methodology",
+      "Knowledge of cost levers across compute, storage, networking",
+      "Understanding of pricing models (RI, Savings Plans, Spot)",
+      "Practical operational changes vs architectural changes"
+    ]
+  },
+  {
+    "id": "aws-026",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "IAM",
+    "priority": "critical",
+    "difficulty": "easy",
+    "stem": "Explain IAM users, groups, and roles \u2014 when do you use each?",
+    "concepts": [
+      "Identity vs entity distinction",
+      "Long-term credentials vs temporary credentials",
+      "Best practices for human and service access",
+      "Federation patterns"
+    ]
+  },
+  {
+    "id": "aws-027",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "IAM",
+    "priority": "medium",
+    "difficulty": "easy",
+    "stem": "Explain AWS managed, customer managed, and inline IAM policies \u2014 when do you use each?",
+    "concepts": [
+      "Policy types and their lifecycles",
+      "Reusability vs specificity",
+      "Best practices for managing permissions at scale"
+    ]
+  },
+  {
+    "id": "aws-028",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "IAM",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "How do you set up cross-account access in AWS?",
+    "concepts": [
+      "Multi-account architecture awareness",
+      "Trust policies and permission policies",
+      "Practical patterns for shared resources",
+      "AWS Organizations integration"
+    ]
+  },
+  {
+    "id": "aws-029",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Security",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Compare Secrets Manager and Parameter Store \u2014 when do you use each?",
+    "concepts": [
+      "Secret management options on AWS",
+      "Cost vs feature trade-offs",
+      "Rotation and integration patterns",
+      "Practical decision-making"
+    ]
+  },
+  {
+    "id": "aws-030",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Observability",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Walk me through CloudWatch \u2014 metrics, logs, alarms \u2014 and how you'd build observability for an application",
+    "concepts": [
+      "CloudWatch service architecture",
+      "Practical observability patterns",
+      "Alarm design and noise management",
+      "Cost awareness"
+    ]
+  },
+  {
+    "id": "aws-031",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Operations",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "CloudWatch alerts an EC2 instance at 90% CPU. Walk me through your debugging",
+    "concepts": [
+      "Systematic troubleshooting methodology",
+      "Linux process inspection commands",
+      "Distinguishing symptom from cause",
+      "Practical operational experience"
+    ]
+  },
+  {
+    "id": "aws-032",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Operations",
+    "priority": "critical",
+    "difficulty": "hard",
+    "stem": "Users report the application is slow. Walk me through your debugging approach",
+    "concepts": [
+      "Top-down troubleshooting methodology",
+      "Awareness of where latency can hide",
+      "Distributed system thinking",
+      "Communication during incidents"
+    ]
+  },
+  {
+    "id": "aws-034",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Serverless",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "What's a Lambda cold start and how do you mitigate it?",
+    "concepts": [
+      "Lambda execution model",
+      "Cold start causes and impact",
+      "Mitigation strategies and trade-offs",
+      "When to care vs when not to"
+    ]
+  },
+  {
+    "id": "aws-035",
+    "domain_dir": "aws",
+    "domain_label": "AWS",
+    "subdomain": "Serverless",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "Walk me through API Gateway \u2014 the types and integration patterns",
+    "concepts": [
+      "API Gateway types (REST, HTTP, WebSocket)",
+      "Integration patterns",
+      "When to use API Gateway vs alternatives"
+    ]
+  },
+  {
+    "id": "beh-001",
+    "domain_dir": "behavioural",
+    "domain_label": "Behavioural",
+    "subdomain": "Career",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "Tell me about your transition from Business Analyst to Cloud Engineer",
+    "concepts": [
+      "Coherent career narrative",
+      "Self-awareness about strengths and gaps",
+      "Genuine motivation (not just \"for the salary\")",
+      "Differentiator framing (BA background as advantage)"
+    ]
+  },
+  {
+    "id": "beh-002",
+    "domain_dir": "behavioural",
+    "domain_label": "Behavioural",
+    "subdomain": "Negotiation",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "What are your salary expectations?",
+    "concepts": [
+      "Anchoring without lowballing",
+      "Justifying the number",
+      "Handling pushback",
+      "Knowing your floor and ceiling"
+    ]
+  },
+  {
+    "id": "beh-003",
+    "domain_dir": "behavioural",
+    "domain_label": "Behavioural",
+    "subdomain": "Motivation",
+    "priority": "high",
+    "difficulty": "easy",
+    "stem": "Why cloud engineering specifically?",
+    "concepts": [
+      "Genuine motivation",
+      "Differentiation from generic \"I love tech\"",
+      "Self-awareness about what energises you",
+      "Understanding of what cloud engineering actually involves"
+    ]
+  },
+  {
+    "id": "beh-004",
+    "domain_dir": "behavioural",
+    "domain_label": "Behavioural",
+    "subdomain": "Operations",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Tell me about a time you broke production / handled an incident",
+    "concepts": [
+      "Honest acknowledgment of a mistake",
+      "Incident response thinking",
+      "Learning from failure",
+      "For someone without prod incident experience: how to handle the question gracefully"
+    ]
+  },
+  {
+    "id": "beh-005",
+    "domain_dir": "behavioural",
+    "domain_label": "Behavioural",
+    "subdomain": "Communication",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "Tell me about a time you disagreed with a senior engineer or stakeholder",
+    "concepts": [
+      "Constructive disagreement",
+      "Communication maturity",
+      "Knowing when to push and when to defer",
+      "For BA background: leveraging existing strength"
+    ]
+  },
+  {
+    "id": "beh-006",
+    "domain_dir": "behavioural",
+    "domain_label": "Behavioural",
+    "subdomain": "Self-awareness",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "What's your biggest gap as a cloud engineer and how are you closing it?",
+    "concepts": [
+      "Honest self-assessment",
+      "Growth orientation",
+      "Specificity (real gaps, not weaknesses-disguised-as-strengths)",
+      "Active mitigation, not just acknowledgment"
+    ]
+  },
+  {
+    "id": "cicd-001",
+    "domain_dir": "cicd",
+    "domain_label": "CI/CD",
+    "subdomain": "Fundamentals",
+    "priority": "high",
+    "difficulty": "easy",
+    "stem": "Explain the difference between Continuous Integration, Continuous Delivery, and Continuous Deployment",
+    "concepts": [
+      "The three terms and their actual meanings",
+      "Where the boundary sits between Delivery and Deployment",
+      "Practical maturity progression",
+      "Real-world considerations"
+    ]
+  },
+  {
+    "id": "cicd-002",
+    "domain_dir": "cicd",
+    "domain_label": "CI/CD",
+    "subdomain": "Fundamentals",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "What makes a good CI/CD pipeline? Walk me through what you'd build for a typical web service",
+    "concepts": [
+      "Pipeline design principles",
+      "Stage ordering and parallelisation",
+      "Speed vs thoroughness trade-offs",
+      "Practical end-to-end thinking"
+    ]
+  },
+  {
+    "id": "cicd-003",
+    "domain_dir": "cicd",
+    "domain_label": "CI/CD",
+    "subdomain": "Fundamentals",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "Compare trunk-based development with GitFlow / feature branch workflows. Which fits modern CI/CD?",
+    "concepts": [
+      "Branching strategies and their trade-offs",
+      "Why long-lived branches hurt CI/CD",
+      "Feature flags as the bridge",
+      "Practical adoption patterns"
+    ]
+  },
+  {
+    "id": "cicd-010",
+    "domain_dir": "cicd",
+    "domain_label": "CI/CD",
+    "subdomain": "GitHub Actions",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "Walk me through GitHub Actions architecture \u2014 workflows, jobs, steps, runners",
+    "concepts": [
+      "GitHub Actions execution model",
+      "Where each layer of abstraction sits",
+      "Runner types and their trade-offs",
+      "Practical syntax knowledge"
+    ]
+  },
+  {
+    "id": "cicd-011",
+    "domain_dir": "cicd",
+    "domain_label": "CI/CD",
+    "subdomain": "GitHub Actions",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Explain reusable workflows and composite actions in GitHub Actions \u2014 when do you use each?",
+    "concepts": [
+      "DRY principle in pipeline design",
+      "Two reuse mechanisms with different semantics",
+      "When each is the right tool",
+      "Practical organisational patterns"
+    ]
+  },
+  {
+    "id": "cicd-012",
+    "domain_dir": "cicd",
+    "domain_label": "CI/CD",
+    "subdomain": "GitHub Actions",
+    "priority": "medium",
+    "difficulty": "easy",
+    "stem": "Explain matrix builds in GitHub Actions and when you'd use them",
+    "concepts": [
+      "Parallelisation patterns",
+      "Matrix syntax and semantics",
+      "Cost vs speed trade-offs",
+      "Practical use cases"
+    ]
+  },
+  {
+    "id": "cicd-013",
+    "domain_dir": "cicd",
+    "domain_label": "CI/CD",
+    "subdomain": "GitHub Actions",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "How do you speed up CI pipelines with caching? Walk through the patterns",
+    "concepts": [
+      "Multiple cache layers (deps, build, Docker)",
+      "Cache key strategy and invalidation",
+      "Practical impact on pipeline time",
+      "Docker-specific patterns (BuildKit, registry caching)"
+    ]
+  },
+  {
+    "id": "cicd-014",
+    "domain_dir": "cicd",
+    "domain_label": "CI/CD",
+    "subdomain": "GitHub Actions",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "Walk me through GitHub Actions secrets, environments, and approval gates",
+    "concepts": [
+      "Secret scoping and security",
+      "Environment protection rules",
+      "Approval workflow patterns",
+      "OIDC vs static secrets"
+    ]
+  },
+  {
+    "id": "cicd-020",
+    "domain_dir": "cicd",
+    "domain_label": "CI/CD",
+    "subdomain": "AWS Integration",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "Walk me through setting up OIDC authentication between GitHub Actions and AWS",
+    "concepts": [
+      "Federated identity fundamentals",
+      "Practical OIDC setup steps",
+      "Trust policy security details",
+      "Why this beats static credentials"
+    ]
+  },
+  {
+    "id": "cicd-021",
+    "domain_dir": "cicd",
+    "domain_label": "CI/CD",
+    "subdomain": "AWS Integration",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Walk me through deploying an application to EKS from GitHub Actions",
+    "concepts": [
+      "End-to-end deployment pipeline",
+      "Push vs pull deployment models (GitOps)",
+      "Helm vs kubectl",
+      "Practical EKS auth and image management"
+    ]
+  },
+  {
+    "id": "cicd-022",
+    "domain_dir": "cicd",
+    "domain_label": "CI/CD",
+    "subdomain": "AWS Integration",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Walk me through deploying to ECS or Fargate from GitHub Actions",
+    "concepts": [
+      "ECS deployment mechanics",
+      "Task definition versioning",
+      "Rolling update vs blue-green",
+      "CodeDeploy integration"
+    ]
+  },
+  {
+    "id": "cicd-030",
+    "domain_dir": "cicd",
+    "domain_label": "CI/CD",
+    "subdomain": "Deployment Strategies",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "Compare deployment strategies \u2014 rolling, blue-green, canary, feature flags. When do you use each?",
+    "concepts": [
+      "Trade-offs between deploy strategies",
+      "Risk vs cost vs complexity",
+      "Practical use cases",
+      "Combination patterns"
+    ]
+  },
+  {
+    "id": "cicd-031",
+    "domain_dir": "cicd",
+    "domain_label": "CI/CD",
+    "subdomain": "Deployment Strategies",
+    "priority": "high",
+    "difficulty": "hard",
+    "stem": "How do you handle database migrations in CI/CD without downtime?",
+    "concepts": [
+      "Expand-contract migration pattern",
+      "Backwards-compatible deploys",
+      "Coordination between code and schema changes",
+      "Real-world operational discipline"
+    ]
+  },
+  {
+    "id": "cicd-032",
+    "domain_dir": "cicd",
+    "domain_label": "CI/CD",
+    "subdomain": "Deployment Strategies",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "How do you handle rollbacks in CI/CD? When automated, when manual?",
+    "concepts": [
+      "Rollback mechanisms across platforms",
+      "Automated vs manual rollback triggers",
+      "Rollback constraints (database, irreversible changes)",
+      "Pragmatic operational thinking"
+    ]
+  },
+  {
+    "id": "cicd-040",
+    "domain_dir": "cicd",
+    "domain_label": "CI/CD",
+    "subdomain": "Security",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Walk me through security scanning in CI/CD pipelines \u2014 SAST, DAST, SCA, container scanning",
+    "concepts": [
+      "Different scan types and what each catches",
+      "Where in the pipeline each runs",
+      "Practical tooling (open-source and commercial)",
+      "Shift-left security thinking"
+    ]
+  },
+  {
+    "id": "cicd-041",
+    "domain_dir": "cicd",
+    "domain_label": "CI/CD",
+    "subdomain": "Quality",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "Walk me through a code quality workflow with SonarQube \u2014 what does it do and how do you integrate it?",
+    "concepts": [
+      "Code quality gating",
+      "SonarQube specifically (KodeKloud focus)",
+      "PR-level quality enforcement",
+      "Practical integration with GitHub Actions"
+    ]
+  },
+  {
+    "id": "cicd-050",
+    "domain_dir": "cicd",
+    "domain_label": "CI/CD",
+    "subdomain": "Operations",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "A CI/CD pipeline keeps failing intermittently. Walk me through your debugging approach",
+    "concepts": [
+      "Systematic pipeline troubleshooting",
+      "Distinguishing flaky tests from real failures",
+      "Tooling for investigating pipeline issues",
+      "Practical incident response"
+    ]
+  },
+  {
+    "id": "cicd-051",
+    "domain_dir": "cicd",
+    "domain_label": "CI/CD",
+    "subdomain": "Behavioural",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "Tell me about a CI/CD pipeline you owned end-to-end",
+    "concepts": [
+      "Personal ownership and depth",
+      "STAR-format storytelling",
+      "Real production decisions and trade-offs",
+      "Honesty about what worked and what didn't"
+    ]
+  },
+  {
+    "id": "docker-001",
+    "domain_dir": "docker",
+    "domain_label": "Docker",
+    "subdomain": "Fundamentals",
+    "priority": "high",
+    "difficulty": "easy",
+    "stem": "Explain the difference between containers and VMs",
+    "concepts": [
+      "Isolation mechanisms",
+      "Resource overhead",
+      "When each fits",
+      "Practical implications"
+    ]
+  },
+  {
+    "id": "docker-002",
+    "domain_dir": "docker",
+    "domain_label": "Docker",
+    "subdomain": "Images",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "What are Dockerfile best practices? Walk me through writing a good one",
+    "concepts": [
+      "Layer caching strategy",
+      "Image size optimisation",
+      "Security considerations",
+      "Practical Dockerfile structure"
+    ]
+  },
+  {
+    "id": "docker-003",
+    "domain_dir": "docker",
+    "domain_label": "Docker",
+    "subdomain": "Images",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Walk me through multi-stage Docker builds \u2014 what problem do they solve?",
+    "concepts": [
+      "Build environment vs runtime environment separation",
+      "Image size reduction",
+      "Practical multi-stage patterns",
+      "Trade-offs"
+    ]
+  },
+  {
+    "id": "docker-004",
+    "domain_dir": "docker",
+    "domain_label": "Docker",
+    "subdomain": "Images",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "How do you optimise Docker image size? Walk through the techniques",
+    "concepts": [
+      "Why image size matters",
+      "Base image choices",
+      "Build vs runtime separation",
+      "Practical reductions"
+    ]
+  },
+  {
+    "id": "docker-005",
+    "domain_dir": "docker",
+    "domain_label": "Docker",
+    "subdomain": "Images",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "How does Docker layer caching work and how do you exploit it?",
+    "concepts": [
+      "Layer model and immutability",
+      "Cache invalidation rules",
+      "Practical Dockerfile structuring for cache hits",
+      "BuildKit improvements"
+    ]
+  },
+  {
+    "id": "docker-006",
+    "domain_dir": "docker",
+    "domain_label": "Docker",
+    "subdomain": "Networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "Walk me through Docker networking \u2014 bridge, host, none, custom networks",
+    "concepts": [
+      "Network mode trade-offs",
+      "Container-to-container communication",
+      "DNS in Docker networks",
+      "Practical use cases"
+    ]
+  },
+  {
+    "id": "docker-007",
+    "domain_dir": "docker",
+    "domain_label": "Docker",
+    "subdomain": "Storage",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "Compare Docker volumes, bind mounts, and tmpfs \u2014 when do you use each?",
+    "concepts": [
+      "Storage options and their semantics",
+      "When containers need persistence",
+      "Practical use cases",
+      "Container lifecycle and data"
+    ]
+  },
+  {
+    "id": "docker-008",
+    "domain_dir": "docker",
+    "domain_label": "Docker",
+    "subdomain": "Compose",
+    "priority": "medium",
+    "difficulty": "easy",
+    "stem": "What is Docker Compose and when do you use it?",
+    "concepts": [
+      "Multi-container orchestration on a single host",
+      "Compose file structure",
+      "Use case scope (dev, simple prod)",
+      "vs Kubernetes / production orchestration"
+    ]
+  },
+  {
+    "id": "docker-009",
+    "domain_dir": "docker",
+    "domain_label": "Docker",
+    "subdomain": "Registry",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "How does ECR work and how do you authenticate to it?",
+    "concepts": [
+      "Container registry mechanics",
+      "ECR authentication patterns",
+      "Cross-account ECR access",
+      "Lifecycle policies and cost"
+    ]
+  },
+  {
+    "id": "docker-010",
+    "domain_dir": "docker",
+    "domain_label": "Docker",
+    "subdomain": "Operations",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "A Docker container won't start or keeps crashing. Walk me through your debugging",
+    "concepts": [
+      "Systematic container troubleshooting",
+      "Common failure modes (OOM, exit codes, networking)",
+      "Practical debugging commands",
+      "Personal lab experience"
+    ]
+  },
+  {
+    "id": "git-001",
+    "domain_dir": "git",
+    "domain_label": "Git",
+    "subdomain": "Workflow",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Rebase vs merge \u2014 when do you use each?",
+    "concepts": [
+      "Git history models",
+      "Rebase mechanics and risks",
+      "Practical team patterns"
+    ]
+  },
+  {
+    "id": "git-002",
+    "domain_dir": "git",
+    "domain_label": "Git",
+    "subdomain": "Workflow",
+    "priority": "medium",
+    "difficulty": "easy",
+    "stem": "What are branch protection rules and what would you configure for production?",
+    "concepts": [
+      "Repository governance",
+      "GitHub-specific protection mechanics",
+      "Practical production settings"
+    ]
+  },
+  {
+    "id": "git-003",
+    "domain_dir": "git",
+    "domain_label": "Git",
+    "subdomain": "Fundamentals",
+    "priority": "medium",
+    "difficulty": "easy",
+    "stem": "What's the difference between fork and clone? When do you use each?",
+    "concepts": [
+      "Repository copy mechanisms",
+      "Github-specific fork concept vs git-native clone",
+      "Practical use cases (open source contribution, internal copies)"
+    ]
+  },
+  {
+    "id": "git-004",
+    "domain_dir": "git",
+    "domain_label": "Git",
+    "subdomain": "Investigation",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "How do you use `git blame` and `git bisect` to find when a bug was introduced?",
+    "concepts": [
+      "Investigation tools for \"when did this break?\"",
+      "Practical bisect workflow",
+      "blame's limitations and complementary tools"
+    ]
+  },
+  {
+    "id": "git-005",
+    "domain_dir": "git",
+    "domain_label": "Git",
+    "subdomain": "Workflow",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "How do you resolve merge conflicts?",
+    "concepts": [
+      "Practical conflict resolution workflow",
+      "The conflict marker format",
+      "Tools that help (mergetool, IDE integration)",
+      "Strategies for avoiding conflicts"
+    ]
+  },
+  {
+    "id": "git-006",
+    "domain_dir": "git",
+    "domain_label": "Git",
+    "subdomain": "Workflow",
+    "priority": "medium",
+    "difficulty": "easy",
+    "stem": "What's `.gitignore` and how do you handle accidentally committed secrets?",
+    "concepts": [
+      "gitignore basics",
+      "The hard reality of secrets in git history",
+      "Recovery procedures",
+      "Prevention strategies"
+    ]
+  },
+  {
+    "id": "k8s-001",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Workloads",
+    "priority": "critical",
+    "difficulty": "easy",
+    "stem": "Explain the relationship between Pods, ReplicaSets, and Deployments",
+    "concepts": [
+      "Kubernetes object hierarchy",
+      "Why each abstraction exists",
+      "Practical day-to-day usage",
+      "What manages what"
+    ]
+  },
+  {
+    "id": "k8s-002",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Workloads",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Walk me through the pod lifecycle and what each phase means",
+    "concepts": [
+      "Pod state machine",
+      "Where pods get stuck and why",
+      "Practical troubleshooting hooks",
+      "Container vs pod state distinction"
+    ]
+  },
+  {
+    "id": "k8s-003",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Workloads",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Explain liveness, readiness, and startup probes \u2014 when do you use each?",
+    "concepts": [
+      "Three probe types and their distinct purposes",
+      "Common misconfigurations that cause real production issues",
+      "Practical configuration of timeouts and thresholds"
+    ]
+  },
+  {
+    "id": "k8s-004",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Workloads",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "What are init containers and sidecars, and when would you use each?",
+    "concepts": [
+      "Multi-container pod patterns",
+      "Initialisation vs runtime separation of concerns",
+      "Practical use cases in real systems",
+      "Sidecar lifecycle awareness (1.28+ native support)"
+    ]
+  },
+  {
+    "id": "k8s-005",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Workloads",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "Explain resource requests vs limits, and what happens if you set them wrong",
+    "concepts": [
+      "Scheduling vs runtime resource semantics",
+      "CPU vs memory enforcement differences",
+      "QoS classes and eviction",
+      "Real production failure modes"
+    ]
+  },
+  {
+    "id": "k8s-010",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Networking",
+    "priority": "critical",
+    "difficulty": "easy",
+    "stem": "Walk me through Kubernetes Service types \u2014 ClusterIP, NodePort, LoadBalancer, ExternalName",
+    "concepts": [
+      "Service abstraction and pod discovery",
+      "Trade-offs between exposure mechanisms",
+      "AWS-specific behaviour (LoadBalancer = NLB/CLB)",
+      "When to use Ingress instead"
+    ]
+  },
+  {
+    "id": "k8s-011",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Networking",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Explain Ingress in Kubernetes \u2014 what it is, how it works on EKS, and why use it over LoadBalancer Services",
+    "concepts": [
+      "Ingress object vs Ingress controller",
+      "AWS Load Balancer Controller specifically",
+      "Multi-service exposure patterns",
+      "TLS, host-based, and path-based routing"
+    ]
+  },
+  {
+    "id": "k8s-012",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "What are Network Policies and how do they work on EKS?",
+    "concepts": [
+      "Pod-to-pod traffic restrictions",
+      "CNI plugin requirements",
+      "AWS VPC CNI Network Policy support",
+      "Practical security patterns"
+    ]
+  },
+  {
+    "id": "k8s-013",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "How does DNS work in Kubernetes?",
+    "concepts": [
+      "CoreDNS architecture",
+      "Service discovery via DNS",
+      "Pod DNS resolution flow",
+      "Common DNS issues"
+    ]
+  },
+  {
+    "id": "k8s-014",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Networking",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "How does service discovery work in Kubernetes? What are the trade-offs?",
+    "concepts": [
+      "DNS-based vs environment variable discovery",
+      "Service mesh awareness",
+      "External service integration",
+      "Real production patterns"
+    ]
+  },
+  {
+    "id": "k8s-020",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Workloads",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "Compare Deployments, StatefulSets, DaemonSets, and Jobs \u2014 when do you use each?",
+    "concepts": [
+      "Workload type selection",
+      "Stateful vs stateless requirements",
+      "Practical use case fit"
+    ]
+  },
+  {
+    "id": "k8s-021",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Scheduling",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Walk me through how to control where pods get scheduled \u2014 affinity, taints, tolerations, node selectors",
+    "concepts": [
+      "Scheduler hints vs hard constraints",
+      "Use cases for each mechanism",
+      "Practical application (GPU nodes, dedicated workloads, anti-affinity)"
+    ]
+  },
+  {
+    "id": "k8s-022",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Workloads",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "What's a Pod Disruption Budget and how do you ensure graceful shutdown during deployments?",
+    "concepts": [
+      "Voluntary vs involuntary disruption",
+      "PDB semantics",
+      "Pre-stop hooks and termination grace period",
+      "Coordinated cluster operations"
+    ]
+  },
+  {
+    "id": "k8s-023",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Scheduling",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "Walk me through Kubernetes autoscaling \u2014 HPA, VPA, Cluster Autoscaler, Karpenter",
+    "concepts": [
+      "Three autoscaling dimensions (pod count, pod size, node count)",
+      "Karpenter vs Cluster Autoscaler differences",
+      "Practical configuration for production",
+      "Cost optimisation through autoscaling"
+    ]
+  },
+  {
+    "id": "k8s-030",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Configuration",
+    "priority": "high",
+    "difficulty": "easy",
+    "stem": "Compare ConfigMaps and Secrets \u2014 when do you use each, and how secure are Kubernetes Secrets really?",
+    "concepts": [
+      "Configuration vs sensitive data",
+      "Encoding vs encryption",
+      "External secret stores",
+      "Real security posture"
+    ]
+  },
+  {
+    "id": "k8s-031",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Configuration",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "How would you integrate AWS Secrets Manager with EKS for application secrets?",
+    "concepts": [
+      "External secret integration patterns",
+      "ESO vs Secrets Store CSI Driver trade-offs",
+      "IAM and IRSA setup",
+      "Production patterns for secret rotation"
+    ]
+  },
+  {
+    "id": "k8s-032",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Security",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Walk me through RBAC in Kubernetes \u2014 the objects and how they fit together",
+    "concepts": [
+      "The four RBAC objects and their relationships",
+      "Cluster-scoped vs namespace-scoped permissions",
+      "Service account integration",
+      "Practical least-privilege patterns"
+    ]
+  },
+  {
+    "id": "k8s-040",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "EKS",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "Walk me through EKS architecture \u2014 the control plane, node options, and how it differs from self-managed Kubernetes",
+    "concepts": [
+      "EKS shared responsibility model",
+      "Three compute options for pods (managed nodes, Fargate, Karpenter)",
+      "AWS-specific integrations",
+      "Practical architectural choices"
+    ]
+  },
+  {
+    "id": "k8s-041",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "EKS",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "What's IRSA and how does it work?",
+    "concepts": [
+      "IAM-to-Kubernetes identity federation",
+      "OIDC and projected tokens",
+      "Practical setup and use cases",
+      "EKS Pod Identity as the newer alternative"
+    ]
+  },
+  {
+    "id": "k8s-042",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "EKS",
+    "priority": "high",
+    "difficulty": "hard",
+    "stem": "Explain EKS networking with the AWS VPC CNI \u2014 and what IP exhaustion is",
+    "concepts": [
+      "VPC CNI plugin behaviour",
+      "Pod IP allocation and ENI usage",
+      "Real production scaling problem",
+      "Mitigations (custom networking, prefix delegation, IPv6)"
+    ]
+  },
+  {
+    "id": "k8s-050",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Operations",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "Pod is stuck \u2014 Pending, CrashLoopBackOff, or ImagePullBackOff. Walk me through your debugging",
+    "concepts": [
+      "Systematic troubleshooting methodology",
+      "Distinct causes for each state",
+      "Practical kubectl commands",
+      "Root cause vs symptom"
+    ]
+  },
+  {
+    "id": "k8s-051",
+    "domain_dir": "kubernetes",
+    "domain_label": "Kubernetes",
+    "subdomain": "Operations",
+    "priority": "high",
+    "difficulty": "hard",
+    "stem": "A service in your Kubernetes cluster is responding slowly. Walk me through your debugging",
+    "concepts": [
+      "Top-down troubleshooting in a distributed environment",
+      "Awareness of where latency hides in K8s specifically",
+      "CNI, DNS, scheduling considerations",
+      "Practical investigation methodology"
+    ]
+  },
+  {
+    "id": "linux-001",
+    "domain_dir": "linux",
+    "domain_label": "Linux",
+    "subdomain": "Filesystem",
+    "priority": "high",
+    "difficulty": "easy",
+    "stem": "Explain Linux file permissions and how chmod, chown work",
+    "concepts": [
+      "Permission model (user/group/other \u00d7 read/write/execute)",
+      "Octal and symbolic notation",
+      "Special bits (setuid, setgid, sticky)",
+      "Practical security implications"
+    ]
+  },
+  {
+    "id": "linux-002",
+    "domain_dir": "linux",
+    "domain_label": "Linux",
+    "subdomain": "Processes",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Walk me through Linux processes and signals \u2014 ps, kill, signal handling",
+    "concepts": [
+      "Process lifecycle and states",
+      "Signal types and their semantics",
+      "Practical commands",
+      "Graceful shutdown patterns"
+    ]
+  },
+  {
+    "id": "linux-003",
+    "domain_dir": "linux",
+    "domain_label": "Linux",
+    "subdomain": "System",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Walk me through systemd \u2014 what it is and the commands you use daily",
+    "concepts": [
+      "systemd's role as init and service manager",
+      "Unit files and their structure",
+      "Practical operational commands",
+      "journalctl for log inspection"
+    ]
+  },
+  {
+    "id": "linux-004",
+    "domain_dir": "linux",
+    "domain_label": "Linux",
+    "subdomain": "Networking",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Walk me through Linux networking commands you'd use to debug connectivity issues",
+    "concepts": [
+      "Practical network troubleshooting",
+      "Modern tools (ss) vs legacy (netstat)",
+      "Layered investigation (DNS, routing, ports, packets)",
+      "Real diagnostic methodology"
+    ]
+  },
+  {
+    "id": "linux-005",
+    "domain_dir": "linux",
+    "domain_label": "Linux",
+    "subdomain": "Operations",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "\"Disk is full\" \u2014 walk me through investigating and fixing it",
+    "concepts": [
+      "df vs du semantics",
+      "The deleted-but-open-file gotcha",
+      "Practical disk investigation",
+      "Inode exhaustion"
+    ]
+  },
+  {
+    "id": "linux-006",
+    "domain_dir": "linux",
+    "domain_label": "Linux",
+    "subdomain": "Operations",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "Walk me through Linux log analysis \u2014 finding what you need fast",
+    "concepts": [
+      "journalctl vs traditional log files",
+      "Practical grep/awk patterns",
+      "Timestamp filtering",
+      "Real diagnostic workflow"
+    ]
+  },
+  {
+    "id": "linux-007",
+    "domain_dir": "linux",
+    "domain_label": "Linux",
+    "subdomain": "Shell",
+    "priority": "medium",
+    "difficulty": "easy",
+    "stem": "What shell scripting basics do you reach for in ops work?",
+    "concepts": [
+      "Practical bash patterns",
+      "Defensive scripting (set -euo pipefail)",
+      "Common idioms",
+      "When to use bash vs Python"
+    ]
+  },
+  {
+    "id": "tf-001",
+    "domain_dir": "terraform",
+    "domain_label": "Terraform",
+    "subdomain": "Fundamentals",
+    "priority": "critical",
+    "difficulty": "easy",
+    "stem": "What is Terraform and how does it work? Why use it over CloudFormation or the AWS CLI?",
+    "concepts": [
+      "IaC fundamentals",
+      "Terraform's architecture (state, providers, plan/apply)",
+      "Trade-offs vs alternatives",
+      "Multi-cloud awareness"
+    ]
+  },
+  {
+    "id": "tf-002",
+    "domain_dir": "terraform",
+    "domain_label": "Terraform",
+    "subdomain": "State",
+    "priority": "critical",
+    "difficulty": "medium",
+    "stem": "Walk me through Terraform state \u2014 what it is, why remote state, and how do you manage it on AWS?",
+    "concepts": [
+      "State's purpose and content",
+      "Remote state backends",
+      "State locking",
+      "Practical setup with S3 + DynamoDB"
+    ]
+  },
+  {
+    "id": "tf-003",
+    "domain_dir": "terraform",
+    "domain_label": "Terraform",
+    "subdomain": "Modules",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "What are Terraform modules and how do you structure them?",
+    "concepts": [
+      "DRY in IaC",
+      "Module structure and interfaces",
+      "Public vs private module patterns",
+      "Practical organisation"
+    ]
+  },
+  {
+    "id": "tf-004",
+    "domain_dir": "terraform",
+    "domain_label": "Terraform",
+    "subdomain": "Configuration",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "How do you handle variables, validation, and locals in Terraform?",
+    "concepts": [
+      "Variable types and defaults",
+      "Validation blocks (KodeKloud-specific content)",
+      "Locals for derived values",
+      "tfvars files for environment overrides"
+    ]
+  },
+  {
+    "id": "tf-005",
+    "domain_dir": "terraform",
+    "domain_label": "Terraform",
+    "subdomain": "Environments",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "How do you manage multiple environments (dev, staging, prod) in Terraform?",
+    "concepts": [
+      "Multi-environment patterns",
+      "Workspaces vs separate states",
+      "Practical organisation",
+      "The honest workspaces caveat"
+    ]
+  },
+  {
+    "id": "tf-006",
+    "domain_dir": "terraform",
+    "domain_label": "Terraform",
+    "subdomain": "Secrets",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "How do you handle secrets in Terraform \u2014 integrating with Vault or AWS Secrets Manager?",
+    "concepts": [
+      "Why secrets shouldn't be in tfvars",
+      "Data source pattern for fetching secrets",
+      "Vault and Secrets Manager integration",
+      "State sensitivity considerations"
+    ]
+  },
+  {
+    "id": "tf-007",
+    "domain_dir": "terraform",
+    "domain_label": "Terraform",
+    "subdomain": "Configuration",
+    "priority": "low",
+    "difficulty": "medium",
+    "stem": "What are Terraform provisioners and why does HashiCorp warn against using them?",
+    "concepts": [
+      "What provisioners are",
+      "Why they're considered an antipattern",
+      "When they're genuinely the right tool",
+      "Better alternatives"
+    ]
+  },
+  {
+    "id": "tf-008",
+    "domain_dir": "terraform",
+    "domain_label": "Terraform",
+    "subdomain": "Operations",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "What is drift in Terraform and how do you handle it?",
+    "concepts": [
+      "Drift causes and detection",
+      "Refresh vs apply behaviour",
+      "Practical reconciliation strategies",
+      "Prevention via process"
+    ]
+  },
+  {
+    "id": "tf-009",
+    "domain_dir": "terraform",
+    "domain_label": "Terraform",
+    "subdomain": "CI/CD",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "How do you run Terraform in CI/CD with GitHub Actions?",
+    "concepts": [
+      "Plan-on-PR / apply-on-merge pattern",
+      "OIDC for AWS auth",
+      "Multi-environment promotion",
+      "Production safeguards"
+    ]
+  },
+  {
+    "id": "tf-010",
+    "domain_dir": "terraform",
+    "domain_label": "Terraform",
+    "subdomain": "Tooling",
+    "priority": "low",
+    "difficulty": "medium",
+    "stem": "Compare Terraform and Packer \u2014 when do you use each?",
+    "concepts": [
+      "Provisioning vs image building",
+      "Golden image / immutable infrastructure pattern",
+      "Tool composition",
+      "Real-world workflow integration"
+    ]
+  },
+  {
+    "id": "tf-011",
+    "domain_dir": "terraform",
+    "domain_label": "Terraform",
+    "subdomain": "Configuration",
+    "priority": "medium",
+    "difficulty": "medium",
+    "stem": "Compare `count` and `for_each` in Terraform \u2014 when do you use each?",
+    "concepts": [
+      "Two iteration mechanisms",
+      "Index vs key addressing",
+      "Practical implications for stability",
+      "The classic \"count problem\""
+    ]
+  },
+  {
+    "id": "tf-012",
+    "domain_dir": "terraform",
+    "domain_label": "Terraform",
+    "subdomain": "Operations",
+    "priority": "medium",
+    "difficulty": "hard",
+    "stem": "How do you refactor Terraform code without destroying and recreating resources?",
+    "concepts": [
+      "State surgery techniques",
+      "The `moved` block (Terraform 1.1+)",
+      "Practical refactoring patterns",
+      "Risk management"
+    ]
+  },
+  {
+    "id": "tf-013",
+    "domain_dir": "terraform",
+    "domain_label": "Terraform",
+    "subdomain": "Behavioural",
+    "priority": "high",
+    "difficulty": "medium",
+    "stem": "Tell me about a time you debugged a Terraform issue end-to-end",
+    "concepts": [
+      "Personal ownership story (STAR format)",
+      "Build \u2192 Break \u2192 Fix methodology",
+      "Troubleshooting depth",
+      "Honest reflection"
+    ]
+  }
+]

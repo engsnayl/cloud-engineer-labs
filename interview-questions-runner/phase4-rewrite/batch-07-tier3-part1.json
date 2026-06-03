@@ -1,0 +1,413 @@
+{
+  "batch_id": "T3.1",
+  "tier": 3,
+  "description": "Batch T3.1 — 15 full from-scratch reauthors (structural/compare/superlative/multi-flag).",
+  "count": 15,
+  "rewrites": [
+    {
+      "mcq_id": "cicd-001-mcq-1",
+      "source_id": "cicd-001",
+      "domain": "cicd",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "What's the distinction between Continuous Delivery and Continuous Deployment?",
+        "options": {
+          "correct": "Continuous Delivery makes every change deployable to production; Continuous Deployment automatically deploys every successful build to production",
+          "distractor_1": "Continuous Delivery deploys to staging only; Continuous Deployment deploys to staging and then production with a manual promotion step",
+          "distractor_2": "Continuous Delivery refers to deploying compiled artifacts; Continuous Deployment refers to deploying source code or containers directly",
+          "distractor_3": "Continuous Delivery deploys on a fixed schedule; Continuous Deployment deploys whenever the engineer manually triggers a release"
+        },
+        "explanation": "The gap is the production deployment step: Delivery stops at 'deployable artifact, ready when you press the button'; Deployment automates pressing the button. Distractor 1 invents a staging-vs-production split that conflates with environments. Distractor 2 invents an artifact-type distinction. Distractor 3 reverses both terms — neither has a fixed schedule, and Continuous Deployment is automatic, not manual. The boundary matters because most teams claim 'CD' meaning Delivery while saying it like Deployment."
+      },
+      "after": {
+        "question": "Your team's pipeline runs build → test → deploy-to-staging, then stops at a manual 'Promote to prod' gate a release manager clicks during business hours. Leadership now wants every commit that passes tests to reach production automatically, with no human in the loop. What single change accomplishes that?",
+        "options": {
+          "correct": "Remove the manual promotion gate so each passing build deploys to prod on its own — that gate is the only thing separating their current Continuous Delivery from the Continuous Deployment leadership is describing",
+          "distractor_1": "Add another pre-prod environment after staging; what makes a pipeline Continuous Deployment is deploying through a chain of staged environments, not whether a human approves the final step",
+          "distractor_2": "Rebuild the pipeline to ship container images instead of its current build artifacts; Continuous Deployment is defined by the artifact type, and the approval gate is a separate concern",
+          "distractor_3": "Schedule the prod deploy to fire automatically each night at a fixed time without the release manager; a scheduled, hands-off release is what Continuous Deployment means"
+        },
+        "explanation": "Continuous Delivery automates everything up to a deploy-ready artifact and stops at a human gate; Continuous Deployment removes that gate so every passing commit ships itself. Deleting the manual promotion step is the whole difference. Distractor 1 invents an environments-count definition — staging chains are orthogonal to the gate. Distractor 2 ties the term to artifact type, but auto-vs-manual is the real axis. Distractor 3 conflates 'scheduled at 2am' with Continuous Deployment, which triggers on each commit, not a clock — and the scenario's automatic-at-night wording is the bait."
+      }
+    },
+    {
+      "mcq_id": "aws-021-mcq-1",
+      "source_id": "aws-021",
+      "domain": "aws",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "Which workload is the WORST fit for EC2 Spot Instances?",
+        "options": {
+          "correct": "A stateful PostgreSQL database serving production traffic with no replication or failover layer",
+          "distractor_1": "A nightly Spark batch job that processes the day's events and can restart from the last checkpoint",
+          "distractor_2": "A stateless web tier behind an ALB with autoscaling and at least 50% on-demand baseline",
+          "distractor_3": "A CI/CD build farm where individual builds take under 20 minutes and can be retried automatically"
+        },
+        "explanation": "Spot instances can be reclaimed with a 2-minute warning; they fit anything that can checkpoint, retry, or absorb a node loss. A solo stateful database has none of those properties — losing it loses data and uptime. Distractor 1 (Spark with checkpoints) is a textbook Spot fit. Distractor 2 (stateless web with on-demand baseline) is the recommended ASG pattern: mix on-demand and Spot via instance allocation strategy. Distractor 3 (short, retryable CI builds) is also good — worst case the build retries on another instance type."
+      },
+      "after": {
+        "question": "Your team wants to cut compute cost by moving exactly one of these workloads onto 100% Spot with no on-demand fallback, and a node reclaim (two-minute warning) must cause zero user-visible impact. Which workload is the BEST fit?",
+        "options": {
+          "correct": "A nightly Spark batch job that checkpoints its progress and restarts from the last checkpoint after an interruption — it runs asynchronously, so a reclaim delays no user-facing request",
+          "distractor_1": "A stateless web tier behind an ALB with autoscaling and at least a 50% on-demand baseline, leaning on that baseline to keep serving users whenever Spot capacity is reclaimed",
+          "distractor_2": "A synchronous payment API where each in-flight request must finish, so a reclaimed node fails the customer's transaction mid-flight",
+          "distractor_3": "A 12-hour ML training run that holds all state in memory and writes no checkpoints, losing everything if the node is reclaimed near the end"
+        },
+        "explanation": "With a 100%-Spot, no-fallback, zero-user-impact constraint, only an asynchronous job that resumes cleanly after reclamation qualifies — the checkpointing batch fits exactly. Distractor 1 (stateless web tier) is ruled out twice: it depends on the on-demand baseline the constraint forbids, and a reclaim drops in-flight user requests, which is user-visible. Distractor 2 (synchronous payment API) is the most user-visible failure — a reclaimed node fails a live customer transaction. Distractor 3 (un-checkpointed ML run) tolerates no interruption: a reclaim near hour 11 discards the whole run. Interruption tolerance plus no user-facing path is what Spot needs here; only the batch job has both."
+      }
+    },
+    {
+      "mcq_id": "aws-022-mcq-1",
+      "source_id": "aws-022",
+      "domain": "aws",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "A team is choosing between ECS Fargate, EKS, and Lambda for a video transcoding service. Individual jobs take 20-90 minutes and run constantly throughout the day. Which compute platform is the WORST fit?",
+        "options": {
+          "correct": "Lambda — the 15-minute maximum execution time means most transcoding jobs would never complete in a single invocation",
+          "distractor_1": "ECS Fargate — Fargate tasks have a 15-minute hard timeout to match Lambda's, so the longer jobs would time out",
+          "distractor_2": "EKS — its pod scheduling adds a 20-minute minimum runtime overhead that makes shorter jobs uneconomical",
+          "distractor_3": "All three are viable; the choice depends only on cost, not runtime constraints"
+        },
+        "explanation": "Lambda's 15-minute timeout is the dealbreaker — once a job exceeds it, the function is killed mid-work. ECS Fargate has no such limit, EKS has no platform-level timeout at all. Distractor 1 fabricates a Fargate 15-min timeout; Fargate tasks run as long as the container does. Distractor 2 invents an EKS scheduling overhead that doesn't exist (pod startup is seconds, not minutes). Distractor 3 ignores the constraint entirely. The general rule: Lambda for short, event-driven workloads; ECS/EKS for sustained or long-running."
+      },
+      "after": {
+        "question": "Your team runs a video transcoding service whose individual jobs take 20-90 minutes and run constantly throughout the day. Considering Lambda, ECS Fargate, and EKS, which platform is the BEST fit?",
+        "options": {
+          "correct": "ECS Fargate — it runs the containerised jobs with no platform execution-time limit and no nodes or control plane to operate, matching steady 20-90-minute work",
+          "distractor_1": "Lambda — its event-driven model and per-millisecond billing make it the cheapest choice for jobs of any duration",
+          "distractor_2": "EKS — only Kubernetes can run a job past Lambda's and Fargate's shared 15-minute execution ceiling, so the job length forces EKS",
+          "distractor_3": "Any of the three works equally; for constantly-running jobs the decision is purely cost, not execution-time limits"
+        },
+        "explanation": "The discriminator is Lambda's hard 15-minute timeout, which kills a 20-90-minute job mid-work; Fargate runs containers with no such cap and the least operational overhead, so it's the best fit. Distractor 1 over-applies Lambda — cheap billing is irrelevant once the job can't finish in 15 minutes. Distractor 2 invents a 15-minute ceiling on Fargate (Fargate tasks run as long as the container does), so its premise for forcing EKS is false. Distractor 3 ignores the runtime constraint entirely, which is the one thing that rules a platform in or out here."
+      }
+    },
+    {
+      "mcq_id": "k8s-001-mcq-2",
+      "source_id": "k8s-001",
+      "domain": "kubernetes",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "In which situation would you hand-create a ReplicaSet directly instead of using a Deployment?",
+        "options": {
+          "correct": "Essentially never — Deployments are the recommended abstraction, and creating a ReplicaSet directly loses rolling updates, rollback history, and revision tracking",
+          "distractor_1": "When you need a single replica with no rolling updates, since Deployments require at least two replicas to function",
+          "distractor_2": "When the pods need to survive a Deployment rollback — only standalone ReplicaSets are immune to rollback-triggered termination of older pod versions during a deploy",
+          "distractor_3": "When using a custom container runtime, since Deployments only support containerd and CRI-O while ReplicaSets are runtime-agnostic"
+        },
+        "explanation": "ReplicaSets are an implementation detail of Deployments — there's almost no production reason to create one directly. Distractor 1 invents a minimum-replicas constraint that doesn't exist (Deployments work fine at one replica). Distractor 2 fabricates rollback immunity for standalone ReplicaSets. Distractor 3 invents a runtime-compatibility difference; both objects use the same underlying container runtime via the kubelet. The answer is essentially 'don't' — and naming that bluntly is more useful than inventing a clever edge case."
+      },
+      "after": {
+        "question": "An engineer proposes creating a bare ReplicaSet directly, not a Deployment, to run a long-lived stateless service, arguing it's one less layer. What does the service give up by skipping the Deployment?",
+        "options": {
+          "correct": "Rolling updates, rollback to previous revisions, and revision history — the Deployment controller adds exactly those on top of a ReplicaSet, so a bare RS is strictly less capable for a long-lived service",
+          "distractor_1": "Nothing important — a ReplicaSet already performs rolling updates by gradually replacing its pods whenever you edit its pod template, so a Deployment is mostly a convenience alias",
+          "distractor_2": "Self-healing — a bare ReplicaSet won't recreate a pod that crashes, so the service loses the automatic restart guarantee a Deployment provides",
+          "distractor_3": "Horizontal autoscaling — an HPA can only attach to a Deployment, so a bare ReplicaSet loses the ability to scale on CPU or memory"
+        },
+        "explanation": "A Deployment manages ReplicaSets to deliver rolling updates, rollback, and revision tracking; a bare RS only holds a pod count steady. Distractor 1 is the core misconception — editing an RS template does not roll existing pods (only new pods use it), so an RS gives no rolling update. Distractor 2 inverts the RS's whole job: maintaining replica count means it does recreate crashed pods. Distractor 3 invents an HPA-needs-a-Deployment rule — an HPA can target a ReplicaSet through its scale subresource, so autoscaling doesn't require one. The honest answer: almost always use a Deployment."
+      }
+    },
+    {
+      "mcq_id": "k8s-011-mcq-1",
+      "source_id": "k8s-011",
+      "domain": "kubernetes",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "You create an Ingress resource on EKS but external traffic doesn't reach your services. The Ingress shows no Address. What's the most likely cause?",
+        "options": {
+          "correct": "No Ingress controller is installed — the Ingress object is just a routing spec; without a controller (AWS Load Balancer Controller, nginx, etc.) nothing materialises it",
+          "distractor_1": "The Ingress is missing a `LoadBalancer` Service in the same namespace, which the Ingress needs to attach itself to",
+          "distractor_2": "The Ingress is in a namespace that lacks the `ingress-enabled=true` label that EKS requires before traffic is permitted",
+          "distractor_3": "EKS's built-in Ingress provider takes 30-60 minutes to provision an ALB on first install, during which the Ingress shows no Address while AWS reconciles the load balancer"
+        },
+        "explanation": "Ingress is a Kubernetes resource that describes routing rules; an Ingress *controller* (a deployment running in the cluster) is what reads those resources and provisions a real load balancer. Without a controller, nothing happens. Distractor 1 invents a LoadBalancer-Service-as-attachment-target requirement; the controller provisions the LB itself. Distractor 2 fabricates a namespace-label requirement. Distractor 3 invents a built-in Ingress provider in EKS; the AWS LB Controller is an add-on you install, and provisioning is ~1-3 minutes, not 30-60."
+      },
+      "after": {
+        "question": "You deploy an Ingress resource on EKS, but external traffic never reaches your services and the Ingress shows no Address even after several minutes. What's the most likely cause?",
+        "options": {
+          "correct": "The cluster has no Ingress controller running — an Ingress is only a routing spec, and without a controller (AWS Load Balancer Controller, NGINX, etc.) nothing provisions a load balancer or populates the Address",
+          "distractor_1": "The Ingress has no companion LoadBalancer Service in its namespace to attach to; an Ingress forwards to a LoadBalancer Service, which is what actually receives the external address",
+          "distractor_2": "The Ingress controller is running in a different namespace from the Ingress, and a controller only reconciles Ingress objects that live in its own namespace",
+          "distractor_3": "The backend Service has no healthy pod endpoints yet; the ALB and its Address are only created once at least one target is passing health checks"
+        },
+        "explanation": "An Ingress object is inert until an Ingress controller reads it and provisions real infrastructure — no controller, no Address. Distractor 1 invents a LoadBalancer-Service-as-attachment-target; the controller provisions the load balancer itself from the Ingress spec. Distractor 2 fabricates namespace-scoping — controllers like the AWS LB Controller watch Ingresses cluster-wide, not just their own namespace. Distractor 3 ties Address creation to healthy endpoints, but the controller provisions the ALB and assigns the Address regardless of target health; unhealthy targets just fail to receive traffic. The fix is installing a controller."
+      }
+    },
+    {
+      "mcq_id": "k8s-021-mcq-2",
+      "source_id": "k8s-021",
+      "domain": "kubernetes",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "A 6-replica Deployment is meant to spread across all 3 AZs evenly for HA. What's the right configuration?",
+        "options": {
+          "correct": "TopologySpreadConstraints with `topologyKey: topology.kubernetes.io/zone` and `maxSkew: 1`, so the scheduler keeps replica counts within 1 across zones",
+          "distractor_1": "Pod anti-affinity with `preferredDuringScheduling` on the zone label — the scheduler will prefer different zones for each replica",
+          "distractor_2": "Set replicas to a multiple of the AZ count and add the annotation `scheduler.alpha.kubernetes.io/balanced=true`",
+          "distractor_3": "Add a nodeSelector restricting the pods to one specific AZ; the cluster autoscaler will rebalance them across AZs automatically"
+        },
+        "explanation": "TopologySpreadConstraints with maxSkew is the modern, explicit way to enforce even distribution across a topology — the scheduler maintains the skew during initial schedule and during scale-ups. Distractor 1 (preferred anti-affinity) is a soft preference; under pressure the scheduler will pack replicas in one zone. Distractor 2 fabricates an annotation that doesn't exist. Distractor 3 inverts the goal entirely — it pins to a single AZ rather than spreading. Topology spread is the post-1.18 evolution of older anti-affinity patterns."
+      },
+      "after": {
+        "question": "Your team runs a 6-replica Deployment and needs the replicas spread evenly across all three AZs, so losing any one zone removes at most a third of capacity. Which configuration enforces that even spread?",
+        "options": {
+          "correct": "TopologySpreadConstraints keyed on topology.kubernetes.io/zone with maxSkew: 1, so the scheduler holds per-zone replica counts within one of each other",
+          "distractor_1": "Pod anti-affinity with preferredDuringSchedulingIgnoredDuringExecution on the zone label, so the scheduler tries to place each replica in a different zone",
+          "distractor_2": "Just set replicas to 6 and rely on the default scheduler, which already balances same-Deployment pods evenly across zones without extra configuration",
+          "distractor_3": "A nodeSelector pinning the pods to one AZ, after which the cluster autoscaler redistributes them across the other zones to balance load"
+        },
+        "explanation": "TopologySpreadConstraints with maxSkew is the explicit, enforced way to hold an even spread across zones. Distractor 1 is the near-miss: a preferred anti-affinity is only a soft hint, so under scheduling pressure the scheduler will still pack replicas into one zone. Distractor 2 over-trusts the default scheduler — without a spread constraint, even placement is best-effort, not the maxSkew-1 guarantee the requirement needs. Distractor 3 inverts the goal by pinning to a single AZ, and the cluster autoscaler scales node capacity rather than rebalancing pods across zones. Topology spread is the modern successor to anti-affinity spreading."
+      }
+    },
+    {
+      "mcq_id": "k8s-041-mcq-2",
+      "source_id": "k8s-041",
+      "domain": "kubernetes",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "What's the practical difference between IRSA and EKS Pod Identity?",
+        "options": {
+          "correct": "Pod Identity uses an agent running on each node (no OIDC provider needed); IRSA uses a projected JWT and the cluster's OIDC issuer — Pod Identity is simpler to set up but newer and not yet ubiquitous in tooling",
+          "distractor_1": "IRSA is for AWS service access; Pod Identity is for cross-cluster pod-to-pod authentication within EKS Anywhere",
+          "distractor_2": "Pod Identity replaces IRSA entirely as of EKS 1.27; IRSA is deprecated and will be removed in 1.30",
+          "distractor_3": "IRSA requires the EBS CSI driver to be installed; Pod Identity works without it because it stores tokens in memory rather than on disk"
+        },
+        "explanation": "Both solve the same problem (pod-level AWS credentials), differently: IRSA via OIDC + projected token; Pod Identity via an EKS agent (eks-pod-identity-agent) on each node that calls a regional endpoint. Pod Identity is easier (no IRSA setup ceremony) but newer, so some tooling/IAM templates still assume IRSA. Distractor 1 invents an EKS Anywhere scope. Distractor 2 fabricates a deprecation; IRSA remains supported. Distractor 3 invents an EBS CSI dependency for IRSA that doesn't exist. New clusters today increasingly default to Pod Identity."
+      },
+      "after": {
+        "question": "Your team is wiring up pod-level AWS access on a brand-new EKS cluster with no OIDC provider configured yet, and wants the least setup ceremony, accepting a relatively new feature. Between IRSA and EKS Pod Identity, which fits and what's the tradeoff?",
+        "options": {
+          "correct": "EKS Pod Identity — it relies on a per-node agent and needs no OIDC provider or trust-policy wiring, so setup is minimal; the tradeoff is that it's newer, so some IAM and tooling templates still assume IRSA",
+          "distractor_1": "IRSA — it's the only one of the two that issues short-lived credentials; Pod Identity hands the pod a long-lived IAM access key from the node agent, which the no-long-lived-keys goal rules out",
+          "distractor_2": "IRSA actually needs less setup here — Pod Identity requires installing and operating a separate controller and CRDs, whereas IRSA is built into the control plane with nothing to add",
+          "distractor_3": "Pod Identity, but only because its credentials are configured per-pod in the manifest rather than per-service-account, so they don't survive a reschedule onto another node"
+        },
+        "explanation": "Pod Identity authenticates pods via the eks-pod-identity-agent on each node, skipping the OIDC-provider and trust-policy setup IRSA requires — so it's the lower-ceremony fit on a fresh cluster. Distractor 1 is false on mechanism: both issue temporary credentials; neither plants a static key. Distractor 2 inverts the setup cost — IRSA's OIDC ceremony is the heavier one, and Pod Identity installs as a single managed add-on. Distractor 3 misdescribes Pod Identity as per-pod; associations are per-service-account and survive rescheduling, just like IRSA. New clusters increasingly default to Pod Identity."
+      }
+    },
+    {
+      "mcq_id": "aws-005-mcq-2",
+      "source_id": "aws-005",
+      "domain": "aws",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "A team is hitting CPU saturation on their RDS primary during business hours because of heavy read-heavy reporting queries. They enable Multi-AZ hoping it will spread the load. Did this solve their problem?",
+        "options": {
+          "correct": "No — the Multi-AZ standby is not used to serve reads; it's a passive failover target. Read replicas are the right tool for offloading read traffic",
+          "distractor_1": "Yes — Multi-AZ load-balances read traffic across the primary and the standby once both are healthy",
+          "distractor_2": "Partially — reporting queries are routed to the standby automatically, but transactional reads still hit the primary",
+          "distractor_3": "Yes — enabling Multi-AZ promotes the synchronous standby to a hot read replica with consistent reads"
+        },
+        "explanation": "Multi-AZ exists for high availability, not read scaling. The standby is invisible to applications until failover. To offload read traffic you add read replicas (asynchronous) and point reporting workloads at them. Distractor 1 conflates Multi-AZ with a read-balancing setup. Distractor 2 invents a query-routing layer that RDS doesn't provide. Distractor 3 misdescribes how the synchronous standby works — it accepts replication writes only and serves no client traffic. The common candidate trap is assuming both replica types do everything."
+      },
+      "after": {
+        "question": "A team hits CPU saturation on their RDS primary every afternoon, driven by heavy read-only reporting queries. They enable Multi-AZ expecting it to spread the read load. What actually happens, and what should they use instead?",
+        "options": {
+          "correct": "The reporting load stays on the primary — the Multi-AZ standby is a passive failover target serving no client reads; read replicas are what offload reads",
+          "distractor_1": "Multi-AZ begins load-balancing read traffic across the primary and the standby automatically, once both instances report healthy",
+          "distractor_2": "Reporting queries are automatically routed to the standby while transactional reads keep hitting the primary, splitting the load",
+          "distractor_3": "Enabling Multi-AZ promotes the synchronous standby into a hot read replica that serves strongly consistent reads alongside the primary"
+        },
+        "explanation": "Multi-AZ is a high-availability feature, not a read-scaling one: the standby receives replication writes but is invisible to applications until a failover promotes it. To shed read load you add read replicas and point reporting at them. Distractor 1 treats Multi-AZ as a read-balancer, which it isn't. Distractor 2 invents an automatic query-routing layer RDS doesn't provide. Distractor 3 misdescribes the standby — a synchronous Multi-AZ standby serves no client traffic at all, hot or otherwise. The trap is assuming the standby and a read replica are interchangeable."
+      }
+    },
+    {
+      "mcq_id": "aws-007-mcq-1",
+      "source_id": "aws-007",
+      "domain": "aws",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "Match the AWS DR strategy to its typical RTO/RPO profile: which strategy offers the shortest RTO and RPO at the highest cost?",
+        "options": {
+          "correct": "Multi-site active/active — both regions serve traffic continuously, so RTO and RPO are near zero but compute and data-replication cost is paid all the time",
+          "distractor_1": "Pilot light — core services run in the DR region at all times, so failover is fast and data is fully up to date",
+          "distractor_2": "Warm standby — a full-scale replica runs in the DR region and serves traffic concurrently, giving near-zero RTO/RPO",
+          "distractor_3": "Backup and restore — data is replicated continuously to the DR region, so RPO is zero and RTO depends only on AMI launch time"
+        },
+        "explanation": "Multi-site active/active runs the full stack in two regions live, so failover is just traffic shift — RTO and RPO measured in seconds. Distractor 1 (pilot light) keeps only data and core services warm; app servers must scale up on failover, so RTO is minutes-to-hours. Distractor 2 (warm standby) does run scaled-down infrastructure but only the active site serves traffic — failover still needs scale-up. Distractor 3 conflates backup-and-restore (cheapest, slowest) with continuous replication; backups have non-zero RPO and the longest RTO."
+      },
+      "after": {
+        "question": "Your team runs a payments platform that must recover from a full regional outage in seconds with effectively zero data loss, and cost is explicitly not a constraint. Which disaster-recovery strategy fits?",
+        "options": {
+          "correct": "Multi-site active/active — the full stack runs live in two regions at once, so a regional outage is just a traffic shift, giving near-zero RTO and RPO at the highest steady-state cost",
+          "distractor_1": "Pilot light — core data and minimal services stay warm in the DR region, so failover only needs to scale up the app tier, keeping recovery fast and cheap",
+          "distractor_2": "Warm standby — a scaled-down copy of the stack runs continuously in the DR region and is scaled up on failover, giving recovery in minutes",
+          "distractor_3": "Backup and restore — frequent cross-region snapshots make data loss negligible, and recovery is just relaunching from the latest AMIs and backups"
+        },
+        "explanation": "Only multi-site active/active delivers seconds-level RTO and near-zero RPO, because both regions already serve production — there's nothing to spin up. It's also the most expensive, which the scenario explicitly allows. Distractor 1 (pilot light) must scale the app tier on failover, so RTO is minutes-to-hours, not seconds. Distractor 2 (warm standby) runs scaled-down and still needs a scale-up step, landing in minutes — short of 'seconds.' Distractor 3 (backup and restore) is the cheapest and slowest: restoring from snapshots and AMIs takes the longest RTO of all. Cost being a non-constraint points straight at active/active."
+      }
+    },
+    {
+      "mcq_id": "aws-010-mcq-2",
+      "source_id": "aws-010",
+      "domain": "aws",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "A user in Account A has an IAM policy granting s3:GetObject on a bucket in Account B. The bucket policy in Account B does not mention Account A. Can the user read objects in the bucket?",
+        "options": {
+          "correct": "No — cross-account S3 access requires both an identity-based allow in the calling account and a bucket policy allow in the bucket-owning account",
+          "distractor_1": "Yes — the IAM policy in Account A is sufficient, because S3 evaluates the caller's permissions and grants access if any policy allows it",
+          "distractor_2": "Yes — but only for objects the user themselves uploaded; objects owned by Account B require an explicit bucket policy grant",
+          "distractor_3": "No — and the user must also have a permissions boundary in Account A that allows cross-account access for the request to succeed"
+        },
+        "explanation": "Cross-account access to S3 requires explicit allow on BOTH sides: the caller's identity policy in their account AND a resource policy on the bucket in the owning account (or an ACL, which is being phased out). Distractor 1 describes the single-account model — within one account, an identity policy is enough. Distractor 2 invents an object-ownership exemption that doesn't match how S3 evaluates GetObject. Distractor 3 invents a permissions-boundary requirement; boundaries are optional and the missing piece here is the bucket policy."
+      },
+      "after": {
+        "question": "A user in Account A has an IAM policy granting s3:GetObject on a bucket owned by Account B, but Account B's bucket policy doesn't mention Account A at all. When the user calls GetObject, what happens and why?",
+        "options": {
+          "correct": "The request is denied — cross-account S3 access needs an allow on both sides: the caller's identity policy in Account A and a bucket-policy allow in Account B. Only one side is present",
+          "distractor_1": "The request succeeds — the identity policy in Account A is sufficient, because S3 grants access whenever any policy in the caller's account allows it",
+          "distractor_2": "The request succeeds, but only for objects the user previously uploaded; objects owned by Account B would additionally require a bucket-policy grant",
+          "distractor_3": "The request is denied, and the user would also need a permissions boundary in Account A explicitly allowing cross-account calls for it to work"
+        },
+        "explanation": "Cross-account access requires an explicit allow in both accounts — the caller's identity policy AND the resource (bucket) policy in the owning account. With the bucket policy silent, the default deny wins. Distractor 1 describes the single-account model, where an identity allow alone suffices; cross-account adds the resource-policy requirement. Distractor 2 invents an object-ownership exemption that doesn't match how S3 authorises GetObject. Distractor 3 lands on the right verdict for the wrong reason — permissions boundaries are optional, and the actual missing piece is the bucket policy, not a boundary."
+      }
+    },
+    {
+      "mcq_id": "aws-027-mcq-2",
+      "source_id": "aws-027",
+      "domain": "aws",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "Your organisation uses AWS Organizations with an SCP denying access to all regions except us-east-1 and eu-west-1. A developer in account A has an IAM policy granting full access in ap-southeast-2. Can they create resources there?",
+        "options": {
+          "correct": "No — SCPs apply at the account level and form the maximum boundary; an identity-based allow cannot exceed what the SCP permits",
+          "distractor_1": "Yes — identity-based policies take precedence over SCPs because they're more specific (attached to a user, not an account)",
+          "distractor_2": "Yes — SCPs apply only to root accounts; users with explicit IAM permissions bypass SCP restrictions in their own account",
+          "distractor_3": "Yes — but only in the AWS Console; the CLI and SDKs are gated by SCPs while the Console runs with the user's own session and bypasses Organisation policies"
+        },
+        "explanation": "SCPs in AWS Organizations are permission boundaries that apply to every principal in the affected account, including the root user. An identity-based allow grants nothing if the SCP doesn't permit it — the intersection wins. Distractor 1 reverses the precedence model; SCPs are not overridable by identity-based policies. Distractor 2 misreads the scope — SCPs apply to all principals, not just root. Distractor 3 invents a Console-vs-API exemption that doesn't exist; the IAM evaluation engine doesn't distinguish."
+      },
+      "after": {
+        "question": "Your organisation uses AWS Organizations with an SCP that denies every region except us-east-1 and eu-west-1. A developer in account A has an IAM policy granting full access in ap-southeast-2. Can they create resources there?",
+        "options": {
+          "correct": "They cannot — an SCP sets the permission ceiling for every principal in the account, so an identity allow for ap-southeast-2 grants nothing when the SCP denies that region",
+          "distractor_1": "They can — identity-based policies are more specific than account-level SCPs, so the user's explicit IAM allow takes precedence",
+          "distractor_2": "They can — SCPs constrain only the root user, so any IAM principal with an explicit allow operates outside SCP limits in their own account",
+          "distractor_3": "They can in the Console only — the Console runs under the user's own session and bypasses Organization policies, while the CLI and SDKs stay gated by the SCP"
+        },
+        "explanation": "An SCP is a permission boundary applied to every principal in the account, including root; effective permissions are the intersection of the SCP and the identity policy. With the region denied by the SCP, the identity allow grants nothing. Distractor 1 reverses precedence — SCPs are not overridden by 'more specific' identity policies. Distractor 2 misreads SCP scope; they apply to all principals, not just root. Distractor 3 invents a Console-vs-API split — IAM's evaluation engine is identical across Console, CLI, and SDK, so there's no bypass path."
+      }
+    },
+    {
+      "mcq_id": "cicd-010-mcq-1",
+      "source_id": "cicd-010",
+      "domain": "cicd",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "In GitHub Actions, what's the hierarchy of workflow / job / step / action?",
+        "options": {
+          "correct": "Workflow contains one or more jobs; each job contains one or more steps; each step runs either a shell command or an action",
+          "distractor_1": "Action contains one or more workflows; each workflow contains one or more jobs; each job contains one or more steps",
+          "distractor_2": "Workflow contains one or more steps; each step contains one or more jobs; each job runs one or more actions",
+          "distractor_3": "Job contains one or more workflows; each workflow contains one or more steps; each step runs an action or a shell script"
+        },
+        "explanation": "The hierarchy is workflow → job → step, with actions being reusable units a step can call. Distractor 1 inverts: actions are the smallest unit, called by steps, not containers of workflows. Distractor 2 swaps job and step (jobs are bigger). Distractor 3 inverts job and workflow. Getting this hierarchy wrong is the most common GHA confusion — you can't write a working workflow file without knowing which keyword nests inside which."
+      },
+      "after": {
+        "question": "An engineer needs two shell commands to run on the same fresh runner VM sharing one working directory, while a third command runs on a different operating system. How should they structure this GitHub Actions workflow?",
+        "options": {
+          "correct": "Put the two commands as two steps in one job (steps in a job share the same runner and filesystem), and put the third command in a separate job that targets the other OS",
+          "distractor_1": "Put the two commands in one job and the third in a second workflow file, since a different operating system requires its own workflow rather than another job",
+          "distractor_2": "Put all three commands as separate jobs in one workflow; jobs in a workflow share a runner and working directory, so the first two still see each other's files",
+          "distractor_3": "Put the two commands as two actions inside a single step, and the third as another step, since actions are how you pin work to one runner"
+        },
+        "explanation": "The hierarchy is workflow → job → step: steps within a job share one runner and its filesystem, while each job gets a fresh runner (and can target its own OS). So two co-located commands belong as steps in one job; the differently-OS'd command needs its own job. Distractor 1 invents a one-workflow-per-OS rule — a job already selects its runner OS. Distractor 2 has it backwards: separate jobs do not share a runner or filesystem, so the first two commands would lose their shared directory. Distractor 3 misuses 'action' as a runner-pinning unit; actions are reusable step bodies, not a placement mechanism."
+      }
+    },
+    {
+      "mcq_id": "cicd-040-mcq-1",
+      "source_id": "cicd-040",
+      "domain": "cicd",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "Match the security scan type to what it catches: SAST, DAST, SCA, container scan.",
+        "options": {
+          "correct": "SAST: source code vulnerabilities; DAST: runtime/web vulnerabilities; SCA: vulnerable dependencies; container: OS package and image-layer CVEs",
+          "distractor_1": "SAST: source secrets in code; DAST: dependency vulnerabilities; SCA: runtime exploits; container: code linting on Dockerfile syntax",
+          "distractor_2": "SAST: runtime exploits; DAST: source-level code smells; SCA: container vulnerabilities; container: dependency tree vulnerabilities",
+          "distractor_3": "All four catch overlapping classes of issue; the difference is the vendor (Snyk vs SonarQube vs Trivy) rather than what's actually analysed at each stage of the pipeline"
+        },
+        "explanation": "Each scan type has a distinct target. SAST = static analysis of code (logic flaws, hardcoded secrets, dangerous patterns). DAST = running the app and probing it from the outside. SCA = analysing the dependency manifest for known-vulnerable libraries. Container = scanning image layers for CVEs in OS packages. Distractor 1 mixes up SAST and SCA. Distractor 2 fully scrambles. Distractor 3 collapses the categories into a vendor question, ignoring real methodological differences."
+      },
+      "after": {
+        "question": "Your team wants its pipeline to catch known-vulnerable versions of third-party libraries pulled in through the dependency manifest, before any code is built or run. Which scan type targets exactly that?",
+        "options": {
+          "correct": "SCA (software composition analysis) — it reads the dependency manifest/lockfile and flags libraries with known CVEs, independent of building or running the app",
+          "distractor_1": "SAST — it statically analyses your own source code for insecure patterns and hardcoded secrets, which is where vulnerable dependencies surface",
+          "distractor_2": "DAST — it probes the running application from the outside, so it detects vulnerable libraries as they're exercised at runtime",
+          "distractor_3": "Container image scanning — it inspects built image layers, which is the stage where third-party library versions are actually recorded"
+        },
+        "explanation": "SCA exists precisely to inventory declared dependencies and match them against vulnerability databases, with no build or run required. Distractor 1 confuses SCA with SAST — SAST examines first-party code, not the dependency tree. Distractor 2 picks DAST, but dynamic testing needs a deployed, running app and finds behavioural flaws, not manifest versions. Distractor 3 is the closest miss: container scanning does catch library CVEs, but only after an image is built and mostly for OS-level packages — it's later and broader than reading the manifest up front. SCA is the earliest, most targeted fit."
+      }
+    },
+    {
+      "mcq_id": "cicd-050-mcq-2",
+      "source_id": "cicd-050",
+      "domain": "cicd",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "Which is NOT a common source of CI flakiness?",
+        "options": {
+          "correct": "Pure functions in unit tests with no shared state — they're deterministic by construction and don't flake",
+          "distractor_1": "Tests that race on shared resources (a port, a database row, a file) when parallelised",
+          "distractor_2": "Timing-dependent tests that assume operations complete within a fixed millisecond budget on every runner",
+          "distractor_3": "Tests that depend on external services (third-party APIs, DNS resolution) without timeouts or stubs to make the dependency reproducible"
+        },
+        "explanation": "Pure functions with no I/O and no shared state are the gold standard for reliability — they're the OPPOSITE of flaky. Distractor 1 (race on shared resources) is the #1 source of flake in parallel test runs. Distractor 2 (timing) is the #2 source — tests that pass on developer laptops fail on slower runners. Distractor 3 (external dependencies) is the #3 source — production-like systems have networks that flap. The question reversal teaches what reliable tests look like by contrast."
+      },
+      "after": {
+        "question": "Your team's test suite passes on developer laptops but fails on about one CI run in six, each time in a different test, and only when the suite runs with --parallel. What's the most likely root cause?",
+        "options": {
+          "correct": "Tests racing on a shared resource — a port, a row, a temp file — that collide only when run concurrently, so a different test fails each run",
+          "distractor_1": "A genuine logic bug in a pure function under test; parallelism merely makes the otherwise-deterministic failure surface more often",
+          "distractor_2": "Compiler or interpreter nondeterminism on the CI runners, since build toolchains produce different results than local machines",
+          "distractor_3": "Insufficient CI runner memory, causing the OS to randomly kill whichever test happens to allocate the most at the time"
+        },
+        "explanation": "Different-test-each-time failures that appear only under --parallel are the signature of shared-resource contention: concurrent tests fight over a port, row, or file with no isolation. Distractor 1 is ruled out by the symptoms — a pure-function logic bug fails deterministically on the same test every run, parallel or not. Distractor 2 invokes compiler nondeterminism, which would break builds consistently rather than flake a different test each run. Distractor 3 sounds plausible, but OOM-kills cluster around memory-heavy tests and wouldn't depend on the --parallel flag. The fix is isolating shared state per test."
+      }
+    },
+    {
+      "mcq_id": "k8s-023-mcq-1",
+      "source_id": "k8s-023",
+      "domain": "kubernetes",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "Match the autoscaler to what it changes: HPA, VPA, Cluster Autoscaler.",
+        "options": {
+          "correct": "HPA changes pod replica count; VPA changes pod resource requests/limits; Cluster Autoscaler changes node count",
+          "distractor_1": "HPA changes node count; VPA changes pod count; Cluster Autoscaler changes resource requests",
+          "distractor_2": "All three change the same thing — pod replica count — but trigger on different metrics (CPU, memory, custom)",
+          "distractor_3": "HPA changes pod count; VPA changes node count; Cluster Autoscaler changes resource limits per node"
+        },
+        "explanation": "Three distinct axes: HPA scales replicas (horizontal pod), VPA right-sizes individual pod resources (vertical pod), CA adds/removes nodes (cluster). Distractor 1 fully scrambles which scales what. Distractor 2 collapses three orthogonal mechanisms into one. Distractor 3 partially scrambles. Knowing the axes matters because they compose: HPA + CA is the most common pattern (more pods, more nodes); VPA + HPA together require care (VPA's vertical changes can fight HPA's horizontal decisions)."
+      },
+      "after": {
+        "question": "Your cluster has several pods stuck in Pending because every existing node is already full, even though the running pods are correctly right-sized. Which autoscaler resolves this?",
+        "options": {
+          "correct": "Cluster Autoscaler — it adds nodes when pods can't be scheduled for lack of capacity, then removes them when they're no longer needed",
+          "distractor_1": "Horizontal Pod Autoscaler — it raises the replica count, which schedules more pods so Kubernetes can place the Pending ones",
+          "distractor_2": "Vertical Pod Autoscaler — it increases the pods' CPU and memory requests so they fit onto the existing nodes",
+          "distractor_3": "Horizontal Pod Autoscaler combined with VPA — together they rebalance pods across the current nodes to free up room for the Pending ones"
+        },
+        "explanation": "Pending pods with all nodes full is a capacity problem, and only the Cluster Autoscaler changes node count to fix it. Distractor 1 picks HPA, but adding replicas creates more pods needing capacity — it worsens Pending, not resolves it. Distractor 2 picks VPA, which changes resource requests; raising requests makes pods harder to fit, and the pods are already right-sized. Distractor 3 imagines HPA+VPA rebalancing across nodes, but neither moves pods to manufacture capacity — that's the Cluster Autoscaler's job. The three operate on orthogonal axes: replicas, pod size, node count."
+      }
+    }
+  ]
+}

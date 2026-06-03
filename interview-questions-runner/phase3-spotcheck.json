@@ -1,0 +1,308 @@
+[
+  {
+    "id": "k8s-023-mcq-1",
+    "source_id": "k8s-023",
+    "domain": "kubernetes",
+    "subdomain": "scheduling",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "Match the autoscaler to what it changes: HPA, VPA, Cluster Autoscaler.",
+    "options": {
+      "correct": "HPA changes pod replica count; VPA changes pod resource requests/limits; Cluster Autoscaler changes node count",
+      "distractor_1": "HPA changes node count; VPA changes pod count; Cluster Autoscaler changes resource requests",
+      "distractor_2": "All three change the same thing \u2014 pod replica count \u2014 but trigger on different metrics (CPU, memory, custom)",
+      "distractor_3": "HPA changes pod count; VPA changes node count; Cluster Autoscaler changes resource limits per node"
+    },
+    "explanation": "Three distinct axes: HPA scales replicas (horizontal pod), VPA right-sizes individual pod resources (vertical pod), CA adds/removes nodes (cluster). Distractor 1 fully scrambles which scales what. Distractor 2 collapses three orthogonal mechanisms into one. Distractor 3 partially scrambles. Knowing the axes matters because they compose: HPA + CA is the most common pattern (more pods, more nodes); VPA + HPA together require care (VPA's vertical changes can fight HPA's horizontal decisions).",
+    "bank": 1
+  },
+  {
+    "id": "cicd-010-mcq-1",
+    "source_id": "cicd-010",
+    "domain": "cicd",
+    "subdomain": "github-actions",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "In GitHub Actions, what's the hierarchy of workflow / job / step / action?",
+    "options": {
+      "correct": "Workflow contains one or more jobs; each job contains one or more steps; each step runs either a shell command or an action",
+      "distractor_1": "Action contains one or more workflows; each workflow contains one or more jobs; each job contains one or more steps",
+      "distractor_2": "Workflow contains one or more steps; each step contains one or more jobs; each job runs one or more actions",
+      "distractor_3": "Job contains one or more workflows; each workflow contains one or more steps; each step runs an action or a shell script"
+    },
+    "explanation": "The hierarchy is workflow \u2192 job \u2192 step, with actions being reusable units a step can call. Distractor 1 inverts: actions are the smallest unit, called by steps, not containers of workflows. Distractor 2 swaps job and step (jobs are bigger). Distractor 3 inverts job and workflow. Getting this hierarchy wrong is the most common GHA confusion \u2014 you can't write a working workflow file without knowing which keyword nests inside which.",
+    "bank": 1
+  },
+  {
+    "id": "tf-005-mcq-1",
+    "source_id": "tf-005",
+    "domain": "terraform",
+    "subdomain": "environments",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "Why do experienced Terraform teams avoid using workspaces to model dev/staging/prod environments?",
+    "options": {
+      "correct": "Workspaces share the same backend and configuration; they can't model genuinely different infrastructure (different regions, different IAM, different sizes) cleanly",
+      "distractor_1": "Workspaces require manual switching that can't be automated in CI, so they don't integrate with deployment pipelines",
+      "distractor_2": "Workspaces store all environments' state in a single state file, so a prod operation can accidentally affect dev resources",
+      "distractor_3": "Workspaces are a legacy 0.11-era feature that no longer works with Terraform 1.x \u2014 they were officially deprecated and removed from the CLI in the 1.0 release"
+    },
+    "explanation": "Workspaces are great for 'minor variants of the same config' (a region split, a tenant split) but break down when environments differ meaningfully \u2014 different backends, different providers, different module versions. The standard pattern is separate state per environment. Distractor 1 misstates CI integration \u2014 workspaces can be selected non-interactively. Distractor 2 invents a single-state-file design; each workspace has its own state file. Distractor 3 fabricates a deprecation.",
+    "bank": 1
+  },
+  {
+    "id": "tf-013-mcq-1",
+    "source_id": "tf-013",
+    "domain": "terraform",
+    "subdomain": "operations",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "You see an unexpected diff on `terraform plan`. Which is the right first step?",
+    "options": {
+      "correct": "Read the diff carefully \u2014 Terraform's plan output names each attribute change. Check if a teammate or out-of-band tool changed the resource",
+      "distractor_1": "Run `terraform apply` to force-write the desired state, then investigate after the fix is applied",
+      "distractor_2": "Delete the state file and re-import all resources from scratch; this is the standard recovery for unexpected drift",
+      "distractor_3": "Run `terraform destroy` followed by `terraform apply` to ensure the infrastructure matches config exactly"
+    },
+    "explanation": "Reading the plan is the first investigative step \u2014 Terraform tells you precisely which attribute changed on which resource, which usually points at the cause (clickops, automation, another Terraform config, an auto-rotation). Distractor 1 (apply first) discards diagnostic state. Distractor 2 (recreate state) destroys recoverability. Distractor 3 (destroy + apply) is the nuclear option and risks data loss for non-trivial resources. The triage path: read \u2192 identify cause \u2192 choose `ignore_changes`, `state mv`, or accept the diff.",
+    "bank": 1
+  },
+  {
+    "id": "linux-002-mcq-1",
+    "source_id": "linux-002",
+    "domain": "linux",
+    "subdomain": "processes",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "What's the practical difference between SIGTERM and SIGKILL?",
+    "options": {
+      "correct": "SIGTERM (15) can be caught or ignored by the process and allows graceful shutdown; SIGKILL (9) is forced by the kernel and cannot be caught, blocked, or handled",
+      "distractor_1": "SIGTERM kills the process immediately; SIGKILL gives the process 30 seconds to clean up before forced termination",
+      "distractor_2": "SIGTERM only works on background processes; SIGKILL is required for foreground processes and shell builtins",
+      "distractor_3": "SIGTERM is the legacy signal name; SIGKILL is its modern replacement and both have identical behaviour in current Linux kernels"
+    },
+    "explanation": "The catchability distinction is the entire reason both exist. Graceful shutdown patterns (drain connections, flush buffers, close DB handles) rely on SIGTERM being catchable. SIGKILL is the no-questions-asked tool of last resort. Distractor 1 reverses the two. Distractor 2 invents a foreground/background distinction. Distractor 3 (modern replacement) is fiction \u2014 both signals have been stable since early Unix. Production apps should handle SIGTERM properly so SIGKILL is never needed.",
+    "bank": 1
+  },
+  {
+    "id": "git-001-mcq-1",
+    "source_id": "git-001",
+    "domain": "git",
+    "subdomain": "workflow",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "Which is the strongest reason to prefer `git merge` over `git rebase` when integrating a feature branch?",
+    "options": {
+      "correct": "Merge preserves the actual history of when changes happened, which is valuable for archaeology and debugging long after the merge",
+      "distractor_1": "Merge is faster than rebase on large repositories because rebase rewrites every commit individually",
+      "distractor_2": "Merge avoids creating new commit SHAs for existing commits, which makes rebase impossible to use in CI/CD pipelines",
+      "distractor_3": "Merge is the only way to combine two branches; rebase merely moves commits between branches without combining their changes into the target branch's history"
+    },
+    "explanation": "Merge preserves the actual integration story \u2014 when each branch's commits were made, who was working in parallel, the genuine concurrent history. Rebase creates a clean linear story at the cost of historical accuracy. Distractor 1 (speed) is a wash and not the main reason. Distractor 2 misstates rebase's effect on CI; rebased branches go through CI normally. Distractor 3 misframes rebase as not combining \u2014 rebase does integrate the work, just by re-applying rather than merging.",
+    "bank": 1
+  },
+  {
+    "id": "k8s-001-mcq-2",
+    "source_id": "k8s-001",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "critical",
+    "difficulty": "easy",
+    "question": "In which situation would you hand-create a ReplicaSet directly instead of using a Deployment?",
+    "options": {
+      "correct": "Essentially never \u2014 Deployments are the recommended abstraction, and creating a ReplicaSet directly loses rolling updates, rollback history, and revision tracking",
+      "distractor_1": "When you need a single replica with no rolling updates, since Deployments require at least two replicas to function",
+      "distractor_2": "When the pods need to survive a Deployment rollback \u2014 only standalone ReplicaSets are immune to rollback-triggered termination of older pod versions during a deploy",
+      "distractor_3": "When using a custom container runtime, since Deployments only support containerd and CRI-O while ReplicaSets are runtime-agnostic"
+    },
+    "explanation": "ReplicaSets are an implementation detail of Deployments \u2014 there's almost no production reason to create one directly. Distractor 1 invents a minimum-replicas constraint that doesn't exist (Deployments work fine at one replica). Distractor 2 fabricates rollback immunity for standalone ReplicaSets. Distractor 3 invents a runtime-compatibility difference; both objects use the same underlying container runtime via the kubelet. The answer is essentially 'don't' \u2014 and naming that bluntly is more useful than inventing a clever edge case.",
+    "bank": 2
+  },
+  {
+    "id": "cicd-031-mcq-1",
+    "source_id": "cicd-031",
+    "domain": "cicd",
+    "subdomain": "deployment-strategies",
+    "priority": "high",
+    "difficulty": "hard",
+    "question": "You need to rename a column in a production database used by 50 web servers, with zero downtime. Which sequence works?",
+    "options": {
+      "correct": "Expand-contract: add the new column, deploy code that writes both columns, backfill, deploy code that reads only the new column, then drop the old column",
+      "distractor_1": "Coordinate a maintenance window, take a snapshot, run the rename, and redeploy all 50 servers from the new schema in one cutover",
+      "distractor_2": "Run the rename online using ALTER TABLE; PostgreSQL/MySQL handle column renames as metadata-only operations with no downtime",
+      "distractor_3": "Use a feature flag to gate the column reference in the app; switch the flag at the same instant as running the ALTER TABLE"
+    },
+    "explanation": "Expand-contract is the canonical no-downtime schema-change pattern: schema and code change in small, backwards-compatible steps so old and new code can coexist. Distractor 1 requires downtime (maintenance window). Distractor 2 over-promises ALTER TABLE \u2014 column rename varies by database engine and version, can take locks, and breaks any in-flight queries referencing the old name. Distractor 3 ignores the 50-server rolling-update window during which some servers reference the old name and some the new.",
+    "bank": 2
+  },
+  {
+    "id": "tf-008-mcq-1",
+    "source_id": "tf-008",
+    "domain": "terraform",
+    "subdomain": "operations",
+    "priority": "medium",
+    "difficulty": "medium",
+    "question": "What does `terraform refresh` do (now the default behaviour at the start of `terraform plan`)?",
+    "options": {
+      "correct": "Reads the current state of each managed resource from the cloud provider and updates the state file to match what's actually there",
+      "distractor_1": "Re-runs the configuration files against the provider to recreate any resources that have been deleted out-of-band",
+      "distractor_2": "Empties the state file completely and rebuilds it from scratch by querying every resource type the provider supports",
+      "distractor_3": "Validates the syntax of the state file and repairs any corruption introduced by partial applies or interrupted operations, leaving the resources in the cloud untouched"
+    },
+    "explanation": "Refresh is the read-only sync step \u2014 bringing state into line with reality. It's what lets plan detect drift (resources changed outside Terraform). Distractor 1 invents a recreate-deleted-resources behaviour; refresh only updates state, doesn't change infra. Distractor 2 fabricates a full rebuild; refresh only touches managed resources. Distractor 3 confuses refresh with `terraform state` repair commands. Since Terraform 0.15ish, refresh runs implicitly during plan unless you pass `-refresh=false`.",
+    "bank": 2
+  },
+  {
+    "id": "aws-032-mcq-1",
+    "source_id": "aws-032",
+    "domain": "aws",
+    "subdomain": "operations",
+    "priority": "critical",
+    "difficulty": "hard",
+    "question": "Users report 'the app is slow.' The system is a browser \u2192 CloudFront \u2192 ALB \u2192 ECS service \u2192 RDS. What's the most useful first signal to look at?",
+    "options": {
+      "correct": "ALB target response time and 5xx rate broken down by target group \u2014 this tells you whether latency is in the front edge, the app, or downstream of the app",
+      "distractor_1": "CloudFront cache hit ratio \u2014 if it's below 80%, that's the most common root cause of 'app is slow' reports in CDN-fronted apps",
+      "distractor_2": "RDS Performance Insights \u2014 slow queries are the dominant cause of perceived slowness for 90%+ of web apps",
+      "distractor_3": "User device metrics from synthetic browser checks \u2014 server-side numbers usually don't capture what users actually experience"
+    },
+    "explanation": "ALB target response time isolates whether latency is upstream (CloudFront/network) or downstream (your service and what it calls). It's the lowest-cost, fastest signal to bisect the stack. Distractor 1 jumps to a specific theory (cache miss) \u2014 possibly the cause, but not the first signal. Distractor 2 over-claims that RDS is the dominant root cause \u2014 true sometimes, but starting at the DB skips half the stack. Distractor 3 over-emphasises client-side metrics; useful for confirming impact, but not for bisecting where the latency lives.",
+    "bank": 2
+  },
+  {
+    "id": "docker-002-mcq-2",
+    "source_id": "docker-002",
+    "domain": "docker",
+    "subdomain": "images",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "Which Dockerfile practice is the strongest security improvement?",
+    "options": {
+      "correct": "Run the application as a non-root user via `USER appuser` after creating the user, so a container compromise doesn't run as root inside the namespace",
+      "distractor_1": "Run the application as root for predictable behaviour, then constrain the host's docker daemon via SELinux profiles to make root-in-container safe",
+      "distractor_2": "Pin base images to `:latest` so security patches are picked up automatically on every rebuild without operator intervention",
+      "distractor_3": "Embed the SSL/TLS private key in the image so it doesn't need to be fetched from secret stores at runtime, eliminating that network round-trip"
+    },
+    "explanation": "Non-root user is the single biggest container hardening step \u2014 even with namespace isolation, root-in-container is one CVE away from being root on the host. Distractor 1 reverses the priority (host-side hardening is in addition to, not instead of, non-root containers). Distractor 2 advocates `:latest`, which is the worst image-pinning practice (unpredictable, breaks reproducibility). Distractor 3 promotes embedding secrets in images \u2014 an extreme anti-pattern (image layers persist secrets forever).",
+    "bank": 2
+  },
+  {
+    "id": "linux-003-mcq-1",
+    "source_id": "linux-003",
+    "domain": "linux",
+    "subdomain": "system",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "Match the systemd unit file type to its purpose: `.service`, `.timer`, `.socket`, `.target`.",
+    "options": {
+      "correct": "`.service`: a long-running daemon or one-shot process; `.timer`: schedules service execution; `.socket`: socket activation; `.target`: groups units into a logical state (multi-user, graphical, etc.)",
+      "distractor_1": "`.service`: a daemon; `.timer`: a scheduled task that includes its own commands; `.socket`: a network bind point; `.target`: a desktop environment definition",
+      "distractor_2": "`.service`: any unit file; `.timer`: replaces cron entries; `.socket`: a TCP listener; `.target`: an alias for a specific service unit",
+      "distractor_3": "`.service`: only system-level daemons; `.timer`: schedules .service.in files; `.socket`: inotify file watchers; `.target`: kernel boot stages"
+    },
+    "explanation": "The four core unit types each have a distinct role: service runs, timer schedules other units (no commands of its own), socket activates a service on connection, target groups units. Distractor 1 misrepresents timer (it points at a service, doesn't contain commands) and target (not desktop-specific). Distractor 2 collapses categories incorrectly. Distractor 3 over-restricts each type. Understanding the timer-points-at-service relationship is the most common stumbling block.",
+    "bank": 2
+  },
+  {
+    "id": "k8s-051-mcq-2",
+    "source_id": "k8s-051",
+    "domain": "kubernetes",
+    "subdomain": "operations",
+    "priority": "high",
+    "difficulty": "hard",
+    "question": "A pod's response time spikes from 50ms to 500ms intermittently. CloudWatch shows no CPU, memory, or network saturation. What's a common K8s-specific cause worth checking?",
+    "options": {
+      "correct": "CPU throttling at the limit \u2014 the pod hits its cpu limit before saturating the node, so CloudWatch sees idle resources while the pod is throttled",
+      "distractor_1": "kubelet OOM tracking \u2014 even sub-limit pods are throttled when the node's overall memory approaches 90%, regardless of the pod's individual usage profile",
+      "distractor_2": "Container runtime resource isolation \u2014 runc periodically pauses containers to refresh cgroups, causing latency spikes invisible to host metrics",
+      "distractor_3": "Service mesh sidecar latency \u2014 Istio adds ~450ms of fixed per-request overhead once installed, which closely matches the observed spike pattern and is invisible to CloudWatch by default"
+    },
+    "explanation": "CPU throttling at the container's cpu limit is invisible at the node level \u2014 node CPU may show 30% but the pod is throttled because it hit its quota in the cgroup's cfs scheduler. Container-level metrics (cgroup throttled time, kubelet's `container_cpu_cfs_throttled_seconds_total`) show this; node-level CloudWatch metrics don't. Distractor 1 invents a node-memory-driven throttle. Distractor 2 fabricates a runc pause mechanism. Distractor 3 over-states Istio overhead (typically 1-10ms per hop, not 450ms).",
+    "bank": 3
+  },
+  {
+    "id": "cicd-050-mcq-2",
+    "source_id": "cicd-050",
+    "domain": "cicd",
+    "subdomain": "operations",
+    "priority": "critical",
+    "difficulty": "medium",
+    "question": "Which is NOT a common source of CI flakiness?",
+    "options": {
+      "correct": "Pure functions in unit tests with no shared state \u2014 they're deterministic by construction and don't flake",
+      "distractor_1": "Tests that race on shared resources (a port, a database row, a file) when parallelised",
+      "distractor_2": "Timing-dependent tests that assume operations complete within a fixed millisecond budget on every runner",
+      "distractor_3": "Tests that depend on external services (third-party APIs, DNS resolution) without timeouts or stubs to make the dependency reproducible"
+    },
+    "explanation": "Pure functions with no I/O and no shared state are the gold standard for reliability \u2014 they're the OPPOSITE of flaky. Distractor 1 (race on shared resources) is the #1 source of flake in parallel test runs. Distractor 2 (timing) is the #2 source \u2014 tests that pass on developer laptops fail on slower runners. Distractor 3 (external dependencies) is the #3 source \u2014 production-like systems have networks that flap. The question reversal teaches what reliable tests look like by contrast.",
+    "bank": 3
+  },
+  {
+    "id": "tf-009-mcq-2",
+    "source_id": "tf-009",
+    "domain": "terraform",
+    "subdomain": "ci-cd",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "Two Terraform apply jobs are queued in CI against the same state. What happens?",
+    "options": {
+      "correct": "The first acquires the state lock and runs; the second fails immediately with a state-lock error (DynamoDB) unless the CI tool queues runs explicitly",
+      "distractor_1": "Both runs proceed in parallel; Terraform merges the resulting states automatically once both complete",
+      "distractor_2": "The second run waits indefinitely for the first to finish, with the state-lock acting as a built-in queue",
+      "distractor_3": "Both runs fail because the state-lock mechanism prevents any concurrent or parallel apply, including back-to-back queued ones submitted from the same CI pipeline within a short window"
+    },
+    "explanation": "DynamoDB locking is fail-fast: hold the lock or fail immediately. CI systems that need queueing implement it at the pipeline layer (concurrency groups in GHA, etc.). Distractor 1 invents state merging. Distractor 2 inverts behaviour \u2014 Terraform doesn't queue on lock contention. Distractor 3 misstates the lock \u2014 sequential runs (first finishes, second starts) work fine because the lock is released between runs. The trap is treating advisory locking as a queue.",
+    "bank": 3
+  },
+  {
+    "id": "aws-005-mcq-2",
+    "source_id": "aws-005",
+    "domain": "aws",
+    "subdomain": "databases",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "A team is hitting CPU saturation on their RDS primary during business hours because of heavy read-heavy reporting queries. They enable Multi-AZ hoping it will spread the load. Did this solve their problem?",
+    "options": {
+      "correct": "No \u2014 the Multi-AZ standby is not used to serve reads; it's a passive failover target. Read replicas are the right tool for offloading read traffic",
+      "distractor_1": "Yes \u2014 Multi-AZ load-balances read traffic across the primary and the standby once both are healthy",
+      "distractor_2": "Partially \u2014 reporting queries are routed to the standby automatically, but transactional reads still hit the primary",
+      "distractor_3": "Yes \u2014 enabling Multi-AZ promotes the synchronous standby to a hot read replica with consistent reads"
+    },
+    "explanation": "Multi-AZ exists for high availability, not read scaling. The standby is invisible to applications until failover. To offload read traffic you add read replicas (asynchronous) and point reporting workloads at them. Distractor 1 conflates Multi-AZ with a read-balancing setup. Distractor 2 invents a query-routing layer that RDS doesn't provide. Distractor 3 misdescribes how the synchronous standby works \u2014 it accepts replication writes only and serves no client traffic. The common candidate trap is assuming both replica types do everything.",
+    "bank": 3
+  },
+  {
+    "id": "docker-009-mcq-2",
+    "source_id": "docker-009",
+    "domain": "docker",
+    "subdomain": "registry",
+    "priority": "high",
+    "difficulty": "medium",
+    "question": "An ECR lifecycle policy says 'keep only the 10 most recent images, expire the rest.' Why is tag immutability sometimes set alongside this?",
+    "options": {
+      "correct": "Tag immutability prevents the same tag (e.g. `:v1`) from being overwritten \u2014 so when lifecycle deletes 'older' images, the tag-to-digest mapping that callers rely on is stable",
+      "distractor_1": "Tag immutability is a billing optimisation \u2014 ECR charges less for immutable tags because they don't require write tracking",
+      "distractor_2": "Tag immutability is required by lifecycle policies \u2014 without it, the policy cannot determine which images are 'more recent'",
+      "distractor_3": "Tag immutability rotates tags automatically \u2014 the policy uses it to renumber tags so the oldest expires and the newest becomes `:latest`"
+    },
+    "explanation": "Immutable tags + lifecycle policy together give predictable image history: each tag refers to one immutable digest, lifecycle expires by age, and consumers always know what `:v1` means. Distractor 1 invents a billing tier. Distractor 2 over-states the dependency \u2014 lifecycle works without immutability, but `:latest` becomes a moving target. Distractor 3 fabricates tag-rotation; ECR doesn't rename tags. Immutable + lifecycle is a strong combination for production registries.",
+    "bank": 3
+  },
+  {
+    "id": "git-006-mcq-2",
+    "source_id": "git-006",
+    "domain": "git",
+    "subdomain": "workflow",
+    "priority": "medium",
+    "difficulty": "easy",
+    "question": "An API key was committed and pushed to GitHub two weeks ago. What's the right recovery procedure?",
+    "options": {
+      "correct": "Rotate the key immediately (it's already exposed); then use git filter-repo or BFG to scrub history; then force-push and notify collaborators of the rewrite",
+      "distractor_1": "Delete the file from the latest commit and push; GitHub automatically purges the key from historical commits within 24 hours",
+      "distractor_2": "Rotate the key only \u2014 there's no need to scrub history because Git history is private and only repo collaborators can see it",
+      "distractor_3": "Run `git reset --hard HEAD~10` to roll the repo back past the bad commit, then re-apply later legitimate changes manually"
+    },
+    "explanation": "The order matters: ROTATE first (it's already public, the key is compromised), then clean up to prevent the historical commit being re-exposed. Distractor 1 invents GitHub auto-purge. Distractor 2 misunderstands repo visibility \u2014 even private repos have backups, forks, and clones that retain the history. Distractor 3 (git reset) doesn't remove the commit from remote history without a force push, and rewriting recent history breaks collaborators' work.",
+    "bank": 3
+  }
+]

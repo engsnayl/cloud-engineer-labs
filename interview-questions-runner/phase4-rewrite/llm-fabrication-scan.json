@@ -1,0 +1,2203 @@
+[
+  {
+    "id": "aws-001-mcq-1",
+    "domain": "aws",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-001-mcq-2",
+    "domain": "aws",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-002-mcq-2",
+    "domain": "aws",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-005-mcq-1",
+    "domain": "aws",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-008-mcq-1",
+    "domain": "aws",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-008-mcq-2",
+    "domain": "aws",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-009-mcq-1",
+    "domain": "aws",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-010-mcq-1",
+    "domain": "aws",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-012-mcq-1",
+    "domain": "aws",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-012-mcq-2",
+    "domain": "aws",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-013-mcq-1",
+    "domain": "aws",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-013-mcq-2",
+    "domain": "aws",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-014-mcq-2",
+    "domain": "aws",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-015-mcq-1",
+    "domain": "aws",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-016-mcq-1",
+    "domain": "aws",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-017-mcq-2",
+    "domain": "aws",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-020-mcq-2",
+    "domain": "aws",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-021-mcq-2",
+    "domain": "aws",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-022-mcq-2",
+    "domain": "aws",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-024-mcq-1",
+    "domain": "aws",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-024-mcq-2",
+    "domain": "aws",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-027-mcq-1",
+    "domain": "aws",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-028-mcq-1",
+    "domain": "aws",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-028-mcq-2",
+    "domain": "aws",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-029-mcq-1",
+    "domain": "aws",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-030-mcq-1",
+    "domain": "aws",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-030-mcq-2",
+    "domain": "aws",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-031-mcq-1",
+    "domain": "aws",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "aws-032-mcq-2",
+    "domain": "aws",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "cicd-001-mcq-2",
+    "domain": "cicd",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "cicd-011-mcq-2",
+    "domain": "cicd",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "inverts the real secret-access model",
+        "source_evidence": "plausible misconception"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "over-tightens a real restriction",
+        "source_evidence": "plausible misconception"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "suspect-fabrication",
+        "category": "key",
+        "justification": "invents a COMPOSITE_-prefixed secret naming convention that does not exist in GHA",
+        "source_evidence": "grep of source: none; no such GHA feature"
+      }
+    ],
+    "mcq_verdict": "has-suspect",
+    "tier": "named-identifier",
+    "reviewer_note": "CONFIRMED named-identifier fabrication (invented naming convention)."
+  },
+  {
+    "id": "cicd-012-mcq-1",
+    "domain": "cicd",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "suspect-fabrication",
+        "category": "mechanism",
+        "justification": "invents a GHA 'matrix coordinator' aggregator job",
+        "source_evidence": "no coordinator in matrix expansion"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "treats matrix as 1-D iteration",
+        "source_evidence": "wrong mental model"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "inverts the parallelism dimension",
+        "source_evidence": "wrong mental model"
+      }
+    ],
+    "mcq_verdict": "has-suspect",
+    "tier": "invented-mechanism",
+    "reviewer_note": "CONTESTED: invented mechanism but a naive model (cf. pilot k8s-001 'pods self-coordinate', AT-BAR). At-bar under pilot standard."
+  },
+  {
+    "id": "cicd-013-mcq-1",
+    "domain": "cicd",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "commit-SHA cache-key model",
+        "source_evidence": "wrong mental model"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "branch-name cache-key model",
+        "source_evidence": "wrong mental model"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "suspect-fabrication",
+        "category": "mechanism",
+        "justification": "invents an action-version-keyed shared cache pool",
+        "source_evidence": "no such pool; keys are user-defined"
+      }
+    ],
+    "mcq_verdict": "has-suspect",
+    "tier": "invented-mechanism",
+    "reviewer_note": "CONTESTED: same family as sibling distractors (wrong model of the cache key). At-bar under pilot standard."
+  },
+  {
+    "id": "cicd-022-mcq-1",
+    "domain": "cicd",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real CodeDeploy blue/green offered as wrong default",
+        "source_evidence": "real feature wrong context"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "Recreate strategy ECS does not default to",
+        "source_evidence": "plausible misconception"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "suspect-fabrication",
+        "category": "key",
+        "justification": "invents 'aws ecs deploy-now' command and queued-deploy state",
+        "source_evidence": "no such command; real path is aws ecs update-service"
+      }
+    ],
+    "mcq_verdict": "has-suspect",
+    "tier": "named-identifier",
+    "reviewer_note": "CONFIRMED named-identifier fabrication (invented CLI command); queued-deploy premise is itself a plausible misconception."
+  },
+  {
+    "id": "cicd-022-mcq-2",
+    "domain": "cicd",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "suspect-fabrication",
+        "category": "causal-claim",
+        "justification": "claims minimumHealthyPercent=200 gives double capacity + one-cut switch (surge is maximumPercent)",
+        "source_evidence": "real field, invented behavior"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real external-LB manual workaround",
+        "source_evidence": "real workaround wrong fit"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "desiredCount=0 ramp, real field misused",
+        "source_evidence": "real field wrong approach"
+      }
+    ],
+    "mcq_verdict": "has-suspect",
+    "tier": "invented-mechanism",
+    "reviewer_note": "CONTESTED: wrong causal claim about a REAL field (cf. pilot k8s-022-mcq-2 and tf-002, both AT-BAR). At-bar under pilot standard."
+  },
+  {
+    "id": "cicd-030-mcq-1",
+    "domain": "cicd",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "cicd-030-mcq-2",
+    "domain": "cicd",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "cicd-032-mcq-1",
+    "domain": "cicd",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "cicd-050-mcq-1",
+    "domain": "cicd",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "docker-004-mcq-2",
+    "domain": "docker",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real RUN cleanup with wrong layer model",
+        "source_evidence": "real command wrong context"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "suspect-fabrication",
+        "category": "key",
+        "justification": "invents a docker build '--no-context' flag",
+        "source_evidence": "no such flag; misc agent's at-bar rationale cited non-existent pilot precedent"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "plausibly-wrong symlink-staging model",
+        "source_evidence": "wrong mental model"
+      }
+    ],
+    "mcq_verdict": "has-suspect",
+    "tier": "named-identifier",
+    "reviewer_note": "REVISED from agent 'clean': distractor_2 invents a named flag."
+  },
+  {
+    "id": "docker-005-mcq-1",
+    "domain": "docker",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "docker-010-mcq-1",
+    "domain": "docker",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "git-003-mcq-2",
+    "domain": "git",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "overstates real GitHub fork-sync",
+        "source_evidence": "plausible misconception"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "suspect-fabrication",
+        "category": "key",
+        "justification": "invents a 'git pull --fork' flag",
+        "source_evidence": "no such flag; agent at-bar on hallucinated precedent"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "plausible remote-direction confusion",
+        "source_evidence": "wrong mental model"
+      }
+    ],
+    "mcq_verdict": "has-suspect",
+    "tier": "named-identifier",
+    "reviewer_note": "REVISED from agent 'clean': distractor_2 invents a named flag."
+  },
+  {
+    "id": "git-005-mcq-2",
+    "domain": "git",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "k8s-001-mcq-1",
+    "domain": "kubernetes",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "k8s-002-mcq-1",
+    "domain": "kubernetes",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "k8s-002-mcq-2",
+    "domain": "kubernetes",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "k8s-004-mcq-1",
+    "domain": "kubernetes",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "k8s-005-mcq-1",
+    "domain": "kubernetes",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "k8s-005-mcq-2",
+    "domain": "kubernetes",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "k8s-012-mcq-2",
+    "domain": "kubernetes",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "k8s-013-mcq-2",
+    "domain": "kubernetes",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "k8s-020-mcq-2",
+    "domain": "kubernetes",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "k8s-022-mcq-1",
+    "domain": "kubernetes",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "k8s-022-mcq-2",
+    "domain": "kubernetes",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "k8s-031-mcq-1",
+    "domain": "kubernetes",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "k8s-032-mcq-2",
+    "domain": "kubernetes",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "k8s-040-mcq-2",
+    "domain": "kubernetes",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "k8s-050-mcq-1",
+    "domain": "kubernetes",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "k8s-050-mcq-2",
+    "domain": "kubernetes",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "k8s-051-mcq-1",
+    "domain": "kubernetes",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "linux-001-mcq-1",
+    "domain": "linux",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "linux-001-mcq-2",
+    "domain": "linux",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "linux-002-mcq-2",
+    "domain": "linux",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "linux-004-mcq-1",
+    "domain": "linux",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "linux-006-mcq-2",
+    "domain": "linux",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "suspect-fabrication",
+        "category": "key",
+        "justification": "invents journalctl '--severity'/'--realtime' flags (real is -p/--priority)",
+        "source_evidence": "no such flags"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real tail -f, misses journald-only entries",
+        "source_evidence": "real command wrong scope"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "suspect-fabrication",
+        "category": "key",
+        "justification": "invents a 'systemctl follow' subcommand (real path journalctl -f)",
+        "source_evidence": "no such subcommand"
+      }
+    ],
+    "mcq_verdict": "has-suspect",
+    "tier": "named-identifier",
+    "reviewer_note": "REVISED from agent 'clean': two invented named flags/subcommands."
+  },
+  {
+    "id": "tf-002-mcq-2",
+    "domain": "terraform",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "tf-010-mcq-2",
+    "domain": "terraform",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "confuses real S3-backend with Packer handoff",
+        "source_evidence": "real concept wrong usage"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "plausible-but-wrong tool-handshake guess",
+        "source_evidence": "wrong mental model"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "suspect-fabrication",
+        "category": "key",
+        "justification": "invents an '--ami-from-packer' flag",
+        "source_evidence": "no such flag"
+      }
+    ],
+    "mcq_verdict": "has-suspect",
+    "tier": "named-identifier",
+    "reviewer_note": "REVISED from agent 'clean': distractor_3 invents a named flag."
+  },
+  {
+    "id": "tf-011-mcq-2",
+    "domain": "terraform",
+    "bank": 3,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "tf-012-mcq-1",
+    "domain": "terraform",
+    "bank": 2,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  },
+  {
+    "id": "tf-013-mcq-1",
+    "domain": "terraform",
+    "bank": 1,
+    "distractors": [
+      {
+        "key": "distractor_1",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_2",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      },
+      {
+        "key": "distractor_3",
+        "verdict": "at-bar",
+        "category": "none",
+        "justification": "real feature in wrong context or plausible naive misconception",
+        "source_evidence": "agent-evaluated, source-checked"
+      }
+    ],
+    "mcq_verdict": "clean",
+    "tier": null,
+    "reviewer_note": null
+  }
+]

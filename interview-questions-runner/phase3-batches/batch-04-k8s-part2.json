@@ -1,0 +1,410 @@
+[
+  {
+    "id": "k8s-020-mcq-1",
+    "source_id": "k8s-020",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Which Kubernetes workload object is the right fit for a clustered database that needs stable network identity and persistent storage per replica?",
+    "options": {
+      "correct": "StatefulSet",
+      "distractor_1": "Deployment with a PersistentVolumeClaim template attached for stable storage across pods",
+      "distractor_2": "DaemonSet, which pins one pod per node and gives each a deterministic name based on the node",
+      "distractor_3": "Job with parallelism set to the replica count and a backoffLimit to keep replicas alive indefinitely"
+    },
+    "explanation": "StatefulSets are designed for exactly this: stable network identity (pod-0, pod-1, pod-2 with predictable DNS names), persistent volume claims that follow the pod across restarts, and ordered rollout/teardown. Distractor 1 confuses Deployment behaviour — Deployments don't give pods stable names, and the PVC template is a StatefulSet feature, not a Deployment one. Distractor 2 misuses DaemonSet (one-per-node, not one-per-replica), wrong for a clustered DB that may want fewer replicas than nodes. Distractor 3 fundamentally misunderstands Jobs (which run to completion)."
+  },
+  {
+    "id": "k8s-020-mcq-2",
+    "source_id": "k8s-020",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "You apply a rolling update to a 3-replica StatefulSet. In what order do the pods get updated?",
+    "options": {
+      "correct": "Pods are updated in reverse ordinal order: pod-2 first, then pod-1, then pod-0 — one at a time, waiting for each to become Ready",
+      "distractor_1": "All three pods are updated in parallel by default, matching Deployment behaviour for faster rollouts",
+      "distractor_2": "Pods are updated in ordinal order (pod-0 first), with maxSurge controlling how many can be updated at once",
+      "distractor_3": "The StatefulSet creates new pods alongside the old (pod-3, pod-4, pod-5) and removes the old ones once the new ones are Ready, behaving like a blue-green replacement"
+    },
+    "explanation": "StatefulSet rolling updates work in reverse ordinal order, one pod at a time, waiting for Ready between each — this protects clustered systems where the lowest-ordinal pod is often the primary. Distractor 1 misattributes Deployment-style parallelism to StatefulSet. Distractor 2 reverses the ordinal direction (forward) and invents maxSurge for StatefulSets — that's a Deployment field. Distractor 3 describes blue-green style replacement, which is OnDelete-and-recreate behaviour, not rolling. Knowing the order matters for orchestrating coordinated upgrades like leader election."
+  },
+  {
+    "id": "k8s-021-mcq-1",
+    "source_id": "k8s-021",
+    "domain": "kubernetes",
+    "subdomain": "scheduling",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "You want pods with the label `gpu: required` to ONLY run on nodes tainted with `gpu=true:NoSchedule`. Which mechanism does what?",
+    "options": {
+      "correct": "Toleration on the pod lets it land on tainted nodes; nodeSelector or required affinity ensures it ONLY lands on those nodes",
+      "distractor_1": "The taint alone is enough — pods without a matching toleration are repelled from non-GPU nodes",
+      "distractor_2": "nodeSelector alone is enough — adding the label `gpu: required` to the pod automatically schedules it onto labeled nodes only",
+      "distractor_3": "Pod affinity with `preferredDuringSchedulingIgnoredDuringExecution` forces the pod onto GPU nodes and prevents it from running elsewhere"
+    },
+    "explanation": "Taints repel non-tolerating pods from a node, but tolerations don't pin a pod to that node — a tolerating pod will happily land on any untainted node too. You need BOTH: toleration (so the pod can land on the GPU node) AND nodeSelector/requiredAffinity (so it ONLY lands there). Distractor 1 inverts the direction — taints work on nodes repelling pods, not the other way around. Distractor 2 ignores that without a toleration the pod can't land on the tainted node at all. Distractor 3 misreads 'preferred' (soft) as 'required' (hard) — preferred doesn't prevent fallback."
+  },
+  {
+    "id": "k8s-021-mcq-2",
+    "source_id": "k8s-021",
+    "domain": "kubernetes",
+    "subdomain": "scheduling",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "A 6-replica Deployment is meant to spread across all 3 AZs evenly for HA. What's the right configuration?",
+    "options": {
+      "correct": "TopologySpreadConstraints with `topologyKey: topology.kubernetes.io/zone` and `maxSkew: 1`, so the scheduler keeps replica counts within 1 across zones",
+      "distractor_1": "Pod anti-affinity with `preferredDuringScheduling` on the zone label — the scheduler will prefer different zones for each replica",
+      "distractor_2": "Set replicas to a multiple of the AZ count and add the annotation `scheduler.alpha.kubernetes.io/balanced=true`",
+      "distractor_3": "Add a nodeSelector restricting the pods to one specific AZ; the cluster autoscaler will rebalance them across AZs automatically"
+    },
+    "explanation": "TopologySpreadConstraints with maxSkew is the modern, explicit way to enforce even distribution across a topology — the scheduler maintains the skew during initial schedule and during scale-ups. Distractor 1 (preferred anti-affinity) is a soft preference; under pressure the scheduler will pack replicas in one zone. Distractor 2 fabricates an annotation that doesn't exist. Distractor 3 inverts the goal entirely — it pins to a single AZ rather than spreading. Topology spread is the post-1.18 evolution of older anti-affinity patterns."
+  },
+  {
+    "id": "k8s-022-mcq-1",
+    "source_id": "k8s-022",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "A node drain is in progress for kernel patching. A Pod Disruption Budget on a 3-replica app requires `minAvailable: 2`. What does the PDB do here?",
+    "options": {
+      "correct": "It blocks voluntary disruption from evicting the second pod until the cluster can satisfy the budget, slowing or pausing the drain",
+      "distractor_1": "It schedules an extra pod somewhere else before allowing the drain to evict the current one, so availability stays at 3",
+      "distractor_2": "It does nothing — PDBs apply only to involuntary disruptions like node failures, not voluntary ones like drain",
+      "distractor_3": "It marks the drain as failed if the budget would be violated, so the operator must manually approve each eviction step before the drain can continue"
+    },
+    "explanation": "PDBs gate voluntary disruption (drain, autoscaler scale-in, planned node updates): the eviction API checks the budget and refuses if eviction would violate it, causing the drain to retry. Distractor 1 invents auto-scaling-up behaviour during drain; the workload controller scales independently, but PDB itself doesn't pre-create pods. Distractor 2 inverts the scope — PDBs apply specifically to voluntary disruption (node-level failures aren't gated). Distractor 3 invents a per-step approval flow that doesn't exist."
+  },
+  {
+    "id": "k8s-022-mcq-2",
+    "source_id": "k8s-022",
+    "domain": "kubernetes",
+    "subdomain": "workloads",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "A web app pod takes 8 seconds to drain in-flight HTTP requests cleanly. The pod's `terminationGracePeriodSeconds` is set to 5. What happens during a rolling update?",
+    "options": {
+      "correct": "The kubelet sends SIGTERM, waits 5 seconds, then sends SIGKILL — cutting in-flight requests off at the wire and producing 5xx responses for active clients",
+      "distractor_1": "The kubelet honours the app's actual drain time and waits up to 8 seconds, ignoring terminationGracePeriodSeconds when SIGTERM is being handled",
+      "distractor_2": "The Service stops routing to the pod immediately, so the 5-second grace period is enough because no new requests arrive during it",
+      "distractor_3": "The kubelet sends SIGKILL immediately because terminationGracePeriodSeconds defaults to 0 when not paired with a preStop hook"
+    },
+    "explanation": "terminationGracePeriodSeconds is a hard ceiling — the kubelet SIGKILLs at that timeout regardless of whether the app is mid-drain. The fix is to increase the grace period (or add a preStop hook with a sleep) so the in-flight requests can finish. Distractor 1 inverts the contract; the kubelet doesn't observe the app's drain progress. Distractor 2 misses the timing — Service endpoint removal is eventually consistent, in-flight requests at termination time are real. Distractor 3 invents a default-zero behaviour; the actual default is 30 seconds."
+  },
+  {
+    "id": "k8s-023-mcq-1",
+    "source_id": "k8s-023",
+    "domain": "kubernetes",
+    "subdomain": "scheduling",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Match the autoscaler to what it changes: HPA, VPA, Cluster Autoscaler.",
+    "options": {
+      "correct": "HPA changes pod replica count; VPA changes pod resource requests/limits; Cluster Autoscaler changes node count",
+      "distractor_1": "HPA changes node count; VPA changes pod count; Cluster Autoscaler changes resource requests",
+      "distractor_2": "All three change the same thing — pod replica count — but trigger on different metrics (CPU, memory, custom)",
+      "distractor_3": "HPA changes pod count; VPA changes node count; Cluster Autoscaler changes resource limits per node"
+    },
+    "explanation": "Three distinct axes: HPA scales replicas (horizontal pod), VPA right-sizes individual pod resources (vertical pod), CA adds/removes nodes (cluster). Distractor 1 fully scrambles which scales what. Distractor 2 collapses three orthogonal mechanisms into one. Distractor 3 partially scrambles. Knowing the axes matters because they compose: HPA + CA is the most common pattern (more pods, more nodes); VPA + HPA together require care (VPA's vertical changes can fight HPA's horizontal decisions)."
+  },
+  {
+    "id": "k8s-023-mcq-2",
+    "source_id": "k8s-023",
+    "domain": "kubernetes",
+    "subdomain": "scheduling",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "What's the fundamental architectural difference between Karpenter and Cluster Autoscaler?",
+    "options": {
+      "correct": "Karpenter provisions nodes directly from the cloud provider based on pending pod requirements; Cluster Autoscaler scales pre-defined Auto Scaling Groups up and down",
+      "distractor_1": "Karpenter and Cluster Autoscaler are different names for the same tool — Karpenter is AWS's rebranded Cluster Autoscaler",
+      "distractor_2": "Karpenter scales pods while Cluster Autoscaler scales nodes — they're complementary tools that handle different layers",
+      "distractor_3": "Karpenter only works on EKS Fargate while Cluster Autoscaler only works on EKS managed nodes; you choose based on compute type"
+    },
+    "explanation": "Karpenter watches unschedulable pods and provisions appropriately-sized nodes directly from EC2 (skipping ASGs), with much faster scale-up and more efficient bin-packing. CA works through ASGs with predefined instance types and operates more slowly. Distractor 1 invents a rebranding. Distractor 2 confuses scopes — both Karpenter and CA scale NODES, not pods (HPA scales pods). Distractor 3 fabricates a Fargate-only restriction; Karpenter works specifically on EC2-backed EKS, not Fargate."
+  },
+  {
+    "id": "k8s-030-mcq-1",
+    "source_id": "k8s-030",
+    "domain": "kubernetes",
+    "subdomain": "configuration",
+    "priority": "high",
+    "difficulty": "easy",
+    "bank": 2,
+    "question": "How are Kubernetes Secrets encoded in etcd by default on a freshly-installed cluster?",
+    "options": {
+      "correct": "Base64-encoded only — not encrypted. Anyone with read access to etcd or the Kubernetes API can decode them",
+      "distractor_1": "AES-256 encrypted at rest using the cluster's master key, which only kube-apiserver can access",
+      "distractor_2": "Encrypted using the etcd peer-to-peer TLS keys, so the at-rest representation is opaque to anyone without those keys",
+      "distractor_3": "Hashed with SHA-256, so the original value cannot be recovered even by cluster admins"
+    },
+    "explanation": "Out of the box, Secrets are base64-encoded (not encryption — anyone can decode `echo <value> | base64 -d`). Real encryption at rest requires explicitly enabling etcd encryption providers (KMS, secretbox, aescbc) in the apiserver config. Distractor 1 invents an automatic AES setup. Distractor 2 confuses transport encryption (etcd peer TLS protects data in transit between etcd nodes) with at-rest encryption. Distractor 3 hashes Secrets, which would make them unusable as credentials. This myth-busting matters because many teams over-trust the default."
+  },
+  {
+    "id": "k8s-030-mcq-2",
+    "source_id": "k8s-030",
+    "domain": "kubernetes",
+    "subdomain": "configuration",
+    "priority": "high",
+    "difficulty": "easy",
+    "bank": 3,
+    "question": "When should you use a ConfigMap and when should you use a Secret?",
+    "options": {
+      "correct": "ConfigMap for non-sensitive data; Secret for sensitive data — Secret enables encryption at rest and integrates with workflows for least-privilege access",
+      "distractor_1": "ConfigMap for small values (under 1 MiB), Secret for any value over 1 MiB regardless of sensitivity",
+      "distractor_2": "ConfigMap for environment variables, Secret for files mounted as volumes; the data type drives the choice",
+      "distractor_3": "ConfigMap for runtime config, Secret only for TLS certificates — Secret is a specialised resource just for that one use case"
+    },
+    "explanation": "The choice is sensitivity, not size or shape. Both can hold any string, both can be mounted as files or env vars, both have the same 1 MiB limit. Using Secret signals intent, enables encryption-at-rest (when configured), and can gate access via tighter RBAC. Distractor 1 fabricates a size-based split — both have the same 1 MiB limit. Distractor 2 invents a shape-based split that doesn't exist. Distractor 3 narrows Secret unrealistically; Secret covers passwords, API tokens, SSH keys, TLS, anything sensitive."
+  },
+  {
+    "id": "k8s-031-mcq-1",
+    "source_id": "k8s-031",
+    "domain": "kubernetes",
+    "subdomain": "configuration",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "You want to integrate AWS Secrets Manager with EKS so pods can mount secret values without those secrets ever being stored as Kubernetes Secret objects. Which tool fits?",
+    "options": {
+      "correct": "Secrets Store CSI Driver with the AWS provider — mounts the secret value as a file in the pod's filesystem directly from Secrets Manager",
+      "distractor_1": "External Secrets Operator (ESO) — also creates and maintains a Kubernetes Secret object that mirrors the Secrets Manager value, by design",
+      "distractor_2": "kubectl secrets pull — a built-in kubectl subcommand that fetches Secrets Manager values on demand into the cluster",
+      "distractor_3": "AWS Secrets Manager Sidecar — an AWS-provided init container that injects secrets directly into the pod's process environment"
+    },
+    "explanation": "Secrets Store CSI Driver mounts secrets as filesystem objects at pod start, with no intermediate Kubernetes Secret. Distractor 1 correctly describes ESO (it does create K8s Secrets — that's the difference) but the question explicitly excluded that pattern. Distractor 2 fabricates a kubectl subcommand. Distractor 3 invents an AWS-provided sidecar product that doesn't exist as named. Choosing between CSI Driver and ESO depends on whether you want a K8s Secret as the materialised form; CSI doesn't create one, ESO does."
+  },
+  {
+    "id": "k8s-031-mcq-2",
+    "source_id": "k8s-031",
+    "domain": "kubernetes",
+    "subdomain": "configuration",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Your EKS pod uses External Secrets Operator to fetch a secret from AWS Secrets Manager. The pod gets 'AccessDenied' from the AWS API. Which is the most likely cause?",
+    "options": {
+      "correct": "The ServiceAccount used by ESO isn't bound (via IRSA or Pod Identity) to an IAM role with secretsmanager:GetSecretValue on that secret",
+      "distractor_1": "The ESO operator pod lacks the cluster-wide `ExternalSecretsViewer` ClusterRole that grants access to AWS Secrets Manager",
+      "distractor_2": "Secrets Manager requires VPC PrivateLink to be enabled before any EKS workload can authenticate; the cluster needs an Interface endpoint",
+      "distractor_3": "The Kubernetes Secret produced by ESO must be annotated `eks.amazonaws.com/secret-source=secrets-manager` for AWS to allow the read"
+    },
+    "explanation": "ESO fetches secrets using the AWS SDK, which signs requests using credentials. On EKS, that credential chain runs through IRSA (or Pod Identity) — bind the ESO ServiceAccount to an IAM role with Secrets Manager read permission. Distractor 1 invents a ClusterRole that doesn't grant AWS access (RBAC controls K8s API, not AWS). Distractor 2 fabricates a PrivateLink requirement; PrivateLink is optional, used to keep traffic on the AWS backbone. Distractor 3 invents an annotation gate that doesn't exist."
+  },
+  {
+    "id": "k8s-032-mcq-1",
+    "source_id": "k8s-032",
+    "domain": "kubernetes",
+    "subdomain": "security",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "What's the difference between a Role and a ClusterRole?",
+    "options": {
+      "correct": "Role grants permissions scoped to a single namespace; ClusterRole grants permissions at the cluster scope (and can also be reused per-namespace via RoleBindings)",
+      "distractor_1": "Role grants read-only access; ClusterRole grants write access — the names indicate the level of permission",
+      "distractor_2": "Role applies to namespaced resources only; ClusterRole applies to cluster-scoped resources only — they cannot overlap",
+      "distractor_3": "Role is for service accounts; ClusterRole is for human users authenticated via OIDC — the audience is the difference"
+    },
+    "explanation": "The split is scope, not permission level. A Role grants access in a namespace; a ClusterRole can grant cluster-wide or be referenced by a namespaced RoleBinding for cross-namespace reuse. Distractor 1 invents a read/write split — both Role and ClusterRole can grant any verb. Distractor 2 (resource-scope split) misses that ClusterRole can grant access to namespaced resources too; what matters is the binding type. Distractor 3 fabricates a service-account-vs-human split that has no basis."
+  },
+  {
+    "id": "k8s-032-mcq-2",
+    "source_id": "k8s-032",
+    "domain": "kubernetes",
+    "subdomain": "security",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "You bind a ClusterRole to a ServiceAccount using a RoleBinding (not a ClusterRoleBinding). What permissions does the ServiceAccount receive?",
+    "options": {
+      "correct": "The ClusterRole's verbs and resources are granted only within the RoleBinding's namespace — even though the role itself is cluster-scoped",
+      "distractor_1": "The ClusterRole's permissions are granted cluster-wide because the role is cluster-scoped, regardless of the binding type",
+      "distractor_2": "The combination is invalid and rejected at apply time; you must use ClusterRoleBinding to reference a ClusterRole",
+      "distractor_3": "The ServiceAccount receives no permissions because RoleBindings can only reference Roles, not ClusterRoles"
+    },
+    "explanation": "A RoleBinding referencing a ClusterRole grants those permissions scoped to the RoleBinding's namespace — this is the standard pattern for reusing one ClusterRole across multiple namespaces without duplicating it. Distractor 1 ignores the binding type and incorrectly grants cluster-wide. Distractor 2 invents an invalidity that doesn't exist. Distractor 3 inverts the truth — RoleBindings CAN reference ClusterRoles, that's the point. This pattern is heavily used to define one cluster-wide 'developer' role and bind it per-namespace."
+  },
+  {
+    "id": "k8s-040-mcq-1",
+    "source_id": "k8s-040",
+    "domain": "kubernetes",
+    "subdomain": "eks",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "What does AWS manage and what do you manage on EKS?",
+    "options": {
+      "correct": "AWS manages the control plane (etcd, apiserver, scheduler, controllers); you manage the worker nodes (managed nodes, self-managed, Fargate, or Karpenter) and workloads",
+      "distractor_1": "AWS manages the apiserver and etcd; you manage the scheduler and controllers as well as the worker nodes",
+      "distractor_2": "AWS manages both control plane and worker nodes when using EKS Auto Mode (which is the default for new clusters)",
+      "distractor_3": "AWS manages the worker nodes; you manage the control plane and the cluster's networking layer"
+    },
+    "explanation": "EKS abstracts the full control plane behind a managed endpoint — you never SSH into apiserver or etcd. The boundary moves with Fargate (AWS manages the underlying node) or Auto Mode (newer feature; AWS manages more), but the default contract is control-plane-managed, nodes-yours. Distractor 1 splits the control plane components, which EKS doesn't expose for independent management. Distractor 2 over-extends Auto Mode as the default. Distractor 3 reverses the entire model. The control-plane boundary defines how much operational work you avoid by choosing EKS over self-managed K8s."
+  },
+  {
+    "id": "k8s-040-mcq-2",
+    "source_id": "k8s-040",
+    "domain": "kubernetes",
+    "subdomain": "eks",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Your team's EKS cluster runs a mix of long-lived stateful workloads and bursty event processors. Which compute option fits the bursty workloads best?",
+    "options": {
+      "correct": "Fargate or Karpenter — both provision capacity on demand without needing pre-provisioned node groups idle during low load",
+      "distractor_1": "EKS managed node groups, which scale instantly to match workload bursts because the Cluster Autoscaler provisions nodes from a warm pool",
+      "distractor_2": "EC2 self-managed nodes with a large ASG and aggressive scale-out, since EKS managed nodes have a 5-minute provisioning latency that managed self-managed avoids",
+      "distractor_3": "Spot Fleet with diversification across instance types — the bursty pods will pre-empt other workloads and acquire capacity instantly"
+    },
+    "explanation": "Bursty workloads need capacity-on-demand: Fargate (per-pod serverless containers, no node management) or Karpenter (just-in-time node provisioning from raw EC2). Distractor 1 over-states managed node group elasticity — CA + ASGs typically take 2-5 minutes to add a node. Distractor 2 invents a difference between managed and self-managed nodes (both are EC2-backed; the management layer differs, not the provisioning speed). Distractor 3 misuses Spot Fleet — Spot is about price, not provisioning speed, and bursty workloads don't pre-empt other pods."
+  },
+  {
+    "id": "k8s-041-mcq-1",
+    "source_id": "k8s-041",
+    "domain": "kubernetes",
+    "subdomain": "eks",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "What is IRSA in EKS, in one sentence?",
+    "options": {
+      "correct": "IAM Roles for Service Accounts — a way for pods to assume an IAM role using a projected OIDC token from the cluster's IAM identity provider",
+      "distractor_1": "Instance Role Service Account — assigns the EC2 instance role to all pods running on that node, so they share node credentials",
+      "distractor_2": "Inter-Region Service Account — a feature for cross-region EKS access where service accounts in one cluster authenticate to another region's API",
+      "distractor_3": "Internal Replicated Service Account — synchronises Kubernetes ServiceAccounts across EKS clusters for multi-cluster workloads"
+    },
+    "explanation": "IRSA stands for IAM Roles for Service Accounts; the cluster has an OIDC identity provider registered in IAM, each pod's projected service-account token is exchanged for AWS credentials via AssumeRoleWithWebIdentity. Distractor 1 describes the legacy 'node role' anti-pattern (every pod gets the EC2 instance's role) that IRSA was designed to replace. Distractor 2 invents a cross-region feature. Distractor 3 fabricates a multi-cluster sync. IRSA is the answer to 'how do pods get AWS credentials without long-lived keys'."
+  },
+  {
+    "id": "k8s-041-mcq-2",
+    "source_id": "k8s-041",
+    "domain": "kubernetes",
+    "subdomain": "eks",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "What's the practical difference between IRSA and EKS Pod Identity?",
+    "options": {
+      "correct": "Pod Identity uses an agent running on each node (no OIDC provider needed); IRSA uses a projected JWT and the cluster's OIDC issuer — Pod Identity is simpler to set up but newer and not yet ubiquitous in tooling",
+      "distractor_1": "IRSA is for AWS service access; Pod Identity is for cross-cluster pod-to-pod authentication within EKS Anywhere",
+      "distractor_2": "Pod Identity replaces IRSA entirely as of EKS 1.27; IRSA is deprecated and will be removed in 1.30",
+      "distractor_3": "IRSA requires the EBS CSI driver to be installed; Pod Identity works without it because it stores tokens in memory rather than on disk"
+    },
+    "explanation": "Both solve the same problem (pod-level AWS credentials), differently: IRSA via OIDC + projected token; Pod Identity via an EKS agent (eks-pod-identity-agent) on each node that calls a regional endpoint. Pod Identity is easier (no IRSA setup ceremony) but newer, so some tooling/IAM templates still assume IRSA. Distractor 1 invents an EKS Anywhere scope. Distractor 2 fabricates a deprecation; IRSA remains supported. Distractor 3 invents an EBS CSI dependency for IRSA that doesn't exist. New clusters today increasingly default to Pod Identity."
+  },
+  {
+    "id": "k8s-042-mcq-1",
+    "source_id": "k8s-042",
+    "domain": "kubernetes",
+    "subdomain": "eks",
+    "priority": "high",
+    "difficulty": "hard",
+    "bank": 1,
+    "question": "Why does the AWS VPC CNI plugin cause 'IP exhaustion' on EKS, and what's the underlying mechanism?",
+    "options": {
+      "correct": "Each pod gets a real VPC IP via an ENI on its node; node ENI count and IPs-per-ENI are EC2-instance-size bound, so pod density per node is capped by those AWS limits",
+      "distractor_1": "Each pod gets a Cluster IP from a /16 cluster CIDR, which exhausts after ~65k pods regardless of node size",
+      "distractor_2": "The VPC CNI uses NAT for each pod to reach external services, and the NAT Gateway's port range exhausts after a few thousand simultaneous connections",
+      "distractor_3": "EKS allocates pod IPs from a dedicated /28 per pod for isolation, so a single pod consumes 16 VPC addresses each"
+    },
+    "explanation": "VPC CNI's mode is 'each pod is a first-class VPC IP': ENIs and secondary IPs come from real VPC address space, and each EC2 instance type has hard limits on ENI count and IPs per ENI (e.g., m5.large = 3 ENIs × 10 IPs = ~30 pod IPs max). Smaller subnets fill quickly. Distractor 1 confuses pod IPs (VPC) with Service Cluster IPs (cluster CIDR). Distractor 2 fabricates a NAT-port-exhaustion story; pods talk directly via their VPC IPs. Distractor 3 invents a /28-per-pod allocation; each pod consumes exactly one IP."
+  },
+  {
+    "id": "k8s-042-mcq-2",
+    "source_id": "k8s-042",
+    "domain": "kubernetes",
+    "subdomain": "eks",
+    "priority": "high",
+    "difficulty": "hard",
+    "bank": 3,
+    "question": "Which is the recommended mitigation for VPC CNI IP exhaustion in 2025+ clusters?",
+    "options": {
+      "correct": "Enable prefix delegation — instead of secondary IPs, each ENI gets a /28 prefix, dramatically increasing pods-per-node within the same ENI limits",
+      "distractor_1": "Disable VPC CNI and install the kubenet plugin, which uses the legacy per-node /24 model and avoids the IP exhaustion problem entirely",
+      "distractor_2": "Migrate the cluster to a /8 VPC CIDR (10.0.0.0/8) so there are enough IPs for any pod density",
+      "distractor_3": "Configure the AWS Load Balancer Controller in 'IP target' mode, which intercepts pod IP allocation and consolidates multiple pods onto each ENI IP transparently"
+    },
+    "explanation": "Prefix delegation gives each ENI a /28 (16 IPs) instead of single secondary IPs, multiplying pod density by ~16 with no change to instance limits — the modern default for IP-tight clusters. Distractor 1 misnames kubenet, which doesn't exist as an EKS option. Distractor 2 doesn't help because the bottleneck is ENI-per-instance IP capacity, not VPC CIDR size. Distractor 3 confuses ALB target modes (which control how the LB targets pods) with the CNI's IP-per-pod model. Custom networking and IPv6 are also valid alternatives."
+  },
+  {
+    "id": "k8s-050-mcq-1",
+    "source_id": "k8s-050",
+    "domain": "kubernetes",
+    "subdomain": "operations",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "A pod is in `ImagePullBackOff`. What's the first command to run for diagnosis?",
+    "options": {
+      "correct": "`kubectl describe pod <name>` to see the Events section, which will show the exact pull error (auth failure, image not found, network timeout, etc.)",
+      "distractor_1": "`kubectl logs <name> --previous` to see what the container reported before the image pull failed",
+      "distractor_2": "`docker pull <image>` from your local machine to reproduce the error and confirm whether the image is reachable",
+      "distractor_3": "`kubectl get events --field-selector reason=ImagePullBackOff` to list all the affected pods first before drilling in"
+    },
+    "explanation": "`kubectl describe pod` is the right move for any pod-state issue: the Events section at the bottom shows the exact registry-side message (manifest unknown, unauthorized, network refused). Distractor 1 misunderstands the state — the container never started, so there are no logs to fetch. Distractor 2 reproduces from a different network with different credentials and doesn't capture the cluster's pull context. Distractor 3 lists affected pods (a valid second step) but doesn't get you the actual error message."
+  },
+  {
+    "id": "k8s-050-mcq-2",
+    "source_id": "k8s-050",
+    "domain": "kubernetes",
+    "subdomain": "operations",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "A pod is in CrashLoopBackOff. `kubectl logs` returns nothing. What's the next step?",
+    "options": {
+      "correct": "`kubectl logs --previous` to fetch logs from the previous (now-terminated) container instance, since current container has just started and exited again",
+      "distractor_1": "`kubectl describe pod` is enough — CrashLoopBackOff includes the container's last log lines in the Events section by default",
+      "distractor_2": "Increase the container's `terminationGracePeriodSeconds` to give logs more time to flush before the container exits",
+      "distractor_3": "Wait 5 minutes and re-run `kubectl logs`; the kubelet eventually buffers logs into the apiserver for crashed containers"
+    },
+    "explanation": "When a container is in a crash loop, `kubectl logs` queries the currently-starting container which has no logs yet. `--previous` queries the immediately prior instance — usually where the real error is. Distractor 1 fabricates log-line inclusion in describe Events; events show container restart reasons, not stdout. Distractor 2 confuses termination grace with log flushing — grace period is for in-flight requests, not log buffering. Distractor 3 invents a buffering behaviour; logs come from the container runtime in real-time, not buffered into the apiserver."
+  },
+  {
+    "id": "k8s-051-mcq-1",
+    "source_id": "k8s-051",
+    "domain": "kubernetes",
+    "subdomain": "operations",
+    "priority": "high",
+    "difficulty": "hard",
+    "bank": 2,
+    "question": "A service in your EKS cluster is responding slowly. Internal calls between pods on the same node are fast, but calls between pods on different nodes are slow. What's the FIRST place to look?",
+    "options": {
+      "correct": "CNI plugin and node-to-node network — same-node traffic uses local interfaces (no CNI hop), cross-node traffic depends on the CNI's data path",
+      "distractor_1": "Pod resource limits — cross-node calls cross more hops so they consume more CPU, and limits are likely throttling the receiving pod",
+      "distractor_2": "kube-proxy — same-node traffic skips kube-proxy entirely, while cross-node traffic traverses it and adds fixed iptables overhead on every hop",
+      "distractor_3": "CoreDNS — pod-to-pod DNS resolution is faster within a node because CoreDNS caches local-node service names with higher TTLs"
+    },
+    "explanation": "Same-node vs cross-node latency divergence almost always points at the network path: CNI overhead, ENI saturation, security group rule explosion, or actual NIC/network issues. Distractor 1 confuses CPU cost — cross-node hops don't materially change CPU usage. Distractor 2 misstates kube-proxy semantics — it's involved in same-node traffic too (Service ClusterIP resolution still happens). Distractor 3 fabricates per-node DNS caching differences; CoreDNS runs cluster-wide, not per-node."
+  },
+  {
+    "id": "k8s-051-mcq-2",
+    "source_id": "k8s-051",
+    "domain": "kubernetes",
+    "subdomain": "operations",
+    "priority": "high",
+    "difficulty": "hard",
+    "bank": 3,
+    "question": "A pod's response time spikes from 50ms to 500ms intermittently. CloudWatch shows no CPU, memory, or network saturation. What's a common K8s-specific cause worth checking?",
+    "options": {
+      "correct": "CPU throttling at the limit — the pod hits its cpu limit before saturating the node, so CloudWatch sees idle resources while the pod is throttled",
+      "distractor_1": "kubelet OOM tracking — even sub-limit pods are throttled when the node's overall memory approaches 90%, regardless of the pod's individual usage profile",
+      "distractor_2": "Container runtime resource isolation — runc periodically pauses containers to refresh cgroups, causing latency spikes invisible to host metrics",
+      "distractor_3": "Service mesh sidecar latency — Istio adds ~450ms of fixed per-request overhead once installed, which closely matches the observed spike pattern and is invisible to CloudWatch by default"
+    },
+    "explanation": "CPU throttling at the container's cpu limit is invisible at the node level — node CPU may show 30% but the pod is throttled because it hit its quota in the cgroup's cfs scheduler. Container-level metrics (cgroup throttled time, kubelet's `container_cpu_cfs_throttled_seconds_total`) show this; node-level CloudWatch metrics don't. Distractor 1 invents a node-memory-driven throttle. Distractor 2 fabricates a runc pause mechanism. Distractor 3 over-states Istio overhead (typically 1-10ms per hop, not 450ms)."
+  }
+]

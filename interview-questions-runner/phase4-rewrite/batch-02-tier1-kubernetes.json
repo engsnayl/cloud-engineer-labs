@@ -1,0 +1,829 @@
+{
+  "batch_id": "T1.2",
+  "tier": 1,
+  "domain_slice": "kubernetes",
+  "dispositions_applied": {
+    "decided_by": "Stephen, 2026-06-02 (T1.2 checkpoint)",
+    "k8s-004-mcq-2": "AT-BAR (kept). Invented field names (sidecarContainers:, containerType:) are transferred-mental-model — Kubernetes does name things this way, so a junior would plausibly guess them. Recorded in tracking.json borderline_approved; revisit the bar mid-flight if Tier 1 produces 3+ such cases.",
+    "k8s-014-mcq-1": "SPLIT: (a) distractor_2 '32 entries per pod' = FABRICATION (specific invented number, same class as Istio-450ms) -> queued for Tier 2 distractor swap (widens T2.1). (b) 'weaker than' framing = KEEP — distinct from aws-021: asks which mechanism is genuinely weaker (positive question, factual answer), not 'pick the failing option' (structural NOT-stem). Rubric distinction recorded in PLAN.md.",
+    "k8s-020-mcq-1": "TIER 3 OPTION-BALANCE PASS -> queued for T3.2. Stem stays as reframed in Tier 1; one-word-correct vs verbose-distractor length tell gets rebalanced in T3.2 alongside structural rewrites."
+  },
+  "rewrites": [
+    {
+      "mcq_id": "k8s-003-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "What does a failing liveness probe do, and what does a failing readiness probe do?",
+        "options": {
+          "correct": "Liveness failure restarts the container; readiness failure removes the pod from Service endpoints without restarting it",
+          "distractor_1": "Liveness failure removes the pod from endpoints; readiness failure restarts the container after a backoff period",
+          "distractor_2": "Liveness failure marks the pod as Failed and the Deployment provisions a replacement; readiness failure logs a warning event only",
+          "distractor_3": "Both probes have the same restart behaviour, but liveness uses HTTP and readiness uses TCP for their checks"
+        },
+        "explanation": "Liveness = 'is the container alive?', failure = restart it. Readiness = 'should traffic go to this pod?', failure = drop from Service endpoints, leave the container running. Distractor 1 inverts the two — a classic mix-up. Distractor 2 invents Deployment-driven replacement; the kubelet handles restarts, not the Deployment controller. Distractor 3 confuses probe protocol (HTTP, TCP, exec, gRPC — all available to both probes) with probe semantics. The asymmetry is the entire reason both probes exist."
+      },
+      "after": {
+        "question": "A pod's liveness probe starts failing while its readiness probe keeps passing. What does each probe's failure cause Kubernetes to do?",
+        "options": {
+          "correct": "Liveness failure restarts the container; readiness failure removes the pod from Service endpoints without restarting it",
+          "distractor_1": "Liveness failure removes the pod from endpoints; readiness failure restarts the container after a backoff period",
+          "distractor_2": "Liveness failure marks the pod as Failed and the Deployment provisions a replacement; readiness failure logs a warning event only",
+          "distractor_3": "Both probes have the same restart behaviour, but liveness uses HTTP and readiness uses TCP for their checks"
+        },
+        "explanation": "Liveness = 'is the container alive?', failure = restart it. Readiness = 'should traffic go to this pod?', failure = drop from Service endpoints, leave the container running. Distractor 1 inverts the two — a classic mix-up. Distractor 2 invents Deployment-driven replacement; the kubelet handles restarts, not the Deployment controller. Distractor 3 confuses probe protocol (HTTP, TCP, exec, gRPC — all available to both probes) with probe semantics. The asymmetry is the entire reason both probes exist."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Inverting liveness/readiness behaviour (liveness drops from endpoints, readiness restarts) is the single most common probe mix-up for a 6-month candidate."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Attributing restarts to the Deployment controller (not the kubelet) is a plausible mis-location of responsibility in the control hierarchy."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Believing the probes differ by protocol (HTTP vs TCP) rather than semantics confuses how-you-check with what-it-means."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-003-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "A Java app takes 90 seconds to warm up. The team configures a liveness probe with `initialDelaySeconds: 30` and `failureThreshold: 3` (every 10 seconds). What happens at startup?",
+        "options": {
+          "correct": "The liveness probe starts at 30s, fails three times (at 30s, 40s, 50s), and the kubelet kills the container before warm-up completes — creating a restart loop",
+          "distractor_1": "The pod stays in CrashLoopBackOff during warm-up because Kubernetes detects the slow start and applies exponential backoff to the liveness probe itself",
+          "distractor_2": "The liveness probe is deferred automatically until the readiness probe passes, so the app warms up safely",
+          "distractor_3": "The pod warms up normally because liveness probes don't kill containers during the first five minutes after pod creation"
+        },
+        "explanation": "Liveness probes don't know about app warm-up — they start at initialDelaySeconds and kill the container if it fails the threshold. The fix is either a `startupProbe` (gates other probes until the app is ready) or a much longer initialDelaySeconds. Distractor 1 invents probe-level backoff, which doesn't exist. Distractor 2 fabricates an implicit liveness-defers-to-readiness rule. Distractor 3 makes up a 5-minute grace period. The slow-start case is the single most common probe misconfiguration in production."
+      },
+      "after": {
+        "question": "Your team deploys a Java app that needs 90 seconds to warm up, with a liveness probe set to initialDelaySeconds: 30 and failureThreshold: 3 (checked every 10 seconds). What happens at startup?",
+        "options": {
+          "correct": "The liveness probe starts at 30s, fails three times (at 30s, 40s, 50s), and the kubelet kills the container before warm-up completes — creating a restart loop",
+          "distractor_1": "The pod stays in CrashLoopBackOff during warm-up because Kubernetes detects the slow start and applies exponential backoff to the liveness probe itself",
+          "distractor_2": "The liveness probe is deferred automatically until the readiness probe passes, so the app warms up safely",
+          "distractor_3": "The pod warms up normally because liveness probes don't kill containers during the first five minutes after pod creation"
+        },
+        "explanation": "Liveness probes don't know about app warm-up — they start at initialDelaySeconds and kill the container if it fails the threshold. The fix is either a `startupProbe` (gates other probes until the app is ready) or a much longer initialDelaySeconds. Distractor 1 invents probe-level backoff, which doesn't exist. Distractor 2 fabricates an implicit liveness-defers-to-readiness rule. Distractor 3 makes up a 5-minute grace period. The slow-start case is the single most common probe misconfiguration in production."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Probe-level exponential backoff is invented behaviour, but plausible: CrashLoopBackOff backoff is real, so a junior extends it to the probe."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A 'liveness defers to readiness' rule is invented but believable for someone who assumes the probes coordinate."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A 5-minute startup grace period is a fabricated number; plausible to a junior who assumes Kubernetes protects fresh pods."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-004-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "Kubernetes 1.28 introduced native sidecar containers. How are they declared and how do they differ from regular main containers?",
+        "options": {
+          "correct": "Declared as init containers with `restartPolicy: Always` — they start before main containers, run alongside them, and the pod doesn't terminate until they exit cleanly during shutdown",
+          "distractor_1": "Declared in a new `sidecarContainers:` field at the same level as `containers:` and `initContainers:`, with a dedicated lifecycle separate from both",
+          "distractor_2": "Declared with `containerType: sidecar` on a regular container; the kubelet then defers their startup until all other containers signal readiness",
+          "distractor_3": "Declared identically to regular containers but with the annotation `kubernetes.io/sidecar=true`, which signals the scheduler to delay their termination"
+        },
+        "explanation": "K8s 1.28+ added native sidecars by overloading init containers with `restartPolicy: Always` — they start in init phase, run for the pod's lifetime, and shut down after main containers during pod termination. Distractor 1 fabricates a sidecarContainers field; the language reuses initContainers instead. Distractor 2 invents a containerType field that doesn't exist. Distractor 3 attempts to use annotations, which is the pre-1.28 community workaround pattern but not the native API. Before 1.28, sidecars were just regular containers in the same pod with shutdown ordering hacks."
+      },
+      "after": {
+        "question": "An engineer on Kubernetes 1.28 wants to add a native sidecar container to a pod. How is it declared, and how does it differ from a regular main container?",
+        "options": {
+          "correct": "Declared as init containers with `restartPolicy: Always` — they start before main containers, run alongside them, and the pod doesn't terminate until they exit cleanly during shutdown",
+          "distractor_1": "Declared in a new `sidecarContainers:` field at the same level as `containers:` and `initContainers:`, with a dedicated lifecycle separate from both",
+          "distractor_2": "Declared with `containerType: sidecar` on a regular container; the kubelet then defers their startup until all other containers signal readiness",
+          "distractor_3": "Declared identically to regular containers but with the annotation `kubernetes.io/sidecar=true`, which signals the scheduler to delay their termination"
+        },
+        "explanation": "K8s 1.28+ added native sidecars by overloading init containers with `restartPolicy: Always` — they start in init phase, run for the pod's lifetime, and shut down after main containers during pod termination. Distractor 1 fabricates a sidecarContainers field; the language reuses initContainers instead. Distractor 2 invents a containerType field that doesn't exist. Distractor 3 attempts to use annotations, which is the pre-1.28 community workaround pattern but not the native API. Before 1.28, sidecars were just regular containers in the same pod with shutdown ordering hacks."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A `sidecarContainers:` field is the intuitive name a junior would guess for 'how do I declare a sidecar'. AT-BAR (Stephen 2026-06-02): transferred-mental-model — Kubernetes does name things this way."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A `containerType: sidecar` field is another natural guess for the declaration syntax. AT-BAR (Stephen 2026-06-02): transferred-mental-model."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A `kubernetes.io/sidecar` annotation echoes the real pre-1.28 community workaround pattern (Istio/Vault-style inject annotations) — plausible. AT-BAR (Stephen 2026-06-02): transferred-mental-model."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-010-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "When does an Ingress make sense instead of multiple LoadBalancer Services?",
+        "options": {
+          "correct": "When you have several HTTP services that can share one cloud load balancer and be routed by path or hostname — Ingress saves the per-service LB cost",
+          "distractor_1": "When you need TCP load balancing for non-HTTP traffic, since LoadBalancer Services only support HTTP",
+          "distractor_2": "When you need TLS termination at the cluster edge, since LoadBalancer Services cannot terminate TLS without an additional sidecar",
+          "distractor_3": "When you want pods exposed directly to the internet, since LoadBalancer Services keep traffic internal to the cluster network"
+        },
+        "explanation": "Ingress consolidates many HTTP services behind one LB with host/path routing, which both saves cost (cloud LBs are billed per LB) and centralises TLS and routing. Distractor 1 reverses the protocol model: LoadBalancer Services handle TCP/UDP just fine; Ingress is HTTP-focused. Distractor 2 misstates LoadBalancer TLS capability — cloud LBs (ALB, NLB) terminate TLS natively. Distractor 3 inverts internal/external: LoadBalancer Services are externally exposed by default, not internal."
+      },
+      "after": {
+        "question": "Your team runs several HTTP services, each behind its own LoadBalancer Service, and wants to cut cloud load-balancer cost. When does an Ingress make more sense than multiple LoadBalancer Services?",
+        "options": {
+          "correct": "When you have several HTTP services that can share one cloud load balancer and be routed by path or hostname — Ingress saves the per-service LB cost",
+          "distractor_1": "When you need TCP load balancing for non-HTTP traffic, since LoadBalancer Services only support HTTP",
+          "distractor_2": "When you need TLS termination at the cluster edge, since LoadBalancer Services cannot terminate TLS without an additional sidecar",
+          "distractor_3": "When you want pods exposed directly to the internet, since LoadBalancer Services keep traffic internal to the cluster network"
+        },
+        "explanation": "Ingress consolidates many HTTP services behind one LB with host/path routing, which both saves cost (cloud LBs are billed per LB) and centralises TLS and routing. Distractor 1 reverses the protocol model: LoadBalancer Services handle TCP/UDP just fine; Ingress is HTTP-focused. Distractor 2 misstates LoadBalancer TLS capability — cloud LBs (ALB, NLB) terminate TLS natively. Distractor 3 inverts internal/external: LoadBalancer Services are externally exposed by default, not internal."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Believing LoadBalancer Services only do HTTP (so you 'need' Ingress for TCP) reverses the protocol model — a real beginner inversion."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Thinking LoadBalancer can't terminate TLS without a sidecar misjudges cloud-LB capabilities; plausible for someone who's only used Ingress for TLS."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Believing LoadBalancer keeps traffic internal inverts its default external exposure — a common default-direction confusion."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-011-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "On EKS with the AWS Load Balancer Controller, what's the difference between annotating an Ingress with `alb.ingress.kubernetes.io/scheme: internal` versus `internet-facing`?",
+        "options": {
+          "correct": "`internal` provisions an ALB in private subnets reachable only from the VPC; `internet-facing` provisions one in public subnets with a public IP",
+          "distractor_1": "`internal` provisions an ALB attached to private subnets but assigned a public IP, with the AWS LB Controller restricting reachability via Security Group ingress rules added per-target",
+          "distractor_2": "`internal` provisions a Network Load Balancer instead of an Application Load Balancer because internal ALBs don't exist on AWS",
+          "distractor_3": "Both schemes provision the same ALB; `internal` adds a Route 53 private hosted zone record and `internet-facing` adds a public one"
+        },
+        "explanation": "ALB scheme is a real AWS-level distinction: internal ALBs sit in private subnets with no public IP and are reachable only via VPC paths; internet-facing ALBs have public-IP ENIs in public subnets. Distractor 1 invents an SG-based public-IP restriction model. Distractor 2 fabricates an NLB substitution; internal ALBs are a real, supported configuration. Distractor 3 confuses load balancer provisioning with DNS — neither annotation creates Route 53 records (that's external-dns or alb.ingress.kubernetes.io/host)."
+      },
+      "after": {
+        "question": "An engineer on EKS with the AWS Load Balancer Controller is choosing between annotating an Ingress with `alb.ingress.kubernetes.io/scheme: internal` and `internet-facing`. What's the difference?",
+        "options": {
+          "correct": "`internal` provisions an ALB in private subnets reachable only from the VPC; `internet-facing` provisions one in public subnets with a public IP",
+          "distractor_1": "`internal` provisions an ALB attached to private subnets but assigned a public IP, with the AWS LB Controller restricting reachability via Security Group ingress rules added per-target",
+          "distractor_2": "`internal` provisions a Network Load Balancer instead of an Application Load Balancer because internal ALBs don't exist on AWS",
+          "distractor_3": "Both schemes provision the same ALB; `internal` adds a Route 53 private hosted zone record and `internet-facing` adds a public one"
+        },
+        "explanation": "ALB scheme is a real AWS-level distinction: internal ALBs sit in private subnets with no public IP and are reachable only via VPC paths; internet-facing ALBs have public-IP ENIs in public subnets. Distractor 1 invents an SG-based public-IP restriction model. Distractor 2 fabricates an NLB substitution; internal ALBs are a real, supported configuration. Distractor 3 confuses load balancer provisioning with DNS — neither annotation creates Route 53 records (that's external-dns or alb.ingress.kubernetes.io/host)."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "An SG-based public-IP restriction model for 'internal' is invented behaviour, plausible for someone reasoning from Security Groups."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Believing internal ALBs don't exist (so it must become an NLB) is a plausible gap for a junior who's only seen internet-facing ALBs."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Conflating LB scheme with Route 53 record creation mixes provisioning with DNS — a believable layer confusion."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-012-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "By default, what is the network policy applied to pods in a fresh Kubernetes cluster?",
+        "options": {
+          "correct": "All traffic is allowed in both directions until a NetworkPolicy is created that selects the pod, at which point that pod becomes default-deny within the policy's scope",
+          "distractor_1": "All ingress is denied and all egress is allowed; NetworkPolicies are needed to allow inbound traffic between pods",
+          "distractor_2": "Pods can only talk to other pods in the same namespace by default; NetworkPolicies are needed for cross-namespace communication",
+          "distractor_3": "Traffic is governed entirely by Kubernetes RBAC role bindings; NetworkPolicies are an alternative not commonly used"
+        },
+        "explanation": "Kubernetes ships with all-pod-to-all-pod allow as the default; isolation is opt-in by creating a NetworkPolicy that selects the pod, which then becomes default-deny for the directions the policy specifies. Distractor 1 inverts the default to deny-ingress. Distractor 2 fabricates a per-namespace isolation default. Distractor 3 confuses RBAC (controls API access) with NetworkPolicy (controls pod traffic) — they govern different things. Many production clusters intentionally start with default-deny NetworkPolicies as a baseline."
+      },
+      "after": {
+        "question": "A developer deploys pods to a fresh Kubernetes cluster that has no NetworkPolicies and wants to know what pod-to-pod traffic is permitted by default. What is the default?",
+        "options": {
+          "correct": "All traffic is allowed in both directions until a NetworkPolicy is created that selects the pod, at which point that pod becomes default-deny within the policy's scope",
+          "distractor_1": "All ingress is denied and all egress is allowed; NetworkPolicies are needed to allow inbound traffic between pods",
+          "distractor_2": "Pods can only talk to other pods in the same namespace by default; NetworkPolicies are needed for cross-namespace communication",
+          "distractor_3": "Traffic is governed entirely by Kubernetes RBAC role bindings; NetworkPolicies are an alternative not commonly used"
+        },
+        "explanation": "Kubernetes ships with all-pod-to-all-pod allow as the default; isolation is opt-in by creating a NetworkPolicy that selects the pod, which then becomes default-deny for the directions the policy specifies. Distractor 1 inverts the default to deny-ingress. Distractor 2 fabricates a per-namespace isolation default. Distractor 3 confuses RBAC (controls API access) with NetworkPolicy (controls pod traffic) — they govern different things. Many production clusters intentionally start with default-deny NetworkPolicies as a baseline."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Assuming default-deny-ingress is the natural guess for someone who expects Kubernetes to be secure-by-default."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A per-namespace isolation default is invented but plausible given how namespaces feel like boundaries."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Confusing RBAC (API access) with NetworkPolicy (pod traffic) is a real cross-concept mix-up."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-013-mcq-1",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "Within a Kubernetes cluster, what's the fully-qualified DNS name pattern for a Service?",
+        "options": {
+          "correct": "`<service>.<namespace>.svc.cluster.local`",
+          "distractor_1": "`<service>.<namespace>.cluster.local.svc` — `cluster.local` precedes the resource-type segment `svc`",
+          "distractor_2": "`<service>.<namespace>.k8s.local`",
+          "distractor_3": "`<service>-<namespace>.svc.cluster.local`"
+        },
+        "explanation": "Cluster DNS uses `<service>.<namespace>.svc.cluster.local`, with `svc` as the resource type segment and `cluster.local` as the default cluster domain (customisable at install). Distractor 1 swaps the segment order. Distractor 2 invents a domain (`k8s.local`) that's not the default. Distractor 3 swaps the namespace separator from `.` to `-`, which doesn't resolve. Knowing this pattern matters when pods in one namespace need to reach services in another; the short form (`<service>` or `<service>.<namespace>`) works only within the same namespace via the ndots search list."
+      },
+      "after": {
+        "question": "A pod in one namespace needs to reach a Service in another namespace using its fully-qualified DNS name. Which name pattern is correct?",
+        "options": {
+          "correct": "`<service>.<namespace>.svc.cluster.local`",
+          "distractor_1": "`<service>.<namespace>.cluster.local.svc` — `cluster.local` precedes the resource-type segment `svc`",
+          "distractor_2": "`<service>.<namespace>.k8s.local`",
+          "distractor_3": "`<service>-<namespace>.svc.cluster.local`"
+        },
+        "explanation": "Cluster DNS uses `<service>.<namespace>.svc.cluster.local`, with `svc` as the resource type segment and `cluster.local` as the default cluster domain (customisable at install). Distractor 1 swaps the segment order. Distractor 2 invents a domain (`k8s.local`) that's not the default. Distractor 3 swaps the namespace separator from `.` to `-`, which doesn't resolve. Knowing this pattern matters when pods in one namespace need to reach services in another; the short form (`<service>` or `<service>.<namespace>`) works only within the same namespace via the ndots search list."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Swapping the `svc`/`cluster.local` segment order is a believable recall error for the FQDN pattern."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Guessing a `k8s.local` domain is a plausible wrong recall of the default cluster domain."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Using a `-` namespace separator instead of `.` is a natural typo-level recall mistake."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-014-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "Why is environment-variable-based service discovery in Kubernetes considered worse than DNS-based discovery?",
+        "options": {
+          "correct": "Env vars are only set at pod startup, so any Service created after the pod is missing from the pod's environment until restart",
+          "distractor_1": "Env vars expose service IPs in cleartext to every other process in the same pod, while DNS lookups go over TLS-encrypted resolver connections by default",
+          "distractor_2": "Env vars are limited to 32 entries per pod, so larger deployments hit the limit and silently lose service entries",
+          "distractor_3": "Env vars resolve only within the same namespace; DNS works across namespaces with no additional configuration"
+        },
+        "explanation": "The env-var mechanism populates `<SERVICE>_SERVICE_HOST` etc. at pod creation by enumerating Services at that moment — pods can't see Services created later without a restart. DNS, by contrast, is a live lookup. Distractor 1 invents an encryption distinction; DNS is plaintext by default too. Distractor 2 fabricates a 32-entry limit. Distractor 3 reverses the cross-namespace story — env vars are populated for Services in any namespace the pod has list access to, but the env approach is still inferior because of the pod-creation-time snapshot."
+      },
+      "after": {
+        "question": "An engineer is choosing between environment-variable and DNS-based service discovery in Kubernetes and asks why the env-var mechanism is the weaker option. What's the main reason?",
+        "options": {
+          "correct": "Env vars are only set at pod startup, so any Service created after the pod is missing from the pod's environment until restart",
+          "distractor_1": "Env vars expose service IPs in cleartext to every other process in the same pod, while DNS lookups go over TLS-encrypted resolver connections by default",
+          "distractor_2": "Env vars are limited to 32 entries per pod, so larger deployments hit the limit and silently lose service entries",
+          "distractor_3": "Env vars resolve only within the same namespace; DNS works across namespaces with no additional configuration"
+        },
+        "explanation": "The env-var mechanism populates `<SERVICE>_SERVICE_HOST` etc. at pod creation by enumerating Services at that moment — pods can't see Services created later without a restart. DNS, by contrast, is a live lookup. Distractor 1 invents an encryption distinction; DNS is plaintext by default too. Distractor 2 fabricates a 32-entry limit. Distractor 3 reverses the cross-namespace story — env vars are populated for Services in any namespace the pod has list access to, but the env approach is still inferior because of the pod-creation-time snapshot."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A cleartext-vs-TLS distinction is invented (DNS is plaintext too), but plausible for a security-minded junior."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A '32 entries per pod' limit is a FABRICATED number — CONFIRMED fabrication (Stephen 2026-06-02); queued for Tier 2 distractor swap. The stem reframe stands; only this distractor needs replacement."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Reversing the cross-namespace story is a believable half-memory of how env-var discovery scopes."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-020-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "Which Kubernetes workload object is the right fit for a clustered database that needs stable network identity and persistent storage per replica?",
+        "options": {
+          "correct": "StatefulSet",
+          "distractor_1": "Deployment with a PersistentVolumeClaim template attached for stable storage across pods",
+          "distractor_2": "DaemonSet, which pins one pod per node and gives each a deterministic name based on the node",
+          "distractor_3": "Job with parallelism set to the replica count and a backoffLimit to keep replicas alive indefinitely"
+        },
+        "explanation": "StatefulSets are designed for exactly this: stable network identity (pod-0, pod-1, pod-2 with predictable DNS names), persistent volume claims that follow the pod across restarts, and ordered rollout/teardown. Distractor 1 confuses Deployment behaviour — Deployments don't give pods stable names, and the PVC template is a StatefulSet feature, not a Deployment one. Distractor 2 misuses DaemonSet (one-per-node, not one-per-replica), wrong for a clustered DB that may want fewer replicas than nodes. Distractor 3 fundamentally misunderstands Jobs (which run to completion)."
+      },
+      "after": {
+        "question": "Your team is deploying a clustered database that needs a stable network identity and its own persistent storage per replica. Which Kubernetes workload object fits?",
+        "options": {
+          "correct": "StatefulSet",
+          "distractor_1": "Deployment with a PersistentVolumeClaim template attached for stable storage across pods",
+          "distractor_2": "DaemonSet, which pins one pod per node and gives each a deterministic name based on the node",
+          "distractor_3": "Job with parallelism set to the replica count and a backoffLimit to keep replicas alive indefinitely"
+        },
+        "explanation": "StatefulSets are designed for exactly this: stable network identity (pod-0, pod-1, pod-2 with predictable DNS names), persistent volume claims that follow the pod across restarts, and ordered rollout/teardown. Distractor 1 confuses Deployment behaviour — Deployments don't give pods stable names, and the PVC template is a StatefulSet feature, not a Deployment one. Distractor 2 misuses DaemonSet (one-per-node, not one-per-replica), wrong for a clustered DB that may want fewer replicas than nodes. Distractor 3 fundamentally misunderstands Jobs (which run to completion)."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Believing a Deployment + PVC template gives stable per-pod storage/identity is the most common StatefulSet confusion."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Misusing DaemonSet (one-per-node) for a clustered DB is plausible for someone who knows DaemonSet gives 'stable' placement."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Misusing a Job (run-to-completion) for long-lived replicas is a believable misunderstanding of Job semantics."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-023-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "What's the fundamental architectural difference between Karpenter and Cluster Autoscaler?",
+        "options": {
+          "correct": "Karpenter provisions nodes directly from the cloud provider based on pending pod requirements; Cluster Autoscaler scales pre-defined Auto Scaling Groups up and down",
+          "distractor_1": "Karpenter and Cluster Autoscaler are different names for the same tool — Karpenter is AWS's rebranded Cluster Autoscaler",
+          "distractor_2": "Karpenter scales pods while Cluster Autoscaler scales nodes — they're complementary tools that handle different layers",
+          "distractor_3": "Karpenter only works on EKS Fargate while Cluster Autoscaler only works on EKS managed nodes; you choose based on compute type"
+        },
+        "explanation": "Karpenter watches unschedulable pods and provisions appropriately-sized nodes directly from EC2 (skipping ASGs), with much faster scale-up and more efficient bin-packing. CA works through ASGs with predefined instance types and operates more slowly. Distractor 1 invents a rebranding. Distractor 2 confuses scopes — both Karpenter and CA scale NODES, not pods (HPA scales pods). Distractor 3 fabricates a Fargate-only restriction; Karpenter works specifically on EC2-backed EKS, not Fargate."
+      },
+      "after": {
+        "question": "Your team is choosing between Karpenter and Cluster Autoscaler for node scaling on EKS. What's the fundamental architectural difference between them?",
+        "options": {
+          "correct": "Karpenter provisions nodes directly from the cloud provider based on pending pod requirements; Cluster Autoscaler scales pre-defined Auto Scaling Groups up and down",
+          "distractor_1": "Karpenter and Cluster Autoscaler are different names for the same tool — Karpenter is AWS's rebranded Cluster Autoscaler",
+          "distractor_2": "Karpenter scales pods while Cluster Autoscaler scales nodes — they're complementary tools that handle different layers",
+          "distractor_3": "Karpenter only works on EKS Fargate while Cluster Autoscaler only works on EKS managed nodes; you choose based on compute type"
+        },
+        "explanation": "Karpenter watches unschedulable pods and provisions appropriately-sized nodes directly from EC2 (skipping ASGs), with much faster scale-up and more efficient bin-packing. CA works through ASGs with predefined instance types and operates more slowly. Distractor 1 invents a rebranding. Distractor 2 confuses scopes — both Karpenter and CA scale NODES, not pods (HPA scales pods). Distractor 3 fabricates a Fargate-only restriction; Karpenter works specifically on EC2-backed EKS, not Fargate."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Believing Karpenter is a rebranded Cluster Autoscaler is a plausible assumption for someone who's only heard both names."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Thinking Karpenter scales pods (vs CA scaling nodes) confuses it with the HPA — a real scope mix-up."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A Fargate-only restriction on Karpenter is invented but believable for a junior unsure where each tool runs."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-030-mcq-1",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "How are Kubernetes Secrets encoded in etcd by default on a freshly-installed cluster?",
+        "options": {
+          "correct": "Base64-encoded only — not encrypted. Anyone with read access to etcd or the Kubernetes API can decode them",
+          "distractor_1": "AES-256 encrypted at rest using the cluster's master key, which only kube-apiserver can access",
+          "distractor_2": "Encrypted using the etcd peer-to-peer TLS keys, so the at-rest representation is opaque to anyone without those keys",
+          "distractor_3": "Hashed with SHA-256, so the original value cannot be recovered even by cluster admins"
+        },
+        "explanation": "Out of the box, Secrets are base64-encoded (not encryption — anyone can decode `echo <value> | base64 -d`). Real encryption at rest requires explicitly enabling etcd encryption providers (KMS, secretbox, aescbc) in the apiserver config. Distractor 1 invents an automatic AES setup. Distractor 2 confuses transport encryption (etcd peer TLS protects data in transit between etcd nodes) with at-rest encryption. Distractor 3 hashes Secrets, which would make them unusable as credentials. This myth-busting matters because many teams over-trust the default."
+      },
+      "after": {
+        "question": "You're assessing whether Kubernetes Secrets are protected at rest in etcd on a freshly-installed cluster. How are they encoded by default?",
+        "options": {
+          "correct": "Base64-encoded only — not encrypted. Anyone with read access to etcd or the Kubernetes API can decode them",
+          "distractor_1": "AES-256 encrypted at rest using the cluster's master key, which only kube-apiserver can access",
+          "distractor_2": "Encrypted using the etcd peer-to-peer TLS keys, so the at-rest representation is opaque to anyone without those keys",
+          "distractor_3": "Hashed with SHA-256, so the original value cannot be recovered even by cluster admins"
+        },
+        "explanation": "Out of the box, Secrets are base64-encoded (not encryption — anyone can decode `echo <value> | base64 -d`). Real encryption at rest requires explicitly enabling etcd encryption providers (KMS, secretbox, aescbc) in the apiserver config. Distractor 1 invents an automatic AES setup. Distractor 2 confuses transport encryption (etcd peer TLS protects data in transit between etcd nodes) with at-rest encryption. Distractor 3 hashes Secrets, which would make them unusable as credentials. This myth-busting matters because many teams over-trust the default."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Assuming automatic AES-256 at-rest encryption is the optimistic default a junior expects."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Conflating etcd peer TLS (in transit) with at-rest encryption is a real transport-vs-rest confusion."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Believing Secrets are hashed (SHA-256) misunderstands that credentials must be recoverable to be used."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-030-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "When should you use a ConfigMap and when should you use a Secret?",
+        "options": {
+          "correct": "ConfigMap for non-sensitive data; Secret for sensitive data — Secret enables encryption at rest and integrates with workflows for least-privilege access",
+          "distractor_1": "ConfigMap for small values (under 1 MiB), Secret for any value over 1 MiB regardless of sensitivity",
+          "distractor_2": "ConfigMap for environment variables, Secret for files mounted as volumes; the data type drives the choice",
+          "distractor_3": "ConfigMap for runtime config, Secret only for TLS certificates — Secret is a specialised resource just for that one use case"
+        },
+        "explanation": "The choice is sensitivity, not size or shape. Both can hold any string, both can be mounted as files or env vars, both have the same 1 MiB limit. Using Secret signals intent, enables encryption-at-rest (when configured), and can gate access via tighter RBAC. Distractor 1 fabricates a size-based split — both have the same 1 MiB limit. Distractor 2 invents a shape-based split that doesn't exist. Distractor 3 narrows Secret unrealistically; Secret covers passwords, API tokens, SSH keys, TLS, anything sensitive."
+      },
+      "after": {
+        "question": "An engineer is deciding whether to store a configuration value in a ConfigMap or a Secret. What should drive the choice?",
+        "options": {
+          "correct": "ConfigMap for non-sensitive data; Secret for sensitive data — Secret enables encryption at rest and integrates with workflows for least-privilege access",
+          "distractor_1": "ConfigMap for small values (under 1 MiB), Secret for any value over 1 MiB regardless of sensitivity",
+          "distractor_2": "ConfigMap for environment variables, Secret for files mounted as volumes; the data type drives the choice",
+          "distractor_3": "ConfigMap for runtime config, Secret only for TLS certificates — Secret is a specialised resource just for that one use case"
+        },
+        "explanation": "The choice is sensitivity, not size or shape. Both can hold any string, both can be mounted as files or env vars, both have the same 1 MiB limit. Using Secret signals intent, enables encryption-at-rest (when configured), and can gate access via tighter RBAC. Distractor 1 fabricates a size-based split — both have the same 1 MiB limit. Distractor 2 invents a shape-based split that doesn't exist. Distractor 3 narrows Secret unrealistically; Secret covers passwords, API tokens, SSH keys, TLS, anything sensitive."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A size-based (1 MiB) split is invented (both share the same limit), but plausible to someone rationalising the two types."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A shape-based split (env vars vs mounted files) is invented; both support both, but it's a believable guess."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Narrowing Secret to TLS-only underestimates its scope — plausible for someone who first met Secrets via TLS."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-032-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "What's the difference between a Role and a ClusterRole?",
+        "options": {
+          "correct": "Role grants permissions scoped to a single namespace; ClusterRole grants permissions at the cluster scope (and can also be reused per-namespace via RoleBindings)",
+          "distractor_1": "Role grants read-only access; ClusterRole grants write access — the names indicate the level of permission",
+          "distractor_2": "Role applies to namespaced resources only; ClusterRole applies to cluster-scoped resources only — they cannot overlap",
+          "distractor_3": "Role is for service accounts; ClusterRole is for human users authenticated via OIDC — the audience is the difference"
+        },
+        "explanation": "The split is scope, not permission level. A Role grants access in a namespace; a ClusterRole can grant cluster-wide or be referenced by a namespaced RoleBinding for cross-namespace reuse. Distractor 1 invents a read/write split — both Role and ClusterRole can grant any verb. Distractor 2 (resource-scope split) misses that ClusterRole can grant access to namespaced resources too; what matters is the binding type. Distractor 3 fabricates a service-account-vs-human split that has no basis."
+      },
+      "after": {
+        "question": "An engineer needs to grant a teammate permissions in a single namespace and is unsure whether to use a Role or a ClusterRole. What's the actual difference between them?",
+        "options": {
+          "correct": "Role grants permissions scoped to a single namespace; ClusterRole grants permissions at the cluster scope (and can also be reused per-namespace via RoleBindings)",
+          "distractor_1": "Role grants read-only access; ClusterRole grants write access — the names indicate the level of permission",
+          "distractor_2": "Role applies to namespaced resources only; ClusterRole applies to cluster-scoped resources only — they cannot overlap",
+          "distractor_3": "Role is for service accounts; ClusterRole is for human users authenticated via OIDC — the audience is the difference"
+        },
+        "explanation": "The split is scope, not permission level. A Role grants access in a namespace; a ClusterRole can grant cluster-wide or be referenced by a namespaced RoleBinding for cross-namespace reuse. Distractor 1 invents a read/write split — both Role and ClusterRole can grant any verb. Distractor 2 (resource-scope split) misses that ClusterRole can grant access to namespaced resources too; what matters is the binding type. Distractor 3 fabricates a service-account-vs-human split that has no basis."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A read/write split implied by the names is a natural misreading of Role vs ClusterRole."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A strict namespaced-vs-cluster-scoped resource split misses that ClusterRoles can grant namespaced access via RoleBindings — a subtle, believable error."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A service-account-vs-human-user split is invented with no basis, but plausible to a junior guessing at intent."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-040-mcq-1",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "What does AWS manage and what do you manage on EKS?",
+        "options": {
+          "correct": "AWS manages the control plane (etcd, apiserver, scheduler, controllers); you manage the worker nodes (managed nodes, self-managed, Fargate, or Karpenter) and workloads",
+          "distractor_1": "AWS manages the apiserver and etcd; you manage the scheduler and controllers as well as the worker nodes",
+          "distractor_2": "AWS manages both control plane and worker nodes when using EKS Auto Mode (which is the default for new clusters)",
+          "distractor_3": "AWS manages the worker nodes; you manage the control plane and the cluster's networking layer"
+        },
+        "explanation": "EKS abstracts the full control plane behind a managed endpoint — you never SSH into apiserver or etcd. The boundary moves with Fargate (AWS manages the underlying node) or Auto Mode (newer feature; AWS manages more), but the default contract is control-plane-managed, nodes-yours. Distractor 1 splits the control plane components, which EKS doesn't expose for independent management. Distractor 2 over-extends Auto Mode as the default. Distractor 3 reverses the entire model. The control-plane boundary defines how much operational work you avoid by choosing EKS over self-managed K8s."
+      },
+      "after": {
+        "question": "Your team is adopting EKS and needs to know which parts AWS operates and which parts remain their responsibility. Where is the boundary?",
+        "options": {
+          "correct": "AWS manages the control plane (etcd, apiserver, scheduler, controllers); you manage the worker nodes (managed nodes, self-managed, Fargate, or Karpenter) and workloads",
+          "distractor_1": "AWS manages the apiserver and etcd; you manage the scheduler and controllers as well as the worker nodes",
+          "distractor_2": "AWS manages both control plane and worker nodes when using EKS Auto Mode (which is the default for new clusters)",
+          "distractor_3": "AWS manages the worker nodes; you manage the control plane and the cluster's networking layer"
+        },
+        "explanation": "EKS abstracts the full control plane behind a managed endpoint — you never SSH into apiserver or etcd. The boundary moves with Fargate (AWS manages the underlying node) or Auto Mode (newer feature; AWS manages more), but the default contract is control-plane-managed, nodes-yours. Distractor 1 splits the control plane components, which EKS doesn't expose for independent management. Distractor 2 over-extends Auto Mode as the default. Distractor 3 reverses the entire model. The control-plane boundary defines how much operational work you avoid by choosing EKS over self-managed K8s."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Believing AWS exposes scheduler/controllers for separate management misunderstands the managed-control-plane abstraction."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Treating EKS Auto Mode as the default for new clusters over-claims a real but non-default feature."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Reversing the model (AWS manages nodes, you manage control plane) is a plausible inversion for someone new to EKS."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-041-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "What is IRSA in EKS, in one sentence?",
+        "options": {
+          "correct": "IAM Roles for Service Accounts — a way for pods to assume an IAM role using a projected OIDC token from the cluster's IAM identity provider",
+          "distractor_1": "Instance Role Service Account — assigns the EC2 instance role to all pods running on that node, so they share node credentials",
+          "distractor_2": "Inter-Region Service Account — a feature for cross-region EKS access where service accounts in one cluster authenticate to another region's API",
+          "distractor_3": "Internal Replicated Service Account — synchronises Kubernetes ServiceAccounts across EKS clusters for multi-cluster workloads"
+        },
+        "explanation": "IRSA stands for IAM Roles for Service Accounts; the cluster has an OIDC identity provider registered in IAM, each pod's projected service-account token is exchanged for AWS credentials via AssumeRoleWithWebIdentity. Distractor 1 describes the legacy 'node role' anti-pattern (every pod gets the EC2 instance's role) that IRSA was designed to replace. Distractor 2 invents a cross-region feature. Distractor 3 fabricates a multi-cluster sync. IRSA is the answer to 'how do pods get AWS credentials without long-lived keys'."
+      },
+      "after": {
+        "question": "A pod on EKS needs AWS credentials without any long-lived keys, and a teammate suggests using IRSA. What is IRSA?",
+        "options": {
+          "correct": "IAM Roles for Service Accounts — a way for pods to assume an IAM role using a projected OIDC token from the cluster's IAM identity provider",
+          "distractor_1": "Instance Role Service Account — assigns the EC2 instance role to all pods running on that node, so they share node credentials",
+          "distractor_2": "Inter-Region Service Account — a feature for cross-region EKS access where service accounts in one cluster authenticate to another region's API",
+          "distractor_3": "Internal Replicated Service Account — synchronises Kubernetes ServiceAccounts across EKS clusters for multi-cluster workloads"
+        },
+        "explanation": "IRSA stands for IAM Roles for Service Accounts; the cluster has an OIDC identity provider registered in IAM, each pod's projected service-account token is exchanged for AWS credentials via AssumeRoleWithWebIdentity. Distractor 1 describes the legacy 'node role' anti-pattern (every pod gets the EC2 instance's role) that IRSA was designed to replace. Distractor 2 invents a cross-region feature. Distractor 3 fabricates a multi-cluster sync. IRSA is the answer to 'how do pods get AWS credentials without long-lived keys'."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "'Instance Role Service Account' describes the node-role anti-pattern IRSA replaced — a very believable wrong expansion."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "'Inter-Region Service Account' is an invented expansion, plausible to someone guessing from the acronym."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "'Internal Replicated Service Account' is another plausible acronym guess for a multi-cluster feature."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-042-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "Why does the AWS VPC CNI plugin cause 'IP exhaustion' on EKS, and what's the underlying mechanism?",
+        "options": {
+          "correct": "Each pod gets a real VPC IP via an ENI on its node; node ENI count and IPs-per-ENI are EC2-instance-size bound, so pod density per node is capped by those AWS limits",
+          "distractor_1": "Each pod gets a Cluster IP from a /16 cluster CIDR, which exhausts after ~65k pods regardless of node size",
+          "distractor_2": "The VPC CNI uses NAT for each pod to reach external services, and the NAT Gateway's port range exhausts after a few thousand simultaneous connections",
+          "distractor_3": "EKS allocates pod IPs from a dedicated /28 per pod for isolation, so a single pod consumes 16 VPC addresses each"
+        },
+        "explanation": "VPC CNI's mode is 'each pod is a first-class VPC IP': ENIs and secondary IPs come from real VPC address space, and each EC2 instance type has hard limits on ENI count and IPs per ENI (e.g., m5.large = 3 ENIs × 10 IPs = ~30 pod IPs max). Smaller subnets fill quickly. Distractor 1 confuses pod IPs (VPC) with Service Cluster IPs (cluster CIDR). Distractor 2 fabricates a NAT-port-exhaustion story; pods talk directly via their VPC IPs. Distractor 3 invents a /28-per-pod allocation; each pod consumes exactly one IP."
+      },
+      "after": {
+        "question": "Your EKS cluster using the AWS VPC CNI is hitting 'IP exhaustion' on its nodes. What's the underlying mechanism causing it?",
+        "options": {
+          "correct": "Each pod gets a real VPC IP via an ENI on its node; node ENI count and IPs-per-ENI are EC2-instance-size bound, so pod density per node is capped by those AWS limits",
+          "distractor_1": "Each pod gets a Cluster IP from a /16 cluster CIDR, which exhausts after ~65k pods regardless of node size",
+          "distractor_2": "The VPC CNI uses NAT for each pod to reach external services, and the NAT Gateway's port range exhausts after a few thousand simultaneous connections",
+          "distractor_3": "EKS allocates pod IPs from a dedicated /28 per pod for isolation, so a single pod consumes 16 VPC addresses each"
+        },
+        "explanation": "VPC CNI's mode is 'each pod is a first-class VPC IP': ENIs and secondary IPs come from real VPC address space, and each EC2 instance type has hard limits on ENI count and IPs per ENI (e.g., m5.large = 3 ENIs × 10 IPs = ~30 pod IPs max). Smaller subnets fill quickly. Distractor 1 confuses pod IPs (VPC) with Service Cluster IPs (cluster CIDR). Distractor 2 fabricates a NAT-port-exhaustion story; pods talk directly via their VPC IPs. Distractor 3 invents a /28-per-pod allocation; each pod consumes exactly one IP."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Confusing pod IPs (VPC) with Service Cluster IPs (cluster CIDR) is a core networking mix-up a junior would make."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A NAT-port-exhaustion story is invented but plausible to someone who assumes pods egress via NAT."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "A /28-per-pod allocation is fabricated, but plausible to someone reasoning about isolation blocks."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "k8s-042-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "change_summary": "stem reframed from definition/markerless form to scenario form (concrete actor); options and explanation unchanged",
+      "before": {
+        "question": "Which is the recommended mitigation for VPC CNI IP exhaustion in 2025+ clusters?",
+        "options": {
+          "correct": "Enable prefix delegation — instead of secondary IPs, each ENI gets a /28 prefix, dramatically increasing pods-per-node within the same ENI limits",
+          "distractor_1": "Disable VPC CNI and install the kubenet plugin, which uses the legacy per-node /24 model and avoids the IP exhaustion problem entirely",
+          "distractor_2": "Migrate the cluster to a /8 VPC CIDR (10.0.0.0/8) so there are enough IPs for any pod density",
+          "distractor_3": "Configure the AWS Load Balancer Controller in 'IP target' mode, which intercepts pod IP allocation and consolidates multiple pods onto each ENI IP transparently"
+        },
+        "explanation": "Prefix delegation gives each ENI a /28 (16 IPs) instead of single secondary IPs, multiplying pod density by ~16 with no change to instance limits — the modern default for IP-tight clusters. Distractor 1 misnames kubenet, which doesn't exist as an EKS option. Distractor 2 doesn't help because the bottleneck is ENI-per-instance IP capacity, not VPC CIDR size. Distractor 3 confuses ALB target modes (which control how the LB targets pods) with the CNI's IP-per-pod model. Custom networking and IPv6 are also valid alternatives."
+      },
+      "after": {
+        "question": "Your EKS cluster keeps hitting VPC CNI IP exhaustion, and you want the recommended mitigation for 2025-era clusters. Which is it?",
+        "options": {
+          "correct": "Enable prefix delegation — instead of secondary IPs, each ENI gets a /28 prefix, dramatically increasing pods-per-node within the same ENI limits",
+          "distractor_1": "Disable VPC CNI and install the kubenet plugin, which uses the legacy per-node /24 model and avoids the IP exhaustion problem entirely",
+          "distractor_2": "Migrate the cluster to a /8 VPC CIDR (10.0.0.0/8) so there are enough IPs for any pod density",
+          "distractor_3": "Configure the AWS Load Balancer Controller in 'IP target' mode, which intercepts pod IP allocation and consolidates multiple pods onto each ENI IP transparently"
+        },
+        "explanation": "Prefix delegation gives each ENI a /28 (16 IPs) instead of single secondary IPs, multiplying pod density by ~16 with no change to instance limits — the modern default for IP-tight clusters. Distractor 1 misnames kubenet, which doesn't exist as an EKS option. Distractor 2 doesn't help because the bottleneck is ENI-per-instance IP capacity, not VPC CIDR size. Distractor 3 confuses ALB target modes (which control how the LB targets pods) with the CNI's IP-per-pod model. Custom networking and IPv6 are also valid alternatives."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Believing you can swap in 'kubenet' on EKS is plausible (kubenet is a real upstream plugin), though it isn't an EKS option."
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Thinking a bigger VPC CIDR (/8) fixes it misses that the bottleneck is per-instance ENI IP capacity — a believable wrong fix."
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "Confusing ALB 'IP target' mode with CNI IP allocation conflates load-balancer targeting with pod networking."
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    }
+  ]
+}

@@ -1,0 +1,461 @@
+[
+  {
+    "id": "aws-019-mcq-1",
+    "source_id": "aws-019",
+    "domain": "aws",
+    "subdomain": "compute",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 1,
+    "question": "Looking at the EC2 instance family letters (M, C, R, T, G), which one is designed for memory-intensive workloads such as in-memory databases?",
+    "options": {
+      "correct": "R — memory-optimised family with a higher memory-to-vCPU ratio",
+      "distractor_1": "M — the 'memory' letter indicates memory-optimised general-purpose instances",
+      "distractor_2": "C — compute-optimised with the highest memory allocation per vCPU in the family lineup",
+      "distractor_3": "T — burstable instances with deep memory pools to handle in-memory database working sets"
+    },
+    "explanation": "R-family instances (R5, R6i, R7i, etc.) are memory-optimised — designed for Redis, SAP HANA, large in-memory analytics. Distractor 1 traps the candidate on letter-meaning: M is general purpose, despite the M; the memory letter is R. Distractor 2 swaps compute (C) for memory — C is the opposite end, high vCPU per memory unit. Distractor 3 picks T (burstable, low cost) which is for variable low-load workloads, not sustained memory pressure. Right-sizing starts with knowing the family naming."
+  },
+  {
+    "id": "aws-019-mcq-2",
+    "source_id": "aws-019",
+    "domain": "aws",
+    "subdomain": "compute",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 3,
+    "question": "An EC2 instance running at 95% CPU prompts a team to switch from m5.large to m5.xlarge. After the change, CPU drops to 50% but the application is now slower. What's the most likely cause?",
+    "options": {
+      "correct": "CPU wasn't the real bottleneck; the larger instance let the actual constraint (memory, disk I/O, network) saturate faster",
+      "distractor_1": "EC2 instance scaling has a one-hour stabilisation period during which CPU is artificially limited",
+      "distractor_2": "Moving up an instance class introduces a multi-hour kernel warm-tuning period during which performance regresses before returning to baseline",
+      "distractor_3": "m5.xlarge uses a different Nitro generation that requires the AMI to be rebuilt before performance returns to baseline"
+    },
+    "explanation": "Right-sizing by CPU metric alone catches the wrong target when CPU is the symptom and not the cause. Increased capacity often unmasks an upstream bottleneck (a connection pool, disk queue, etc.) that now serves more concurrent work. Distractor 1 invents a stabilisation period. Distractor 2 invents a kernel warm-up phase. Distractor 3 fabricates a Nitro generation mismatch story; AMIs work across instance sizes within a family. The methodology lesson: combine CloudWatch with the application's own metrics before resizing."
+  },
+  {
+    "id": "aws-020-mcq-1",
+    "source_id": "aws-020",
+    "domain": "aws",
+    "subdomain": "compute",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Which ASG scaling policy keeps the underlying metric close to a single user-defined value by adding or removing capacity as needed?",
+    "options": {
+      "correct": "Target tracking — you specify a target value (e.g. 60% CPU) and ASG continuously adjusts capacity to maintain it",
+      "distractor_1": "Step scaling — you specify a target value and ASG increments capacity in fixed steps until the metric matches it",
+      "distractor_2": "Simple scaling — you specify a target value and ASG fires a Lambda function that calculates and applies the new capacity",
+      "distractor_3": "Scheduled scaling — you specify a target value with associated time windows during which ASG enforces it"
+    },
+    "explanation": "Target tracking is the 'thermostat' policy: pick a metric and a target, let ASG handle the rest. Distractor 1 (step scaling) actually requires you to define explicit threshold breaches and step adjustments — it doesn't take a single target. Distractor 2 (simple scaling) fires one adjustment per breach with a cooldown; no Lambda involvement. Distractor 3 (scheduled scaling) ignores metrics entirely — it scales on calendar/time, useful for predictable traffic shifts. Target tracking is now the default recommendation for most workloads."
+  },
+  {
+    "id": "aws-020-mcq-2",
+    "source_id": "aws-020",
+    "domain": "aws",
+    "subdomain": "compute",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "During a deploy, an ASG with a target tracking policy starts terminating instances that the deployment script just registered. What feature should the deployment use to prevent this?",
+    "options": {
+      "correct": "Instance scale-in protection on the new instances, or the broader ASG-level scale-in protection setting, so ASG won't terminate them during scale-in events",
+      "distractor_1": "Deployment cooldown on the ASG — extending the cooldown to several minutes blocks all scale-in actions during a deploy",
+      "distractor_2": "Health check grace period — increasing the grace period prevents the ASG from removing instances flagged as in-flight",
+      "distractor_3": "Termination policy 'OldestInstance' so scale-in events only target instances older than the deploy timestamp"
+    },
+    "explanation": "Scale-in protection marks specific instances (or the whole ASG) as ineligible for ASG-initiated termination, which is exactly what's needed to shield newly-deployed instances. Distractor 1 confuses cooldown semantics: cooldowns affect scaling actions between events, not which instances get picked. Distractor 2 misuses the health check grace period, which controls when ASG starts evaluating health, not termination eligibility. Distractor 3 (OldestInstance termination policy) sometimes helps but isn't a guarantee — if the policy can't find an old-enough candidate it falls back to other criteria."
+  },
+  {
+    "id": "aws-021-mcq-1",
+    "source_id": "aws-021",
+    "domain": "aws",
+    "subdomain": "cost",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Which workload is the WORST fit for EC2 Spot Instances?",
+    "options": {
+      "correct": "A stateful PostgreSQL database serving production traffic with no replication or failover layer",
+      "distractor_1": "A nightly Spark batch job that processes the day's events and can restart from the last checkpoint",
+      "distractor_2": "A stateless web tier behind an ALB with autoscaling and at least 50% on-demand baseline",
+      "distractor_3": "A CI/CD build farm where individual builds take under 20 minutes and can be retried automatically"
+    },
+    "explanation": "Spot instances can be reclaimed with a 2-minute warning; they fit anything that can checkpoint, retry, or absorb a node loss. A solo stateful database has none of those properties — losing it loses data and uptime. Distractor 1 (Spark with checkpoints) is a textbook Spot fit. Distractor 2 (stateless web with on-demand baseline) is the recommended ASG pattern: mix on-demand and Spot via instance allocation strategy. Distractor 3 (short, retryable CI builds) is also good — worst case the build retries on another instance type."
+  },
+  {
+    "id": "aws-021-mcq-2",
+    "source_id": "aws-021",
+    "domain": "aws",
+    "subdomain": "cost",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "A team commits to running ~50 m5.large instances continuously for the next 3 years. Which pricing option gives the largest discount with the right kind of flexibility?",
+    "options": {
+      "correct": "Compute Savings Plan (3 year, all upfront) — covers any instance family, size, region, OS, and tenancy with the steepest discount",
+      "distractor_1": "Standard Reserved Instances (3 year, all upfront) for m5.large — the same discount level as Compute Savings Plans plus instance-flexibility within the family",
+      "distractor_2": "EC2 Instance Savings Plan (3 year, all upfront) — gives a deeper discount than Compute Savings Plans because it's specific to a single instance family",
+      "distractor_3": "Convertible Reserved Instances (3 year, all upfront) — same discount as Standard RIs but with the ability to change instance family"
+    },
+    "explanation": "Compute Savings Plans give the deepest 3-year discount AND the broadest flexibility (any family, region, OS), making them the modern default for committed compute. Distractor 1 misstates RI flexibility — Standard RIs are locked to family/region and offer slightly less savings. Distractor 2 inverts the comparison: EC2 Instance Savings Plans are deeper than Compute SPs but lock you to a specific instance family in one region — flexibility loss for marginal extra discount. Distractor 3 (Convertible RIs) give less discount than Standard RIs to buy flexibility, but still less than Compute SPs."
+  },
+  {
+    "id": "aws-022-mcq-1",
+    "source_id": "aws-022",
+    "domain": "aws",
+    "subdomain": "compute",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "A team is choosing between ECS Fargate, EKS, and Lambda for a video transcoding service. Individual jobs take 20-90 minutes and run constantly throughout the day. Which compute platform is the WORST fit?",
+    "options": {
+      "correct": "Lambda — the 15-minute maximum execution time means most transcoding jobs would never complete in a single invocation",
+      "distractor_1": "ECS Fargate — Fargate tasks have a 15-minute hard timeout to match Lambda's, so the longer jobs would time out",
+      "distractor_2": "EKS — its pod scheduling adds a 20-minute minimum runtime overhead that makes shorter jobs uneconomical",
+      "distractor_3": "All three are viable; the choice depends only on cost, not runtime constraints"
+    },
+    "explanation": "Lambda's 15-minute timeout is the dealbreaker — once a job exceeds it, the function is killed mid-work. ECS Fargate has no such limit, EKS has no platform-level timeout at all. Distractor 1 fabricates a Fargate 15-min timeout; Fargate tasks run as long as the container does. Distractor 2 invents an EKS scheduling overhead that doesn't exist (pod startup is seconds, not minutes). Distractor 3 ignores the constraint entirely. The general rule: Lambda for short, event-driven workloads; ECS/EKS for sustained or long-running."
+  },
+  {
+    "id": "aws-022-mcq-2",
+    "source_id": "aws-022",
+    "domain": "aws",
+    "subdomain": "compute",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "Your team is choosing between ECS and EKS for a workload that needs container orchestration. They have no existing Kubernetes investment. What's the strongest argument for ECS over EKS?",
+    "options": {
+      "correct": "Lower operational overhead — ECS has fewer moving parts (no control-plane upgrades, no kubeconfig, no CNI tuning) which translates to less platform engineering effort",
+      "distractor_1": "ECS offers tighter integration with non-AWS observability tools like Prometheus and Grafana than EKS does",
+      "distractor_2": "ECS supports significantly larger task sizes (up to 256 vCPU per task) than EKS pods, making it better for resource-heavy workloads",
+      "distractor_3": "ECS has built-in support for stateful workloads via persistent volumes; EKS requires installing a CSI driver to do the same"
+    },
+    "explanation": "ECS's main attraction is operational simplicity: AWS-managed scheduling, no Kubernetes API to learn, IAM-native rather than ServiceAccount/IRSA. For teams without existing K8s skills, that lowers the total cost of ownership significantly. Distractor 1 inverts the observability story — EKS, being Kubernetes, has the richer Prometheus/Grafana ecosystem. Distractor 2 invents a task-size advantage; ECS and EKS have similar limits. Distractor 3 misrepresents EKS storage — EBS and EFS CSI drivers come pre-installed as managed add-ons in modern EKS."
+  },
+  {
+    "id": "aws-024-mcq-1",
+    "source_id": "aws-024",
+    "domain": "aws",
+    "subdomain": "cost",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Your AWS monthly bill jumped by 30% with no obvious cause. What's the right first step to investigate?",
+    "options": {
+      "correct": "Open Cost Explorer, group by service, and filter to the spike's timeframe to identify which service drove the increase",
+      "distractor_1": "Open the Trusted Advisor cost dashboard, which surfaces only the unexpected charges and ignores baseline spend",
+      "distractor_2": "Pull the detailed billing CSV from S3 and grep for resource ARNs that didn't appear in the previous month's bill — net-new resources stand out as the cause",
+      "distractor_3": "Open CloudWatch Billing alarms and read the alarm history to see which resources triggered cost thresholds"
+    },
+    "explanation": "Cost Explorer with grouping by service (and a daily granularity) is the fastest tool to localise an unexpected spike to a specific service, then drill down by tag, usage type, or linked account. Distractor 1 overstates Trusted Advisor — it surfaces optimisation recommendations, not arbitrary spend deltas. Distractor 2 (raw billing CSV) works but is slow and noisy compared to Cost Explorer's grouping. Distractor 3 misuses CloudWatch alarms — they fire on thresholds but don't tell you which underlying resource caused the increase."
+  },
+  {
+    "id": "aws-024-mcq-2",
+    "source_id": "aws-024",
+    "domain": "aws",
+    "subdomain": "cost",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "A team's AWS bill is dominated by EC2 (60%) and NAT Gateway data processing (15%). Which optimisation gives the biggest realistic monthly saving?",
+    "options": {
+      "correct": "Buy a 3-year Compute Savings Plan covering most of the EC2 spend — typical savings of ~50% on the committed portion, applied directly to the largest line item",
+      "distractor_1": "Move the NAT Gateway behind a third-party SaaS WAF, which absorbs the data processing charge as part of its fee",
+      "distractor_2": "Migrate EC2 workloads to Spot Instances en masse — Spot offers 90% off, which against 60% of the bill saves 54% overall",
+      "distractor_3": "Enable S3 Intelligent-Tiering on all buckets, which on average reduces total bill by 20-30%"
+    },
+    "explanation": "The biggest line item with the most flexible lever is EC2 + Savings Plans — even partial coverage on a multi-million-dollar EC2 spend dwarfs other optimisations. Distractor 1 invents a NAT-replacement scheme; SaaS WAFs don't replace NAT functionality and add per-GB charges. Distractor 2 ignores that not all EC2 workloads tolerate Spot reclamation (production databases, long-running stateful workers), so the 'mass migration' is unrealistic and the savings claim is fantasy. Distractor 3 over-states S3 IT impact when S3 isn't even in the top 2 costs."
+  },
+  {
+    "id": "aws-026-mcq-2",
+    "source_id": "aws-026",
+    "domain": "aws",
+    "subdomain": "iam",
+    "priority": "critical",
+    "difficulty": "easy",
+    "bank": 2,
+    "question": "What is the fundamental security difference between IAM user access keys and credentials obtained via STS AssumeRole?",
+    "options": {
+      "correct": "Access keys are long-lived static secrets that remain valid until manually rotated; STS credentials are short-lived (default 1 hour) and automatically expire",
+      "distractor_1": "Access keys are encrypted in the AWS console while STS credentials are returned in plaintext, so STS is actually riskier in transit",
+      "distractor_2": "Access keys are tied to a specific source IP at creation time; STS credentials work from any IP address",
+      "distractor_3": "Access keys can be MFA-protected per request; STS credentials inherit the role's permissions with no per-request MFA capability"
+    },
+    "explanation": "Long-lived vs short-lived credentials is the defining security difference: a leaked access key is valid until somebody notices and rotates; a leaked STS session token expires automatically (typically within an hour). Distractor 1 fabricates an encryption-vs-plaintext difference; both go over TLS. Distractor 2 invents an IP-tying behaviour for access keys that doesn't exist. Distractor 3 reverses the MFA story — IAM policies can require MFA conditions on both access keys and AssumeRole, but the credential type itself doesn't determine MFA capability."
+  },
+  {
+    "id": "aws-027-mcq-1",
+    "source_id": "aws-027",
+    "domain": "aws",
+    "subdomain": "iam",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 2,
+    "question": "You're attaching permissions to 12 different IAM roles, each with a slightly different scope. Which IAM policy type is the best fit for a reusable permission set across these roles?",
+    "options": {
+      "correct": "Customer-managed policies — versioned, reusable, attachable to many identities, and editable independently of any role",
+      "distractor_1": "Inline policies — embedded directly into the role, which makes them easier to audit because they appear in every role definition",
+      "distractor_2": "AWS managed policies — the only policy type that allows reuse across multiple roles in the same account",
+      "distractor_3": "Permissions boundaries — designed for sharing permission sets across roles while restricting the upper bound of what each role can do"
+    },
+    "explanation": "Customer-managed policies are the right shape for shared, reusable permission sets — one source of truth, attach to many roles, versioned for safe rollback. Distractor 1 makes a virtue of inline's downside: duplication across roles makes updates a manual loop and audits show many copies, not one. Distractor 2 misstates AWS managed policy reuse — they're reusable too, but you can't customise them. Distractor 3 confuses the role of permissions boundaries: they cap maximum permissions but aren't meant to grant the day-to-day access."
+  },
+  {
+    "id": "aws-027-mcq-2",
+    "source_id": "aws-027",
+    "domain": "aws",
+    "subdomain": "iam",
+    "priority": "medium",
+    "difficulty": "easy",
+    "bank": 3,
+    "question": "Your organisation uses AWS Organizations with an SCP denying access to all regions except us-east-1 and eu-west-1. A developer in account A has an IAM policy granting full access in ap-southeast-2. Can they create resources there?",
+    "options": {
+      "correct": "No — SCPs apply at the account level and form the maximum boundary; an identity-based allow cannot exceed what the SCP permits",
+      "distractor_1": "Yes — identity-based policies take precedence over SCPs because they're more specific (attached to a user, not an account)",
+      "distractor_2": "Yes — SCPs apply only to root accounts; users with explicit IAM permissions bypass SCP restrictions in their own account",
+      "distractor_3": "Yes — but only in the AWS Console; the CLI and SDKs are gated by SCPs while the Console runs with the user's own session and bypasses Organisation policies"
+    },
+    "explanation": "SCPs in AWS Organizations are permission boundaries that apply to every principal in the affected account, including the root user. An identity-based allow grants nothing if the SCP doesn't permit it — the intersection wins. Distractor 1 reverses the precedence model; SCPs are not overridable by identity-based policies. Distractor 2 misreads the scope — SCPs apply to all principals, not just root. Distractor 3 invents a Console-vs-API exemption that doesn't exist; the IAM evaluation engine doesn't distinguish."
+  },
+  {
+    "id": "aws-028-mcq-1",
+    "source_id": "aws-028",
+    "domain": "aws",
+    "subdomain": "iam",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Account A wants to let a Lambda function in Account B read objects from an S3 bucket in Account A. What is the minimum set of changes required?",
+    "options": {
+      "correct": "Account A: bucket policy granting s3:GetObject to the Lambda execution role in Account B. Account B: execution role with s3:GetObject permission and the bucket as resource",
+      "distractor_1": "Account A: bucket policy granting s3:GetObject to '*'. Account B: nothing — the public-style policy is automatically scoped to the calling account",
+      "distractor_2": "Account A: create an IAM user with bucket access and share its access keys with Account B's Lambda environment variables",
+      "distractor_3": "Account B: create a peering connection from Account B's VPC to Account A's bucket, then assign IAM permissions in Account B only"
+    },
+    "explanation": "Cross-account S3 access needs explicit allow on BOTH sides: the bucket policy in the owning account names the cross-account principal, AND the calling principal's identity policy grants the action. Distractor 1 uses '*' as principal which is a public grant blocked by Block Public Access; even without BPA, it's a serious overshare. Distractor 2 is the anti-pattern that IAM roles are meant to replace — long-lived keys in another account's environment. Distractor 3 invents 'peering to a bucket'; S3 is not in a VPC and peering doesn't grant IAM."
+  },
+  {
+    "id": "aws-028-mcq-2",
+    "source_id": "aws-028",
+    "domain": "aws",
+    "subdomain": "iam",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "A third-party vendor needs to access your S3 bucket via an IAM role they assume. They ask you to include an `sts:ExternalId` condition in your role's trust policy with a value they provide. Why?",
+    "options": {
+      "correct": "To prevent the confused deputy problem — without ExternalId, anyone who learns your role ARN could trick the vendor into assuming it on their behalf",
+      "distractor_1": "ExternalId is required by AWS for any cross-account AssumeRole call made from outside an AWS account",
+      "distractor_2": "ExternalId acts as a shared secret that authenticates the vendor's identity, replacing the need for IAM credentials on the vendor side",
+      "distractor_3": "ExternalId rotates the role session token automatically each hour, providing an additional layer of MFA-equivalent protection"
+    },
+    "explanation": "The confused deputy attack: a third party (the deputy) has legitimate access to many customers' roles. Without ExternalId, a malicious customer could give the deputy a role ARN belonging to another customer, and the deputy might assume it. ExternalId pins each assume-role call to a customer-specific identifier the attacker doesn't know. Distractor 1 fabricates a universal requirement; ExternalId is optional and specific to this pattern. Distractor 2 confuses it with credentials — ExternalId is in addition to, not instead of, the vendor's own AWS credentials. Distractor 3 invents a rotation/MFA behaviour."
+  },
+  {
+    "id": "aws-029-mcq-1",
+    "source_id": "aws-029",
+    "domain": "aws",
+    "subdomain": "security",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Your team uses RDS for MySQL and needs automatic password rotation every 30 days with no application changes. Which AWS service should they use?",
+    "options": {
+      "correct": "Secrets Manager — natively integrates with RDS, runs a Lambda-backed rotation that updates both the database password and the secret value",
+      "distractor_1": "Parameter Store SecureString — supports automatic rotation via a built-in scheduler that updates the parameter and the underlying RDS password",
+      "distractor_2": "AWS KMS — its automatic key rotation feature can be extended to rotate RDS passwords stored as KMS data keys",
+      "distractor_3": "IAM database authentication — replaces passwords entirely with auto-rotating tokens, eliminating the need for any secret store"
+    },
+    "explanation": "Secrets Manager is the only AWS service with native, configurable RDS password rotation — it provides templates for MySQL, PostgreSQL, Oracle, etc., and handles both the DB-side change and the secret-side update transactionally. Distractor 1 invents rotation capabilities for Parameter Store, which is a value store without rotation. Distractor 2 conflates KMS key rotation (rotates the encryption key, not the secret value) with password rotation — they're unrelated. Distractor 3 (IAM auth) is a real RDS feature but requires application changes to use auth tokens and isn't a 'no application changes' answer."
+  },
+  {
+    "id": "aws-029-mcq-2",
+    "source_id": "aws-029",
+    "domain": "aws",
+    "subdomain": "security",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "When does Parameter Store make more sense than Secrets Manager?",
+    "options": {
+      "correct": "When you have many small, infrequently-rotated configuration values where the per-secret cost of Secrets Manager outweighs its rotation features",
+      "distractor_1": "When the secret needs to be encrypted at rest — only Parameter Store supports KMS encryption; Secrets Manager stores values in plaintext",
+      "distractor_2": "When the secret must be retrievable from outside the VPC — Secrets Manager is VPC-only and requires PrivateLink for cross-account access",
+      "distractor_3": "When the secret needs versioning — Secrets Manager only retains the current value while Parameter Store keeps the full history with named version labels"
+    },
+    "explanation": "Parameter Store has a free tier and no per-secret monthly charge; Secrets Manager charges per secret per month plus per 10,000 API calls. For configuration knobs (feature flags, endpoint URLs, non-sensitive defaults) Parameter Store is cheaper. Distractor 1 inverts the encryption story — both support KMS encryption; Secrets Manager always encrypts. Distractor 2 fabricates a VPC restriction on Secrets Manager. Distractor 3 reverses versioning — both keep version history, but Secrets Manager's versioning is more visible in the API."
+  },
+  {
+    "id": "aws-030-mcq-1",
+    "source_id": "aws-030",
+    "domain": "aws",
+    "subdomain": "observability",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Your app currently emits CloudWatch metrics at 60-second granularity. You want sub-second alerting for latency spikes. What needs to change?",
+    "options": {
+      "correct": "Publish the metrics as high-resolution custom metrics (1-second granularity), which costs more per metric but enables alarms with periods as short as 10 seconds",
+      "distractor_1": "Enable Detailed Monitoring on the EC2 instances — it upgrades all metrics from 1-minute to 1-second granularity at no extra cost",
+      "distractor_2": "Switch the metric stream to CloudWatch Logs Insights — logs are evaluated at sub-second granularity, with alarms attached to query results",
+      "distractor_3": "Use composite alarms — they evaluate underlying metric alarms at sub-second resolution, regardless of the source metric's granularity"
+    },
+    "explanation": "CloudWatch supports two metric resolutions: standard (1-minute, default for AWS-provided and user metrics) and high-resolution (1-second, opt-in for custom metrics via PutMetricData's StorageResolution=1). Alarm minimum period drops accordingly. Distractor 1 misstates Detailed Monitoring — it's 1-minute, not 1-second, and only for EC2. Distractor 2 confuses metrics with logs; Logs Insights is for ad-hoc queries, not real-time alarms at sub-second cadence. Distractor 3 invents sub-second evaluation for composite alarms; they're bound by the underlying metric resolution."
+  },
+  {
+    "id": "aws-030-mcq-2",
+    "source_id": "aws-030",
+    "domain": "aws",
+    "subdomain": "observability",
+    "priority": "high",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "Your on-call team is fatigued by a CloudWatch alarm that fires whenever any one of 30 microservices reports >1% errors. They want one alarm that fires only when multiple services degrade simultaneously. What's the right tool?",
+    "options": {
+      "correct": "Composite alarm — combines existing alarms with boolean logic (AND/OR/NOT) so it only fires when, e.g., 3+ child alarms are in ALARM state",
+      "distractor_1": "Anomaly detection alarm — automatically learns the normal error-rate pattern across all 30 services and suppresses any individual alarm whose firing falls inside the learned-normal envelope",
+      "distractor_2": "High-resolution alarm — re-evaluates every 10 seconds across all services and fires only when the median error rate exceeds 1%",
+      "distractor_3": "CloudWatch Synthetics canary — runs synthetic checks against all 30 services and fires when more than one canary fails"
+    },
+    "explanation": "Composite alarms are designed for exactly this: aggregate signal from many child alarms into one parent alarm with a boolean expression. They suppress noise during single-service blips while still firing on real multi-service degradation. Distractor 1 (anomaly detection) addresses a different problem — modeling normal — but doesn't combine alarms. Distractor 2 invents median-based logic for high-res alarms; an alarm tracks one metric, not a cross-service median. Distractor 3 misuses Synthetics; canaries are for synthetic monitoring, not aggregating existing alarm signals."
+  },
+  {
+    "id": "aws-031-mcq-1",
+    "source_id": "aws-031",
+    "domain": "aws",
+    "subdomain": "operations",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "CloudWatch alerts a production EC2 instance at 95% CPU. You SSH in. Which command set is the right first move?",
+    "options": {
+      "correct": "Run `top` or `htop` to see which process is consuming CPU, then `pidstat -p <PID> 1` for sustained per-process detail",
+      "distractor_1": "Run `iostat -x 1` first to see which disk is saturated, since high CPU on EC2 is most often a wait-state symptom of disk I/O",
+      "distractor_2": "Run `aws ec2 describe-instance-status` to confirm the instance is healthy, then schedule a forced reboot to clear the spike",
+      "distractor_3": "Run `cat /proc/meminfo` first to check memory pressure — sustained high CPU usually traces back to memory swapping under load"
+    },
+    "explanation": "On a CPU alarm, look at processes first: `top`/`htop` shows the running CPU offenders in seconds and tells you whether it's one process or many. `pidstat` then gives sustained per-process numbers. Distractor 1 jumps to a specific theory (disk wait) before evidence — premature. Distractor 2 (reboot first) discards the diagnostic window without learning anything. Distractor 3 chases another theory (memory swap) — possible but not the default first step; the data needed to disprove it comes from top anyway."
+  },
+  {
+    "id": "aws-031-mcq-2",
+    "source_id": "aws-031",
+    "domain": "aws",
+    "subdomain": "operations",
+    "priority": "critical",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "An EC2 instance shows 90% CPU. You see one process (java) consuming most of it. The team's first impulse is to restart it. Why might that be the wrong response?",
+    "options": {
+      "correct": "High CPU is a symptom, not a cause — restarting hides the underlying driver (a slow query, a JIT warmup loop, a real traffic spike) and you lose the diagnostic window",
+      "distractor_1": "Restarting Java processes triggers a 60-second JVM cold-start period during which CPU spikes higher, making the situation worse",
+      "distractor_2": "ASG would mark the instance unhealthy mid-restart and terminate it before the process recovers",
+      "distractor_3": "Restarting the process triggers a CloudWatch billing event because of the metric stream interruption"
+    },
+    "explanation": "Restart-first is the operational equivalent of unplugging the smoke alarm — the alarm stops but the fire continues. Capturing thread dumps, profiling the JIT, and correlating with upstream traffic teaches what to fix. Distractor 1 over-states JVM cold start; modern JVMs warm up in seconds, and the issue is diagnosis, not warm-up. Distractor 2 misrepresents ASG behaviour — process restart isn't an ASG event. Distractor 3 fabricates a billing penalty. The methodology lesson: always capture state before recovering."
+  },
+  {
+    "id": "aws-032-mcq-1",
+    "source_id": "aws-032",
+    "domain": "aws",
+    "subdomain": "operations",
+    "priority": "critical",
+    "difficulty": "hard",
+    "bank": 2,
+    "question": "Users report 'the app is slow.' The system is a browser → CloudFront → ALB → ECS service → RDS. What's the most useful first signal to look at?",
+    "options": {
+      "correct": "ALB target response time and 5xx rate broken down by target group — this tells you whether latency is in the front edge, the app, or downstream of the app",
+      "distractor_1": "CloudFront cache hit ratio — if it's below 80%, that's the most common root cause of 'app is slow' reports in CDN-fronted apps",
+      "distractor_2": "RDS Performance Insights — slow queries are the dominant cause of perceived slowness for 90%+ of web apps",
+      "distractor_3": "User device metrics from synthetic browser checks — server-side numbers usually don't capture what users actually experience"
+    },
+    "explanation": "ALB target response time isolates whether latency is upstream (CloudFront/network) or downstream (your service and what it calls). It's the lowest-cost, fastest signal to bisect the stack. Distractor 1 jumps to a specific theory (cache miss) — possibly the cause, but not the first signal. Distractor 2 over-claims that RDS is the dominant root cause — true sometimes, but starting at the DB skips half the stack. Distractor 3 over-emphasises client-side metrics; useful for confirming impact, but not for bisecting where the latency lives."
+  },
+  {
+    "id": "aws-032-mcq-2",
+    "source_id": "aws-032",
+    "domain": "aws",
+    "subdomain": "operations",
+    "priority": "critical",
+    "difficulty": "hard",
+    "bank": 3,
+    "question": "You've narrowed a latency issue to 'somewhere inside the service' but CloudWatch metrics aggregate everything. What tool will give you per-request visibility into which downstream calls are slow?",
+    "options": {
+      "correct": "AWS X-Ray (or another distributed tracing tool) — annotates each request with timing for every downstream call, exposing the actual latency contributors",
+      "distractor_1": "CloudWatch Metrics with Service Map view — same information as X-Ray, integrated into the standard metrics console",
+      "distractor_2": "CloudWatch Logs Insights with a structured query — by parsing application logs you reconstruct request timing at the same fidelity as X-Ray",
+      "distractor_3": "VPC Flow Logs filtered by the service's ENI — these record per-connection latency between the service and downstream services"
+    },
+    "explanation": "Distributed tracing (X-Ray, OpenTelemetry, Datadog APM) is the right tool for per-request, per-call visibility — metrics show aggregates, traces show individual paths. Distractor 1 mislabels CloudWatch Service Map as equivalent to X-Ray; ServiceLens is built on X-Ray. Distractor 2 ((Logs Insights) can reconstruct per-request timing IF you've added structured timing logs everywhere, which is a major instrumentation effort. Distractor 3 misunderstands VPC Flow Logs — they record connection metadata (5-tuple, bytes), not application-level latency."
+  },
+  {
+    "id": "aws-034-mcq-1",
+    "source_id": "aws-034",
+    "domain": "aws",
+    "subdomain": "serverless",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 1,
+    "question": "Which factor has the BIGGEST impact on Lambda cold start duration?",
+    "options": {
+      "correct": "Deployment package size — larger packages take longer to download and unpack into the execution environment, dominating the init phase",
+      "distractor_1": "Memory configuration — higher memory increases cold start time proportionally because more memory has to be allocated to the runtime container before the init phase can begin running user code",
+      "distractor_2": "Concurrent invocation count at the moment of cold start — the more concurrent invocations, the slower each one initialises",
+      "distractor_3": "The size of the event payload — cold start parsing time scales linearly with input JSON size"
+    },
+    "explanation": "Package size and runtime choice (the JVM/.NET cold start is much slower than Python/Node) are the dominant cold start factors. Distractor 1 inverts the memory story — higher memory allocations actually speed up cold starts because Lambda allocates proportional CPU. Distractor 2 misdescribes concurrency — high concurrency means MORE cold starts (each new execution environment is one), but each individual cold start isn't slower. Distractor 3 fabricates event-size-driven cold start cost; payload parsing is request-time, not init-time."
+  },
+  {
+    "id": "aws-034-mcq-2",
+    "source_id": "aws-034",
+    "domain": "aws",
+    "subdomain": "serverless",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "A Java Lambda function takes 4 seconds to cold-start, which is unacceptable for the user-facing API in front of it. Which mitigation gives the best latency improvement?",
+    "options": {
+      "correct": "Provisioned Concurrency — pre-initialised execution environments are kept warm, so requests skip the init phase entirely at the cost of paying for warm capacity",
+      "distractor_1": "Reduce the function's memory configuration — lower memory reduces the init phase proportionally because less CPU has to bootstrap",
+      "distractor_2": "Enable Lambda SnapStart for the Java runtime, which removes cold starts entirely at no additional cost in the standard Lambda pricing",
+      "distractor_3": "Switch the deployment to Amazon Linux 2 instead of Amazon Linux 2023 — the older runtime has faster JVM startup"
+    },
+    "explanation": "Provisioned Concurrency keeps the configured number of environments pre-initialised, so requests hit a warm function and skip the cold start. Distractor 1 inverts memory's effect — lower memory means less CPU and slower cold start. Distractor 2 over-promises SnapStart: it does dramatically reduce Java cold starts (~10x) but isn't free — published as no surcharge, but it has its own constraints (state snapshot, /tmp resets, no UUIDs/MAC addresses preserved). Distractor 3 fabricates a runtime-AMI cold-start delta."
+  },
+  {
+    "id": "aws-035-mcq-1",
+    "source_id": "aws-035",
+    "domain": "aws",
+    "subdomain": "serverless",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 2,
+    "question": "You're choosing between API Gateway REST API and API Gateway HTTP API for a new serverless backend. Which is the more common right choice today and why?",
+    "options": {
+      "correct": "HTTP API — lower latency, ~70% cheaper, and covers what most teams need (JWT auth, CORS, Lambda integration)",
+      "distractor_1": "REST API — HTTP API was deprecated in 2023 and is no longer recommended for new builds",
+      "distractor_2": "REST API — HTTP API doesn't support Lambda integrations, which makes it unsuitable for most serverless backends",
+      "distractor_3": "HTTP API — it's the only API Gateway type that supports VPC integrations, making it required for any private backend"
+    },
+    "explanation": "HTTP API is the modern default: cheaper, faster, simpler, with the features most teams actually use. REST API still has a place when you need request validators, complex mappings, WAF, or private edge-optimised endpoints. Distractor 1 fabricates a deprecation. Distractor 2 inverts the truth — HTTP API supports Lambda integrations natively (in fact more cleanly than REST API). Distractor 3 misstates capability — both API types support VPC links / integrations."
+  },
+  {
+    "id": "aws-035-mcq-2",
+    "source_id": "aws-035",
+    "domain": "aws",
+    "subdomain": "serverless",
+    "priority": "medium",
+    "difficulty": "medium",
+    "bank": 3,
+    "question": "API Gateway is forwarding requests to a Lambda function using 'Lambda Proxy Integration.' What does that mean concretely?",
+    "options": {
+      "correct": "API Gateway passes the entire raw request (headers, body, path, query) to Lambda as an event, and Lambda must return a response object shaped with statusCode/headers/body",
+      "distractor_1": "API Gateway parses the request and only passes the request body to Lambda; headers, path parameters, and query strings must be fetched via additional SDK calls back to API Gateway from inside the handler",
+      "distractor_2": "API Gateway proxies the request to Lambda over a dedicated network connection, bypassing the standard event invocation model for lower latency",
+      "distractor_3": "API Gateway transforms the request using a mapping template before invoking Lambda, providing a cleaner event shape than non-proxy integration"
+    },
+    "explanation": "Lambda Proxy Integration is API Gateway's pass-through mode: it skips request/response transformation and hands Lambda everything, expecting Lambda to construct a fully-formed HTTP response object. Distractor 1 inverts — the whole point is no parsing or transformation at the gateway. Distractor 2 invents a dedicated network path; invocation goes through the standard Lambda invoke API. Distractor 3 describes non-proxy (legacy) integration, where mapping templates do the transformation — proxy is the simpler model that replaced it for most use cases."
+  }
+]
