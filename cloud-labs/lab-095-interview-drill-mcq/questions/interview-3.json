@@ -486,14 +486,14 @@
     "subdomain": "images",
     "priority": "high",
     "difficulty": "medium",
-    "question": "Your Dockerfile passes a private API key as `ARG SECRET_KEY` and uses it in a RUN command. Is the secret safe in the final image?",
+    "question": "Your Dockerfile receives a private API key as `ARG SECRET_KEY` and uses it in a `RUN` command during the build. Is that key recoverable from the final image, and how should it be handled?",
     "options": {
-      "correct": "No \u2014 anything in any layer of the build (including ARG values consumed by RUN) is recoverable from the image; use BuildKit `--secret` or fetch the secret in an earlier multi-stage stage that gets discarded",
-      "distractor_1": "Yes \u2014 ARG values are only available during build and are stripped from the final image before push",
-      "distractor_2": "Yes \u2014 Docker automatically encrypts ARG values in image layers, decrypting them only at container runtime within the container",
-      "distractor_3": "No \u2014 but only the LAST layer's contents persist; if the secret is used in a non-final RUN, it's automatically purged from history"
+      "correct": "Yes, it's recoverable \u2014 anything a build layer touches (including an ARG consumed by RUN) persists in the image and can be extracted with `docker history` or `docker save`; use BuildKit `--secret`, or fetch it in a multi-stage build stage that gets discarded",
+      "distractor_1": "It's safe \u2014 ARG values exist only during the build and are automatically stripped from the final image before it's pushed",
+      "distractor_2": "It's safe \u2014 Docker encrypts ARG values inside the image layers and decrypts them only at container runtime",
+      "distractor_3": "Only the final layer's contents persist \u2014 a secret used in a non-final RUN is squashed out of image history once a later layer is added on top, so only values written in the very last build step stay recoverable from the shipped image"
     },
-    "explanation": "Image layers are immutable and inspectable \u2014 `docker history` and `docker save` recover the contents of every layer, including any file/env touched by RUN. BuildKit secrets mount the secret only for the RUN command without persisting it; multi-stage discards intermediate stages entirely. Distractor 1 invents an automatic stripping. Distractor 2 invents encryption. Distractor 3 over-claims \u2014 Docker doesn't purge non-final layers; they all ship in the image."
+    "explanation": "Image layers are immutable and inspectable: `docker history` and `docker save` recover whatever any RUN touched, so an ARG-passed key leaks. BuildKit `--secret` mounts a secret for one RUN without persisting it; a discarded multi-stage stage keeps it out of the shipped image. Distractor 1 invents automatic stripping of ARG values. Distractor 2 invents layer encryption that doesn't exist. Distractor 3 over-claims \u2014 Docker doesn't purge earlier layers; every layer ships in the image, so a non-final RUN is just as exposed."
   },
   {
     "id": "docker-004-mcq-2",
@@ -582,14 +582,14 @@
     "subdomain": "registry",
     "priority": "high",
     "difficulty": "medium",
-    "question": "An ECR lifecycle policy says 'keep only the 10 most recent images, expire the rest.' Why is tag immutability sometimes set alongside this?",
+    "question": "Your team's deployments pin images by tag such as `:v1`, and an ECR lifecycle policy expires all but the 10 most recent images. A teammate proposes also enabling tag immutability on the repository. What does immutability actually protect against here?",
     "options": {
-      "correct": "Tag immutability prevents the same tag (e.g. `:v1`) from being overwritten \u2014 so when lifecycle deletes 'older' images, the tag-to-digest mapping that callers rely on is stable",
-      "distractor_1": "Tag immutability is a billing optimisation \u2014 ECR charges less for immutable tags because they don't require write tracking",
-      "distractor_2": "Tag immutability is required by lifecycle policies \u2014 without it, the policy cannot determine which images are 'more recent'",
-      "distractor_3": "Tag immutability rotates tags automatically \u2014 the policy uses it to renumber tags so the oldest expires and the newest becomes `:latest`"
+      "correct": "It stops a tag like `:v1` from being repointed to a new digest, so as the lifecycle policy expires older images the tag-to-digest mapping your deployments depend on stays stable and reproducible",
+      "distractor_1": "It's required for the lifecycle policy to function \u2014 without immutable tags, ECR can't order images by recency to decide which 10 to keep and which to expire",
+      "distractor_2": "It exempts tagged images from expiry \u2014 an immutable `:v1` is retained by the registry even once it falls outside the 10-most-recent window the policy keeps",
+      "distractor_3": "It auto-promotes the newest image to `:latest` as older ones expire, so consumers tracking `:latest` always resolve to a valid, non-expired image"
     },
-    "explanation": "Immutable tags + lifecycle policy together give predictable image history: each tag refers to one immutable digest, lifecycle expires by age, and consumers always know what `:v1` means. Distractor 1 invents a billing tier. Distractor 2 over-states the dependency \u2014 lifecycle works without immutability, but `:latest` becomes a moving target. Distractor 3 fabricates tag-rotation; ECR doesn't rename tags. Immutable + lifecycle is a strong combination for production registries."
+    "explanation": "Immutability plus a lifecycle policy gives predictable history: each tag maps to one fixed digest, expiry happens by age, and `:v1` always means the same image. Distractor 1 overstates the dependency \u2014 lifecycle ranks by push time and works fine without immutability (mutable `:latest` just becomes a moving target). Distractor 2 conflates immutability with retention; immutable tags are still subject to expiry, they just can't be overwritten. Distractor 3 invents tag promotion \u2014 ECR never renames or moves tags. The real value is a stable tag\u2192digest contract for callers."
   },
   {
     "id": "git-003-mcq-2",
@@ -1094,13 +1094,13 @@
     "subdomain": "operations",
     "priority": "medium",
     "difficulty": "hard",
-    "question": "Compare `terraform state mv` and `terraform import`.",
+    "question": "An engineer created an S3 bucket by hand in the console last month; your team now wants Terraform to manage it without recreating it (it holds production data). You've written a matching resource block. Which command brings the bucket under management?",
     "options": {
-      "correct": "`state mv` moves an existing in-state resource to a new address; `import` brings an out-of-state live resource into state at a given address",
-      "distractor_1": "Both commands do the same thing; `import` is the older name and `state mv` is the new name introduced in Terraform 1.0",
-      "distractor_2": "`state mv` is for moving resources between modules; `import` is for moving resources between Terraform workspaces in the same backend",
-      "distractor_3": "`state mv` requires the resource to exist in both old and new positions in the configuration; `import` requires the resource to exist only in the source address of the state file"
+      "correct": "`terraform import` \u2014 it attaches an existing, out-of-state real-world resource to the address of a resource block you've already written, with no destroy/create",
+      "distractor_1": "`terraform state mv` \u2014 it's the command for pointing a resource block at an existing live resource and pulling it into state at that address",
+      "distractor_2": "Just `terraform apply` \u2014 Terraform sees the bucket already exists by name and adopts it into state instead of creating a duplicate",
+      "distractor_3": "Add a `moved {}` block from the console-created bucket to your resource address, then apply, and Terraform reconciles it into state"
     },
-    "explanation": "Two different operations: state mv = rename inside state, no provider interaction. import = bring real-world resource into state, requires provider call. Distractor 1 conflates them; both still exist for distinct purposes. Distractor 2 invents a module-vs-workspace split that doesn't match the commands. Distractor 3 inverts state mv's behaviour (the resource exists only in the source). Both are state-manipulation tools used together during migrations."
+    "explanation": "`import` is the one command that takes a live resource Terraform doesn't yet track and records it in state at a chosen address. Distractor 1 misuses `state mv`, which only relocates a resource that is ALREADY in state \u2014 it can't adopt an unmanaged one. Distractor 2 assumes apply adopts matching real resources; it doesn't \u2014 it would try to create a second bucket and conflict. Distractor 3 misuses `moved {}`, which refactors addresses already in state (the sibling MCQ's tool), not out-of-state adoption. Import first, then apply to converge."
   }
 ]

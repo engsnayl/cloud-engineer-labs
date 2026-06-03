@@ -1,0 +1,359 @@
+{
+  "batch_id": "T3.2",
+  "tier": 3,
+  "description": "Batch T3.2 — 13 reauthors (compare-pair, multi-flag A+D, plain structural) + 1 option-balance.",
+  "count": 13,
+  "rewrites": [
+    {
+      "mcq_id": "tf-012-mcq-2",
+      "source_id": "tf-012",
+      "domain": "terraform",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "Compare `terraform state mv` and `terraform import`.",
+        "options": {
+          "correct": "`state mv` moves an existing in-state resource to a new address; `import` brings an out-of-state live resource into state at a given address",
+          "distractor_1": "Both commands do the same thing; `import` is the older name and `state mv` is the new name introduced in Terraform 1.0",
+          "distractor_2": "`state mv` is for moving resources between modules; `import` is for moving resources between Terraform workspaces in the same backend",
+          "distractor_3": "`state mv` requires the resource to exist in both old and new positions in the configuration; `import` requires the resource to exist only in the source address of the state file"
+        },
+        "explanation": "Two different operations: state mv = rename inside state, no provider interaction. import = bring real-world resource into state, requires provider call. Distractor 1 conflates them; both still exist for distinct purposes. Distractor 2 invents a module-vs-workspace split that doesn't match the commands. Distractor 3 inverts state mv's behaviour (the resource exists only in the source). Both are state-manipulation tools used together during migrations."
+      },
+      "after": {
+        "question": "An engineer created an S3 bucket by hand in the console last month; your team now wants Terraform to manage it without recreating it (it holds production data). You've written a matching resource block. Which command brings the bucket under management?",
+        "options": {
+          "correct": "`terraform import` — it attaches an existing, out-of-state real-world resource to the address of a resource block you've already written, with no destroy/create",
+          "distractor_1": "`terraform state mv` — it's the command for pointing a resource block at an existing live resource and pulling it into state at that address",
+          "distractor_2": "Just `terraform apply` — Terraform sees the bucket already exists by name and adopts it into state instead of creating a duplicate",
+          "distractor_3": "Add a `moved {}` block from the console-created bucket to your resource address, then apply, and Terraform reconciles it into state"
+        },
+        "explanation": "`import` is the one command that takes a live resource Terraform doesn't yet track and records it in state at a chosen address. Distractor 1 misuses `state mv`, which only relocates a resource that is ALREADY in state — it can't adopt an unmanaged one. Distractor 2 assumes apply adopts matching real resources; it doesn't — it would try to create a second bucket and conflict. Distractor 3 misuses `moved {}`, which refactors addresses already in state (the sibling MCQ's tool), not out-of-state adoption. Import first, then apply to converge."
+      }
+    },
+    {
+      "mcq_id": "docker-001-mcq-1",
+      "source_id": "docker-001",
+      "domain": "docker",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "Which best describes the isolation mechanism that makes containers different from virtual machines?",
+        "options": {
+          "correct": "Containers share the host kernel and use Linux namespaces and cgroups for isolation; VMs each run their own kernel under a hypervisor",
+          "distractor_1": "Containers and VMs both use hypervisors, but containers use a lightweight hypervisor (containerd) instead of the full one (KVM, Hyper-V)",
+          "distractor_2": "Containers use software-based memory protection (SELinux, AppArmor) for isolation; VMs use hardware-based isolation only (VT-x, AMD-V)",
+          "distractor_3": "Containers create a virtualised kernel per container; VMs share the host's kernel via paravirtualisation drivers (virtio, vhost)"
+        },
+        "explanation": "The defining shape: containers = same kernel + namespaces/cgroups; VMs = separate kernels + hypervisor. This explains why containers are smaller and faster but share an attack surface (kernel exploits affect all containers on a host). Distractor 1 invents a containerd-as-hypervisor mental model. Distractor 2 conflates security overlays (SELinux/AppArmor) with the primary isolation mechanism. Distractor 3 inverts the kernel relationship — VMs have their own kernels, containers share the host's."
+      },
+      "after": {
+        "question": "A container on a shared host is compromised through a kernel-level container-escape CVE. Why can this potentially impact the other containers on that host, when other VMs on a hypervisor would be unaffected?",
+        "options": {
+          "correct": "All containers on the host share its single kernel (isolated only by namespaces and cgroups), so a kernel exploit crosses that boundary; each VM runs its own kernel under a hypervisor, so the blast radius stops at one VM",
+          "distractor_1": "Containers and VMs both share the host kernel, but containers lack the hypervisor layer; inserting a lightweight hypervisor like containerd between the container and the host kernel would have contained the escape",
+          "distractor_2": "Sibling containers inherit the compromised container's namespaces at creation time, so the exploit propagates down the shared namespace tree to them",
+          "distractor_3": "Each container runs its own kernel but mounts the same host root filesystem, so a kernel exploit in one corrupts the shared filesystem the others depend on"
+        },
+        "explanation": "The shared-kernel shape is the whole point: namespaces/cgroups partition a single kernel, so a kernel-level escape is not contained the way a hypervisor contains separate-kernel VMs. Distractor 1 invents containerd-as-hypervisor — containerd is a runtime, not an isolation boundary, and containers don't share the VM model. Distractor 2 fabricates namespace inheritance between siblings; each container gets its own namespaces. Distractor 3 inverts the kernel relationship — containers share the host kernel, they don't each run one. That shared kernel is exactly the larger attack surface."
+      }
+    },
+    {
+      "mcq_id": "docker-007-mcq-1",
+      "source_id": "docker-007",
+      "domain": "docker",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "Compare named volumes and bind mounts in Docker.",
+        "options": {
+          "correct": "Bind mounts couple the container directory to a specific host path; named volumes are Docker-managed and portable across hosts running the same Docker daemon setup",
+          "distractor_1": "Bind mounts persist across container restarts; named volumes are ephemeral and are deleted when the container stops",
+          "distractor_2": "Bind mounts and named volumes behave identically; the syntax difference is purely cosmetic for readability of docker run commands",
+          "distractor_3": "Bind mounts are read-only by default; named volumes are read-write by default"
+        },
+        "explanation": "The portability difference is the practical one: a bind mount embeds `/home/dev/data` (works on dev's laptop, doesn't on a Pi); a named volume is an abstraction Docker manages, portable wherever Docker runs. Distractor 1 inverts persistence (named volumes are persistent; bind mounts persist as long as the host path persists). Distractor 2 collapses real differences. Distractor 3 invents a read-only default that doesn't apply to either type. Bind mounts shine for dev environments; named volumes shine for portability and lifecycle management."
+      },
+      "after": {
+        "question": "Your team's app works on every developer's laptop using a bind mount to /home/$USER/data, but the same compose file fails on a CI runner and on a Raspberry Pi where that host path doesn't exist. What change fixes portability while keeping the data persistent?",
+        "options": {
+          "correct": "Switch to a named volume — Docker manages where it lives, so the storage is portable to any host running Docker, unlike a bind mount tied to a specific host path",
+          "distractor_1": "Keep the bind mount but mark it read-only; bind mounts only fail to attach when they're writeable on a host path the container user doesn't own",
+          "distractor_2": "Switch to a tmpfs mount so the data lives in memory and no host path is required on the CI runner or the Pi",
+          "distractor_3": "Point the bind mount at a relative path like ./data; Docker resolves relative bind paths against each host's Docker root, which makes them portable"
+        },
+        "explanation": "A named volume is a Docker-managed abstraction with no dependence on a particular host path, so it travels across laptops, CI, and a Pi while persisting data. Distractor 1's read-only flag does nothing about a missing host path — the coupling, not the mode, is the problem. Distractor 2 reaches for tmpfs (the sibling MCQ's tool), which is in-memory and ephemeral — it would lose the data the requirement says to keep. Distractor 3 assumes relative bind paths are portable; they resolve against the compose file's location and stay host-coupled. Named volumes are the portability answer."
+      }
+    },
+    {
+      "mcq_id": "git-003-mcq-1",
+      "source_id": "git-003",
+      "domain": "git",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "What's the difference between `git clone` and a GitHub fork?",
+        "options": {
+          "correct": "Clone is a git-native command that copies a repo to your local machine; fork is a GitHub feature that creates a server-side copy under your account",
+          "distractor_1": "Clone copies only the latest commit; fork copies the full history including all branches and tags",
+          "distractor_2": "Clone makes a read-only copy; fork makes a writeable copy that allows pull requests back to the original repo",
+          "distractor_3": "Clone and fork are the same operation under different names; GitHub uses 'fork' as the user-facing term for cloning"
+        },
+        "explanation": "Clone is git-native (any remote, downloads to your disk). Fork is GitHub-specific (creates a server-side copy in your namespace, then you typically clone from there). Distractor 1 misstates clone's depth — full history by default; shallow clone is an option. Distractor 2 inverts read/write — both can be writeable; permissions depend on the remote, not on clone vs fork. Distractor 3 collapses two distinct operations into one."
+      },
+      "after": {
+        "question": "An engineer without write access to an open-source repo wants to propose a change. They clone the repo directly, commit a branch, and try to push it back — GitHub rejects the push. What did they skip, and why does it fix the problem?",
+        "options": {
+          "correct": "They skipped forking — a fork creates a server-side copy of the repo under their own account that they CAN push to; you then open a pull request from that fork. A plain clone gives no write path back to a repo you don't own",
+          "distractor_1": "They skipped adding an `upstream` remote; once `upstream` is set, `git push upstream` writes the branch straight into the original maintainer's repository, which is how outside contributors submit changes",
+          "distractor_2": "They cloned over HTTPS, which is read-only; re-cloning over SSH makes the working copy writeable so the push to origin is accepted",
+          "distractor_3": "Nothing structural — they just need `git push --force`; the rejection is a fast-forward conflict, not a permissions problem"
+        },
+        "explanation": "A fork is a GitHub-side copy in your own namespace that you have push rights to; contribution flows fork → push to your fork → pull request. A direct clone of someone else's repo has no writeable remote for you. Distractor 1 misreads `upstream` — that remote is for pulling the original's changes (the sibling MCQ's topic), not pushing to it. Distractor 2 invents an SSH-vs-HTTPS write difference; write access is governed by account permissions, not protocol. Distractor 3 mistakes a permission denial for a fast-forward conflict; `--force` can't grant access you don't have."
+      }
+    },
+    {
+      "mcq_id": "tf-005-mcq-1",
+      "source_id": "tf-005",
+      "domain": "terraform",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "Why do experienced Terraform teams avoid using workspaces to model dev/staging/prod environments?",
+        "options": {
+          "correct": "Workspaces share the same backend and configuration; they can't model genuinely different infrastructure (different regions, different IAM, different sizes) cleanly",
+          "distractor_1": "Workspaces require manual switching that can't be automated in CI, so they don't integrate with deployment pipelines",
+          "distractor_2": "Workspaces store all environments' state in a single state file, so a prod operation can accidentally affect dev resources",
+          "distractor_3": "Workspaces are a legacy 0.11-era feature that no longer works with Terraform 1.x — they were officially deprecated and removed from the CLI in the 1.0 release"
+        },
+        "explanation": "Workspaces are great for 'minor variants of the same config' (a region split, a tenant split) but break down when environments differ meaningfully — different backends, different providers, different module versions. The standard pattern is separate state per environment. Distractor 1 misstates CI integration — workspaces can be selected non-interactively. Distractor 2 invents a single-state-file design; each workspace has its own state file. Distractor 3 fabricates a deprecation."
+      },
+      "after": {
+        "question": "Your team models dev, staging, and prod as three Terraform workspaces over one backend and configuration. Prod now needs a different region, larger instance sizes, and a stricter IAM setup than dev. Why does the workspace approach struggle here?",
+        "options": {
+          "correct": "Workspaces share one configuration and backend and differ only by state, so genuinely different infrastructure (region, sizing, IAM) can only be expressed by piling conditionals into one config — separate state per environment is the cleaner pattern",
+          "distractor_1": "Workspaces can't be selected non-interactively, so a CI pipeline can't target a specific environment without a human running `terraform workspace select` first",
+          "distractor_2": "All workspaces write to a single shared state file, so a prod apply can reach across and corrupt dev's resources stored in the same file",
+          "distractor_3": "Variable values can't differ between workspaces — every workspace must use identical inputs, so you can't change instance sizes or regions per environment without editing the one shared configuration for everyone"
+        },
+        "explanation": "Workspaces vary state, not configuration, so they fit minor variants of one config but break down when environments differ structurally — which is the scenario exactly. Distractor 1 misstates CI integration: workspaces can be selected non-interactively (`terraform workspace select` scripts fine, or `TF_WORKSPACE`). Distractor 2 invents a single-state-file design; each workspace has its own isolated state. Distractor 3 overstates the limit — you can vary values via `terraform.workspace` lookups; what you can't do cleanly is vary structure. Separate root configs/state per environment is the standard answer."
+      }
+    },
+    {
+      "mcq_id": "tf-009-mcq-1",
+      "source_id": "tf-009",
+      "domain": "terraform",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "The standard GitOps-style Terraform CI/CD pattern is:",
+        "options": {
+          "correct": "Run `terraform plan` on PR with the plan posted as a comment; run `terraform apply` only on merge to main (or via a manual approval gate)",
+          "distractor_1": "Run `terraform apply` on every PR push so reviewers can see the actual effect, then revert if the PR is rejected",
+          "distractor_2": "Run `terraform plan` only locally; CI should not interact with Terraform state to avoid lock contention with developers",
+          "distractor_3": "Run a single `terraform apply` weekly that batches all merged PRs into one large change, so production sees fewer changes"
+        },
+        "explanation": "Plan-on-PR / apply-on-merge gives reviewers concrete evidence of what will change and gates the actual application behind merge approval. Distractor 1 inverts safety — applying before review can break production with no rollback path. Distractor 2 puts state management on developer laptops, which doesn't scale. Distractor 3 (weekly batched applies) increases batch size and risk — the opposite of CD principles."
+      },
+      "after": {
+        "question": "Your team wants its Terraform CI to give reviewers concrete evidence of an infrastructure change before it is applied, and to gate the actual apply behind code review. How should the pipeline be wired?",
+        "options": {
+          "correct": "Run `terraform plan` automatically on each PR and post the plan as a comment, then run `terraform apply` only after merge to main (optionally behind a manual approval) — review sees the diff, merge gates the change",
+          "distractor_1": "Run `terraform apply` on every PR push so reviewers see the real effect, then run `terraform destroy` to roll back if the PR is rejected",
+          "distractor_2": "Run both `plan` and `apply` only on merge; planning on the PR is unsafe because a plan takes the state lock and would block other developers from running their own plans until it releases",
+          "distractor_3": "Keep Terraform out of CI; engineers run `plan` and `apply` from their own laptops after the PR is approved, so CI never has to touch remote state"
+        },
+        "explanation": "Plan-on-PR surfaces the exact diff for review; apply-on-merge ties the real change to approval — meeting both goals in the scenario. Distractor 1 applies before review, which can break prod with no clean rollback (`destroy` is not an undo). Distractor 2 mischaracterises plan: a plan does not hold a long write lock that blocks developers, so deferring all visibility to merge needlessly hides the diff. Distractor 3 pushes state operations onto laptops, which loses auditability and doesn't scale. The plan/apply split is the standard GitOps shape."
+      }
+    },
+    {
+      "mcq_id": "docker-002-mcq-2",
+      "source_id": "docker-002",
+      "domain": "docker",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "Which Dockerfile practice is the strongest security improvement?",
+        "options": {
+          "correct": "Run the application as a non-root user via `USER appuser` after creating the user, so a container compromise doesn't run as root inside the namespace",
+          "distractor_1": "Run the application as root for predictable behaviour, then constrain the host's docker daemon via SELinux profiles to make root-in-container safe",
+          "distractor_2": "Pin base images to `:latest` so security patches are picked up automatically on every rebuild without operator intervention",
+          "distractor_3": "Embed the SSL/TLS private key in the image so it doesn't need to be fetched from secret stores at runtime, eliminating that network round-trip"
+        },
+        "explanation": "Non-root user is the single biggest container hardening step — even with namespace isolation, root-in-container is one CVE away from being root on the host. Distractor 1 reverses the priority (host-side hardening is in addition to, not instead of, non-root containers). Distractor 2 advocates `:latest`, which is the worst image-pinning practice (unpredictable, breaks reproducibility). Distractor 3 promotes embedding secrets in images — an extreme anti-pattern (image layers persist secrets forever)."
+      },
+      "after": {
+        "question": "Your team's container image runs the application as root inside the container, and a reviewer flags this as the highest-priority hardening gap. Which single Dockerfile change most reduces the blast radius of a container compromise?",
+        "options": {
+          "correct": "Create a dedicated user and switch to it with `USER appuser` after setup, so a compromise inside the container isn't running as root — limiting what a container-escape CVE can reach on the host",
+          "distractor_1": "Leave the app running as root but add an SELinux or AppArmor profile on the host's Docker daemon; host-side confinement makes root-in-container effectively equivalent to non-root",
+          "distractor_2": "Pin the base image to `:latest` so each rebuild automatically pulls the newest patched image and closes CVEs without any operator action",
+          "distractor_3": "Bake the app's TLS private key into an image layer so it's available offline and never has to be fetched over the network at runtime"
+        },
+        "explanation": "Dropping root inside the container is the highest-leverage hardening step: with only namespace isolation, root-in-container is one escape CVE away from root on the host. Distractor 1 treats host MAC profiles as a substitute for non-root; they're complementary defence-in-depth, not a replacement. Distractor 2 recommends `:latest`, which is the worst pinning choice — unpredictable and non-reproducible, and it doesn't harden the running process. Distractor 3 embeds a secret in an immutable layer, a serious anti-pattern (the key persists in the image forever). Non-root user is the answer."
+      }
+    },
+    {
+      "mcq_id": "docker-009-mcq-2",
+      "source_id": "docker-009",
+      "domain": "docker",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "An ECR lifecycle policy says 'keep only the 10 most recent images, expire the rest.' Why is tag immutability sometimes set alongside this?",
+        "options": {
+          "correct": "Tag immutability prevents the same tag (e.g. `:v1`) from being overwritten — so when lifecycle deletes 'older' images, the tag-to-digest mapping that callers rely on is stable",
+          "distractor_1": "Tag immutability is a billing optimisation — ECR charges less for immutable tags because they don't require write tracking",
+          "distractor_2": "Tag immutability is required by lifecycle policies — without it, the policy cannot determine which images are 'more recent'",
+          "distractor_3": "Tag immutability rotates tags automatically — the policy uses it to renumber tags so the oldest expires and the newest becomes `:latest`"
+        },
+        "explanation": "Immutable tags + lifecycle policy together give predictable image history: each tag refers to one immutable digest, lifecycle expires by age, and consumers always know what `:v1` means. Distractor 1 invents a billing tier. Distractor 2 over-states the dependency — lifecycle works without immutability, but `:latest` becomes a moving target. Distractor 3 fabricates tag-rotation; ECR doesn't rename tags. Immutable + lifecycle is a strong combination for production registries."
+      },
+      "after": {
+        "question": "Your team's deployments pin images by tag such as `:v1`, and an ECR lifecycle policy expires all but the 10 most recent images. A teammate proposes also enabling tag immutability on the repository. What does immutability actually protect against here?",
+        "options": {
+          "correct": "It stops a tag like `:v1` from being repointed to a new digest, so as the lifecycle policy expires older images the tag-to-digest mapping your deployments depend on stays stable and reproducible",
+          "distractor_1": "It's required for the lifecycle policy to function — without immutable tags, ECR can't order images by recency to decide which 10 to keep and which to expire",
+          "distractor_2": "It exempts tagged images from expiry — an immutable `:v1` is retained by the registry even once it falls outside the 10-most-recent window the policy keeps",
+          "distractor_3": "It auto-promotes the newest image to `:latest` as older ones expire, so consumers tracking `:latest` always resolve to a valid, non-expired image"
+        },
+        "explanation": "Immutability plus a lifecycle policy gives predictable history: each tag maps to one fixed digest, expiry happens by age, and `:v1` always means the same image. Distractor 1 overstates the dependency — lifecycle ranks by push time and works fine without immutability (mutable `:latest` just becomes a moving target). Distractor 2 conflates immutability with retention; immutable tags are still subject to expiry, they just can't be overwritten. Distractor 3 invents tag promotion — ECR never renames or moves tags. The real value is a stable tag→digest contract for callers."
+      }
+    },
+    {
+      "mcq_id": "tf-004-mcq-1",
+      "source_id": "tf-004",
+      "domain": "terraform",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "What's the order of precedence for Terraform variable values (highest to lowest)?",
+        "options": {
+          "correct": "`-var` CLI flag > `-var-file` CLI flag > `TF_VAR_<name>` env var > terraform.tfvars > variable default",
+          "distractor_1": "Variable default > terraform.tfvars > `TF_VAR_<name>` env var > `-var-file` > `-var` CLI flag",
+          "distractor_2": "All sources are merged and the union of all values is applied; conflicting values fail with an error",
+          "distractor_3": "terraform.tfvars > `-var` CLI flag > variable default > `TF_VAR_<name>` env var > `-var-file`"
+        },
+        "explanation": "Precedence runs explicit > implicit: CLI overrides files, files override env vars, env vars override defaults. This lets you set environment defaults in files and override per-run on the CLI. Distractor 1 reverses the order entirely. Distractor 2 invents a merge semantics; one source wins per variable. Distractor 3 partially scrambles. Knowing the order matters when debugging 'why is this value getting set' — you walk the chain from highest to lowest."
+      },
+      "after": {
+        "question": "An engineer sets a variable's default to t3.micro, puts t3.small in terraform.tfvars, exports TF_VAR_instance_type=t3.medium, and also runs `terraform apply -var instance_type=t3.large`. Which value wins, and why?",
+        "options": {
+          "correct": "t3.large — the `-var` CLI flag has the highest precedence; CLI flags override files like terraform.tfvars, files override TF_VAR_ environment variables, and all of those override the variable's default",
+          "distractor_1": "t3.medium — the TF_VAR_ environment variable wins, because environment configuration is resolved last in the chain and so overrides both the CLI flag and the tfvars files loaded earlier",
+          "distractor_2": "t3.small — terraform.tfvars is loaded automatically and is treated as authoritative, overriding ad-hoc CLI flags and environment variables",
+          "distractor_3": "The apply fails — Terraform detects four conflicting sources for one variable and errors out rather than silently choosing one"
+        },
+        "explanation": "Terraform resolves variables explicit-over-implicit: `-var` (and `-var-file`) on the CLI beat tfvars files, which beat TF_VAR_ env vars, which beat the default — so t3.large wins. Distractor 1 inverts the env-var position, treating 'resolved last' as 'wins'; env vars are actually near the bottom. Distractor 2 over-ranks terraform.tfvars; it loses to the CLI. Distractor 3 invents an error-on-conflict rule; precedence resolves silently per variable, which is exactly why knowing the order matters when debugging an unexpected value."
+      }
+    },
+    {
+      "mcq_id": "tf-010-mcq-1",
+      "source_id": "tf-010",
+      "domain": "terraform",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "Match the tool to its primary job: Terraform vs Packer.",
+        "options": {
+          "correct": "Terraform provisions running infrastructure (instances, networks); Packer builds machine images (AMIs) that Terraform then consumes",
+          "distractor_1": "Terraform builds machine images; Packer provisions running infrastructure from those images",
+          "distractor_2": "Terraform and Packer both provision infrastructure; the difference is that Packer is faster on AWS and Terraform is faster on Azure",
+          "distractor_3": "Terraform provisions stateful resources; Packer provisions stateless resources — Lambdas and ECS tasks specifically"
+        },
+        "explanation": "Packer bakes (creates AMIs / VM images with everything pre-installed); Terraform deploys (uses those images to spin up running infrastructure). The two compose as the golden-image pattern. Distractor 1 swaps them entirely. Distractor 2 invents a speed-by-cloud difference. Distractor 3 fabricates a stateful-vs-stateless split. Knowing the split matters because teams using only Terraform with provisioners are often reinventing what Packer does much better."
+      },
+      "after": {
+        "question": "Your team wants every EC2 instance to boot from an image that already has the app, runtime, and security agents baked in, so instances are identical and start fast — then have the surrounding infrastructure (instances, VPC, load balancer) stood up repeatably. Which tool does which part?",
+        "options": {
+          "correct": "Packer builds the baked machine image (AMI); Terraform then provisions the running infrastructure — instances, VPC, load balancer — from that image. This is the golden-image pattern",
+          "distractor_1": "Terraform bakes the AMI using its provisioners, and Packer stands up the instances and networking from that image",
+          "distractor_2": "Packer does both — it builds the image and launches the instance fleet — while Terraform is only needed for stateful resources like RDS",
+          "distractor_3": "Use only Terraform with a user_data script that installs everything on first boot; Packer is redundant because user_data produces identical instances"
+        },
+        "explanation": "Packer bakes immutable images; Terraform deploys infrastructure that consumes them — the two compose cleanly. Distractor 1 swaps their roles; Terraform's provisioners are a last resort, not an image-build tool, and Packer doesn't deploy fleets. Distractor 2 has Packer launching and operating infrastructure, which it doesn't do — it builds images and exits. Distractor 3 equates a boot-time user_data script with a baked image, but user_data runs per boot (slower, drift-prone) and isn't the immutable, identical artifact baking gives you. Bake with Packer, deploy with Terraform."
+      }
+    },
+    {
+      "mcq_id": "docker-003-mcq-2",
+      "source_id": "docker-003",
+      "domain": "docker",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "Your Dockerfile passes a private API key as `ARG SECRET_KEY` and uses it in a RUN command. Is the secret safe in the final image?",
+        "options": {
+          "correct": "No — anything in any layer of the build (including ARG values consumed by RUN) is recoverable from the image; use BuildKit `--secret` or fetch the secret in an earlier multi-stage stage that gets discarded",
+          "distractor_1": "Yes — ARG values are only available during build and are stripped from the final image before push",
+          "distractor_2": "Yes — Docker automatically encrypts ARG values in image layers, decrypting them only at container runtime within the container",
+          "distractor_3": "No — but only the LAST layer's contents persist; if the secret is used in a non-final RUN, it's automatically purged from history"
+        },
+        "explanation": "Image layers are immutable and inspectable — `docker history` and `docker save` recover the contents of every layer, including any file/env touched by RUN. BuildKit secrets mount the secret only for the RUN command without persisting it; multi-stage discards intermediate stages entirely. Distractor 1 invents an automatic stripping. Distractor 2 invents encryption. Distractor 3 over-claims — Docker doesn't purge non-final layers; they all ship in the image."
+      },
+      "after": {
+        "question": "Your Dockerfile receives a private API key as `ARG SECRET_KEY` and uses it in a `RUN` command during the build. Is that key recoverable from the final image, and how should it be handled?",
+        "options": {
+          "correct": "Yes, it's recoverable — anything a build layer touches (including an ARG consumed by RUN) persists in the image and can be extracted with `docker history` or `docker save`; use BuildKit `--secret`, or fetch it in a multi-stage build stage that gets discarded",
+          "distractor_1": "It's safe — ARG values exist only during the build and are automatically stripped from the final image before it's pushed",
+          "distractor_2": "It's safe — Docker encrypts ARG values inside the image layers and decrypts them only at container runtime",
+          "distractor_3": "Only the final layer's contents persist — a secret used in a non-final RUN is squashed out of image history once a later layer is added on top, so only values written in the very last build step stay recoverable from the shipped image"
+        },
+        "explanation": "Image layers are immutable and inspectable: `docker history` and `docker save` recover whatever any RUN touched, so an ARG-passed key leaks. BuildKit `--secret` mounts a secret for one RUN without persisting it; a discarded multi-stage stage keeps it out of the shipped image. Distractor 1 invents automatic stripping of ARG values. Distractor 2 invents layer encryption that doesn't exist. Distractor 3 over-claims — Docker doesn't purge earlier layers; every layer ships in the image, so a non-final RUN is just as exposed."
+      }
+    },
+    {
+      "mcq_id": "linux-003-mcq-1",
+      "source_id": "linux-003",
+      "domain": "linux",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "Match the systemd unit file type to its purpose: `.service`, `.timer`, `.socket`, `.target`.",
+        "options": {
+          "correct": "`.service`: a long-running daemon or one-shot process; `.timer`: schedules service execution; `.socket`: socket activation; `.target`: groups units into a logical state (multi-user, graphical, etc.)",
+          "distractor_1": "`.service`: a daemon; `.timer`: a scheduled task that includes its own commands; `.socket`: a network bind point; `.target`: a desktop environment definition",
+          "distractor_2": "`.service`: any unit file; `.timer`: replaces cron entries; `.socket`: a TCP listener; `.target`: an alias for a specific service unit",
+          "distractor_3": "`.service`: only system-level daemons; `.timer`: schedules .service.in files; `.socket`: inotify file watchers; `.target`: kernel boot stages"
+        },
+        "explanation": "The four core unit types each have a distinct role: service runs, timer schedules other units (no commands of its own), socket activates a service on connection, target groups units. Distractor 1 misrepresents timer (it points at a service, doesn't contain commands) and target (not desktop-specific). Distractor 2 collapses categories incorrectly. Distractor 3 over-restricts each type. Understanding the timer-points-at-service relationship is the most common stumbling block."
+      },
+      "after": {
+        "question": "An engineer needs a task to run every night at 2am on a systemd-managed server, replacing an old cron job, and wants it to log to journald like other services. Which systemd unit types should they create?",
+        "options": {
+          "correct": "A `.timer` unit to hold the schedule plus a `.service` unit it activates — the timer points at the service, and the service contains the actual command and logs to journald",
+          "distractor_1": "A single `.timer` unit containing both the schedule and the command to run, since a timer is systemd's self-contained cron replacement that needs no separate service unit",
+          "distractor_2": "A single `.service` unit with an embedded OnCalendar= schedule, so one unit both defines the command and fires it every night",
+          "distractor_3": "A `.target` unit grouping a nightly `.service`, with the target pulled in by a boot-stage trigger at 2am"
+        },
+        "explanation": "systemd splits scheduling from execution: a `.timer` carries the `OnCalendar=` schedule and activates a matching `.service` that holds the command — together they replace a cron line and inherit journald logging. Distractor 1 is the most common confusion: a timer holds no command of its own, it only triggers a unit. Distractor 2 puts OnCalendar= on a service, but that directive belongs to timers, not services. Distractor 3 misuses targets, which group units into states (multi-user, graphical) and don't schedule anything by time. Timer + service is the pairing."
+      }
+    },
+    {
+      "mcq_id": "k8s-020-mcq-1",
+      "source_id": "k8s-020",
+      "domain": "kubernetes",
+      "bank": null,
+      "dropped_to_tier3": false,
+      "before": {
+        "question": "Your team is deploying a clustered database that needs a stable network identity and its own persistent storage per replica. Which Kubernetes workload object fits?",
+        "options": {
+          "correct": "StatefulSet",
+          "distractor_1": "Deployment with a PersistentVolumeClaim template attached for stable storage across pods",
+          "distractor_2": "DaemonSet, which pins one pod per node and gives each a deterministic name based on the node",
+          "distractor_3": "Job with parallelism set to the replica count and a backoffLimit to keep replicas alive indefinitely"
+        },
+        "explanation": "StatefulSets are designed for exactly this: stable network identity (pod-0, pod-1, pod-2 with predictable DNS names), persistent volume claims that follow the pod across restarts, and ordered rollout/teardown. Distractor 1 confuses Deployment behaviour — Deployments don't give pods stable names, and the PVC template is a StatefulSet feature, not a Deployment one. Distractor 2 misuses DaemonSet (one-per-node, not one-per-replica), wrong for a clustered DB that may want fewer replicas than nodes. Distractor 3 fundamentally misunderstands Jobs (which run to completion)."
+      },
+      "after": {
+        "question": "Your team is deploying a clustered database that needs a stable network identity and its own persistent storage per replica. Which Kubernetes workload object fits?",
+        "options": {
+          "correct": "StatefulSet — gives each replica a stable identity and its own PersistentVolumeClaim across restarts",
+          "distractor_1": "Deployment with a PersistentVolumeClaim template attached for stable storage across pods",
+          "distractor_2": "DaemonSet, which pins one pod per node and gives each a deterministic name based on the node",
+          "distractor_3": "Job with parallelism set to the replica count and a backoffLimit to keep replicas alive indefinitely"
+        },
+        "explanation": "StatefulSets are designed for exactly this: stable network identity (pod-0, pod-1, pod-2 with predictable DNS names), persistent volume claims that follow the pod across restarts, and ordered rollout/teardown. Distractor 1 confuses Deployment behaviour — Deployments don't give pods stable names, and the PVC template is a StatefulSet feature, not a Deployment one. Distractor 2 misuses DaemonSet (one-per-node, not one-per-replica), wrong for a clustered DB that may want fewer replicas than nodes. Distractor 3 fundamentally misunderstands Jobs (which run to completion)."
+      }
+    }
+  ]
+}

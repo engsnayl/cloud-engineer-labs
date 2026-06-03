@@ -599,6 +599,58 @@
       "before_integrity_note": "batch-07 'before' fields were reconstructed from git HEAD after an in-session builder re-run-after-apply had polluted them with intermediate 'after' values. Builder hardened to source 'before' from HEAD (idempotent). Pollution isolated to batch-07 and never committed; drift integrity unaffected (check_drift uses baseline-snapshot.json + touched_ids, never 'before'). Committed batches 01-05 clean; batch-06's single before==after is the intended verify-no-change FP cicd-031-mcq-1.",
       "checkpoint_date": "2026-06-03",
       "status": "COMPLETE"
+    },
+    {
+      "batch_id": "T3.2",
+      "tier": 3,
+      "domain_slice": "tier3_reslice_part2 (compare-pair / multi-flag A+D / plain structural / option-balance)",
+      "mcq_ids_attempted": [
+        "tf-012-mcq-2",
+        "docker-001-mcq-1",
+        "docker-007-mcq-1",
+        "git-003-mcq-1",
+        "tf-005-mcq-1",
+        "tf-009-mcq-1",
+        "docker-002-mcq-2",
+        "docker-009-mcq-2",
+        "tf-004-mcq-1",
+        "tf-010-mcq-1",
+        "docker-003-mcq-2",
+        "linux-003-mcq-1",
+        "k8s-020-mcq-1"
+      ],
+      "slice_total": 13,
+      "scope_derivation": "Locked Tier-3 reslice T3.2: tf struct 4 (incl. tf-012 compare) + docker struct 3 (incl. docker-001/007 compare) + git-003-mcq-1 (compare) + linux-003 + k8s-020 (option-balance). Completes the 28-item Tier-3 universe (T3.1 15 + T3.2 13).",
+      "pilot_dupe_preflight": "0 byte-identical-to-pilot in the 13-id slice",
+      "full_reauthors": 12,
+      "option_balance_items": 1,
+      "dropouts": 0,
+      "dropped_to_tier3_ids": [],
+      "cluster_breakdown": {
+        "compare_definition_pair": 4,
+        "multi_flag_a_plus_d": 4,
+        "plain_structural": 4,
+        "option_balance": 1
+      },
+      "strike_test_compare_pairs": "All 4 compare-pairs (tf-012-mcq-2, docker-001-mcq-1, docker-007-mcq-1, git-003-mcq-1) COLLAPSE when the scenario sentence is struck — options are scenario-classifications, not reworded definition-pairs.",
+      "cross_tier_distinctness": "git-003-mcq-1 (fork = writeable server-side copy under your account enabling PRs) tests a distinct facet from the committed sibling git-003-mcq-2 (upstream-remote sync workflow, T2.1). The upstream-remote idea is used as a deliberate wrong distractor here.",
+      "rulings_applied": {
+        "B2_length_tell": "Distractor-lengthening applied: 8 items initially tripped the per-item threshold after authoring; cleared by extending the closest distractor with its own wrong mechanism (correct never shortened). k8s-020 correct lengthened to parity (tied with the longest distractor, not an outlier). Final: 0/13 trip."
+      },
+      "suspect_fps_recorded": [
+        "git-003-mcq-1/d3 (specific-flag: --force)",
+        "tf-004-mcq-1/d2 (auto-implicit)",
+        "docker-002-mcq-2/d2 (auto-implicit)",
+        "docker-003-mcq-2/d1 (auto-implicit)",
+        "tf-005-mcq-1/d1 (constraint-cannot-without)"
+      ],
+      "multi_distractor_items": 13,
+      "validate_mcqs_status": "OK (banks 1/2/3, 0 errors)",
+      "drift_status": "PASS — 13/13 touched cleared, 0 regressions",
+      "audit_suspect_diff": "5 new entries on touched ids (1 specific-flag, 3 auto-implicit, 1 constraint-cannot-without) — all recorded false positives; no new fabrications.",
+      "length_tell": "0/13 trip the per-item giveaway threshold; correct-longest 13/13 but within the parity band (distractors carry their own mechanism). Bank-wide check at Tier-3 close per B2.",
+      "checkpoint_date": "2026-06-03",
+      "status": "COMPLETE"
     }
   ],
   "borderline_approved": [
@@ -782,7 +834,7 @@
     "tier1_distractors_queued_for_tier2": 1,
     "tier3_absorption_queue_size": 16,
     "tier2_fabrications_caught": 26,
-    "tier3_full_rewrites": 15,
+    "tier3_full_rewrites": 27,
     "total_audit_reflags": 0,
     "tier1_intentional_recall_exempt": 0,
     "tier1_complete": true,
@@ -808,10 +860,14 @@
       "git-003-mcq-2/d3",
       "k8s-031-mcq-2/d3"
     ],
-    "tier3_batches_done": 1,
+    "tier3_batches_done": 2,
     "tier3_dropouts": 0,
-    "tier3_suspect_fps_recorded": 3,
-    "tier3_absorption_queue_landed_in_t3_1": 3
+    "tier3_suspect_fps_recorded": 8,
+    "tier3_absorption_queue_landed_in_t3_1": 3,
+    "tier3_option_balance": 1,
+    "tier3_items_total": 28,
+    "tier3_complete": true,
+    "phase4_complete": true
   },
   "detector_coverage_gaps": [
     {

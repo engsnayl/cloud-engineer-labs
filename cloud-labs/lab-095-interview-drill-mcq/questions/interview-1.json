@@ -502,14 +502,14 @@
     "subdomain": "fundamentals",
     "priority": "high",
     "difficulty": "easy",
-    "question": "Which best describes the isolation mechanism that makes containers different from virtual machines?",
+    "question": "A container on a shared host is compromised through a kernel-level container-escape CVE. Why can this potentially impact the other containers on that host, when other VMs on a hypervisor would be unaffected?",
     "options": {
-      "correct": "Containers share the host kernel and use Linux namespaces and cgroups for isolation; VMs each run their own kernel under a hypervisor",
-      "distractor_1": "Containers and VMs both use hypervisors, but containers use a lightweight hypervisor (containerd) instead of the full one (KVM, Hyper-V)",
-      "distractor_2": "Containers use software-based memory protection (SELinux, AppArmor) for isolation; VMs use hardware-based isolation only (VT-x, AMD-V)",
-      "distractor_3": "Containers create a virtualised kernel per container; VMs share the host's kernel via paravirtualisation drivers (virtio, vhost)"
+      "correct": "All containers on the host share its single kernel (isolated only by namespaces and cgroups), so a kernel exploit crosses that boundary; each VM runs its own kernel under a hypervisor, so the blast radius stops at one VM",
+      "distractor_1": "Containers and VMs both share the host kernel, but containers lack the hypervisor layer; inserting a lightweight hypervisor like containerd between the container and the host kernel would have contained the escape",
+      "distractor_2": "Sibling containers inherit the compromised container's namespaces at creation time, so the exploit propagates down the shared namespace tree to them",
+      "distractor_3": "Each container runs its own kernel but mounts the same host root filesystem, so a kernel exploit in one corrupts the shared filesystem the others depend on"
     },
-    "explanation": "The defining shape: containers = same kernel + namespaces/cgroups; VMs = separate kernels + hypervisor. This explains why containers are smaller and faster but share an attack surface (kernel exploits affect all containers on a host). Distractor 1 invents a containerd-as-hypervisor mental model. Distractor 2 conflates security overlays (SELinux/AppArmor) with the primary isolation mechanism. Distractor 3 inverts the kernel relationship \u2014 VMs have their own kernels, containers share the host's."
+    "explanation": "The shared-kernel shape is the whole point: namespaces/cgroups partition a single kernel, so a kernel-level escape is not contained the way a hypervisor contains separate-kernel VMs. Distractor 1 invents containerd-as-hypervisor \u2014 containerd is a runtime, not an isolation boundary, and containers don't share the VM model. Distractor 2 fabricates namespace inheritance between siblings; each container gets its own namespaces. Distractor 3 inverts the kernel relationship \u2014 containers share the host kernel, they don't each run one. That shared kernel is exactly the larger attack surface."
   },
   {
     "id": "docker-002-mcq-1",
@@ -646,14 +646,14 @@
     "subdomain": "fundamentals",
     "priority": "medium",
     "difficulty": "easy",
-    "question": "What's the difference between `git clone` and a GitHub fork?",
+    "question": "An engineer without write access to an open-source repo wants to propose a change. They clone the repo directly, commit a branch, and try to push it back \u2014 GitHub rejects the push. What did they skip, and why does it fix the problem?",
     "options": {
-      "correct": "Clone is a git-native command that copies a repo to your local machine; fork is a GitHub feature that creates a server-side copy under your account",
-      "distractor_1": "Clone copies only the latest commit; fork copies the full history including all branches and tags",
-      "distractor_2": "Clone makes a read-only copy; fork makes a writeable copy that allows pull requests back to the original repo",
-      "distractor_3": "Clone and fork are the same operation under different names; GitHub uses 'fork' as the user-facing term for cloning"
+      "correct": "They skipped forking \u2014 a fork creates a server-side copy of the repo under their own account that they CAN push to; you then open a pull request from that fork. A plain clone gives no write path back to a repo you don't own",
+      "distractor_1": "They skipped adding an `upstream` remote; once `upstream` is set, `git push upstream` writes the branch straight into the original maintainer's repository, which is how outside contributors submit changes",
+      "distractor_2": "They cloned over HTTPS, which is read-only; re-cloning over SSH makes the working copy writeable so the push to origin is accepted",
+      "distractor_3": "Nothing structural \u2014 they just need `git push --force`; the rejection is a fast-forward conflict, not a permissions problem"
     },
-    "explanation": "Clone is git-native (any remote, downloads to your disk). Fork is GitHub-specific (creates a server-side copy in your namespace, then you typically clone from there). Distractor 1 misstates clone's depth \u2014 full history by default; shallow clone is an option. Distractor 2 inverts read/write \u2014 both can be writeable; permissions depend on the remote, not on clone vs fork. Distractor 3 collapses two distinct operations into one."
+    "explanation": "A fork is a GitHub-side copy in your own namespace that you have push rights to; contribution flows fork \u2192 push to your fork \u2192 pull request. A direct clone of someone else's repo has no writeable remote for you. Distractor 1 misreads `upstream` \u2014 that remote is for pulling the original's changes (the sibling MCQ's topic), not pushing to it. Distractor 2 invents an SSH-vs-HTTPS write difference; write access is governed by account permissions, not protocol. Distractor 3 mistakes a permission denial for a fast-forward conflict; `--force` can't grant access you don't have."
   },
   {
     "id": "git-005-mcq-1",
@@ -792,7 +792,7 @@
     "difficulty": "medium",
     "question": "Your team is deploying a clustered database that needs a stable network identity and its own persistent storage per replica. Which Kubernetes workload object fits?",
     "options": {
-      "correct": "StatefulSet",
+      "correct": "StatefulSet \u2014 gives each replica a stable identity and its own PersistentVolumeClaim across restarts",
       "distractor_1": "Deployment with a PersistentVolumeClaim template attached for stable storage across pods",
       "distractor_2": "DaemonSet, which pins one pod per node and gives each a deterministic name based on the node",
       "distractor_3": "Job with parallelism set to the replica count and a backoffLimit to keep replicas alive indefinitely"
@@ -1046,14 +1046,14 @@
     "subdomain": "configuration",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "What's the order of precedence for Terraform variable values (highest to lowest)?",
+    "question": "An engineer sets a variable's default to t3.micro, puts t3.small in terraform.tfvars, exports TF_VAR_instance_type=t3.medium, and also runs `terraform apply -var instance_type=t3.large`. Which value wins, and why?",
     "options": {
-      "correct": "`-var` CLI flag > `-var-file` CLI flag > `TF_VAR_<name>` env var > terraform.tfvars > variable default",
-      "distractor_1": "Variable default > terraform.tfvars > `TF_VAR_<name>` env var > `-var-file` > `-var` CLI flag",
-      "distractor_2": "All sources are merged and the union of all values is applied; conflicting values fail with an error",
-      "distractor_3": "terraform.tfvars > `-var` CLI flag > variable default > `TF_VAR_<name>` env var > `-var-file`"
+      "correct": "t3.large \u2014 the `-var` CLI flag has the highest precedence; CLI flags override files like terraform.tfvars, files override TF_VAR_ environment variables, and all of those override the variable's default",
+      "distractor_1": "t3.medium \u2014 the TF_VAR_ environment variable wins, because environment configuration is resolved last in the chain and so overrides both the CLI flag and the tfvars files loaded earlier",
+      "distractor_2": "t3.small \u2014 terraform.tfvars is loaded automatically and is treated as authoritative, overriding ad-hoc CLI flags and environment variables",
+      "distractor_3": "The apply fails \u2014 Terraform detects four conflicting sources for one variable and errors out rather than silently choosing one"
     },
-    "explanation": "Precedence runs explicit > implicit: CLI overrides files, files override env vars, env vars override defaults. This lets you set environment defaults in files and override per-run on the CLI. Distractor 1 reverses the order entirely. Distractor 2 invents a merge semantics; one source wins per variable. Distractor 3 partially scrambles. Knowing the order matters when debugging 'why is this value getting set' \u2014 you walk the chain from highest to lowest."
+    "explanation": "Terraform resolves variables explicit-over-implicit: `-var` (and `-var-file`) on the CLI beat tfvars files, which beat TF_VAR_ env vars, which beat the default \u2014 so t3.large wins. Distractor 1 inverts the env-var position, treating 'resolved last' as 'wins'; env vars are actually near the bottom. Distractor 2 over-ranks terraform.tfvars; it loses to the CLI. Distractor 3 invents an error-on-conflict rule; precedence resolves silently per variable, which is exactly why knowing the order matters when debugging an unexpected value."
   },
   {
     "id": "tf-005-mcq-1",
@@ -1062,14 +1062,14 @@
     "subdomain": "environments",
     "priority": "high",
     "difficulty": "medium",
-    "question": "Why do experienced Terraform teams avoid using workspaces to model dev/staging/prod environments?",
+    "question": "Your team models dev, staging, and prod as three Terraform workspaces over one backend and configuration. Prod now needs a different region, larger instance sizes, and a stricter IAM setup than dev. Why does the workspace approach struggle here?",
     "options": {
-      "correct": "Workspaces share the same backend and configuration; they can't model genuinely different infrastructure (different regions, different IAM, different sizes) cleanly",
-      "distractor_1": "Workspaces require manual switching that can't be automated in CI, so they don't integrate with deployment pipelines",
-      "distractor_2": "Workspaces store all environments' state in a single state file, so a prod operation can accidentally affect dev resources",
-      "distractor_3": "Workspaces are a legacy 0.11-era feature that no longer works with Terraform 1.x \u2014 they were officially deprecated and removed from the CLI in the 1.0 release"
+      "correct": "Workspaces share one configuration and backend and differ only by state, so genuinely different infrastructure (region, sizing, IAM) can only be expressed by piling conditionals into one config \u2014 separate state per environment is the cleaner pattern",
+      "distractor_1": "Workspaces can't be selected non-interactively, so a CI pipeline can't target a specific environment without a human running `terraform workspace select` first",
+      "distractor_2": "All workspaces write to a single shared state file, so a prod apply can reach across and corrupt dev's resources stored in the same file",
+      "distractor_3": "Variable values can't differ between workspaces \u2014 every workspace must use identical inputs, so you can't change instance sizes or regions per environment without editing the one shared configuration for everyone"
     },
-    "explanation": "Workspaces are great for 'minor variants of the same config' (a region split, a tenant split) but break down when environments differ meaningfully \u2014 different backends, different providers, different module versions. The standard pattern is separate state per environment. Distractor 1 misstates CI integration \u2014 workspaces can be selected non-interactively. Distractor 2 invents a single-state-file design; each workspace has its own state file. Distractor 3 fabricates a deprecation."
+    "explanation": "Workspaces vary state, not configuration, so they fit minor variants of one config but break down when environments differ structurally \u2014 which is the scenario exactly. Distractor 1 misstates CI integration: workspaces can be selected non-interactively (`terraform workspace select` scripts fine, or `TF_WORKSPACE`). Distractor 2 invents a single-state-file design; each workspace has its own isolated state. Distractor 3 overstates the limit \u2014 you can vary values via `terraform.workspace` lookups; what you can't do cleanly is vary structure. Separate root configs/state per environment is the standard answer."
   },
   {
     "id": "tf-006-mcq-1",

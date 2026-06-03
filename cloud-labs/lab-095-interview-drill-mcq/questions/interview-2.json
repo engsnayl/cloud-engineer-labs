@@ -518,14 +518,14 @@
     "subdomain": "images",
     "priority": "critical",
     "difficulty": "medium",
-    "question": "Which Dockerfile practice is the strongest security improvement?",
+    "question": "Your team's container image runs the application as root inside the container, and a reviewer flags this as the highest-priority hardening gap. Which single Dockerfile change most reduces the blast radius of a container compromise?",
     "options": {
-      "correct": "Run the application as a non-root user via `USER appuser` after creating the user, so a container compromise doesn't run as root inside the namespace",
-      "distractor_1": "Run the application as root for predictable behaviour, then constrain the host's docker daemon via SELinux profiles to make root-in-container safe",
-      "distractor_2": "Pin base images to `:latest` so security patches are picked up automatically on every rebuild without operator intervention",
-      "distractor_3": "Embed the SSL/TLS private key in the image so it doesn't need to be fetched from secret stores at runtime, eliminating that network round-trip"
+      "correct": "Create a dedicated user and switch to it with `USER appuser` after setup, so a compromise inside the container isn't running as root \u2014 limiting what a container-escape CVE can reach on the host",
+      "distractor_1": "Leave the app running as root but add an SELinux or AppArmor profile on the host's Docker daemon; host-side confinement makes root-in-container effectively equivalent to non-root",
+      "distractor_2": "Pin the base image to `:latest` so each rebuild automatically pulls the newest patched image and closes CVEs without any operator action",
+      "distractor_3": "Bake the app's TLS private key into an image layer so it's available offline and never has to be fetched over the network at runtime"
     },
-    "explanation": "Non-root user is the single biggest container hardening step \u2014 even with namespace isolation, root-in-container is one CVE away from being root on the host. Distractor 1 reverses the priority (host-side hardening is in addition to, not instead of, non-root containers). Distractor 2 advocates `:latest`, which is the worst image-pinning practice (unpredictable, breaks reproducibility). Distractor 3 promotes embedding secrets in images \u2014 an extreme anti-pattern (image layers persist secrets forever)."
+    "explanation": "Dropping root inside the container is the highest-leverage hardening step: with only namespace isolation, root-in-container is one escape CVE away from root on the host. Distractor 1 treats host MAC profiles as a substitute for non-root; they're complementary defence-in-depth, not a replacement. Distractor 2 recommends `:latest`, which is the worst pinning choice \u2014 unpredictable and non-reproducible, and it doesn't harden the running process. Distractor 3 embeds a secret in an immutable layer, a serious anti-pattern (the key persists in the image forever). Non-root user is the answer."
   },
   {
     "id": "docker-005-mcq-1",
@@ -550,14 +550,14 @@
     "subdomain": "storage",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "Compare named volumes and bind mounts in Docker.",
+    "question": "Your team's app works on every developer's laptop using a bind mount to /home/$USER/data, but the same compose file fails on a CI runner and on a Raspberry Pi where that host path doesn't exist. What change fixes portability while keeping the data persistent?",
     "options": {
-      "correct": "Bind mounts couple the container directory to a specific host path; named volumes are Docker-managed and portable across hosts running the same Docker daemon setup",
-      "distractor_1": "Bind mounts persist across container restarts; named volumes are ephemeral and are deleted when the container stops",
-      "distractor_2": "Bind mounts and named volumes behave identically; the syntax difference is purely cosmetic for readability of docker run commands",
-      "distractor_3": "Bind mounts are read-only by default; named volumes are read-write by default"
+      "correct": "Switch to a named volume \u2014 Docker manages where it lives, so the storage is portable to any host running Docker, unlike a bind mount tied to a specific host path",
+      "distractor_1": "Keep the bind mount but mark it read-only; bind mounts only fail to attach when they're writeable on a host path the container user doesn't own",
+      "distractor_2": "Switch to a tmpfs mount so the data lives in memory and no host path is required on the CI runner or the Pi",
+      "distractor_3": "Point the bind mount at a relative path like ./data; Docker resolves relative bind paths against each host's Docker root, which makes them portable"
     },
-    "explanation": "The portability difference is the practical one: a bind mount embeds `/home/dev/data` (works on dev's laptop, doesn't on a Pi); a named volume is an abstraction Docker manages, portable wherever Docker runs. Distractor 1 inverts persistence (named volumes are persistent; bind mounts persist as long as the host path persists). Distractor 2 collapses real differences. Distractor 3 invents a read-only default that doesn't apply to either type. Bind mounts shine for dev environments; named volumes shine for portability and lifecycle management."
+    "explanation": "A named volume is a Docker-managed abstraction with no dependence on a particular host path, so it travels across laptops, CI, and a Pi while persisting data. Distractor 1's read-only flag does nothing about a missing host path \u2014 the coupling, not the mode, is the problem. Distractor 2 reaches for tmpfs (the sibling MCQ's tool), which is in-memory and ephemeral \u2014 it would lose the data the requirement says to keep. Distractor 3 assumes relative bind paths are portable; they resolve against the compose file's location and stay host-coupled. Named volumes are the portability answer."
   },
   {
     "id": "docker-009-mcq-1",
@@ -902,14 +902,14 @@
     "subdomain": "system",
     "priority": "high",
     "difficulty": "medium",
-    "question": "Match the systemd unit file type to its purpose: `.service`, `.timer`, `.socket`, `.target`.",
+    "question": "An engineer needs a task to run every night at 2am on a systemd-managed server, replacing an old cron job, and wants it to log to journald like other services. Which systemd unit types should they create?",
     "options": {
-      "correct": "`.service`: a long-running daemon or one-shot process; `.timer`: schedules service execution; `.socket`: socket activation; `.target`: groups units into a logical state (multi-user, graphical, etc.)",
-      "distractor_1": "`.service`: a daemon; `.timer`: a scheduled task that includes its own commands; `.socket`: a network bind point; `.target`: a desktop environment definition",
-      "distractor_2": "`.service`: any unit file; `.timer`: replaces cron entries; `.socket`: a TCP listener; `.target`: an alias for a specific service unit",
-      "distractor_3": "`.service`: only system-level daemons; `.timer`: schedules .service.in files; `.socket`: inotify file watchers; `.target`: kernel boot stages"
+      "correct": "A `.timer` unit to hold the schedule plus a `.service` unit it activates \u2014 the timer points at the service, and the service contains the actual command and logs to journald",
+      "distractor_1": "A single `.timer` unit containing both the schedule and the command to run, since a timer is systemd's self-contained cron replacement that needs no separate service unit",
+      "distractor_2": "A single `.service` unit with an embedded OnCalendar= schedule, so one unit both defines the command and fires it every night",
+      "distractor_3": "A `.target` unit grouping a nightly `.service`, with the target pulled in by a boot-stage trigger at 2am"
     },
-    "explanation": "The four core unit types each have a distinct role: service runs, timer schedules other units (no commands of its own), socket activates a service on connection, target groups units. Distractor 1 misrepresents timer (it points at a service, doesn't contain commands) and target (not desktop-specific). Distractor 2 collapses categories incorrectly. Distractor 3 over-restricts each type. Understanding the timer-points-at-service relationship is the most common stumbling block."
+    "explanation": "systemd splits scheduling from execution: a `.timer` carries the `OnCalendar=` schedule and activates a matching `.service` that holds the command \u2014 together they replace a cron line and inherit journald logging. Distractor 1 is the most common confusion: a timer holds no command of its own, it only triggers a unit. Distractor 2 puts OnCalendar= on a service, but that directive belongs to timers, not services. Distractor 3 misuses targets, which group units into states (multi-user, graphical) and don't schedule anything by time. Timer + service is the pairing."
   },
   {
     "id": "linux-004-mcq-2",
@@ -1046,14 +1046,14 @@
     "subdomain": "ci-cd",
     "priority": "high",
     "difficulty": "medium",
-    "question": "The standard GitOps-style Terraform CI/CD pattern is:",
+    "question": "Your team wants its Terraform CI to give reviewers concrete evidence of an infrastructure change before it is applied, and to gate the actual apply behind code review. How should the pipeline be wired?",
     "options": {
-      "correct": "Run `terraform plan` on PR with the plan posted as a comment; run `terraform apply` only on merge to main (or via a manual approval gate)",
-      "distractor_1": "Run `terraform apply` on every PR push so reviewers can see the actual effect, then revert if the PR is rejected",
-      "distractor_2": "Run `terraform plan` only locally; CI should not interact with Terraform state to avoid lock contention with developers",
-      "distractor_3": "Run a single `terraform apply` weekly that batches all merged PRs into one large change, so production sees fewer changes"
+      "correct": "Run `terraform plan` automatically on each PR and post the plan as a comment, then run `terraform apply` only after merge to main (optionally behind a manual approval) \u2014 review sees the diff, merge gates the change",
+      "distractor_1": "Run `terraform apply` on every PR push so reviewers see the real effect, then run `terraform destroy` to roll back if the PR is rejected",
+      "distractor_2": "Run both `plan` and `apply` only on merge; planning on the PR is unsafe because a plan takes the state lock and would block other developers from running their own plans until it releases",
+      "distractor_3": "Keep Terraform out of CI; engineers run `plan` and `apply` from their own laptops after the PR is approved, so CI never has to touch remote state"
     },
-    "explanation": "Plan-on-PR / apply-on-merge gives reviewers concrete evidence of what will change and gates the actual application behind merge approval. Distractor 1 inverts safety \u2014 applying before review can break production with no rollback path. Distractor 2 puts state management on developer laptops, which doesn't scale. Distractor 3 (weekly batched applies) increases batch size and risk \u2014 the opposite of CD principles."
+    "explanation": "Plan-on-PR surfaces the exact diff for review; apply-on-merge ties the real change to approval \u2014 meeting both goals in the scenario. Distractor 1 applies before review, which can break prod with no clean rollback (`destroy` is not an undo). Distractor 2 mischaracterises plan: a plan does not hold a long write lock that blocks developers, so deferring all visibility to merge needlessly hides the diff. Distractor 3 pushes state operations onto laptops, which loses auditability and doesn't scale. The plan/apply split is the standard GitOps shape."
   },
   {
     "id": "tf-010-mcq-1",
@@ -1062,14 +1062,14 @@
     "subdomain": "tooling",
     "priority": "low",
     "difficulty": "medium",
-    "question": "Match the tool to its primary job: Terraform vs Packer.",
+    "question": "Your team wants every EC2 instance to boot from an image that already has the app, runtime, and security agents baked in, so instances are identical and start fast \u2014 then have the surrounding infrastructure (instances, VPC, load balancer) stood up repeatably. Which tool does which part?",
     "options": {
-      "correct": "Terraform provisions running infrastructure (instances, networks); Packer builds machine images (AMIs) that Terraform then consumes",
-      "distractor_1": "Terraform builds machine images; Packer provisions running infrastructure from those images",
-      "distractor_2": "Terraform and Packer both provision infrastructure; the difference is that Packer is faster on AWS and Terraform is faster on Azure",
-      "distractor_3": "Terraform provisions stateful resources; Packer provisions stateless resources \u2014 Lambdas and ECS tasks specifically"
+      "correct": "Packer builds the baked machine image (AMI); Terraform then provisions the running infrastructure \u2014 instances, VPC, load balancer \u2014 from that image. This is the golden-image pattern",
+      "distractor_1": "Terraform bakes the AMI using its provisioners, and Packer stands up the instances and networking from that image",
+      "distractor_2": "Packer does both \u2014 it builds the image and launches the instance fleet \u2014 while Terraform is only needed for stateful resources like RDS",
+      "distractor_3": "Use only Terraform with a user_data script that installs everything on first boot; Packer is redundant because user_data produces identical instances"
     },
-    "explanation": "Packer bakes (creates AMIs / VM images with everything pre-installed); Terraform deploys (uses those images to spin up running infrastructure). The two compose as the golden-image pattern. Distractor 1 swaps them entirely. Distractor 2 invents a speed-by-cloud difference. Distractor 3 fabricates a stateful-vs-stateless split. Knowing the split matters because teams using only Terraform with provisioners are often reinventing what Packer does much better."
+    "explanation": "Packer bakes immutable images; Terraform deploys infrastructure that consumes them \u2014 the two compose cleanly. Distractor 1 swaps their roles; Terraform's provisioners are a last resort, not an image-build tool, and Packer doesn't deploy fleets. Distractor 2 has Packer launching and operating infrastructure, which it doesn't do \u2014 it builds images and exits. Distractor 3 equates a boot-time user_data script with a baked image, but user_data runs per boot (slower, drift-prone) and isn't the immutable, identical artifact baking gives you. Bake with Packer, deploy with Terraform."
   },
   {
     "id": "tf-012-mcq-1",
