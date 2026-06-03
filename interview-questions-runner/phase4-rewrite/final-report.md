@@ -24,10 +24,12 @@ Flag-class resolution (149 flag instances across the 135 items): D_definition 98
 ```
 audit.py        : 208 MCQs — stem types {scenario: 206, definition: 2};
                   MCQs with any C/D flag: 3  (aws-026-mcq-1, cicd-020-mcq-1, k8s-010-mcq-1)
-audit_suspect.py: 62 distinct MCQs match fabrication-PRONE patterns (manual-review net;
-                  reviewed — residuals are real misconceptions / recorded FPs, not fabrications)
+audit_suspect.py: 62 distinct MCQs match fabrication-PRONE patterns (a broad manual-review
+                  net) — NOT reviewed end-to-end in Task 11; see scope note below
 validate_mcqs.py: OK / OK / OK (banks 1/2/3, 0 errors)
 ```
+
+**Scope of the suspect-net review.** `audit_suspect.py` is a deliberately broad heuristic — it flags any distractor using a pattern like "automatically", "can't … without", a specific duration, or a key name, the large majority of which are legitimate misconceptions. The 62 matches were **not** reviewed as a whole-bank pass. The fabrication review happened during authoring and was scoped to what Phase 4 changed: **Tier 2 individually reviewed and resolved the 32 `A_fabricated` flags** (swapped or verified), and **Tier 3 reviewed the suspect hits on the items it authored** (8 recorded FPs, present in this net). The remaining **54** matches are original-author distractors on items whose flagged distractor Phase 4 did not rewrite — **30 on otherwise-touched items + 24 on fully-untouched originals**. They match the broad heuristic but were **not individually reviewed**; they are the same category as the 18 pre-existing length-tell trips below, and out of Phase-4 scope.
 
 Bank sizes and domain mix are unchanged from Phase-4 start (no items added or cut): aws 56 · kubernetes 44 · cicd 36 · terraform 26 · docker 20 · linux 14 · git 12.
 
