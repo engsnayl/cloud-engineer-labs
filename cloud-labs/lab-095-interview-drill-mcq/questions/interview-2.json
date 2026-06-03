@@ -502,7 +502,7 @@
     "subdomain": "fundamentals",
     "priority": "high",
     "difficulty": "easy",
-    "question": "When would you choose a VM over a container?",
+    "question": "An engineer is choosing between a VM and a container to run an untrusted third-party workload. When would you choose a VM over a container?",
     "options": {
       "correct": "When you need strong kernel-level isolation (multi-tenant, hostile workloads) or need to run a different OS kernel than the host",
       "distractor_1": "When the workload requires more than 4 GB of memory, since containers have a 4 GB memory ceiling per container by default",
@@ -566,7 +566,7 @@
     "subdomain": "registry",
     "priority": "high",
     "difficulty": "medium",
-    "question": "How do you authenticate `docker push` to a private ECR repository?",
+    "question": "An engineer needs to `docker push` an image to a private ECR repository and must authenticate first. How do you authenticate?",
     "options": {
       "correct": "`aws ecr get-login-password | docker login --username AWS --password-stdin <account>.dkr.ecr.<region>.amazonaws.com` \u2014 generates a 12-hour token",
       "distractor_1": "`docker login --username ECR_USER --password $ECR_PASSWORD <registry>` using a static long-lived password stored in IAM",
@@ -598,7 +598,7 @@
     "subdomain": "workflow",
     "priority": "high",
     "difficulty": "medium",
-    "question": "Why is rebasing a published branch (one others have pulled) considered dangerous?",
+    "question": "An engineer rebased a branch that teammates had already pulled, then force-pushed. Why is rebasing a published branch considered dangerous?",
     "options": {
       "correct": "Rebase rewrites commit SHAs; once others have based work on the old SHAs, the rewrite creates two divergent histories that have to be reconciled by force",
       "distractor_1": "Rebase corrupts the local Git database when applied to remote branches; the rebased branch becomes unfetchable to others",
@@ -614,7 +614,7 @@
     "subdomain": "workflow",
     "priority": "medium",
     "difficulty": "easy",
-    "question": "Even with branch protection requiring reviews, what's a common bypass that often goes unnoticed?",
+    "question": "An engineer relies on branch protection requiring reviews on `main` but worries about an unnoticed bypass. What's a common bypass that often goes unnoticed?",
     "options": {
       "correct": "Repository admins can usually bypass protections by default \u2014 and a compromised admin account is enough to push directly to main",
       "distractor_1": "Force pushing via GitHub's web UI bypasses branch protection because the web UI uses elevated server-side credentials",
@@ -630,7 +630,7 @@
     "subdomain": "investigation",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "How does `git bisect` work?",
+    "question": "An engineer needs to find which of several hundred commits introduced a regression. How does `git bisect` work?",
     "options": {
       "correct": "Binary search over commit history: you mark a known-good and known-bad commit, then iteratively test the midpoint until git narrows it to the single bad commit",
       "distractor_1": "Linear search over commit history: git checks each commit from oldest to newest and reports the first one that fails the test command",

@@ -1,0 +1,1032 @@
+{
+  "batch_id": "T1.5",
+  "tier": 1,
+  "domain_slice": "docker+git",
+  "pilot_dupe_preflight": "0 byte-identical-to-pilot in slice (no docker/git pilot exemplars exist)",
+  "slice_total": 21,
+  "recall_buckets": {
+    "bucket1_tier1_reframe": [
+      "docker-001-mcq-2",
+      "docker-002-mcq-1",
+      "docker-003-mcq-1",
+      "docker-004-mcq-1",
+      "docker-005-mcq-2",
+      "docker-006-mcq-1",
+      "docker-006-mcq-2",
+      "docker-007-mcq-2",
+      "docker-008-mcq-1",
+      "docker-008-mcq-2",
+      "docker-009-mcq-1",
+      "git-001-mcq-1",
+      "git-001-mcq-2",
+      "git-002-mcq-1",
+      "git-002-mcq-2",
+      "git-004-mcq-1",
+      "git-004-mcq-2",
+      "git-005-mcq-1"
+    ],
+    "bucket2_tier3_triaged_at_readback": [
+      "docker-001-mcq-1",
+      "docker-007-mcq-1",
+      "git-003-mcq-1"
+    ],
+    "bucket3_intentional_recall_exempt": []
+  },
+  "reframe_attempted": 18,
+  "rewrites": [
+    {
+      "mcq_id": "docker-001-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "recall_bucket": 2,
+      "triaged_at_readback": true,
+      "change_summary": "Tier-3 rewrite dropout (compare/definition-pair signature) — triaged at read-back, NOT authored as Tier-1; bank stem unchanged",
+      "before": {
+        "question": "Which best describes the isolation mechanism that makes containers different from virtual machines?",
+        "options": {
+          "correct": "Containers share the host kernel and use Linux namespaces and cgroups for isolation; VMs each run their own kernel under a hypervisor",
+          "distractor_1": "Containers and VMs both use hypervisors, but containers use a lightweight hypervisor (containerd) instead of the full one (KVM, Hyper-V)",
+          "distractor_2": "Containers use software-based memory protection (SELinux, AppArmor) for isolation; VMs use hardware-based isolation only (VT-x, AMD-V)",
+          "distractor_3": "Containers create a virtualised kernel per container; VMs share the host's kernel via paravirtualisation drivers (virtio, vhost)"
+        },
+        "explanation": "The defining shape: containers = same kernel + namespaces/cgroups; VMs = separate kernels + hypervisor. This explains why containers are smaller and faster but share an attack surface (kernel exploits affect all containers on a host). Distractor 1 invents a containerd-as-hypervisor mental model. Distractor 2 conflates security overlays (SELinux/AppArmor) with the primary isolation mechanism. Distractor 3 inverts the kernel relationship — VMs have their own kernels, containers share the host's."
+      },
+      "after": {
+        "question": "Which best describes the isolation mechanism that makes containers different from virtual machines?",
+        "options": {
+          "correct": "Containers share the host kernel and use Linux namespaces and cgroups for isolation; VMs each run their own kernel under a hypervisor",
+          "distractor_1": "Containers and VMs both use hypervisors, but containers use a lightweight hypervisor (containerd) instead of the full one (KVM, Hyper-V)",
+          "distractor_2": "Containers use software-based memory protection (SELinux, AppArmor) for isolation; VMs use hardware-based isolation only (VT-x, AMD-V)",
+          "distractor_3": "Containers create a virtualised kernel per container; VMs share the host's kernel via paravirtualisation drivers (virtio, vhost)"
+        },
+        "explanation": "The defining shape: containers = same kernel + namespaces/cgroups; VMs = separate kernels + hypervisor. This explains why containers are smaller and faster but share an attack surface (kernel exploits affect all containers on a host). Distractor 1 invents a containerd-as-hypervisor mental model. Distractor 2 conflates security overlays (SELinux/AppArmor) with the primary isolation mechanism. Distractor 3 inverts the kernel relationship — VMs have their own kernels, containers share the host's."
+      },
+      "distractor_self_check": [],
+      "dropped_to_tier3": true,
+      "drop_reason": "Bucket 2 / Tier-3, triaged at read-back (Stephen 2026-06-03). cicd-001/tf-012 signature: abstract-comparison ask ('isolation mechanism that makes containers different from VMs') + definition-pair options (each defines both containers and VMs). Scenario severable, answerable on recall."
+    },
+    {
+      "mcq_id": "docker-001-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "provisional": false,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "When would you choose a VM over a container?",
+        "options": {
+          "correct": "When you need strong kernel-level isolation (multi-tenant, hostile workloads) or need to run a different OS kernel than the host",
+          "distractor_1": "When the workload requires more than 4 GB of memory, since containers have a 4 GB memory ceiling per container by default",
+          "distractor_2": "When you need persistent storage, since containers are ephemeral by design and cannot retain data across restarts",
+          "distractor_3": "When the workload needs network connectivity, since containers run in an isolated network namespace with no external network access"
+        },
+        "explanation": "VMs win on cross-tenant security boundaries (the kernel attack surface is much smaller) and on running a non-Linux kernel on a Linux host (Windows containers on a Linux host, etc.). Distractor 1 invents a 4 GB container memory ceiling. Distractor 2 conflates default-ephemeral semantics with capability — containers absolutely support persistent storage via volumes. Distractor 3 misstates default networking; containers get network connectivity through bridge or host networking out of the box."
+      },
+      "after": {
+        "question": "An engineer is choosing between a VM and a container to run an untrusted third-party workload. When would you choose a VM over a container?",
+        "options": {
+          "correct": "When you need strong kernel-level isolation (multi-tenant, hostile workloads) or need to run a different OS kernel than the host",
+          "distractor_1": "When the workload requires more than 4 GB of memory, since containers have a 4 GB memory ceiling per container by default",
+          "distractor_2": "When you need persistent storage, since containers are ephemeral by design and cannot retain data across restarts",
+          "distractor_3": "When the workload needs network connectivity, since containers run in an isolated network namespace with no external network access"
+        },
+        "explanation": "VMs win on cross-tenant security boundaries (the kernel attack surface is much smaller) and on running a non-Linux kernel on a Linux host (Windows containers on a Linux host, etc.). Distractor 1 invents a 4 GB container memory ceiling. Distractor 2 conflates default-ephemeral semantics with capability — containers absolutely support persistent storage via volumes. Distractor 3 misstates default networking; containers get network connectivity through bridge or host networking out of the box."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a 4 GB per-container memory ceiling"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks containers can't persist data (forgets volumes)"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks containers have no external network access"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "docker-002-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "provisional": false,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Which Dockerfile pattern maximises layer cache hits across builds?",
+        "options": {
+          "correct": "Copy dependency manifests (package.json, requirements.txt) and install dependencies BEFORE copying source code, so source changes don't invalidate the deps layer",
+          "distractor_1": "Copy the entire source tree first as a single COPY, then install dependencies — fewer layers means fewer cache invalidation points",
+          "distractor_2": "Use `--no-cache` on every build to ensure clean state; predictable rebuilds matter more than cache hit rate",
+          "distractor_3": "Combine all RUN commands into one mega-RUN with chained `&&`, so the entire build is a single cacheable layer"
+        },
+        "explanation": "Order layers from least-frequently-changed to most-frequently-changed: dependencies first (lock file), source code last. Distractor 1 inverts the order so source changes bust the deps install layer every time. Distractor 2 (--no-cache always) discards the cache benefit entirely. Distractor 3 combines layers, which does reduce image size, but doesn't help cache reuse — a single mega-layer is invalidated by any change to any file in it."
+      },
+      "after": {
+        "question": "An engineer notices every Docker build reinstalls all dependencies even when only the source code changed. Which Dockerfile pattern maximises layer cache hits across builds?",
+        "options": {
+          "correct": "Copy dependency manifests (package.json, requirements.txt) and install dependencies BEFORE copying source code, so source changes don't invalidate the deps layer",
+          "distractor_1": "Copy the entire source tree first as a single COPY, then install dependencies — fewer layers means fewer cache invalidation points",
+          "distractor_2": "Use `--no-cache` on every build to ensure clean state; predictable rebuilds matter more than cache hit rate",
+          "distractor_3": "Combine all RUN commands into one mega-RUN with chained `&&`, so the entire build is a single cacheable layer"
+        },
+        "explanation": "Order layers from least-frequently-changed to most-frequently-changed: dependencies first (lock file), source code last. Distractor 1 inverts the order so source changes bust the deps install layer every time. Distractor 2 (--no-cache always) discards the cache benefit entirely. Distractor 3 combines layers, which does reduce image size, but doesn't help cache reuse — a single mega-layer is invalidated by any change to any file in it."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks one big COPY first means fewer cache invalidation points"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate reaches for --no-cache for predictability over cache hits"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate combines all RUNs into one mega-layer thinking it caches better"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "docker-003-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "provisional": false,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "What problem do multi-stage Docker builds primarily solve?",
+        "options": {
+          "correct": "Keeping build-time tooling (compilers, build deps) out of the final runtime image, dramatically reducing image size",
+          "distractor_1": "Parallelising the build by running multiple stages on different machines simultaneously",
+          "distractor_2": "Allowing multiple developers to contribute different stages without conflicts in version control",
+          "distractor_3": "Avoiding the 127-layer hard limit by splitting builds across multiple FROM statements"
+        },
+        "explanation": "Multi-stage lets you build in one stage (with full toolchain) and COPY only artefacts to a minimal runtime stage — final image carries no build tools. Distractor 1 invents a cross-machine parallelism. Distractor 2 misframes multi-stage as a collaboration feature. Distractor 3 invents a 127-layer hard limit (the actual limit was 127 in older Docker, now 256, but multi-stage doesn't exist to dodge it). The size reduction can be 10x for compiled-language builds."
+      },
+      "after": {
+        "question": "An engineer's production image is huge because it still ships compilers and build dependencies. What problem do multi-stage Docker builds primarily solve here?",
+        "options": {
+          "correct": "Keeping build-time tooling (compilers, build deps) out of the final runtime image, dramatically reducing image size",
+          "distractor_1": "Parallelising the build by running multiple stages on different machines simultaneously",
+          "distractor_2": "Allowing multiple developers to contribute different stages without conflicts in version control",
+          "distractor_3": "Avoiding the 127-layer hard limit by splitting builds across multiple FROM statements"
+        },
+        "explanation": "Multi-stage lets you build in one stage (with full toolchain) and COPY only artefacts to a minimal runtime stage — final image carries no build tools. Distractor 1 invents a cross-machine parallelism. Distractor 2 misframes multi-stage as a collaboration feature. Distractor 3 invents a 127-layer hard limit (the actual limit was 127 in older Docker, now 256, but multi-stage doesn't exist to dodge it). The size reduction can be 10x for compiled-language builds."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks stages parallelise the build across machines"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks stages are for multi-developer contribution"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a 127-layer limit that multi-stage dodges"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "docker-004-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "provisional": false,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Which base image choice is the most effective for shrinking a Python service's image?",
+        "options": {
+          "correct": "Use `python:3.12-slim` (Debian minimal) or a distroless Python image; avoid `python:3.12` (full Debian) which carries unnecessary OS packages",
+          "distractor_1": "Use `python:3.12-alpine`; Alpine is the smallest option and avoids the C-extension compatibility issues that plague Debian-based images for Python",
+          "distractor_2": "Use `scratch` as the base and copy the Python binary in, since scratch is the absolute minimum at zero bytes",
+          "distractor_3": "Use `ubuntu:latest`; Ubuntu's package manager is more efficient and produces smaller layers than Debian's"
+        },
+        "explanation": "Slim variants (or distroless) hit the sweet spot: small enough, glibc-compatible, well-supported. Distractor 1 over-states Alpine — its musl libc breaks many Python wheels (numpy, pandas, cryptography), forcing source builds. Distractor 2 (scratch) means no shell, no libc, no Python runtime to invoke. Distractor 3 (Ubuntu) is usually LARGER than Debian-slim for the same package set. The right answer depends on the workload, but slim is the safe default."
+      },
+      "after": {
+        "question": "An engineer wants to shrink a Python service's Docker image and is weighing base-image options. Which choice is the most effective?",
+        "options": {
+          "correct": "Use `python:3.12-slim` (Debian minimal) or a distroless Python image; avoid `python:3.12` (full Debian) which carries unnecessary OS packages",
+          "distractor_1": "Use `python:3.12-alpine`; Alpine is the smallest option and avoids the C-extension compatibility issues that plague Debian-based images for Python",
+          "distractor_2": "Use `scratch` as the base and copy the Python binary in, since scratch is the absolute minimum at zero bytes",
+          "distractor_3": "Use `ubuntu:latest`; Ubuntu's package manager is more efficient and produces smaller layers than Debian's"
+        },
+        "explanation": "Slim variants (or distroless) hit the sweet spot: small enough, glibc-compatible, well-supported. Distractor 1 over-states Alpine — its musl libc breaks many Python wheels (numpy, pandas, cryptography), forcing source builds. Distractor 2 (scratch) means no shell, no libc, no Python runtime to invoke. Distractor 3 (Ubuntu) is usually LARGER than Debian-slim for the same package set. The right answer depends on the workload, but slim is the safe default."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate over-trusts Alpine and ignores its C-extension/musl pitfalls for Python"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate reaches for scratch, ignoring Python's runtime/library needs"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate believes ubuntu:latest produces smaller layers than Debian slim"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "docker-005-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "provisional": false,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Which BuildKit feature lets you share a directory between build runs without baking it into the final image?",
+        "options": {
+          "correct": "`RUN --mount=type=cache,target=...` — caches like `~/.npm` or `~/.cache/pip` persist across builds without ending up in image layers",
+          "distractor_1": "`RUN --persist=true` — instructs Docker to retain the directory in subsequent builds while excluding it from the final image",
+          "distractor_2": "`VOLUME` directive in the Dockerfile — the directory is mounted at build time and stripped before commit",
+          "distractor_3": "`ENV BUILDKIT_INLINE_CACHE=1` — enables Docker to store the entire build cache in a hidden top-level layer that is read-only at runtime"
+        },
+        "explanation": "BuildKit cache mounts are the right answer — they keep the package cache hot across builds without ending up in image layers, hugely speeding up rebuilds. Distractor 1 invents a --persist=true flag. Distractor 2 misuses VOLUME, which has nothing to do with build-time caching. Distractor 3 (BUILDKIT_INLINE_CACHE) is a real flag but does something different (embeds cache metadata in pushed images so other builds can use it as a remote cache)."
+      },
+      "after": {
+        "question": "An engineer wants pip's download cache to persist across Docker builds without ending up in the final image. Which BuildKit feature does this?",
+        "options": {
+          "correct": "`RUN --mount=type=cache,target=...` — caches like `~/.npm` or `~/.cache/pip` persist across builds without ending up in image layers",
+          "distractor_1": "`RUN --persist=true` — instructs Docker to retain the directory in subsequent builds while excluding it from the final image",
+          "distractor_2": "`VOLUME` directive in the Dockerfile — the directory is mounted at build time and stripped before commit",
+          "distractor_3": "`ENV BUILDKIT_INLINE_CACHE=1` — enables Docker to store the entire build cache in a hidden top-level layer that is read-only at runtime"
+        },
+        "explanation": "BuildKit cache mounts are the right answer — they keep the package cache hot across builds without ending up in image layers, hugely speeding up rebuilds. Distractor 1 invents a --persist=true flag. Distractor 2 misuses VOLUME, which has nothing to do with build-time caching. Distractor 3 (BUILDKIT_INLINE_CACHE) is a real flag but does something different (embeds cache metadata in pushed images so other builds can use it as a remote cache)."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a RUN --persist=true flag"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate misuses the VOLUME directive as a build-time cache"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate confuses BUILDKIT_INLINE_CACHE (registry cache) with a build-mount cache"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "docker-006-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "provisional": false,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Which Docker network mode shares the host's network namespace, so the container's port bindings appear directly on the host's interfaces?",
+        "options": {
+          "correct": "`host` — the container uses the host's network stack directly with no NAT or port mapping",
+          "distractor_1": "`bridge` — the default network mode in which container ports are exposed directly on the host without translation",
+          "distractor_2": "`overlay` — used for multi-host networking; exposes container ports on the host's interfaces by routing across nodes",
+          "distractor_3": "`none` — disables the container's network namespace, falling back to the host's stack for all traffic"
+        },
+        "explanation": "`host` mode skips container network isolation entirely — container port 8080 is host port 8080, no `-p` mapping. Distractor 1 (bridge) is the default but uses NAT/port mapping. Distractor 2 (overlay) is for swarm-style multi-host networking and doesn't directly share the host's stack. Distractor 3 inverts none mode — none disables networking entirely, doesn't fall back to host. Host mode is faster but loses isolation, often used for performance-sensitive monitoring/proxy workloads."
+      },
+      "after": {
+        "question": "An engineer wants a container's ports to appear directly on the host's network interfaces, with no NAT and no separate port-publishing step. Which Docker network mode does that?",
+        "options": {
+          "correct": "`host` — the container uses the host's network stack directly with no NAT or port mapping",
+          "distractor_1": "`bridge` — the default network mode in which container ports are exposed directly on the host without translation",
+          "distractor_2": "`overlay` — used for multi-host networking; exposes container ports on the host's interfaces by routing across nodes",
+          "distractor_3": "`none` — disables the container's network namespace, falling back to the host's stack for all traffic"
+        },
+        "explanation": "`host` mode skips container network isolation entirely — container port 8080 is host port 8080, no `-p` mapping. Distractor 1 (bridge) is the default but uses NAT/port mapping. Distractor 2 (overlay) is for swarm-style multi-host networking and doesn't directly share the host's stack. Distractor 3 inverts none mode — none disables networking entirely, doesn't fall back to host. Host mode is faster but loses isolation, often used for performance-sensitive monitoring/proxy workloads."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks bridge (the default) exposes ports without translation"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks overlay puts container ports on host interfaces"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks none falls back to the host stack"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null,
+      "stem_wording_note": "Reworded from \"port-translation layer\" to \"no separate port-publishing step\" (Docker's standard verb is publish) so the stem reads as plain description, not coined vocabulary (Stephen check 2026-06-03). Options untouched."
+    },
+    {
+      "mcq_id": "docker-006-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "provisional": false,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Two containers on the default `bridge` network try to reach each other by container name. What happens?",
+        "options": {
+          "correct": "DNS resolution by container name fails on the default bridge network — name-based discovery only works on user-defined networks",
+          "distractor_1": "Container name resolution works because Docker registers all containers in a global DNS pool regardless of network",
+          "distractor_2": "Container name resolution works only when both containers are started with `--link` flags pointing at each other",
+          "distractor_3": "Container name resolution fails because containers must be in the same compose project to share DNS"
+        },
+        "explanation": "The default `bridge` network is a legacy mode without embedded DNS — containers can reach each other by IP but not by name. User-defined networks (created with `docker network create`) include DNS-based name resolution natively. Distractor 1 over-states default behaviour. Distractor 2 (--link) is the very-old way that's been deprecated; user-defined networks replaced it. Distractor 3 misattributes the requirement to compose projects; it's the network type that matters."
+      },
+      "after": {
+        "question": "An engineer starts two containers on the default `bridge` network, and they try to reach each other by container name. What happens?",
+        "options": {
+          "correct": "DNS resolution by container name fails on the default bridge network — name-based discovery only works on user-defined networks",
+          "distractor_1": "Container name resolution works because Docker registers all containers in a global DNS pool regardless of network",
+          "distractor_2": "Container name resolution works only when both containers are started with `--link` flags pointing at each other",
+          "distractor_3": "Container name resolution fails because containers must be in the same compose project to share DNS"
+        },
+        "explanation": "The default `bridge` network is a legacy mode without embedded DNS — containers can reach each other by IP but not by name. User-defined networks (created with `docker network create`) include DNS-based name resolution natively. Distractor 1 over-states default behaviour. Distractor 2 (--link) is the very-old way that's been deprecated; user-defined networks replaced it. Distractor 3 misattributes the requirement to compose projects; it's the network type that matters."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate believes Docker keeps a global DNS pool for all containers"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks --link is what enables name resolution"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks shared compose project is required for DNS on default bridge"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "docker-007-mcq-1",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "recall_bucket": 2,
+      "triaged_at_readback": true,
+      "change_summary": "Tier-3 rewrite dropout (compare/definition-pair signature) — triaged at read-back, NOT authored as Tier-1; bank stem unchanged",
+      "before": {
+        "question": "Compare named volumes and bind mounts in Docker.",
+        "options": {
+          "correct": "Bind mounts couple the container directory to a specific host path; named volumes are Docker-managed and portable across hosts running the same Docker daemon setup",
+          "distractor_1": "Bind mounts persist across container restarts; named volumes are ephemeral and are deleted when the container stops",
+          "distractor_2": "Bind mounts and named volumes behave identically; the syntax difference is purely cosmetic for readability of docker run commands",
+          "distractor_3": "Bind mounts are read-only by default; named volumes are read-write by default"
+        },
+        "explanation": "The portability difference is the practical one: a bind mount embeds `/home/dev/data` (works on dev's laptop, doesn't on a Pi); a named volume is an abstraction Docker manages, portable wherever Docker runs. Distractor 1 inverts persistence (named volumes are persistent; bind mounts persist as long as the host path persists). Distractor 2 collapses real differences. Distractor 3 invents a read-only default that doesn't apply to either type. Bind mounts shine for dev environments; named volumes shine for portability and lifecycle management."
+      },
+      "after": {
+        "question": "Compare named volumes and bind mounts in Docker.",
+        "options": {
+          "correct": "Bind mounts couple the container directory to a specific host path; named volumes are Docker-managed and portable across hosts running the same Docker daemon setup",
+          "distractor_1": "Bind mounts persist across container restarts; named volumes are ephemeral and are deleted when the container stops",
+          "distractor_2": "Bind mounts and named volumes behave identically; the syntax difference is purely cosmetic for readability of docker run commands",
+          "distractor_3": "Bind mounts are read-only by default; named volumes are read-write by default"
+        },
+        "explanation": "The portability difference is the practical one: a bind mount embeds `/home/dev/data` (works on dev's laptop, doesn't on a Pi); a named volume is an abstraction Docker manages, portable wherever Docker runs. Distractor 1 inverts persistence (named volumes are persistent; bind mounts persist as long as the host path persists). Distractor 2 collapses real differences. Distractor 3 invents a read-only default that doesn't apply to either type. Bind mounts shine for dev environments; named volumes shine for portability and lifecycle management."
+      },
+      "distractor_self_check": [],
+      "dropped_to_tier3": true,
+      "drop_reason": "Bucket 2 / Tier-3, triaged at read-back (Stephen 2026-06-03). cicd-001/tf-012 signature: 'Compare named volumes and bind mounts' + definition-pair options (each defines both). Same shape as tf-012."
+    },
+    {
+      "mcq_id": "docker-007-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "provisional": false,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "When is `tmpfs` mount the right choice for a container?",
+        "options": {
+          "correct": "When you need fast, ephemeral storage that doesn't persist after the container stops — useful for secrets, scratch space, or sensitive temp files",
+          "distractor_1": "When you need persistent storage that survives container restarts but doesn't need to be backed up to disk",
+          "distractor_2": "When the host disk is full and you need to redirect container writes to network-attached storage transparently",
+          "distractor_3": "When you need cross-container shared storage; tmpfs is the only mount type that supports multiple containers reading from one source"
+        },
+        "explanation": "tmpfs lives in RAM, dies with the container — perfect for secrets at runtime (never hit disk) or fast scratch space. Distractor 1 inverts persistence (tmpfs is by definition non-persistent). Distractor 2 invents a network-attached fallback. Distractor 3 confuses tmpfs with shared volumes (tmpfs is single-container; volumes can be shared). The 'secrets at runtime' use case is the most common production reason to reach for tmpfs."
+      },
+      "after": {
+        "question": "An engineer needs fast scratch space for sensitive temp files that must not persist after the container stops. When is a `tmpfs` mount the right choice?",
+        "options": {
+          "correct": "When you need fast, ephemeral storage that doesn't persist after the container stops — useful for secrets, scratch space, or sensitive temp files",
+          "distractor_1": "When you need persistent storage that survives container restarts but doesn't need to be backed up to disk",
+          "distractor_2": "When the host disk is full and you need to redirect container writes to network-attached storage transparently",
+          "distractor_3": "When you need cross-container shared storage; tmpfs is the only mount type that supports multiple containers reading from one source"
+        },
+        "explanation": "tmpfs lives in RAM, dies with the container — perfect for secrets at runtime (never hit disk) or fast scratch space. Distractor 1 inverts persistence (tmpfs is by definition non-persistent). Distractor 2 invents a network-attached fallback. Distractor 3 confuses tmpfs with shared volumes (tmpfs is single-container; volumes can be shared). The 'secrets at runtime' use case is the most common production reason to reach for tmpfs."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks tmpfs persists across restarts"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks tmpfs redirects writes to NAS when disk is full"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks tmpfs is for cross-container shared storage"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "docker-008-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "provisional": false,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "What's the recommended scope for Docker Compose?",
+        "options": {
+          "correct": "Local development and simple single-host deployments — Compose orchestrates multiple containers on one host with no clustering",
+          "distractor_1": "Production multi-host clusters at any scale — Compose is the cluster scheduler that replaced Docker Swarm in 2022",
+          "distractor_2": "Standalone development only — Compose cannot deploy to remote hosts and isn't suitable for any kind of production use",
+          "distractor_3": "Single-container deployments — Compose is the modern replacement for `docker run` with friendlier YAML configuration"
+        },
+        "explanation": "Compose is single-host, multi-container — perfect for local dev stacks (app + db + cache) and small production deployments where one host is enough. Distractor 1 over-extends Compose to clustering territory it doesn't occupy (Kubernetes/Nomad do that). Distractor 2 under-states Compose; small production deployments on a single host are fine. Distractor 3 misframes Compose as a single-container tool — its whole point is multi-container coordination."
+      },
+      "after": {
+        "question": "An engineer wants to know whether Docker Compose is appropriate for a production multi-host cluster. What's the recommended scope for Docker Compose?",
+        "options": {
+          "correct": "Local development and simple single-host deployments — Compose orchestrates multiple containers on one host with no clustering",
+          "distractor_1": "Production multi-host clusters at any scale — Compose is the cluster scheduler that replaced Docker Swarm in 2022",
+          "distractor_2": "Standalone development only — Compose cannot deploy to remote hosts and isn't suitable for any kind of production use",
+          "distractor_3": "Single-container deployments — Compose is the modern replacement for `docker run` with friendlier YAML configuration"
+        },
+        "explanation": "Compose is single-host, multi-container — perfect for local dev stacks (app + db + cache) and small production deployments where one host is enough. Distractor 1 over-extends Compose to clustering territory it doesn't occupy (Kubernetes/Nomad do that). Distractor 2 under-states Compose; small production deployments on a single host are fine. Distractor 3 misframes Compose as a single-container tool — its whole point is multi-container coordination."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks Compose became a cluster scheduler replacing Swarm"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks Compose is dev-only and can't do any single-host deploy"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks Compose is just a friendlier single-container docker run"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "docker-008-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "provisional": false,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "In a Docker Compose file, `depends_on: db` says what?",
+        "options": {
+          "correct": "Start the dependent service after `db` has been started (started, not yet healthy) — useful for ordering but not for guaranteeing the db is ready",
+          "distractor_1": "Wait until the `db` container is fully healthy (according to its healthcheck) before starting the dependent service",
+          "distractor_2": "Build the `db` image before building the dependent service's image; networking is unaffected",
+          "distractor_3": "Restart the dependent service automatically if `db` ever crashes during runtime, treating db as a hard dependency"
+        },
+        "explanation": "Basic `depends_on` is start-order only — the db container has been started, but the database process inside may still be initialising. To wait for actual readiness, use `depends_on: db: condition: service_healthy` with a healthcheck on db. Distractor 1 describes the healthy-condition form, which isn't the default. Distractor 2 confuses runtime ordering with build ordering. Distractor 3 invents a restart-cascade behaviour that doesn't exist."
+      },
+      "after": {
+        "question": "An engineer adds `depends_on: db` to a Compose service expecting the database to be ready before the app starts. What does `depends_on: db` actually say?",
+        "options": {
+          "correct": "Start the dependent service after `db` has been started (started, not yet healthy) — useful for ordering but not for guaranteeing the db is ready",
+          "distractor_1": "Wait until the `db` container is fully healthy (according to its healthcheck) before starting the dependent service",
+          "distractor_2": "Build the `db` image before building the dependent service's image; networking is unaffected",
+          "distractor_3": "Restart the dependent service automatically if `db` ever crashes during runtime, treating db as a hard dependency"
+        },
+        "explanation": "Basic `depends_on` is start-order only — the db container has been started, but the database process inside may still be initialising. To wait for actual readiness, use `depends_on: db: condition: service_healthy` with a healthcheck on db. Distractor 1 describes the healthy-condition form, which isn't the default. Distractor 2 confuses runtime ordering with build ordering. Distractor 3 invents a restart-cascade behaviour that doesn't exist."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks depends_on waits for healthcheck readiness"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks depends_on controls image build order"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks depends_on adds runtime restart-on-crash coupling"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "docker-009-mcq-1",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "provisional": false,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "How do you authenticate `docker push` to a private ECR repository?",
+        "options": {
+          "correct": "`aws ecr get-login-password | docker login --username AWS --password-stdin <account>.dkr.ecr.<region>.amazonaws.com` — generates a 12-hour token",
+          "distractor_1": "`docker login --username ECR_USER --password $ECR_PASSWORD <registry>` using a static long-lived password stored in IAM",
+          "distractor_2": "ECR doesn't require explicit login when called from an EC2 instance with an attached IAM role; the docker CLI auto-authenticates via IMDS",
+          "distractor_3": "`docker login` is not used with ECR; instead, `aws ecr push` uploads images directly using the AWS CLI"
+        },
+        "explanation": "ECR uses temporary tokens via STS — `get-login-password` returns a 12-hour bearer token that docker login then exchanges for daemon credentials. Distractor 1 invents a long-lived ECR password. Distractor 2 over-states implicit behaviour — docker doesn't auto-authenticate; the ecr-login credential helper exists for this but isn't the default. Distractor 3 invents an `aws ecr push` subcommand. The credential helper (amazon-ecr-credential-helper) is the production setup, but the explicit get-login-password is what every interview question is testing."
+      },
+      "after": {
+        "question": "An engineer needs to `docker push` an image to a private ECR repository and must authenticate first. How do you authenticate?",
+        "options": {
+          "correct": "`aws ecr get-login-password | docker login --username AWS --password-stdin <account>.dkr.ecr.<region>.amazonaws.com` — generates a 12-hour token",
+          "distractor_1": "`docker login --username ECR_USER --password $ECR_PASSWORD <registry>` using a static long-lived password stored in IAM",
+          "distractor_2": "ECR doesn't require explicit login when called from an EC2 instance with an attached IAM role; the docker CLI auto-authenticates via IMDS",
+          "distractor_3": "`docker login` is not used with ECR; instead, `aws ecr push` uploads images directly using the AWS CLI"
+        },
+        "explanation": "ECR uses temporary tokens via STS — `get-login-password` returns a 12-hour bearer token that docker login then exchanges for daemon credentials. Distractor 1 invents a long-lived ECR password. Distractor 2 over-states implicit behaviour — docker doesn't auto-authenticate; the ecr-login credential helper exists for this but isn't the default. Distractor 3 invents an `aws ecr push` subcommand. The credential helper (amazon-ecr-credential-helper) is the production setup, but the explicit get-login-password is what every interview question is testing."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a static long-lived ECR password stored in IAM"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks an instance IAM role auto-authenticates the docker CLI via IMDS"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents an `aws ecr push` command that bypasses docker login"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "git-001-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "provisional": true,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged — PROVISIONAL, superlative-judgment ruling pending",
+      "before": {
+        "question": "Which is the strongest reason to prefer `git merge` over `git rebase` when integrating a feature branch?",
+        "options": {
+          "correct": "Merge preserves the actual history of when changes happened, which is valuable for archaeology and debugging long after the merge",
+          "distractor_1": "Merge is faster than rebase on large repositories because rebase rewrites every commit individually",
+          "distractor_2": "Merge avoids creating new commit SHAs for existing commits, which makes rebase impossible to use in CI/CD pipelines",
+          "distractor_3": "Merge is the only way to combine two branches; rebase merely moves commits between branches without combining their changes into the target branch's history"
+        },
+        "explanation": "Merge preserves the actual integration story — when each branch's commits were made, who was working in parallel, the genuine concurrent history. Rebase creates a clean linear story at the cost of historical accuracy. Distractor 1 (speed) is a wash and not the main reason. Distractor 2 misstates rebase's effect on CI; rebased branches go through CI normally. Distractor 3 misframes rebase as not combining — rebase does integrate the work, just by re-applying rather than merging."
+      },
+      "after": {
+        "question": "An engineer is integrating a feature branch into `main` and is weighing `git merge` against `git rebase`. Which is the strongest reason to prefer `git merge`?",
+        "options": {
+          "correct": "Merge preserves the actual history of when changes happened, which is valuable for archaeology and debugging long after the merge",
+          "distractor_1": "Merge is faster than rebase on large repositories because rebase rewrites every commit individually",
+          "distractor_2": "Merge avoids creating new commit SHAs for existing commits, which makes rebase impossible to use in CI/CD pipelines",
+          "distractor_3": "Merge is the only way to combine two branches; rebase merely moves commits between branches without combining their changes into the target branch's history"
+        },
+        "explanation": "Merge preserves the actual integration story — when each branch's commits were made, who was working in parallel, the genuine concurrent history. Rebase creates a clean linear story at the cost of historical accuracy. Distractor 1 (speed) is a wash and not the main reason. Distractor 2 misstates rebase's effect on CI; rebased branches go through CI normally. Distractor 3 misframes rebase as not combining — rebase does integrate the work, just by re-applying rather than merging."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate believes merge is faster than rebase on large repos"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents that rebase's new SHAs make it unusable in CI/CD"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks merge is the only way to truly combine branches"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "git-001-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "provisional": false,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Why is rebasing a published branch (one others have pulled) considered dangerous?",
+        "options": {
+          "correct": "Rebase rewrites commit SHAs; once others have based work on the old SHAs, the rewrite creates two divergent histories that have to be reconciled by force",
+          "distractor_1": "Rebase corrupts the local Git database when applied to remote branches; the rebased branch becomes unfetchable to others",
+          "distractor_2": "Rebase loses commit timestamps; the rebased history appears to be the same author timestamp on every commit",
+          "distractor_3": "Rebase requires GitHub admin privileges when applied to remote branches; non-admins cannot push the result back"
+        },
+        "explanation": "Rewriting history that others have pulled creates a fork: their local branch has the old SHAs, yours has new ones. Pushing the rebase requires --force, and they then have to choose between losing their work and reconciling manually. Distractor 1 fabricates database corruption. Distractor 2 misstates timestamp handling — rebase preserves author timestamps (committer timestamps update). Distractor 3 invents an admin-privilege gate. The rule of thumb: never rebase shared branches."
+      },
+      "after": {
+        "question": "An engineer rebased a branch that teammates had already pulled, then force-pushed. Why is rebasing a published branch considered dangerous?",
+        "options": {
+          "correct": "Rebase rewrites commit SHAs; once others have based work on the old SHAs, the rewrite creates two divergent histories that have to be reconciled by force",
+          "distractor_1": "Rebase corrupts the local Git database when applied to remote branches; the rebased branch becomes unfetchable to others",
+          "distractor_2": "Rebase loses commit timestamps; the rebased history appears to be the same author timestamp on every commit",
+          "distractor_3": "Rebase requires GitHub admin privileges when applied to remote branches; non-admins cannot push the result back"
+        },
+        "explanation": "Rewriting history that others have pulled creates a fork: their local branch has the old SHAs, yours has new ones. Pushing the rebase requires --force, and they then have to choose between losing their work and reconciling manually. Distractor 1 fabricates database corruption. Distractor 2 misstates timestamp handling — rebase preserves author timestamps (committer timestamps update). Distractor 3 invents an admin-privilege gate. The rule of thumb: never rebase shared branches."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents Git-database corruption from rebasing remote branches"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate fixates on lost timestamps rather than divergent histories"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a GitHub-admin-privilege requirement for rebasing remotes"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "git-002-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "provisional": false,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Which branch protection rule combination is the strongest baseline for a production `main` branch?",
+        "options": {
+          "correct": "Require pull request reviews, require status checks to pass, restrict force pushes, and require linear history (or signed commits) for tighter auditability",
+          "distractor_1": "Require pull request reviews and allow administrators to bypass them — admins need bypass for emergency hotfixes",
+          "distractor_2": "Allow force pushes from CI service accounts so deployment pipelines can rewrite history when promoting commits to main",
+          "distractor_3": "Disable all branch protections during incidents to allow direct commits, then re-enable them after the incident is resolved"
+        },
+        "explanation": "Reviews + status checks + no force push + linear history is the standard production baseline. Distractor 1 (admin bypass) creates a gap large enough to be the actual breach path. Distractor 2 (CI force-push) breaks audit trail and creates the exact pattern that branch protection should prevent. Distractor 3 (disable during incidents) is the path to skipping protections that gets normalised. Defensive defaults > emergency exceptions."
+      },
+      "after": {
+        "question": "An engineer is hardening the production `main` branch and wants the strongest baseline of branch-protection rules. Which combination fits?",
+        "options": {
+          "correct": "Require pull request reviews, require status checks to pass, restrict force pushes, and require linear history (or signed commits) for tighter auditability",
+          "distractor_1": "Require pull request reviews and allow administrators to bypass them — admins need bypass for emergency hotfixes",
+          "distractor_2": "Allow force pushes from CI service accounts so deployment pipelines can rewrite history when promoting commits to main",
+          "distractor_3": "Disable all branch protections during incidents to allow direct commits, then re-enable them after the incident is resolved"
+        },
+        "explanation": "Reviews + status checks + no force push + linear history is the standard production baseline. Distractor 1 (admin bypass) creates a gap large enough to be the actual breach path. Distractor 2 (CI force-push) breaks audit trail and creates the exact pattern that branch protection should prevent. Distractor 3 (disable during incidents) is the path to skipping protections that gets normalised. Defensive defaults > emergency exceptions."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate weakens it with an admin-bypass for hotfixes"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate allows CI force-pushes to rewrite history on main"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate normalises disabling protections during incidents"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "git-002-mcq-2",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "provisional": false,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "Even with branch protection requiring reviews, what's a common bypass that often goes unnoticed?",
+        "options": {
+          "correct": "Repository admins can usually bypass protections by default — and a compromised admin account is enough to push directly to main",
+          "distractor_1": "Force pushing via GitHub's web UI bypasses branch protection because the web UI uses elevated server-side credentials",
+          "distractor_2": "Commits authored from CODEOWNERS-listed users skip review requirements automatically as a built-in convenience",
+          "distractor_3": "Tags pushed to the repository bypass branch protection because branch protection only applies to branch references and tags have a separate protection mechanism entirely"
+        },
+        "explanation": "The 'include administrators' setting on branch protection rules is opt-in — by default, admins can force-push and skip reviews. Distractor 1 fabricates a web-UI bypass; the web UI honours the same rules. Distractor 2 invents a CODEOWNERS exemption. Distractor 3 conflates branches and tags — tags have their own protection but it's separate. Including administrators in branch protection is one of the highest-leverage hardening steps in repo security."
+      },
+      "after": {
+        "question": "An engineer relies on branch protection requiring reviews on `main` but worries about an unnoticed bypass. What's a common bypass that often goes unnoticed?",
+        "options": {
+          "correct": "Repository admins can usually bypass protections by default — and a compromised admin account is enough to push directly to main",
+          "distractor_1": "Force pushing via GitHub's web UI bypasses branch protection because the web UI uses elevated server-side credentials",
+          "distractor_2": "Commits authored from CODEOWNERS-listed users skip review requirements automatically as a built-in convenience",
+          "distractor_3": "Tags pushed to the repository bypass branch protection because branch protection only applies to branch references and tags have a separate protection mechanism entirely"
+        },
+        "explanation": "The 'include administrators' setting on branch protection rules is opt-in — by default, admins can force-push and skip reviews. Distractor 1 fabricates a web-UI bypass; the web UI honours the same rules. Distractor 2 invents a CODEOWNERS exemption. Distractor 3 conflates branches and tags — tags have their own protection but it's separate. Including administrators in branch protection is one of the highest-leverage hardening steps in repo security."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a web-UI force-push elevated-credentials bypass"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks CODEOWNERS users auto-skip review"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a separate tag-protection escape from branch protection"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "git-003-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "recall_bucket": 2,
+      "triaged_at_readback": true,
+      "change_summary": "Tier-3 rewrite dropout (compare/definition-pair signature) — triaged at read-back, NOT authored as Tier-1; bank stem unchanged",
+      "before": {
+        "question": "What's the difference between `git clone` and a GitHub fork?",
+        "options": {
+          "correct": "Clone is a git-native command that copies a repo to your local machine; fork is a GitHub feature that creates a server-side copy under your account",
+          "distractor_1": "Clone copies only the latest commit; fork copies the full history including all branches and tags",
+          "distractor_2": "Clone makes a read-only copy; fork makes a writeable copy that allows pull requests back to the original repo",
+          "distractor_3": "Clone and fork are the same operation under different names; GitHub uses 'fork' as the user-facing term for cloning"
+        },
+        "explanation": "Clone is git-native (any remote, downloads to your disk). Fork is GitHub-specific (creates a server-side copy in your namespace, then you typically clone from there). Distractor 1 misstates clone's depth — full history by default; shallow clone is an option. Distractor 2 inverts read/write — both can be writeable; permissions depend on the remote, not on clone vs fork. Distractor 3 collapses two distinct operations into one."
+      },
+      "after": {
+        "question": "What's the difference between `git clone` and a GitHub fork?",
+        "options": {
+          "correct": "Clone is a git-native command that copies a repo to your local machine; fork is a GitHub feature that creates a server-side copy under your account",
+          "distractor_1": "Clone copies only the latest commit; fork copies the full history including all branches and tags",
+          "distractor_2": "Clone makes a read-only copy; fork makes a writeable copy that allows pull requests back to the original repo",
+          "distractor_3": "Clone and fork are the same operation under different names; GitHub uses 'fork' as the user-facing term for cloning"
+        },
+        "explanation": "Clone is git-native (any remote, downloads to your disk). Fork is GitHub-specific (creates a server-side copy in your namespace, then you typically clone from there). Distractor 1 misstates clone's depth — full history by default; shallow clone is an option. Distractor 2 inverts read/write — both can be writeable; permissions depend on the remote, not on clone vs fork. Distractor 3 collapses two distinct operations into one."
+      },
+      "distractor_self_check": [],
+      "dropped_to_tier3": true,
+      "drop_reason": "Bucket 2 / Tier-3, triaged at read-back (Stephen 2026-06-03). cicd-001/tf-012 signature: 'What's the difference between git clone and a GitHub fork' + definition-pair options (each defines both). Exact cicd-001 signature."
+    },
+    {
+      "mcq_id": "git-004-mcq-1",
+      "source_bank": 2,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "provisional": false,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "How does `git bisect` work?",
+        "options": {
+          "correct": "Binary search over commit history: you mark a known-good and known-bad commit, then iteratively test the midpoint until git narrows it to the single bad commit",
+          "distractor_1": "Linear search over commit history: git checks each commit from oldest to newest and reports the first one that fails the test command",
+          "distractor_2": "AI-driven search: git uses commit-message analysis to guess which commits are likely to contain the bug and tests those first",
+          "distractor_3": "Parallel search: git tests every commit in the range simultaneously across multiple worktrees and reports all bad ones together"
+        },
+        "explanation": "Bisect's binary search makes it O(log n) — for 1000 commits, that's ~10 tests instead of 1000. Pair it with a test command (`git bisect run ./test.sh`) and it's fully automatic. Distractor 1 (linear search) would be impractical for any non-trivial history. Distractor 2 fabricates AI ranking. Distractor 3 fabricates parallel testing; bisect is strictly sequential because it uses results to pick the next midpoint."
+      },
+      "after": {
+        "question": "An engineer needs to find which of several hundred commits introduced a regression. How does `git bisect` work?",
+        "options": {
+          "correct": "Binary search over commit history: you mark a known-good and known-bad commit, then iteratively test the midpoint until git narrows it to the single bad commit",
+          "distractor_1": "Linear search over commit history: git checks each commit from oldest to newest and reports the first one that fails the test command",
+          "distractor_2": "AI-driven search: git uses commit-message analysis to guess which commits are likely to contain the bug and tests those first",
+          "distractor_3": "Parallel search: git tests every commit in the range simultaneously across multiple worktrees and reports all bad ones together"
+        },
+        "explanation": "Bisect's binary search makes it O(log n) — for 1000 commits, that's ~10 tests instead of 1000. Pair it with a test command (`git bisect run ./test.sh`) and it's fully automatic. Distractor 1 (linear search) would be impractical for any non-trivial history. Distractor 2 fabricates AI ranking. Distractor 3 fabricates parallel testing; bisect is strictly sequential because it uses results to pick the next midpoint."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks bisect is a linear oldest-to-newest scan"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents AI/commit-message-driven guessing"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents parallel testing across worktrees"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "git-004-mcq-2",
+      "source_bank": 3,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "provisional": false,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "What does `git blame` actually show?",
+        "options": {
+          "correct": "For each line, the commit that LAST touched it — not the original author or the full chain of edits, just the most recent change",
+          "distractor_1": "For each line, the original author who first added it — historical commits remain visible regardless of later edits",
+          "distractor_2": "For each line, every commit that ever modified it, with the most recent change at the top of a per-line stack",
+          "distractor_3": "For each line, the commit that introduced the line's current bug, identified by static analysis of the line's edit history and weighted by commit timestamp recency"
+        },
+        "explanation": "blame shows the most-recent-edit view, which is sometimes counterintuitive: trivial changes (formatting, comment edits) can mask the historical author of the code. To trace further, use `git log -L :<func>:<file>` or `git log -p` of the line range. Distractor 1 misstates blame's semantics — original author is invisible without `--show-root`. Distractor 2 invents a stack-of-edits view. Distractor 3 fabricates bug-identifying analysis."
+      },
+      "after": {
+        "question": "An engineer runs `git blame` on a file to understand a line's history. What does `git blame` actually show?",
+        "options": {
+          "correct": "For each line, the commit that LAST touched it — not the original author or the full chain of edits, just the most recent change",
+          "distractor_1": "For each line, the original author who first added it — historical commits remain visible regardless of later edits",
+          "distractor_2": "For each line, every commit that ever modified it, with the most recent change at the top of a per-line stack",
+          "distractor_3": "For each line, the commit that introduced the line's current bug, identified by static analysis of the line's edit history and weighted by commit timestamp recency"
+        },
+        "explanation": "blame shows the most-recent-edit view, which is sometimes counterintuitive: trivial changes (formatting, comment edits) can mask the historical author of the code. To trace further, use `git log -L :<func>:<file>` or `git log -p` of the line range. Distractor 1 misstates blame's semantics — original author is invisible without `--show-root`. Distractor 2 invents a stack-of-edits view. Distractor 3 fabricates bug-identifying analysis."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks blame shows the original author, not the last change"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks blame shows every commit that touched the line"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents static-analysis bug attribution"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    },
+    {
+      "mcq_id": "git-005-mcq-1",
+      "source_bank": 1,
+      "tier_applied": 1,
+      "recall_bucket": 1,
+      "provisional": false,
+      "change_summary": "stem reframed from definition to scenario (recognised actor marker); options and explanation unchanged",
+      "before": {
+        "question": "What does the conflict marker `<<<<<<<` `=======` `>>>>>>>` mean in a file during a merge?",
+        "options": {
+          "correct": "Content above `=======` is from HEAD (your current branch); content below is from the branch being merged in; markers must be removed and the file edited to resolve",
+          "distractor_1": "Content above `=======` is the older version; content below is the newer version regardless of branch direction",
+          "distractor_2": "Content above `=======` is the change being merged in; content below is HEAD — opposite order from rebase",
+          "distractor_3": "Content above `=======` is read-only and reflects the lockfile state; content below is the editor's working copy"
+        },
+        "explanation": "Standard conflict format: `<<<<<<< HEAD` to `=======` is your side, `=======` to `>>>>>>> branch-name` is theirs. Three-way merges add `|||||||` showing the common ancestor too. Distractor 1 (older/newer) ignores branch direction. Distractor 2 reverses the convention. Distractor 3 invents a lockfile/working-copy semantics. Knowing the layout is muscle memory for any production code reviewer."
+      },
+      "after": {
+        "question": "An engineer opens a file mid-merge and sees `<<<<<<<`, `=======`, and `>>>>>>>` markers. What do they mean?",
+        "options": {
+          "correct": "Content above `=======` is from HEAD (your current branch); content below is from the branch being merged in; markers must be removed and the file edited to resolve",
+          "distractor_1": "Content above `=======` is the older version; content below is the newer version regardless of branch direction",
+          "distractor_2": "Content above `=======` is the change being merged in; content below is HEAD — opposite order from rebase",
+          "distractor_3": "Content above `=======` is read-only and reflects the lockfile state; content below is the editor's working copy"
+        },
+        "explanation": "Standard conflict format: `<<<<<<< HEAD` to `=======` is your side, `=======` to `>>>>>>> branch-name` is theirs. Three-way merges add `|||||||` showing the common ancestor too. Distractor 1 (older/newer) ignores branch direction. Distractor 2 reverses the convention. Distractor 3 invents a lockfile/working-copy semantics. Knowing the layout is muscle memory for any production code reviewer."
+      },
+      "distractor_self_check": [
+        {
+          "key": "distractor_1",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate thinks it's older-vs-newer regardless of branch"
+        },
+        {
+          "key": "distractor_2",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate inverts HEAD/incoming order"
+        },
+        {
+          "key": "distractor_3",
+          "touched": false,
+          "still_fits_new_stem": true,
+          "real_misconception": "candidate invents a lockfile/working-copy meaning"
+        }
+      ],
+      "dropped_to_tier3": false,
+      "drop_reason": null
+    }
+  ]
+}

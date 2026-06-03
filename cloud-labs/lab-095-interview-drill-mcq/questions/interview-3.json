@@ -518,7 +518,7 @@
     "subdomain": "images",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "Which BuildKit feature lets you share a directory between build runs without baking it into the final image?",
+    "question": "An engineer wants pip's download cache to persist across Docker builds without ending up in the final image. Which BuildKit feature does this?",
     "options": {
       "correct": "`RUN --mount=type=cache,target=...` \u2014 caches like `~/.npm` or `~/.cache/pip` persist across builds without ending up in image layers",
       "distractor_1": "`RUN --persist=true` \u2014 instructs Docker to retain the directory in subsequent builds while excluding it from the final image",
@@ -534,7 +534,7 @@
     "subdomain": "networking",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "Two containers on the default `bridge` network try to reach each other by container name. What happens?",
+    "question": "An engineer starts two containers on the default `bridge` network, and they try to reach each other by container name. What happens?",
     "options": {
       "correct": "DNS resolution by container name fails on the default bridge network \u2014 name-based discovery only works on user-defined networks",
       "distractor_1": "Container name resolution works because Docker registers all containers in a global DNS pool regardless of network",
@@ -550,7 +550,7 @@
     "subdomain": "storage",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "When is `tmpfs` mount the right choice for a container?",
+    "question": "An engineer needs fast scratch space for sensitive temp files that must not persist after the container stops. When is a `tmpfs` mount the right choice?",
     "options": {
       "correct": "When you need fast, ephemeral storage that doesn't persist after the container stops \u2014 useful for secrets, scratch space, or sensitive temp files",
       "distractor_1": "When you need persistent storage that survives container restarts but doesn't need to be backed up to disk",
@@ -566,7 +566,7 @@
     "subdomain": "compose",
     "priority": "medium",
     "difficulty": "easy",
-    "question": "In a Docker Compose file, `depends_on: db` says what?",
+    "question": "An engineer adds `depends_on: db` to a Compose service expecting the database to be ready before the app starts. What does `depends_on: db` actually say?",
     "options": {
       "correct": "Start the dependent service after `db` has been started (started, not yet healthy) \u2014 useful for ordering but not for guaranteeing the db is ready",
       "distractor_1": "Wait until the `db` container is fully healthy (according to its healthcheck) before starting the dependent service",
@@ -614,7 +614,7 @@
     "subdomain": "investigation",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "What does `git blame` actually show?",
+    "question": "An engineer runs `git blame` on a file to understand a line's history. What does `git blame` actually show?",
     "options": {
       "correct": "For each line, the commit that LAST touched it \u2014 not the original author or the full chain of edits, just the most recent change",
       "distractor_1": "For each line, the original author who first added it \u2014 historical commits remain visible regardless of later edits",

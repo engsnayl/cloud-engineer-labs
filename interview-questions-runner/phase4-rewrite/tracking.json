@@ -377,6 +377,97 @@
       "status": "pending",
       "drop_out_note": "tf-012-mcq-2 -> Bucket 2 / Tier-3 (Stephen 2026-06-03). cicd-001 signature: abstract-comparison ask (\"how does state mv differ from import\") + definition-pair options; scenario severable from option selection, answerable on recall. Bank stem reverted to original; queued for Tier-3 rewrite that rebuilds options into scenario-classifications.",
       "reconciliation": "22 slice = 21 completed (21 pure Tier-1 stem reframes) + 1 Tier-3 dropout (tf-012-mcq-2, Bucket 2) + 0 exempt. Dropout rate = 1/22 reframe-attempts = 4.55%. Options + explanation byte-identical before<->after on the 21 applied."
+    },
+    {
+      "batch_id": "T1.5",
+      "tier": 1,
+      "domain_slice": "docker+git",
+      "mcq_ids_attempted": [
+        "docker-001-mcq-2",
+        "docker-002-mcq-1",
+        "docker-003-mcq-1",
+        "docker-004-mcq-1",
+        "docker-005-mcq-2",
+        "docker-006-mcq-1",
+        "docker-006-mcq-2",
+        "docker-007-mcq-2",
+        "docker-008-mcq-1",
+        "docker-008-mcq-2",
+        "docker-009-mcq-1",
+        "git-001-mcq-1",
+        "git-001-mcq-2",
+        "git-002-mcq-1",
+        "git-002-mcq-2",
+        "git-004-mcq-1",
+        "git-004-mcq-2",
+        "git-005-mcq-1"
+      ],
+      "slice_total": 21,
+      "pilot_dupe_preflight": "0 byte-identical-to-pilot in slice (no docker/git pilot exemplars exist)",
+      "new_triage_step_applied": "compare/definition-pair pre-flag at read-back (Stephen 2026-06-03): 3 routed straight to Tier-3 without authoring.",
+      "recall_three_way_split": {
+        "bucket1_tier1_reframe": [
+          "docker-001-mcq-2",
+          "docker-002-mcq-1",
+          "docker-003-mcq-1",
+          "docker-004-mcq-1",
+          "docker-005-mcq-2",
+          "docker-006-mcq-1",
+          "docker-006-mcq-2",
+          "docker-007-mcq-2",
+          "docker-008-mcq-1",
+          "docker-008-mcq-2",
+          "docker-009-mcq-1",
+          "git-001-mcq-1",
+          "git-001-mcq-2",
+          "git-002-mcq-1",
+          "git-002-mcq-2",
+          "git-004-mcq-1",
+          "git-004-mcq-2",
+          "git-005-mcq-1"
+        ],
+        "bucket2_tier3_triaged_at_readback": [
+          "docker-001-mcq-1",
+          "docker-007-mcq-1",
+          "git-003-mcq-1"
+        ],
+        "bucket3_intentional_recall_exempt": []
+      },
+      "reframe_attempted": 18,
+      "mcqs_completed": 18,
+      "mcqs_completed_status": "FINAL — git-001-mcq-1 confirmed Tier-1 by Stephen (2026-06-03). T1.5 = 18 reframes + 3 triaged-to-Tier-3.",
+      "completed_breakdown": {
+        "tier1_pure_stem_reframe": 18,
+        "tier1_5_stem_reframe_plus_option_microedit": 0
+      },
+      "mcqs_dropped_to_tier3": 3,
+      "drop_out_ids": [
+        "docker-001-mcq-1",
+        "docker-007-mcq-1",
+        "git-003-mcq-1"
+      ],
+      "drop_out_subcount": {
+        "triaged_at_readback": [
+          "docker-001-mcq-1",
+          "docker-007-mcq-1",
+          "git-003-mcq-1"
+        ],
+        "authored_then_dropped": []
+      },
+      "provisional_item": {
+        "id": "git-001-mcq-1",
+        "status": "Tier-1 CONFIRMED (Stephen 2026-06-03)"
+      },
+      "distractor_self_check_records": 54,
+      "fabrications_caught_at_selfreview": 0,
+      "audit_reflag_ids_after_batch": [],
+      "validate_mcqs_status": "pass",
+      "drift_status": "PASS (touched_count=18, no still-flagged, no regressions)",
+      "checkpoint_date": "2026-06-03",
+      "status": "approved",
+      "stem_wording_fixes": [
+        "docker-006-mcq-1: \"port-translation layer\" -> \"no separate port-publishing step\" (standard Docker phrasing); options untouched."
+      ]
     }
   ],
   "borderline_approved": [
@@ -394,6 +485,13 @@
       "from_tier": "T1.2",
       "reason": "'Env vars are limited to 32 entries per pod' — specific fabricated number (Stephen 2026-06-02, same class as Istio-450ms). Replace with a real env-var-discovery misconception. Stem already reframed in T1.2 (D resolved); flagged-mcqs.json reclassified D_definition -> A_fabricated so T2.1's query picks it up.",
       "note": "Widens T2.1 beyond the original 11 A-only MCQs (in addition to the 12 rebaseline fabrications already noted)."
+    },
+    {
+      "id": "git-001-mcq-1",
+      "from_tier": "T1.5",
+      "distractor": "distractor_2 (and review all three)",
+      "reason": "All three distractors are false, so \"strongest reason\" over-promises and distractor_2 (\"rebase impossible in CI/CD\") is filler. Tier-2 distractor-strengthening: replace with a real-but-weaker legitimate reason (e.g. linear history / fewer integration points) so \"strongest\" becomes load-bearing.",
+      "note": "Stephen 2026-06-03. No action now; first-class Tier-2 distractor-review candidate. Stem stays as the confirmed Tier-1 reframe."
     }
   ],
   "heuristic_fp_classes": {
@@ -423,40 +521,78 @@
     {
       "id": "aws-021-mcq-1",
       "from_tier": "T1.1",
-      "work": "full positive reauthor ('best fit for Spot' with poor-fit distractors); 'worst candidate' = structural NOT-stem"
+      "work": "full positive reauthor ('best fit for Spot' with poor-fit distractors); 'worst candidate' = structural NOT-stem",
+      "cluster": "superlative_not_stem"
     },
     {
       "id": "k8s-020-mcq-1",
       "from_tier": "T1.2",
-      "work": "option-balance pass only — stem already reframed; rebalance one-word correct vs verbose distractors so length isn't a tell. flagged-mcqs.json reclassified D_definition -> B_structural_option_balance. NOTE: domain-based T3 query would route this to T3.1 (kubernetes); Stephen assigned it to T3.2 — honor this queue."
+      "work": "option-balance pass only — stem already reframed; rebalance one-word correct vs verbose distractors so length isn't a tell. flagged-mcqs.json reclassified D_definition -> B_structural_option_balance. NOTE: domain-based T3 query would route this to T3.1 (kubernetes); Stephen assigned it to T3.2 — honor this queue.",
+      "cluster": "option_balance"
     },
     {
       "id": "cicd-001-mcq-1",
       "from_tier": "T1.3",
       "work": "full reauthor as applied/scenario-classification — rewrite options from abstract CD-vs-CDep definition-pairs into scenario-classification choices so the manual-approval-gate setup actually pays off. Keyed answer + distractor misconceptions are sound; the inertness is in the OPTIONS, not the stem, so a mechanism-only stem reword does not fix it.",
-      "ruling": "Stephen 2026-06-02 — Tier-1 insufficient; definitional-distinction answered on recall (Chekhov-gun scenario)."
+      "ruling": "Stephen 2026-06-02 — Tier-1 insufficient; definitional-distinction answered on recall (Chekhov-gun scenario).",
+      "cluster": "compare_definition_pair"
     },
     {
       "id": "tf-012-mcq-2",
       "from_tier": "T1.4",
       "work": "full Tier-3 rewrite: rebuild the four options from comparative definition-pairs (state mv vs import) into scenario-classifications so the reasoning is load-bearing — e.g. for an already-managed resource being moved, import is the wrong tool; correct = state mv. Keep the strong move-into-module scenario as the stem.",
-      "ruling": "Stephen 2026-06-03 — Bucket 2; cicd-001 signature (abstract-comparison ask + definition-pair options, scenario severable)."
+      "ruling": "Stephen 2026-06-03 — Bucket 2; cicd-001 signature (abstract-comparison ask + definition-pair options, scenario severable).",
+      "cluster": "compare_definition_pair"
+    },
+    {
+      "id": "docker-001-mcq-1",
+      "from_tier": "T1.5",
+      "cluster": "compare_definition_pair",
+      "work": "full Tier-3 rewrite: rebuild the definition-pair options into scenario-classifications so reasoning is load-bearing.",
+      "ruling": "Stephen 2026-06-03 — triaged at read-back; compare ask (containers vs VMs isolation) + definition-pair options"
+    },
+    {
+      "id": "docker-007-mcq-1",
+      "from_tier": "T1.5",
+      "cluster": "compare_definition_pair",
+      "work": "full Tier-3 rewrite: rebuild the definition-pair options into scenario-classifications so reasoning is load-bearing.",
+      "ruling": "Stephen 2026-06-03 — triaged at read-back; Compare named volumes vs bind mounts + definition-pair options"
+    },
+    {
+      "id": "git-003-mcq-1",
+      "from_tier": "T1.5",
+      "cluster": "compare_definition_pair",
+      "work": "full Tier-3 rewrite: rebuild the definition-pair options into scenario-classifications so reasoning is load-bearing.",
+      "ruling": "Stephen 2026-06-03 — triaged at read-back; difference between git clone vs GitHub fork + definition-pair options"
     }
   ],
   "running_totals": {
-    "tier1_batches_done": 4,
-    "tier1_dropouts_to_tier3": 3,
-    "tier1_attempted_so_far": 71,
-    "tier1_reframed_so_far": 68,
-    "tier1_dropout_rate_pct": 4.23,
+    "tier1_batches_done": 5,
+    "tier1_dropouts_to_tier3": 6,
+    "tier1_attempted_so_far": 92,
+    "tier1_reframed_so_far": 86,
+    "tier1_dropout_rate_pct": 6.52,
     "tier1_5_microedits": 1,
     "pilot_fps_cleared": 3,
     "tier1_borderline_approved_at_bar": 1,
     "tier1_distractors_queued_for_tier2": 1,
-    "tier3_absorption_queue_size": 4,
+    "tier3_absorption_queue_size": 7,
     "tier2_fabrications_caught": 0,
     "tier3_full_rewrites": 0,
     "total_audit_reflags": 0,
-    "tier1_intentional_recall_exempt": 0
+    "tier1_intentional_recall_exempt": 0,
+    "tier1_complete": true,
+    "tier1_dropout_subcounts": {
+      "triaged_at_readback": 3,
+      "authored_then_dropped": 3
+    },
+    "tier1_dropout_status": "FINAL — git-001-mcq-1 confirmed Tier-1; dropout 6/92 = 6.52% (triaged 3 / authored-dropped 3).",
+    "judgment_superlative_stayed_tier1": [
+      "k8s-014-mcq-1",
+      "cicd-051-mcq-1",
+      "cicd-051-mcq-2",
+      "git-002-mcq-1",
+      "git-001-mcq-1"
+    ]
   }
 }

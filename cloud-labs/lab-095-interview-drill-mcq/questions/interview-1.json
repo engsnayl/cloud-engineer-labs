@@ -518,7 +518,7 @@
     "subdomain": "images",
     "priority": "critical",
     "difficulty": "medium",
-    "question": "Which Dockerfile pattern maximises layer cache hits across builds?",
+    "question": "An engineer notices every Docker build reinstalls all dependencies even when only the source code changed. Which Dockerfile pattern maximises layer cache hits across builds?",
     "options": {
       "correct": "Copy dependency manifests (package.json, requirements.txt) and install dependencies BEFORE copying source code, so source changes don't invalidate the deps layer",
       "distractor_1": "Copy the entire source tree first as a single COPY, then install dependencies \u2014 fewer layers means fewer cache invalidation points",
@@ -534,7 +534,7 @@
     "subdomain": "images",
     "priority": "high",
     "difficulty": "medium",
-    "question": "What problem do multi-stage Docker builds primarily solve?",
+    "question": "An engineer's production image is huge because it still ships compilers and build dependencies. What problem do multi-stage Docker builds primarily solve here?",
     "options": {
       "correct": "Keeping build-time tooling (compilers, build deps) out of the final runtime image, dramatically reducing image size",
       "distractor_1": "Parallelising the build by running multiple stages on different machines simultaneously",
@@ -550,7 +550,7 @@
     "subdomain": "images",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "Which base image choice is the most effective for shrinking a Python service's image?",
+    "question": "An engineer wants to shrink a Python service's Docker image and is weighing base-image options. Which choice is the most effective?",
     "options": {
       "correct": "Use `python:3.12-slim` (Debian minimal) or a distroless Python image; avoid `python:3.12` (full Debian) which carries unnecessary OS packages",
       "distractor_1": "Use `python:3.12-alpine`; Alpine is the smallest option and avoids the C-extension compatibility issues that plague Debian-based images for Python",
@@ -566,7 +566,7 @@
     "subdomain": "networking",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "Which Docker network mode shares the host's network namespace, so the container's port bindings appear directly on the host's interfaces?",
+    "question": "An engineer wants a container's ports to appear directly on the host's network interfaces, with no NAT and no separate port-publishing step. Which Docker network mode does that?",
     "options": {
       "correct": "`host` \u2014 the container uses the host's network stack directly with no NAT or port mapping",
       "distractor_1": "`bridge` \u2014 the default network mode in which container ports are exposed directly on the host without translation",
@@ -582,7 +582,7 @@
     "subdomain": "compose",
     "priority": "medium",
     "difficulty": "easy",
-    "question": "What's the recommended scope for Docker Compose?",
+    "question": "An engineer wants to know whether Docker Compose is appropriate for a production multi-host cluster. What's the recommended scope for Docker Compose?",
     "options": {
       "correct": "Local development and simple single-host deployments \u2014 Compose orchestrates multiple containers on one host with no clustering",
       "distractor_1": "Production multi-host clusters at any scale \u2014 Compose is the cluster scheduler that replaced Docker Swarm in 2022",
@@ -614,7 +614,7 @@
     "subdomain": "workflow",
     "priority": "high",
     "difficulty": "medium",
-    "question": "Which is the strongest reason to prefer `git merge` over `git rebase` when integrating a feature branch?",
+    "question": "An engineer is integrating a feature branch into `main` and is weighing `git merge` against `git rebase`. Which is the strongest reason to prefer `git merge`?",
     "options": {
       "correct": "Merge preserves the actual history of when changes happened, which is valuable for archaeology and debugging long after the merge",
       "distractor_1": "Merge is faster than rebase on large repositories because rebase rewrites every commit individually",
@@ -630,7 +630,7 @@
     "subdomain": "workflow",
     "priority": "medium",
     "difficulty": "easy",
-    "question": "Which branch protection rule combination is the strongest baseline for a production `main` branch?",
+    "question": "An engineer is hardening the production `main` branch and wants the strongest baseline of branch-protection rules. Which combination fits?",
     "options": {
       "correct": "Require pull request reviews, require status checks to pass, restrict force pushes, and require linear history (or signed commits) for tighter auditability",
       "distractor_1": "Require pull request reviews and allow administrators to bypass them \u2014 admins need bypass for emergency hotfixes",
@@ -662,7 +662,7 @@
     "subdomain": "workflow",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "What does the conflict marker `<<<<<<<` `=======` `>>>>>>>` mean in a file during a merge?",
+    "question": "An engineer opens a file mid-merge and sees `<<<<<<<`, `=======`, and `>>>>>>>` markers. What do they mean?",
     "options": {
       "correct": "Content above `=======` is from HEAD (your current branch); content below is from the branch being merged in; markers must be removed and the file edited to resolve",
       "distractor_1": "Content above `=======` is the older version; content below is the newer version regardless of branch direction",
