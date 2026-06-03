@@ -757,5 +757,67 @@
       "noted": "T2.1 (Stephen B3)",
       "gap": "audit/flagged-mcqs named only d1 (invented ExternalSecretsViewer ClusterRole); d3 also fabricated a named identifier (eks.amazonaws.com/secret-source annotation) but was not flagged. Swapped as a widening."
     }
-  ]
+  ],
+  "tier3_reslice": {
+    "status": "LOCKED (Stephen 2026-06-03)",
+    "universe": 28,
+    "derivation": "PLAN structural query (21) UNION absorption queue (16) = 28 unique. 9 overlap (8 multi_flag_a_plus_d + k8s-020); 7 dropouts/deferrals not in struct-query (aws-021, aws-022, cicd-001, tf-012, docker-001, docker-007, git-003-mcq-1).",
+    "split": "15 / 13 (rebalanced from PLAN 13/8 to absorb the 7 dropouts + slot git-003-mcq-1 which has no domain home in the PLAN slices)",
+    "assignments": {
+      "k8s-020-mcq-1": "T3.2 (honors prior Stephen assignment; option-balance is domain-light)",
+      "git-003-mcq-1": "T3.2 (with the compare-pair cluster; Git rode with Docker in T1.5)"
+    },
+    "sequence_rule": "Within each batch, author by rewrite-pattern cluster as a run (compare-pairs, then superlatives, then multi-flag A+D, then plain structural) so pattern application stays consistent across the domain-mixed batch.",
+    "cross_tier_distinctness": "Source-distinctness check runs CROSS-TIER against FINALIZED siblings, not just in-batch. Specifically git-003-mcq-1 (T3.2 reauthor) must test a distinct facet from the already-committed git-003-mcq-2 (T2.1, c2a9bfd). Generally: every reauthor checks its same-source_id sibling wherever that sibling now lives.",
+    "T3_1": {
+      "count": 15,
+      "compare_definition_pair": [
+        "cicd-001-mcq-1"
+      ],
+      "superlative_not_stem": [
+        "aws-021-mcq-1",
+        "aws-022-mcq-1"
+      ],
+      "multi_flag_a_plus_d": [
+        "k8s-001-mcq-2",
+        "k8s-011-mcq-1",
+        "k8s-021-mcq-2",
+        "k8s-041-mcq-2"
+      ],
+      "plain_structural": [
+        "aws-005-mcq-2",
+        "aws-007-mcq-1",
+        "aws-010-mcq-2",
+        "aws-027-mcq-2",
+        "cicd-010-mcq-1",
+        "cicd-040-mcq-1",
+        "cicd-050-mcq-2",
+        "k8s-023-mcq-1"
+      ]
+    },
+    "T3_2": {
+      "count": 13,
+      "compare_definition_pair": [
+        "tf-012-mcq-2",
+        "docker-001-mcq-1",
+        "docker-007-mcq-1",
+        "git-003-mcq-1"
+      ],
+      "option_balance": [
+        "k8s-020-mcq-1"
+      ],
+      "multi_flag_a_plus_d": [
+        "tf-005-mcq-1",
+        "tf-009-mcq-1",
+        "docker-002-mcq-2",
+        "docker-009-mcq-2"
+      ],
+      "plain_structural": [
+        "tf-004-mcq-1",
+        "tf-010-mcq-1",
+        "docker-003-mcq-2",
+        "linux-003-mcq-1"
+      ]
+    }
+  }
 }

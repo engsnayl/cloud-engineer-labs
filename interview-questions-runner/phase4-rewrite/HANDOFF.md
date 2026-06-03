@@ -1,12 +1,30 @@
-# Phase 4 — handoff (2026-06-03, TIER 1 CLOSED; Tier 2 next)
+# Phase 4 — handoff (2026-06-03, TIER 1 + TIER 2 CLOSED; Tier 3 next)
 
 ## Headline state
 
-- **TIER 1 COMPLETE — all 5 batches done, committed, and pushed to origin.** Branch `feat/lab-interview-drill-phase1` is up to date on the remote (HEAD `74074fb`).
-- **86 Tier-1 stem reframes landed** across T1.1–T1.5 (D-only → scenario form, options + explanation byte-identical on every reframe).
-- **Cumulative Tier-1 dropout: 6 of 92 reframe-attempts = 6.52%** — far under the 20–30% estimate. Sub-counts: **3 triaged at read-back** + **3 authored-then-dropped**.
-- **`borderline_approved` = 1** (`k8s-004-mcq-2`) — unchanged across all of Tier 1; the mid-flight bar-revisit threshold (3+) was never reached.
-- **Next action: Tier 2 — Task 8, batch T2.1 (A-only fabricated-distractor swaps).** Start in a FRESH window (this rule is explicit: no Tier-2 authoring in a near-full context). Resume from this doc + `tracking.json`.
+- **TIER 1 + TIER 2 COMPLETE — committed and pushed to origin.** Branch `feat/lab-interview-drill-phase1` is up to date on the remote (Tier-2 HEAD `c2a9bfd`).
+- **Tier 2 (T2.1) closed:** 25-item A-only slice → **23 swap items / 30 distractors swapped + 1 verify-no-change (`cicd-031-mcq-1`, FP) + 1 deferred to Tier-3 (`aws-022-mcq-1`)**. Rebaseline-12 split: 12/12 SWAP, 0 verify. Off-limits honoured (`cicd-020-mcq-2 d3` byte-identical). All A-only scope consumed — **there is no T2.2.**
+- **86 Tier-1 stem reframes landed** across T1.1–T1.5; cumulative Tier-1 dropout 6/92 = 6.52%.
+- **`borderline_approved` = 1** (`k8s-004-mcq-2`).
+- **Next action: Tier 3 — Task 9, batch T3.1 (15 full reauthors).** Reslice is **LOCKED** (see "Tier 3 — locked reslice" below). Start in a FRESH window (full-rewrite tier; voice matters most). Resume from this doc + `tracking.json → tier3_reslice`.
+
+## Tier 3 — locked reslice (Stephen 2026-06-03)
+
+**Universe = 28 unique** = PLAN structural query (21) ∪ absorption queue (16); 9 overlap, 7 dropouts/deferrals are queue-only. PLAN's 13/8 rebalanced to **15/13** to absorb the 7 dropouts and slot `git-003-mcq-1` (no domain home in the PLAN slices). Full ID lists + cluster groupings live in `tracking.json → tier3_reslice`.
+
+- **T3.1 (15):** aws struct (4) + `aws-021`,`aws-022` (superlative) + cicd struct (3) + `cicd-001` (compare) + k8s struct (5, i.e. 6 − `k8s-020`).
+- **T3.2 (13):** tf struct (4) + `tf-012` + docker struct (3) + `docker-001`,`docker-007` + linux (1) + `k8s-020` + `git-003-mcq-1`.
+- **Assignments:** `k8s-020-mcq-1` → T3.2 (honors prior assignment; option-balance is domain-light). `git-003-mcq-1` → T3.2 (compare-pair cluster; Git rode with Docker in T1.5).
+- **Sequence rule (within each batch):** author by rewrite-pattern cluster as a run — compare-pairs → superlatives → multi-flag A+D → plain structural — so pattern application stays consistent across the domain-mixed batch.
+- **Cross-tier source-distinctness:** every reauthor checks its same-`source_id` sibling against the **finalized** version wherever it now lives, not just in-batch. Specifically `git-003-mcq-1`'s reauthor must test a distinct facet from the already-committed `git-003-mcq-2` (T2.1).
+- **Tier-3 shape:** full from-scratch reauthors (Task 9 procedure) — scenario stem + 4 options (≥2 of the 5 distractor patterns) + explanation ≤130 words; 6-month test on all 4 options; drop-out is "source doesn't decompose → surface for Stephen," not a stem revert.
+
+## FRESH-SESSION read-back discipline for T3.1 (do before any authoring)
+
+1. `git checkout feat/lab-interview-drill-phase1 && git pull`
+2. **Fresh end-to-end pilot re-read — ALL 10 exemplars** (full reauthors touch every part; voice matters most this tier).
+3. **Pilot-dupe pre-flight on the locked T3.1 (15 ids)** (`scripts/pilot_dupe_check.py`). (Dry-run at lock time: 0 matches.)
+4. Surface the read-back and **HOLD** — no authoring until Stephen approves the read-back **and** the full Tier-3 bar is re-anchored.
 
 ## Tier-1 close-out numbers
 
