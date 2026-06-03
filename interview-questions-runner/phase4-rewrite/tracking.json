@@ -286,6 +286,97 @@
         "cicd-001-mcq-1": "DROPPED to Tier 3 (option rewrite required; see drop_out_note).",
         "cicd-051-mcq-2": "CLEARED / at-bar (Stephen): judgement genre was inherent pre-reframe; testability settled at GATE 1; not a superlative."
       }
+    },
+    {
+      "batch_id": "T1.4",
+      "tier": 1,
+      "domain_slice": "terraform+linux",
+      "mcq_ids_attempted": [
+        "tf-001-mcq-1",
+        "tf-001-mcq-2",
+        "tf-003-mcq-1",
+        "tf-004-mcq-2",
+        "tf-005-mcq-2",
+        "tf-006-mcq-1",
+        "tf-006-mcq-2",
+        "tf-007-mcq-1",
+        "tf-007-mcq-2",
+        "tf-008-mcq-1",
+        "tf-008-mcq-2",
+        "tf-009-mcq-2",
+        "tf-013-mcq-2",
+        "linux-002-mcq-1",
+        "linux-003-mcq-2",
+        "linux-004-mcq-2",
+        "linux-005-mcq-1",
+        "linux-005-mcq-2",
+        "linux-006-mcq-1",
+        "linux-007-mcq-1",
+        "linux-007-mcq-2"
+      ],
+      "slice_total": 22,
+      "pilot_dupe_preflight": "0 byte-identical-to-pilot in slice (tf-002-mcq-2 and tf-011-mcq-1 are pilot exemplars but not in the D-only slice)",
+      "recall_three_way_split": {
+        "bucket1_tier1_reframe": [
+          "tf-001-mcq-1",
+          "tf-001-mcq-2",
+          "tf-003-mcq-1",
+          "tf-004-mcq-2",
+          "tf-005-mcq-2",
+          "tf-006-mcq-1",
+          "tf-006-mcq-2",
+          "tf-007-mcq-1",
+          "tf-007-mcq-2",
+          "tf-008-mcq-1",
+          "tf-008-mcq-2",
+          "tf-009-mcq-2",
+          "tf-013-mcq-2",
+          "linux-002-mcq-1",
+          "linux-003-mcq-2",
+          "linux-004-mcq-2",
+          "linux-005-mcq-1",
+          "linux-005-mcq-2",
+          "linux-006-mcq-1",
+          "linux-007-mcq-1",
+          "linux-007-mcq-2"
+        ],
+        "bucket2_tier3_rewrite_dropout": [
+          "tf-012-mcq-2"
+        ],
+        "bucket3_intentional_recall_exempt": []
+      },
+      "reframe_attempted": 21,
+      "mcqs_completed": 21,
+      "completed_breakdown": {
+        "tier1_pure_stem_reframe": 21,
+        "tier1_5_stem_reframe_plus_option_microedit": 0
+      },
+      "mcqs_dropped_to_tier3": 1,
+      "drop_out_ids": [
+        "tf-012-mcq-2"
+      ],
+      "intentional_recall_exempt": [],
+      "cleared_false_positive": [],
+      "borderline_surfaced": [
+        "tf-012-mcq-2"
+      ],
+      "dispositions_applied": {
+        "tf-012-mcq-2": "DROPPED to Tier 3 (Bucket 2). See drop_out_note."
+      },
+      "recall_topic_notes": "No octal-permissions item in the slice. Signals (linux-002) and set -euo pipefail (linux-007-mcq-1) are the most recall-leaning; both gain a real troubleshooting payoff under reframe (unresponsive process / script-kept-running symptoms), so bucket 1 not bucket 3.",
+      "triggers": {
+        "recall_dropouts_ge9_of_22": "not fired (1 Tier-3 dropout, and it is a cicd-001 structural dropout, not a recall-topic dropout)",
+        "linux_bucket23_ge4_of_8": "not fired (0 of 8 — tf-012 is a Terraform item)"
+      },
+      "distractor_self_check_records": 63,
+      "fabrications_caught_at_selfreview": 0,
+      "audit_reflag_ids_after_batch": [],
+      "validate_mcqs_status": "pass",
+      "drift_status": "PASS (touched_count=21, no still-flagged, no regressions)",
+      "checkpoint_date": "2026-06-02",
+      "status": "pending",
+      "drop_out_note": "tf-012-mcq-2 -> Bucket 2 / Tier-3 (Stephen 2026-06-03). cicd-001 signature: abstract-comparison ask (\"how does state mv differ from import\") + definition-pair options; scenario severable from option selection, answerable on recall. Bank stem reverted to original; queued for Tier-3 rewrite that rebuilds options into scenario-classifications.",
+      "reconciliation": "22 slice = 21 completed (21 pure Tier-1 stem reframes) + 1 Tier-3 dropout (tf-012-mcq-2, Bucket 2) + 0 exempt. Dropout rate = 1/22 reframe-attempts = 4.55%. Options + explanation byte-identical before<->after on the 21 applied."
     }
   ],
   "borderline_approved": [
@@ -344,21 +435,28 @@
       "from_tier": "T1.3",
       "work": "full reauthor as applied/scenario-classification — rewrite options from abstract CD-vs-CDep definition-pairs into scenario-classification choices so the manual-approval-gate setup actually pays off. Keyed answer + distractor misconceptions are sound; the inertness is in the OPTIONS, not the stem, so a mechanism-only stem reword does not fix it.",
       "ruling": "Stephen 2026-06-02 — Tier-1 insufficient; definitional-distinction answered on recall (Chekhov-gun scenario)."
+    },
+    {
+      "id": "tf-012-mcq-2",
+      "from_tier": "T1.4",
+      "work": "full Tier-3 rewrite: rebuild the four options from comparative definition-pairs (state mv vs import) into scenario-classifications so the reasoning is load-bearing — e.g. for an already-managed resource being moved, import is the wrong tool; correct = state mv. Keep the strong move-into-module scenario as the stem.",
+      "ruling": "Stephen 2026-06-03 — Bucket 2; cicd-001 signature (abstract-comparison ask + definition-pair options, scenario severable)."
     }
   ],
   "running_totals": {
-    "tier1_batches_done": 3,
-    "tier1_dropouts_to_tier3": 2,
-    "tier1_attempted_so_far": 49,
-    "tier1_reframed_so_far": 47,
-    "tier1_dropout_rate_pct": 4.08,
+    "tier1_batches_done": 4,
+    "tier1_dropouts_to_tier3": 3,
+    "tier1_attempted_so_far": 71,
+    "tier1_reframed_so_far": 68,
+    "tier1_dropout_rate_pct": 4.23,
     "tier1_5_microedits": 1,
     "pilot_fps_cleared": 3,
     "tier1_borderline_approved_at_bar": 1,
     "tier1_distractors_queued_for_tier2": 1,
-    "tier3_absorption_queue_size": 3,
+    "tier3_absorption_queue_size": 4,
     "tier2_fabrications_caught": 0,
     "tier3_full_rewrites": 0,
-    "total_audit_reflags": 0
+    "total_audit_reflags": 0,
+    "tier1_intentional_recall_exempt": 0
   }
 }

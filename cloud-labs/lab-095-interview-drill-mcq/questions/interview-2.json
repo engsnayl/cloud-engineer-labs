@@ -918,7 +918,7 @@
     "subdomain": "networking",
     "priority": "high",
     "difficulty": "medium",
-    "question": "Why is `ss` preferred over `netstat` on modern Linux?",
+    "question": "An engineer on a busy host notices `ss` returns socket information noticeably faster than `netstat`. Why is `ss` preferred over `netstat` on modern Linux?",
     "options": {
       "correct": "`ss` reads kernel data structures directly via netlink, which is faster and less I/O-intensive than netstat parsing `/proc`",
       "distractor_1": "`ss` was rewritten to give cleaner output; `netstat` still uses the same kernel calls, so performance is identical",
@@ -950,7 +950,7 @@
     "subdomain": "shell",
     "priority": "medium",
     "difficulty": "easy",
-    "question": "What does `set -euo pipefail` enable in a bash script?",
+    "question": "An engineer's bash script kept running after a failed command and silently used an unset variable, so a colleague suggests adding `set -euo pipefail`. What does that enable?",
     "options": {
       "correct": "Exit on any command failure (`-e`), error on unset variables (`-u`), and treat pipe failures as command failures (`-o pipefail`)",
       "distractor_1": "Exit on any error (`-e`), strict utf-8 encoding (`-u`), and disable shell expansion in pipelines (`-o pipefail`)",
@@ -966,7 +966,7 @@
     "subdomain": "fundamentals",
     "priority": "critical",
     "difficulty": "easy",
-    "question": "Compared to AWS CloudFormation, what's a key advantage of Terraform?",
+    "question": "Your team runs workloads across AWS, Azure, and GCP and is choosing between CloudFormation and Terraform. Compared to CloudFormation, what's a key advantage of Terraform?",
     "options": {
       "correct": "Provider-agnostic \u2014 manages AWS, Azure, GCP, Kubernetes, and many SaaS services in a single language and state model",
       "distractor_1": "Free tier \u2014 CloudFormation charges per stack operation while Terraform is open source and incurs no licence fees in any sensible team workflow",
@@ -998,7 +998,7 @@
     "subdomain": "configuration",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "When should you use `locals` rather than `variable`?",
+    "question": "An engineer has a value computed from two input variables that should never be overridden from outside the module. Should they use `locals` or a `variable`, and why?",
     "options": {
       "correct": "When the value is computed from inputs or other locals and isn't meant to be overridden \u2014 locals can't accept external values",
       "distractor_1": "When the value is sensitive and shouldn't appear in plan output \u2014 only locals are excluded from CLI display",
@@ -1014,7 +1014,7 @@
     "subdomain": "configuration",
     "priority": "low",
     "difficulty": "medium",
-    "question": "Why does HashiCorp warn against using Terraform provisioners (local-exec, remote-exec)?",
+    "question": "Your team relies on `local-exec` and `remote-exec` provisioners in several modules and keeps hitting unpredictable behaviour. Why does HashiCorp warn against using provisioners?",
     "options": {
       "correct": "Provisioners run once at create time and aren't tracked in state, so Terraform has no way to know if the provisioned step succeeded, drifted, or needs re-running",
       "distractor_1": "Provisioners are deprecated in Terraform 1.x and will be removed in a future major version, so any use creates immediate technical debt",
@@ -1030,7 +1030,7 @@
     "subdomain": "operations",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "What does `terraform refresh` do (now the default behaviour at the start of `terraform plan`)?",
+    "question": "An engineer notices `terraform plan` reports drift before any config change and learns it refreshes state first. What does `terraform refresh` do (now the default at the start of `terraform plan`)?",
     "options": {
       "correct": "Reads the current state of each managed resource from the cloud provider and updates the state file to match what's actually there",
       "distractor_1": "Re-runs the configuration files against the provider to recreate any resources that have been deleted out-of-band",
@@ -1094,7 +1094,7 @@
     "subdomain": "operations",
     "priority": "high",
     "difficulty": "medium",
-    "question": "How do you enable detailed Terraform logging to debug a hanging apply?",
+    "question": "An engineer is debugging a `terraform apply` that hangs with no output. How do you enable detailed Terraform logging to see what it's doing?",
     "options": {
       "correct": "Set `TF_LOG=DEBUG` (or TRACE) and `TF_LOG_PATH=./tf.log` before re-running \u2014 Terraform writes provider RPCs and state operations to the log file",
       "distractor_1": "Re-run the apply with `--debug` flag; Terraform writes detailed logs to ./debug.txt by default",

@@ -918,7 +918,7 @@
     "subdomain": "system",
     "priority": "high",
     "difficulty": "medium",
-    "question": "Which command shows only the logs from the nginx service since 9am this morning?",
+    "question": "An engineer needs to see only the nginx service's logs since 9am this morning. Which command shows exactly that?",
     "options": {
       "correct": "`journalctl -u nginx --since 09:00`",
       "distractor_1": "`journalctl --service nginx --start-time 09:00`",
@@ -934,7 +934,7 @@
     "subdomain": "operations",
     "priority": "high",
     "difficulty": "medium",
-    "question": "`df -h` shows 50% capacity but writes are failing with 'No space left on device'. What's the most likely cause?",
+    "question": "An engineer finds `df -h` shows only 50% capacity, yet writes are failing with 'No space left on device'. What's the most likely cause?",
     "options": {
       "correct": "Inode exhaustion \u2014 the filesystem has run out of inodes (each file consumes one) even though plenty of space remains; check with `df -i`",
       "distractor_1": "Disk write quotas \u2014 the user account has hit its individual quota even though the filesystem has free space",
@@ -950,7 +950,7 @@
     "subdomain": "shell",
     "priority": "medium",
     "difficulty": "easy",
-    "question": "When should you stop using bash and switch to Python (or another higher-level language)?",
+    "question": "An engineer's bash script has grown past 150 lines with nested data and tangled error handling. When should they stop using bash and switch to Python (or another higher-level language)?",
     "options": {
       "correct": "When you need data structures (hashmaps, lists), structured error handling, multiple functions calling each other, or testing \u2014 bash gets painful past ~100 lines",
       "distractor_1": "When the script accesses network resources, since bash has no built-in HTTP client and shells out to curl for every request",
@@ -982,7 +982,7 @@
     "subdomain": "environments",
     "priority": "high",
     "difficulty": "medium",
-    "question": "The recommended modern pattern for dev/staging/prod with Terraform is:",
+    "question": "Your team is setting up separate dev, staging, and prod environments in Terraform and wants the recommended modern pattern. Which approach fits?",
     "options": {
       "correct": "Separate state file per environment, with environment-specific tfvars (and often a wrapper like Terragrunt) to DRY shared configuration",
       "distractor_1": "Single shared state with environment as a variable, branched logic in the config for environment-specific resources",
@@ -998,7 +998,7 @@
     "subdomain": "secrets",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "The recommended pattern for fetching a secret like an RDS password into Terraform is:",
+    "question": "An engineer needs to supply an RDS master password to Terraform without leaving the secret lying around in the repo or tfvars. What's the recommended pattern?",
     "options": {
       "correct": "Use a `data \"aws_secretsmanager_secret_version\"` block at apply time to fetch the current value, then pass it to the resource without persisting it in tfvars",
       "distractor_1": "Set the secret as a `terraform.tfvars` value and add the file to .gitignore \u2014 keeping the secret out of version control is the standard safe practice in production stacks",
@@ -1014,7 +1014,7 @@
     "subdomain": "configuration",
     "priority": "low",
     "difficulty": "medium",
-    "question": "Despite the warnings, when is a Terraform `local-exec` provisioner genuinely the right tool?",
+    "question": "An engineer needs to call a vendor API webhook that has no Terraform provider, right after a resource is created. Despite the warnings, when is a `local-exec` provisioner genuinely the right tool?",
     "options": {
       "correct": "When you need to run a one-shot command that doesn't have a Terraform provider \u2014 like calling a CLI to perform a side effect (kube context update, vendor API webhook)",
       "distractor_1": "When you need to install software on the newly-provisioned EC2 instance, since local-exec runs on the target machine via SSH",
@@ -1030,7 +1030,7 @@
     "subdomain": "operations",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "How do you intentionally accept drift in Terraform without losing the resource from state?",
+    "question": "An engineer changed a resource attribute manually in the cloud console and wants Terraform to stop trying to revert it, without dropping the resource from state. How do you intentionally accept that drift?",
     "options": {
       "correct": "Use a `lifecycle { ignore_changes = [<attribute>] }` block so Terraform stops trying to reconcile that attribute on apply",
       "distractor_1": "Remove the resource from `terraform.tfstate` manually with a text editor; Terraform will rediscover it on next apply",
@@ -1046,7 +1046,7 @@
     "subdomain": "ci-cd",
     "priority": "high",
     "difficulty": "medium",
-    "question": "Two Terraform apply jobs are queued in CI against the same state. What happens?",
+    "question": "Two engineers each kick off a `terraform apply` in CI against the same state at nearly the same time. What happens?",
     "options": {
       "correct": "The first acquires the state lock and runs; the second fails immediately with a state-lock error (DynamoDB) unless the CI tool queues runs explicitly",
       "distractor_1": "Both runs proceed in parallel; Terraform merges the resulting states automatically once both complete",

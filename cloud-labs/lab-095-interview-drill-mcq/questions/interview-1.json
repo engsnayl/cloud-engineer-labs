@@ -934,7 +934,7 @@
     "subdomain": "processes",
     "priority": "high",
     "difficulty": "medium",
-    "question": "What's the practical difference between SIGTERM and SIGKILL?",
+    "question": "An engineer sends a process a graceful shutdown signal, but it ignores the request and keeps running. What's the practical difference between SIGTERM and SIGKILL that explains this?",
     "options": {
       "correct": "SIGTERM (15) can be caught or ignored by the process and allows graceful shutdown; SIGKILL (9) is forced by the kernel and cannot be caught, blocked, or handled",
       "distractor_1": "SIGTERM kills the process immediately; SIGKILL gives the process 30 seconds to clean up before forced termination",
@@ -966,7 +966,7 @@
     "subdomain": "operations",
     "priority": "high",
     "difficulty": "medium",
-    "question": "`df -h` reports 95% full but `du -sh /*` totals only 60% of the disk. What's the most likely cause?",
+    "question": "An engineer sees `df -h` report a disk 95% full, but `du -sh /*` totals only 60% of the disk. What's the most likely cause?",
     "options": {
       "correct": "A process has a deleted-but-open file holding inode space \u2014 the file is gone from the directory tree (du can't see it) but the inode lives until the process closes the descriptor",
       "distractor_1": "df reports compressed-on-disk size while du reports uncompressed; the difference is the filesystem's compression overhead",
@@ -982,7 +982,7 @@
     "subdomain": "operations",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "Which is the most efficient way to find all log entries between 14:00 and 14:30 today across all systemd units?",
+    "question": "An engineer needs to pull all log entries between 14:00 and 14:30 today across every systemd unit. Which approach is the most efficient?",
     "options": {
       "correct": "`journalctl --since '14:00' --until '14:30'`",
       "distractor_1": "`grep '14:0[0-9]\\|14:[12][0-9]' /var/log/messages`",
@@ -998,7 +998,7 @@
     "subdomain": "fundamentals",
     "priority": "critical",
     "difficulty": "easy",
-    "question": "What does `terraform plan` actually do?",
+    "question": "An engineer is about to run `terraform apply` against a production account and first runs `terraform plan` to be sure nothing changes yet. What does `terraform plan` actually do?",
     "options": {
       "correct": "Reads the current state, compares it to the desired configuration, and prints the set of changes that `terraform apply` would make \u2014 without making them",
       "distractor_1": "Validates the configuration syntax and prints a list of any HCL parse errors found in .tf files",
@@ -1030,7 +1030,7 @@
     "subdomain": "modules",
     "priority": "high",
     "difficulty": "medium",
-    "question": "What's the canonical structure of a well-designed Terraform module?",
+    "question": "An engineer is extracting shared infrastructure into a reusable Terraform module for the team. What's the canonical structure of a well-designed module?",
     "options": {
       "correct": "Separate files for variables (inputs), outputs (return values), main resource definitions, and provider/version requirements \u2014 with a README documenting the interface",
       "distractor_1": "A single main.tf file containing all resources, variables, outputs, and provider declarations in one place for atomic deployment",
@@ -1078,7 +1078,7 @@
     "subdomain": "secrets",
     "priority": "medium",
     "difficulty": "medium",
-    "question": "Why is putting database passwords in `terraform.tfvars` (with the file in .gitignore) still a bad practice?",
+    "question": "An engineer puts a database password in `terraform.tfvars` and adds the file to `.gitignore`, assuming the secret is now safe. Why is this still a bad practice?",
     "options": {
       "correct": "The password ends up in the state file in cleartext regardless of the tfvars file location, so the secret lives in state forever",
       "distractor_1": "tfvars files are uploaded to Terraform Cloud on every apply, where they're visible to all org members regardless of permissions",
