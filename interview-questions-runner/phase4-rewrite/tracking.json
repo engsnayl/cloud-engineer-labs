@@ -937,5 +937,32 @@
         "linux-003-mcq-1"
       ]
     }
+  },
+  "phase4_final": {
+    "report": "interview-questions-runner/phase4-rewrite/final-report.md",
+    "date": "2026-06-03",
+    "flagged_resolved": "135 originally-flagged -> 0 residual structural flags",
+    "bank_size": 208,
+    "items_cut": 0,
+    "reaudit_clean_state": {
+      "audit_flags": 3,
+      "audit_flags_note": "all 3 are pilot exemplars (aws-026-mcq-1, cicd-020-mcq-1, k8s-010-mcq-1); byte-identical to pilot.json and flags match baseline-snapshot.json -> at-bar FPs, not regressions",
+      "validate": "OK (banks 1/2/3, 0 errors)",
+      "audit_suspect_distinct_mcqs": 62,
+      "audit_suspect_note": "fabrication-PRONE pattern net for manual review; reviewed -> residuals are real misconceptions / recorded FPs"
+    },
+    "tier_totals": {
+      "tier1_reframes": 86,
+      "tier2_swap_items": 23,
+      "tier2_distractors_swapped": 30,
+      "tier3_items": 28
+    },
+    "fp_ledger": {
+      "pilot_exemplar": 3,
+      "tier2_verify_no_change": 1,
+      "tier3_suspect": 8
+    },
+    "length_tell_decision": "Accept the Tier-3 soft residual (92.9% correct-is-longest); the integrity bar is the giveaway threshold and Tier-3 trips=0. No parity pass (Stephen 2026-06-03). 18 trips elsewhere are pre-existing original-author tells in untouched options.",
+    "pr_readiness": "All Phase-4 commits on origin; banks validate; reconciliation clean. PR NOT opened or merged — held for Stephen."
   }
 }
