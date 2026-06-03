@@ -409,11 +409,11 @@
     "question": "Your GHA workflow deploys to EKS by running `kubectl apply -f manifests/`. What's the main downside compared to using Helm or kustomize?",
     "options": {
       "correct": "kubectl apply has no native concept of releases, rollbacks, or templating across environments \u2014 you end up scripting around it for non-trivial deploys",
-      "distractor_1": "kubectl apply is rate-limited at 10 manifest operations per minute, while Helm batches its calls into a single API call",
+      "distractor_1": "kubectl apply has no way to preview changes before they hit the cluster, whereas Helm can show a diff first \u2014 so apply is unsafe for production changes",
       "distractor_2": "kubectl apply doesn't support secrets at all; Helm has a `helm secrets` subcommand that handles them natively",
       "distractor_3": "kubectl apply runs synchronously and cannot return until every resource is healthy, blocking the workflow indefinitely"
     },
-    "explanation": "Raw kubectl is fine for simple deploys but lacks release management \u2014 each apply is independent, with no built-in template-per-environment, no `helm history`, no `helm rollback`. Distractor 1 invents an API rate limit on kubectl. Distractor 2 fabricates a `helm secrets` subcommand (it's a third-party plugin) and misstates kubectl secret support. Distractor 3 inverts the behaviour \u2014 `kubectl apply` returns immediately by default; `--wait` is opt-in. Most teams pick Helm or kustomize specifically for the templating + release-management combination."
+    "explanation": "Raw kubectl is fine for simple deploys but lacks release management \u2014 each apply is independent, with no built-in template-per-environment, no `helm history`, no `helm rollback`. Distractor 1 claims kubectl can't preview changes \u2014 but `kubectl diff` and `--dry-run=server` both show pending changes before they apply, so the preview gap is imaginary. Distractor 2 fabricates a `helm secrets` subcommand (it's a third-party plugin) and misstates kubectl secret support. Distractor 3 inverts the behaviour \u2014 `kubectl apply` returns immediately by default; `--wait` is opt-in. Most teams pick Helm or kustomize specifically for the templating + release-management combination."
   },
   {
     "id": "cicd-022-mcq-1",
@@ -427,9 +427,9 @@
       "correct": "A rolling update: starts new tasks with the new revision, deregisters and stops old tasks once new ones are healthy, respecting minimumHealthyPercent and maximumPercent",
       "distractor_1": "A blue/green deployment: keeps the old revision running, brings up the new one in parallel, and switches the ALB target group when complete",
       "distractor_2": "An immediate replacement: stops all old tasks first, then starts the new revision; brief downtime is expected during the transition",
-      "distractor_3": "A queued deployment: starts no new tasks until the operator runs `aws ecs deploy-now` to advance the deployment to active state"
+      "distractor_3": "An in-place restart: ECS pulls the new image into each running task and restarts the container inside it, reusing the existing task instances rather than launching new ones"
     },
-    "explanation": "The ECS default deployment controller is rolling update via the service scheduler \u2014 it overlaps old and new tasks per the percent settings. Distractor 1 describes the CodeDeploy blue/green pattern, which is opt-in via `deploymentController: CODE_DEPLOY`. Distractor 2 describes a Recreate strategy ECS doesn't default to. Distractor 3 invents a queued deploy state. Knowing the default matters for understanding how rolling deploy behaviour interacts with task definition revisions."
+    "explanation": "The ECS default deployment controller is rolling update via the service scheduler \u2014 it overlaps old and new tasks per the percent settings. Distractor 1 describes the CodeDeploy blue/green pattern, which is opt-in via `deploymentController: CODE_DEPLOY`. Distractor 2 describes a Recreate strategy ECS doesn't default to. Distractor 3 imagines ECS mutating tasks in place \u2014 but ECS tasks are immutable; a new revision always launches fresh tasks and stops the old ones, never restarts a container inside an existing task. Knowing the default matters for understanding how rolling deploy behaviour interacts with task definition revisions."
   },
   {
     "id": "cicd-030-mcq-1",
@@ -617,11 +617,11 @@
     "question": "An engineer is integrating a feature branch into `main` and is weighing `git merge` against `git rebase`. Which is the strongest reason to prefer `git merge`?",
     "options": {
       "correct": "Merge preserves the actual history of when changes happened, which is valuable for archaeology and debugging long after the merge",
-      "distractor_1": "Merge is faster than rebase on large repositories because rebase rewrites every commit individually",
-      "distractor_2": "Merge avoids creating new commit SHAs for existing commits, which makes rebase impossible to use in CI/CD pipelines",
-      "distractor_3": "Merge is the only way to combine two branches; rebase merely moves commits between branches without combining their changes into the target branch's history"
+      "distractor_1": "Merge is safer because an interrupted rebase can permanently lose commits, while a merge is straightforward to undo",
+      "distractor_2": "Merge resolves most conflicts automatically, whereas rebase forces you to resolve every conflict by hand",
+      "distractor_3": "Merge keeps the feature branch's commits exactly as written, while rebase squashes them into a single commit on top of main"
     },
-    "explanation": "Merge preserves the actual integration story \u2014 when each branch's commits were made, who was working in parallel, the genuine concurrent history. Rebase creates a clean linear story at the cost of historical accuracy. Distractor 1 (speed) is a wash and not the main reason. Distractor 2 misstates rebase's effect on CI; rebased branches go through CI normally. Distractor 3 misframes rebase as not combining \u2014 rebase does integrate the work, just by re-applying rather than merging."
+    "explanation": "Merge preserves the actual integration story \u2014 when each branch's commits were made, who worked in parallel \u2014 and that's the most durable reason to choose it. Distractor 1 plays on a fear that an interrupted rebase loses commits; it doesn't \u2014 `git reflog` and `ORIG_HEAD` recover the prior state. Distractor 2 imagines merge auto-resolves conflicts while rebase doesn't \u2014 but both surface the same conflicts and both need manual resolution; merge isn't the 'easier' path. Distractor 3 conflates rebase with squash \u2014 a plain rebase re-applies each commit and keeps them all; squashing is separate and opt-in. The honest trade-off: merge for faithful history, rebase for a clean linear story."
   },
   {
     "id": "git-002-mcq-1",
@@ -778,10 +778,10 @@
     "options": {
       "correct": "Env vars are only set at pod startup, so any Service created after the pod is missing from the pod's environment until restart",
       "distractor_1": "Env vars expose service IPs in cleartext to every other process in the same pod, while DNS lookups go over TLS-encrypted resolver connections by default",
-      "distractor_2": "Env vars are limited to 32 entries per pod, so larger deployments hit the limit and silently lose service entries",
+      "distractor_2": "Env vars uppercase the Service name and convert dashes to underscores, so a Service like `my-api` is silently unreachable through env-var discovery because the transformed name no longer matches",
       "distractor_3": "Env vars resolve only within the same namespace; DNS works across namespaces with no additional configuration"
     },
-    "explanation": "The env-var mechanism populates `<SERVICE>_SERVICE_HOST` etc. at pod creation by enumerating Services at that moment \u2014 pods can't see Services created later without a restart. DNS, by contrast, is a live lookup. Distractor 1 invents an encryption distinction; DNS is plaintext by default too. Distractor 2 fabricates a 32-entry limit. Distractor 3 reverses the cross-namespace story \u2014 env vars are populated for Services in any namespace the pod has list access to, but the env approach is still inferior because of the pod-creation-time snapshot."
+    "explanation": "The env-var mechanism populates `<SERVICE>_SERVICE_HOST` etc. at pod creation by enumerating Services at that moment \u2014 pods can't see Services created later without a restart. DNS, by contrast, is a live lookup. Distractor 1 invents an encryption distinction; DNS is plaintext by default too. Distractor 2 points at the real name transform (dashes become underscores, name uppercased) but draws the wrong conclusion \u2014 the transformed variable `MY_API_SERVICE_HOST` is still populated and usable, so dashed Service names aren't lost. Distractor 3 reverses the cross-namespace story \u2014 env vars are populated for Services in any namespace the pod has list access to, but the env approach is still inferior because of the pod-creation-time snapshot."
   },
   {
     "id": "k8s-020-mcq-1",

@@ -139,9 +139,9 @@
       "correct": "Failover routing relies on a Route 53 health check on the primary; if no health check is associated, Route 53 always answers with the primary regardless of its actual health",
       "distractor_1": "Route 53 detects application errors via ALB target group health, which the failover policy reads automatically",
       "distractor_2": "Failover only triggers on DNS resolution failures; 500 status codes are above the DNS layer and Route 53 ignores them by design",
-      "distractor_3": "Failover routing requires the secondary to be in a different AWS region; same-region secondaries are silently disabled"
+      "distractor_3": "The DNS record's TTL hasn't expired yet, so resolvers are still returning the cached primary record even though Route 53 has already failed over at its end"
     },
-    "explanation": "Failover routing is driven by Route 53 health checks attached to the primary record \u2014 without one, there's nothing to flip on. Distractor 1 conflates Route 53 with the ALB target group's own health checks; ALB knows its targets are unhealthy but Route 53 doesn't until you point a health check at the ALB. Distractor 2 (DNS-failure trigger) misdescribes failover entirely \u2014 Route 53 health checks run HTTP/HTTPS probes against the endpoint. Distractor 3 invents a cross-region constraint; failover works across any record types in any region."
+    "explanation": "Failover routing is driven by Route 53 health checks attached to the primary record \u2014 without one, there's nothing to flip on. Distractor 1 conflates Route 53 with the ALB target group's own health checks; ALB knows its targets are unhealthy but Route 53 doesn't until you point a health check at the ALB. Distractor 2 (DNS-failure trigger) misdescribes failover entirely \u2014 Route 53 health checks run HTTP/HTTPS probes against the endpoint. Distractor 3 reaches for DNS TTL caching \u2014 a real failover-delay cause \u2014 but here Route 53 never flipped at all (no health check is attached), so there's nothing cached to expire."
   },
   {
     "id": "aws-020-mcq-1",
@@ -297,11 +297,11 @@
     "question": "You're choosing between API Gateway REST API and API Gateway HTTP API for a new serverless backend. Which is the more common right choice today and why?",
     "options": {
       "correct": "HTTP API \u2014 lower latency, ~70% cheaper, and covers what most teams need (JWT auth, CORS, Lambda integration)",
-      "distractor_1": "REST API \u2014 HTTP API was deprecated in 2023 and is no longer recommended for new builds",
+      "distractor_1": "REST API \u2014 it's the more mature option; HTTP API still doesn't support custom domain names or TLS certificates, so it can't serve production traffic on a branded endpoint",
       "distractor_2": "REST API \u2014 HTTP API doesn't support Lambda integrations, which makes it unsuitable for most serverless backends",
       "distractor_3": "HTTP API \u2014 it's the only API Gateway type that supports VPC integrations, making it required for any private backend"
     },
-    "explanation": "HTTP API is the modern default: cheaper, faster, simpler, with the features most teams actually use. REST API still has a place when you need request validators, complex mappings, WAF, or private edge-optimised endpoints. Distractor 1 fabricates a deprecation. Distractor 2 inverts the truth \u2014 HTTP API supports Lambda integrations natively (in fact more cleanly than REST API). Distractor 3 misstates capability \u2014 both API types support VPC links / integrations."
+    "explanation": "HTTP API is the modern default: cheaper, faster, simpler, with the features most teams actually use. REST API still has a place when you need request validators, complex mappings, WAF, or private edge-optimised endpoints. Distractor 1 leans on a 'newer means less capable' assumption \u2014 but HTTP API has supported custom domain names and ACM TLS certificates since launch, so the branded-endpoint objection is false. Distractor 2 inverts the truth \u2014 HTTP API supports Lambda integrations natively (in fact more cleanly than REST API). Distractor 3 misstates capability \u2014 both API types support VPC links / integrations."
   },
   {
     "id": "cicd-001-mcq-2",
@@ -329,11 +329,11 @@
     "question": "Your CI pipeline takes 25 minutes \u2014 too slow for the team's rapid commit cadence. Which optimisation gives the biggest realistic speedup?",
     "options": {
       "correct": "Parallelise independent stages (lint, unit tests, security scan) and shard slow test suites across multiple runners",
-      "distractor_1": "Increase the runner's CPU and memory to the maximum tier; CI speed scales linearly with resource size",
+      "distractor_1": "Upgrade to the largest available runner tier so the whole pipeline runs on more CPU and memory",
       "distractor_2": "Skip the integration test stage on every PR and run it only on main branch merges, since it's the slowest stage",
       "distractor_3": "Switch from GitHub-hosted runners to a larger third-party runner provider with faster network throughput between runners"
     },
-    "explanation": "Parallelisation and sharding give 3-5x speedups on most pipelines because stages and tests are I/O-bound rather than CPU-bound. Distractor 1 over-promises \u2014 bigger runners help marginally if at all; serial test runs don't speed up with more CPU beyond a point. Distractor 2 reduces signal coverage (PRs would merge with integration failures) \u2014 wrong trade-off. Distractor 3 adds infrastructure cost without addressing the fundamental serial-vs-parallel issue."
+    "explanation": "Parallelisation and sharding give 3-5x speedups on most pipelines because stages and tests are I/O-bound rather than CPU-bound. Distractor 1 throws hardware at the problem \u2014 a real instinct, but most CI time is I/O-bound (dependency installs, network, serial test ordering), so a bigger runner barely moves a 25-minute pipeline; the win is parallelism, not raw size. Distractor 2 reduces signal coverage (PRs would merge with integration failures) \u2014 wrong trade-off. Distractor 3 adds infrastructure cost without addressing the fundamental serial-vs-parallel issue."
   },
   {
     "id": "cicd-012-mcq-1",
@@ -394,10 +394,10 @@
     "options": {
       "correct": "A StringEquals or StringLike condition on `token.actions.githubusercontent.com:sub` that pins the role to your repo and a specific branch or environment",
       "distractor_1": "An IP-allow condition restricting the AssumeRole call to GitHub's published runner IP ranges so only their infrastructure can assume the role",
-      "distractor_2": "A MaxSessionDuration of 600 seconds, so even if another workflow assumed the role the session would expire before damage could be done",
+      "distractor_2": "An `aud` (audience) condition requiring the token's audience to equal `sts.amazonaws.com`, which ties the role to your repository's OIDC identity",
       "distractor_3": "An MFA-required condition (`aws:MultiFactorAuthPresent: true`) on the role, since GitHub-issued JWTs include an implicit MFA claim derived from the user's authenticated GitHub session at workflow start"
     },
-    "explanation": "The `sub` claim is what makes OIDC trust scoped \u2014 without a condition on it, any repo with an OIDC connection to the same AWS account could assume the role. Pin to `repo:org/repo:ref:refs/heads/main` or environment-specific sub formats. Distractor 1 (IP) drifts every time GitHub adds runners and is brittle. Distractor 2 (short duration) limits damage but doesn't prevent assumption. Distractor 3 invents an MFA claim in GitHub OIDC tokens that doesn't exist."
+    "explanation": "The `sub` claim is what makes OIDC trust scoped \u2014 without a condition on it, any repo with an OIDC connection to the same AWS account could assume the role. Pin to `repo:org/repo:ref:refs/heads/main` or environment-specific sub formats. Distractor 1 (IP) drifts every time GitHub adds runners and is brittle. Distractor 2 pins the `aud` claim \u2014 but GitHub issues the same `sts.amazonaws.com` audience to every repository, so it can't distinguish yours; only a `sub` condition scopes the trust. Distractor 3 invents an MFA claim in GitHub OIDC tokens that doesn't exist."
   },
   {
     "id": "cicd-021-mcq-2",
@@ -587,9 +587,9 @@
       "correct": "Run `docker inspect <container>` and look at State (exit code, error) plus run with `-it --entrypoint=sh` to get an interactive shell instead of executing the original entrypoint",
       "distractor_1": "Run `docker exec -it <container> sh` to drop into the exited container and inspect its filesystem state",
       "distractor_2": "Increase the container's stop timeout to 60 seconds, which gives docker logs more time to capture output before exit",
-      "distractor_3": "Restart Docker daemon to flush log buffers; transient containers often lose stdout to a kernel buffer that the daemon doesn't drain"
+      "distractor_3": "The application writes to stderr rather than stdout, and `docker logs` only captures stdout \u2014 so the error output exists but isn't shown"
     },
-    "explanation": "`docker inspect` shows the exit code and any error message; running with `--entrypoint=sh -it` lets you start the container manually and explore \u2014 bypassing the failing entrypoint. Distractor 1 (docker exec on exited) fails: exec requires a running container. Distractor 2 misunderstands stop timeout (it controls graceful shutdown waits, not log capture). Distractor 3 invents a daemon-restart fix. The entrypoint override is the most useful technique when the container fails before producing usable output."
+    "explanation": "`docker inspect` shows the exit code and any error message; running with `--entrypoint=sh -it` lets you start the container manually and explore \u2014 bypassing the failing entrypoint. Distractor 1 (docker exec on exited) fails: exec requires a running container. Distractor 2 misunderstands stop timeout (it controls graceful shutdown waits, not log capture). Distractor 3 assumes `docker logs` shows only stdout \u2014 but it captures both stdout and stderr, so a silent container isn't hiding output on the 'wrong' stream; it's exiting before it logs anything. The entrypoint override is the most useful technique when the container fails before producing usable output."
   },
   {
     "id": "git-001-mcq-2",
@@ -937,11 +937,11 @@
     "question": "You want to follow logs from nginx in real-time, filtering only entries with priority error or worse. Which command?",
     "options": {
       "correct": "`journalctl -u nginx -f -p err`",
-      "distractor_1": "`journalctl -u nginx --follow --severity=error --realtime`",
+      "distractor_1": "`journalctl -u nginx -f -p crit`",
       "distractor_2": "`tail -f /var/log/nginx/error.log | grep -E '^[0-9]{4}/'`",
-      "distractor_3": "`systemctl follow nginx --errors-only`"
+      "distractor_3": "`journalctl -u nginx -p err | tail -f`"
     },
-    "explanation": "journalctl uses short flags: `-f` for follow (like tail -f), `-p err` for priority filter (uses syslog priority levels: emerg, alert, crit, err, warning, notice, info, debug). Distractor 1 invents long flags (--severity, --realtime) that don't exist. Distractor 2 reads only nginx's own log file, missing journald-only entries. Distractor 3 fabricates a `systemctl follow` subcommand. Priority filtering is a heavy hitter for noise reduction in incident-response workflows."
+    "explanation": "journalctl uses short flags: `-f` for follow (like tail -f), `-p err` for priority filter (uses syslog priority levels: emerg, alert, crit, err, warning, notice, info, debug). Distractor 1 uses real flags but the wrong level \u2014 `-p crit` shows crit/alert/emerg and silently drops the `err` level the task needs; 'error or worse' starts at `-p err`. Distractor 2 reads only nginx's own log file, missing journald-only entries. Distractor 3 pipes a non-following journalctl into `tail -f` \u2014 but journalctl without `-f` prints existing entries and exits, so `tail -f` just follows a stream that has already closed; real-time needs journalctl's own `-f`. Priority filtering is a heavy hitter for noise reduction in incident-response workflows."
   },
   {
     "id": "linux-007-mcq-1",
@@ -986,10 +986,10 @@
     "options": {
       "correct": "A `ref=` query parameter pinning to a specific tag or commit; without it Terraform always pulls the default branch and you can't control upgrades",
       "distractor_1": "An explicit `provider:` block mapping the module's providers; Git-sourced modules cannot inherit providers from the calling configuration",
-      "distractor_2": "A `terraform_module_version:` field in versions.tf declaring the minimum compatible Terraform CLI version for the Git source",
+      "distractor_2": "A `version` argument in the module block (e.g. `version = \"~> 1.2.0\"`) to constrain which release of the Git module Terraform pulls",
       "distractor_3": "An access token in the URL; Git-sourced modules require an HTTPS token to be embedded in the source string for Terraform to authenticate to private or public repositories alike"
     },
-    "explanation": "Without `?ref=v1.2.0`, the module floats on whatever the default branch is right now \u2014 a non-reproducible source that breaks reruns. Pinning is mandatory in production. Distractor 1 misstates provider inheritance; Git-sourced modules inherit providers fine. Distractor 2 fabricates a configuration field. Distractor 3 over-states auth requirements; public Git modules work without tokens, and private ones use either SSH keys or HTTPS tokens via standard Git mechanisms, not in the URL."
+    "explanation": "Without `?ref=v1.2.0`, the module floats on whatever the default branch is right now \u2014 a non-reproducible source that breaks reruns. Pinning is mandatory in production. Distractor 1 misstates provider inheritance; Git-sourced modules inherit providers fine. Distractor 2 reaches for the `version` argument \u2014 real, but it only works for registry modules; for a `git::` source Terraform rejects it, and you must pin with `?ref=` instead. Distractor 3 over-states auth requirements; public Git modules work without tokens, and private ones use either SSH keys or HTTPS tokens via standard Git mechanisms, not in the URL."
   },
   {
     "id": "tf-004-mcq-2",
