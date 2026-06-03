@@ -22,14 +22,14 @@
     "subdomain": "databases",
     "priority": "high",
     "difficulty": "medium",
-    "question": "A team is hitting CPU saturation on their RDS primary during business hours because of heavy read-heavy reporting queries. They enable Multi-AZ hoping it will spread the load. Did this solve their problem?",
+    "question": "A team hits CPU saturation on their RDS primary every afternoon, driven by heavy read-only reporting queries. They enable Multi-AZ expecting it to spread the read load. What actually happens, and what should they use instead?",
     "options": {
-      "correct": "No \u2014 the Multi-AZ standby is not used to serve reads; it's a passive failover target. Read replicas are the right tool for offloading read traffic",
-      "distractor_1": "Yes \u2014 Multi-AZ load-balances read traffic across the primary and the standby once both are healthy",
-      "distractor_2": "Partially \u2014 reporting queries are routed to the standby automatically, but transactional reads still hit the primary",
-      "distractor_3": "Yes \u2014 enabling Multi-AZ promotes the synchronous standby to a hot read replica with consistent reads"
+      "correct": "The reporting load stays on the primary \u2014 the Multi-AZ standby is a passive failover target serving no client reads; read replicas are what offload reads",
+      "distractor_1": "Multi-AZ begins load-balancing read traffic across the primary and the standby automatically, once both instances report healthy",
+      "distractor_2": "Reporting queries are automatically routed to the standby while transactional reads keep hitting the primary, splitting the load",
+      "distractor_3": "Enabling Multi-AZ promotes the synchronous standby into a hot read replica that serves strongly consistent reads alongside the primary"
     },
-    "explanation": "Multi-AZ exists for high availability, not read scaling. The standby is invisible to applications until failover. To offload read traffic you add read replicas (asynchronous) and point reporting workloads at them. Distractor 1 conflates Multi-AZ with a read-balancing setup. Distractor 2 invents a query-routing layer that RDS doesn't provide. Distractor 3 misdescribes how the synchronous standby works \u2014 it accepts replication writes only and serves no client traffic. The common candidate trap is assuming both replica types do everything."
+    "explanation": "Multi-AZ is a high-availability feature, not a read-scaling one: the standby receives replication writes but is invisible to applications until a failover promotes it. To shed read load you add read replicas and point reporting at them. Distractor 1 treats Multi-AZ as a read-balancer, which it isn't. Distractor 2 invents an automatic query-routing layer RDS doesn't provide. Distractor 3 misdescribes the standby \u2014 a synchronous Multi-AZ standby serves no client traffic at all, hot or otherwise. The trap is assuming the standby and a read replica are interchangeable."
   },
   {
     "id": "aws-007-mcq-2",
@@ -198,14 +198,14 @@
     "subdomain": "iam",
     "priority": "medium",
     "difficulty": "easy",
-    "question": "Your organisation uses AWS Organizations with an SCP denying access to all regions except us-east-1 and eu-west-1. A developer in account A has an IAM policy granting full access in ap-southeast-2. Can they create resources there?",
+    "question": "Your organisation uses AWS Organizations with an SCP that denies every region except us-east-1 and eu-west-1. A developer in account A has an IAM policy granting full access in ap-southeast-2. Can they create resources there?",
     "options": {
-      "correct": "No \u2014 SCPs apply at the account level and form the maximum boundary; an identity-based allow cannot exceed what the SCP permits",
-      "distractor_1": "Yes \u2014 identity-based policies take precedence over SCPs because they're more specific (attached to a user, not an account)",
-      "distractor_2": "Yes \u2014 SCPs apply only to root accounts; users with explicit IAM permissions bypass SCP restrictions in their own account",
-      "distractor_3": "Yes \u2014 but only in the AWS Console; the CLI and SDKs are gated by SCPs while the Console runs with the user's own session and bypasses Organisation policies"
+      "correct": "They cannot \u2014 an SCP sets the permission ceiling for every principal in the account, so an identity allow for ap-southeast-2 grants nothing when the SCP denies that region",
+      "distractor_1": "They can \u2014 identity-based policies are more specific than account-level SCPs, so the user's explicit IAM allow takes precedence",
+      "distractor_2": "They can \u2014 SCPs constrain only the root user, so any IAM principal with an explicit allow operates outside SCP limits in their own account",
+      "distractor_3": "They can in the Console only \u2014 the Console runs under the user's own session and bypasses Organization policies, while the CLI and SDKs stay gated by the SCP"
     },
-    "explanation": "SCPs in AWS Organizations are permission boundaries that apply to every principal in the affected account, including the root user. An identity-based allow grants nothing if the SCP doesn't permit it \u2014 the intersection wins. Distractor 1 reverses the precedence model; SCPs are not overridable by identity-based policies. Distractor 2 misreads the scope \u2014 SCPs apply to all principals, not just root. Distractor 3 invents a Console-vs-API exemption that doesn't exist; the IAM evaluation engine doesn't distinguish."
+    "explanation": "An SCP is a permission boundary applied to every principal in the account, including root; effective permissions are the intersection of the SCP and the identity policy. With the region denied by the SCP, the identity allow grants nothing. Distractor 1 reverses precedence \u2014 SCPs are not overridden by 'more specific' identity policies. Distractor 2 misreads SCP scope; they apply to all principals, not just root. Distractor 3 invents a Console-vs-API split \u2014 IAM's evaluation engine is identical across Console, CLI, and SDK, so there's no bypass path."
   },
   {
     "id": "aws-029-mcq-2",
@@ -470,14 +470,14 @@
     "subdomain": "operations",
     "priority": "critical",
     "difficulty": "medium",
-    "question": "Which is NOT a common source of CI flakiness?",
+    "question": "Your team's test suite passes on developer laptops but fails on about one CI run in six, each time in a different test, and only when the suite runs with --parallel. What's the most likely root cause?",
     "options": {
-      "correct": "Pure functions in unit tests with no shared state \u2014 they're deterministic by construction and don't flake",
-      "distractor_1": "Tests that race on shared resources (a port, a database row, a file) when parallelised",
-      "distractor_2": "Timing-dependent tests that assume operations complete within a fixed millisecond budget on every runner",
-      "distractor_3": "Tests that depend on external services (third-party APIs, DNS resolution) without timeouts or stubs to make the dependency reproducible"
+      "correct": "Tests racing on a shared resource \u2014 a port, a row, a temp file \u2014 that collide only when run concurrently, so a different test fails each run",
+      "distractor_1": "A genuine logic bug in a pure function under test; parallelism merely makes the otherwise-deterministic failure surface more often",
+      "distractor_2": "Compiler or interpreter nondeterminism on the CI runners, since build toolchains produce different results than local machines",
+      "distractor_3": "Insufficient CI runner memory, causing the OS to randomly kill whichever test happens to allocate the most at the time"
     },
-    "explanation": "Pure functions with no I/O and no shared state are the gold standard for reliability \u2014 they're the OPPOSITE of flaky. Distractor 1 (race on shared resources) is the #1 source of flake in parallel test runs. Distractor 2 (timing) is the #2 source \u2014 tests that pass on developer laptops fail on slower runners. Distractor 3 (external dependencies) is the #3 source \u2014 production-like systems have networks that flap. The question reversal teaches what reliable tests look like by contrast."
+    "explanation": "Different-test-each-time failures that appear only under --parallel are the signature of shared-resource contention: concurrent tests fight over a port, row, or file with no isolation. Distractor 1 is ruled out by the symptoms \u2014 a pure-function logic bug fails deterministically on the same test every run, parallel or not. Distractor 2 invokes compiler nondeterminism, which would break builds consistently rather than flake a different test each run. Distractor 3 sounds plausible, but OOM-kills cluster around memory-heavy tests and wouldn't depend on the --parallel flag. The fix is isolating shared state per test."
   },
   {
     "id": "docker-003-mcq-2",

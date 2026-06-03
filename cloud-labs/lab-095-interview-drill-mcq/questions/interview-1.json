@@ -198,14 +198,14 @@
     "subdomain": "cost",
     "priority": "high",
     "difficulty": "medium",
-    "question": "Which workload is the WORST fit for EC2 Spot Instances?",
+    "question": "Your team wants to cut compute cost by moving exactly one of these workloads onto 100% Spot with no on-demand fallback, and a node reclaim (two-minute warning) must cause zero user-visible impact. Which workload is the BEST fit?",
     "options": {
-      "correct": "A stateful PostgreSQL database serving production traffic with no replication or failover layer",
-      "distractor_1": "A nightly Spark batch job that processes the day's events and can restart from the last checkpoint",
-      "distractor_2": "A stateless web tier behind an ALB with autoscaling and at least 50% on-demand baseline",
-      "distractor_3": "A CI/CD build farm where individual builds take under 20 minutes and can be retried automatically"
+      "correct": "A nightly Spark batch job that checkpoints its progress and restarts from the last checkpoint after an interruption \u2014 it runs asynchronously, so a reclaim delays no user-facing request",
+      "distractor_1": "A stateless web tier behind an ALB with autoscaling and at least a 50% on-demand baseline, leaning on that baseline to keep serving users whenever Spot capacity is reclaimed",
+      "distractor_2": "A synchronous payment API where each in-flight request must finish, so a reclaimed node fails the customer's transaction mid-flight",
+      "distractor_3": "A 12-hour ML training run that holds all state in memory and writes no checkpoints, losing everything if the node is reclaimed near the end"
     },
-    "explanation": "Spot instances can be reclaimed with a 2-minute warning; they fit anything that can checkpoint, retry, or absorb a node loss. A solo stateful database has none of those properties \u2014 losing it loses data and uptime. Distractor 1 (Spark with checkpoints) is a textbook Spot fit. Distractor 2 (stateless web with on-demand baseline) is the recommended ASG pattern: mix on-demand and Spot via instance allocation strategy. Distractor 3 (short, retryable CI builds) is also good \u2014 worst case the build retries on another instance type."
+    "explanation": "With a 100%-Spot, no-fallback, zero-user-impact constraint, only an asynchronous job that resumes cleanly after reclamation qualifies \u2014 the checkpointing batch fits exactly. Distractor 1 (stateless web tier) is ruled out twice: it depends on the on-demand baseline the constraint forbids, and a reclaim drops in-flight user requests, which is user-visible. Distractor 2 (synchronous payment API) is the most user-visible failure \u2014 a reclaimed node fails a live customer transaction. Distractor 3 (un-checkpointed ML run) tolerates no interruption: a reclaim near hour 11 discards the whole run. Interruption tolerance plus no user-facing path is what Spot needs here; only the batch job has both."
   },
   {
     "id": "aws-024-mcq-1",
@@ -310,14 +310,14 @@
     "subdomain": "fundamentals",
     "priority": "high",
     "difficulty": "easy",
-    "question": "What's the distinction between Continuous Delivery and Continuous Deployment?",
+    "question": "Your team's pipeline runs build \u2192 test \u2192 deploy-to-staging, then stops at a manual 'Promote to prod' gate a release manager clicks during business hours. Leadership now wants every commit that passes tests to reach production automatically, with no human in the loop. What single change accomplishes that?",
     "options": {
-      "correct": "Continuous Delivery makes every change deployable to production; Continuous Deployment automatically deploys every successful build to production",
-      "distractor_1": "Continuous Delivery deploys to staging only; Continuous Deployment deploys to staging and then production with a manual promotion step",
-      "distractor_2": "Continuous Delivery refers to deploying compiled artifacts; Continuous Deployment refers to deploying source code or containers directly",
-      "distractor_3": "Continuous Delivery deploys on a fixed schedule; Continuous Deployment deploys whenever the engineer manually triggers a release"
+      "correct": "Remove the manual promotion gate so each passing build deploys to prod on its own \u2014 that gate is the only thing separating their current Continuous Delivery from the Continuous Deployment leadership is describing",
+      "distractor_1": "Add another pre-prod environment after staging; what makes a pipeline Continuous Deployment is deploying through a chain of staged environments, not whether a human approves the final step",
+      "distractor_2": "Rebuild the pipeline to ship container images instead of its current build artifacts; Continuous Deployment is defined by the artifact type, and the approval gate is a separate concern",
+      "distractor_3": "Schedule the prod deploy to fire automatically each night at a fixed time without the release manager; a scheduled, hands-off release is what Continuous Deployment means"
     },
-    "explanation": "The gap is the production deployment step: Delivery stops at 'deployable artifact, ready when you press the button'; Deployment automates pressing the button. Distractor 1 invents a staging-vs-production split that conflates with environments. Distractor 2 invents an artifact-type distinction. Distractor 3 reverses both terms \u2014 neither has a fixed schedule, and Continuous Deployment is automatic, not manual. The boundary matters because most teams claim 'CD' meaning Delivery while saying it like Deployment."
+    "explanation": "Continuous Delivery automates everything up to a deploy-ready artifact and stops at a human gate; Continuous Deployment removes that gate so every passing commit ships itself. Deleting the manual promotion step is the whole difference. Distractor 1 invents an environments-count definition \u2014 staging chains are orthogonal to the gate. Distractor 2 ties the term to artifact type, but auto-vs-manual is the real axis. Distractor 3 conflates 'scheduled at 2am' with Continuous Deployment, which triggers on each commit, not a clock \u2014 and the scenario's automatic-at-night wording is the bait."
   },
   {
     "id": "cicd-002-mcq-1",
@@ -358,14 +358,14 @@
     "subdomain": "github-actions",
     "priority": "critical",
     "difficulty": "medium",
-    "question": "In GitHub Actions, what's the hierarchy of workflow / job / step / action?",
+    "question": "An engineer needs two shell commands to run on the same fresh runner VM sharing one working directory, while a third command runs on a different operating system. How should they structure this GitHub Actions workflow?",
     "options": {
-      "correct": "Workflow contains one or more jobs; each job contains one or more steps; each step runs either a shell command or an action",
-      "distractor_1": "Action contains one or more workflows; each workflow contains one or more jobs; each job contains one or more steps",
-      "distractor_2": "Workflow contains one or more steps; each step contains one or more jobs; each job runs one or more actions",
-      "distractor_3": "Job contains one or more workflows; each workflow contains one or more steps; each step runs an action or a shell script"
+      "correct": "Put the two commands as two steps in one job (steps in a job share the same runner and filesystem), and put the third command in a separate job that targets the other OS",
+      "distractor_1": "Put the two commands in one job and the third in a second workflow file, since a different operating system requires its own workflow rather than another job",
+      "distractor_2": "Put all three commands as separate jobs in one workflow; jobs in a workflow share a runner and working directory, so the first two still see each other's files",
+      "distractor_3": "Put the two commands as two actions inside a single step, and the third as another step, since actions are how you pin work to one runner"
     },
-    "explanation": "The hierarchy is workflow \u2192 job \u2192 step, with actions being reusable units a step can call. Distractor 1 inverts: actions are the smallest unit, called by steps, not containers of workflows. Distractor 2 swaps job and step (jobs are bigger). Distractor 3 inverts job and workflow. Getting this hierarchy wrong is the most common GHA confusion \u2014 you can't write a working workflow file without knowing which keyword nests inside which."
+    "explanation": "The hierarchy is workflow \u2192 job \u2192 step: steps within a job share one runner and its filesystem, while each job gets a fresh runner (and can target its own OS). So two co-located commands belong as steps in one job; the differently-OS'd command needs its own job. Distractor 1 invents a one-workflow-per-OS rule \u2014 a job already selects its runner OS. Distractor 2 has it backwards: separate jobs do not share a runner or filesystem, so the first two commands would lose their shared directory. Distractor 3 misuses 'action' as a runner-pinning unit; actions are reusable step bodies, not a placement mechanism."
   },
   {
     "id": "cicd-011-mcq-1",
@@ -470,14 +470,14 @@
     "subdomain": "security",
     "priority": "high",
     "difficulty": "medium",
-    "question": "Match the security scan type to what it catches: SAST, DAST, SCA, container scan.",
+    "question": "Your team wants its pipeline to catch known-vulnerable versions of third-party libraries pulled in through the dependency manifest, before any code is built or run. Which scan type targets exactly that?",
     "options": {
-      "correct": "SAST: source code vulnerabilities; DAST: runtime/web vulnerabilities; SCA: vulnerable dependencies; container: OS package and image-layer CVEs",
-      "distractor_1": "SAST: source secrets in code; DAST: dependency vulnerabilities; SCA: runtime exploits; container: code linting on Dockerfile syntax",
-      "distractor_2": "SAST: runtime exploits; DAST: source-level code smells; SCA: container vulnerabilities; container: dependency tree vulnerabilities",
-      "distractor_3": "All four catch overlapping classes of issue; the difference is the vendor (Snyk vs SonarQube vs Trivy) rather than what's actually analysed at each stage of the pipeline"
+      "correct": "SCA (software composition analysis) \u2014 it reads the dependency manifest/lockfile and flags libraries with known CVEs, independent of building or running the app",
+      "distractor_1": "SAST \u2014 it statically analyses your own source code for insecure patterns and hardcoded secrets, which is where vulnerable dependencies surface",
+      "distractor_2": "DAST \u2014 it probes the running application from the outside, so it detects vulnerable libraries as they're exercised at runtime",
+      "distractor_3": "Container image scanning \u2014 it inspects built image layers, which is the stage where third-party library versions are actually recorded"
     },
-    "explanation": "Each scan type has a distinct target. SAST = static analysis of code (logic flaws, hardcoded secrets, dangerous patterns). DAST = running the app and probing it from the outside. SCA = analysing the dependency manifest for known-vulnerable libraries. Container = scanning image layers for CVEs in OS packages. Distractor 1 mixes up SAST and SCA. Distractor 2 fully scrambles. Distractor 3 collapses the categories into a vendor question, ignoring real methodological differences."
+    "explanation": "SCA exists precisely to inventory declared dependencies and match them against vulnerability databases, with no build or run required. Distractor 1 confuses SCA with SAST \u2014 SAST examines first-party code, not the dependency tree. Distractor 2 picks DAST, but dynamic testing needs a deployed, running app and finds behavioural flaws, not manifest versions. Distractor 3 is the closest miss: container scanning does catch library CVEs, but only after an image is built and mostly for OS-level packages \u2014 it's later and broader than reading the manifest up front. SCA is the earliest, most targeted fit."
   },
   {
     "id": "cicd-051-mcq-1",
@@ -838,14 +838,14 @@
     "subdomain": "scheduling",
     "priority": "critical",
     "difficulty": "medium",
-    "question": "Match the autoscaler to what it changes: HPA, VPA, Cluster Autoscaler.",
+    "question": "Your cluster has several pods stuck in Pending because every existing node is already full, even though the running pods are correctly right-sized. Which autoscaler resolves this?",
     "options": {
-      "correct": "HPA changes pod replica count; VPA changes pod resource requests/limits; Cluster Autoscaler changes node count",
-      "distractor_1": "HPA changes node count; VPA changes pod count; Cluster Autoscaler changes resource requests",
-      "distractor_2": "All three change the same thing \u2014 pod replica count \u2014 but trigger on different metrics (CPU, memory, custom)",
-      "distractor_3": "HPA changes pod count; VPA changes node count; Cluster Autoscaler changes resource limits per node"
+      "correct": "Cluster Autoscaler \u2014 it adds nodes when pods can't be scheduled for lack of capacity, then removes them when they're no longer needed",
+      "distractor_1": "Horizontal Pod Autoscaler \u2014 it raises the replica count, which schedules more pods so Kubernetes can place the Pending ones",
+      "distractor_2": "Vertical Pod Autoscaler \u2014 it increases the pods' CPU and memory requests so they fit onto the existing nodes",
+      "distractor_3": "Horizontal Pod Autoscaler combined with VPA \u2014 together they rebalance pods across the current nodes to free up room for the Pending ones"
     },
-    "explanation": "Three distinct axes: HPA scales replicas (horizontal pod), VPA right-sizes individual pod resources (vertical pod), CA adds/removes nodes (cluster). Distractor 1 fully scrambles which scales what. Distractor 2 collapses three orthogonal mechanisms into one. Distractor 3 partially scrambles. Knowing the axes matters because they compose: HPA + CA is the most common pattern (more pods, more nodes); VPA + HPA together require care (VPA's vertical changes can fight HPA's horizontal decisions)."
+    "explanation": "Pending pods with all nodes full is a capacity problem, and only the Cluster Autoscaler changes node count to fix it. Distractor 1 picks HPA, but adding replicas creates more pods needing capacity \u2014 it worsens Pending, not resolves it. Distractor 2 picks VPA, which changes resource requests; raising requests makes pods harder to fit, and the pods are already right-sized. Distractor 3 imagines HPA+VPA rebalancing across nodes, but neither moves pods to manufacture capacity \u2014 that's the Cluster Autoscaler's job. The three operate on orthogonal axes: replicas, pod size, node count."
   },
   {
     "id": "k8s-032-mcq-1",

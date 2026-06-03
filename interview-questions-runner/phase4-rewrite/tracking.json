@@ -541,6 +541,64 @@
       "rebaseline_12_split": "all 12 rebaseline fabrications = SWAP, 0 verify-no-change",
       "checkpoint_date": "2026-06-03",
       "status": "pending"
+    },
+    {
+      "batch_id": "T3.1",
+      "tier": 3,
+      "domain_slice": "tier3_reslice_part1 (structural / compare / superlative / multi-flag)",
+      "mcq_ids_attempted": [
+        "cicd-001-mcq-1",
+        "aws-021-mcq-1",
+        "aws-022-mcq-1",
+        "k8s-001-mcq-2",
+        "k8s-011-mcq-1",
+        "k8s-021-mcq-2",
+        "k8s-041-mcq-2",
+        "aws-005-mcq-2",
+        "aws-007-mcq-1",
+        "aws-010-mcq-2",
+        "aws-027-mcq-2",
+        "cicd-010-mcq-1",
+        "cicd-040-mcq-1",
+        "cicd-050-mcq-2",
+        "k8s-023-mcq-1"
+      ],
+      "slice_total": 15,
+      "scope_derivation": "Locked Tier-3 reslice T3.1 (Stephen 2026-06-03): aws struct 4 + aws-021/aws-022 (superlative) + cicd struct 3 + cicd-001 (compare) + k8s struct 5. PLAN's pre-reslice count of 13 is superseded by the locked 15.",
+      "pilot_dupe_preflight": "0 byte-identical-to-pilot in the 15-id slice",
+      "full_reauthors": 15,
+      "dropouts": 0,
+      "dropped_to_tier3_ids": [],
+      "cluster_breakdown": {
+        "compare_definition_pair": 1,
+        "superlative_not_stem": 2,
+        "multi_flag_a_plus_d": 4,
+        "plain_structural": 8
+      },
+      "cluster_targets_confirmed": "Each item transformed per its flag combination (not a generic reauthor): cicd-001 rebuilt to load-bearing scenario (strike-test passes); aws-021/aws-022 positive factual best-fit with uniquely-keyed answer; 4 multi-flag items fixed actor-marker stem (clears D/C) AND replaced every fabrication with a real misconception unambiguously wrong vs the new stem.",
+      "rulings_applied": {
+        "B1_auto_implicit_fps": "Stephen confirmed all three 'automatically' suspect hits as real misconceptions; KEPT, recorded as FPs, no reword. Standing rule continues.",
+        "B2_length_tell": "Accepted T3.1 as-is (0/15 trip the per-item giveaway threshold). From T3.2: lengthen distractors to carry their own mechanism (do not shorten correct). Bank-wide correct-is-longest check deferred to Tier-3 close.",
+        "B3_aws-021": "Applied version B: added constraint ('100% Spot, no on-demand fallback, zero user-visible impact on reclaim'); dropped single-node Postgres (lowest discrimination); restored the stateless-web tier ONLY as the constraint-ruled-out distractor; kept payment-API + un-checkpointed-ML; single-select. Distractor_1 lengthened to clear the resulting length-tell per B2."
+      },
+      "suspect_fps_recorded": [
+        "cicd-001-mcq-1/d3",
+        "k8s-001-mcq-2/d2",
+        "aws-005-mcq-2/d2"
+      ],
+      "absorption_queue_items_landed": [
+        "cicd-001-mcq-1 (Cluster A compare)",
+        "aws-021-mcq-1 (Cluster B superlative)",
+        "aws-022-mcq-1 (T2.1 deferral, superlative)"
+      ],
+      "multi_distractor_items": 15,
+      "validate_mcqs_status": "OK (banks 1/2/3, 0 errors)",
+      "drift_status": "PASS — 15/15 touched cleared, 0 regressions",
+      "audit_suspect_diff": "3 new entries on touched ids, all 'auto-implicit' pattern — recorded false positives (cicd-001/d3, k8s-001/d2, aws-005/d2); no new fabrications.",
+      "length_tell": "0/15 trip the per-item giveaway threshold; correct-is-longest 12/15 (inherent to load-bearing-correct). Bank-wide check at Tier-3 close per B2.",
+      "before_integrity_note": "batch-07 'before' fields were reconstructed from git HEAD after an in-session builder re-run-after-apply had polluted them with intermediate 'after' values. Builder hardened to source 'before' from HEAD (idempotent). Pollution isolated to batch-07 and never committed; drift integrity unaffected (check_drift uses baseline-snapshot.json + touched_ids, never 'before'). Committed batches 01-05 clean; batch-06's single before==after is the intended verify-no-change FP cicd-031-mcq-1.",
+      "checkpoint_date": "2026-06-03",
+      "status": "COMPLETE"
     }
   ],
   "borderline_approved": [
@@ -724,7 +782,7 @@
     "tier1_distractors_queued_for_tier2": 1,
     "tier3_absorption_queue_size": 16,
     "tier2_fabrications_caught": 26,
-    "tier3_full_rewrites": 0,
+    "tier3_full_rewrites": 15,
     "total_audit_reflags": 0,
     "tier1_intentional_recall_exempt": 0,
     "tier1_complete": true,
@@ -749,7 +807,11 @@
       "git-001-mcq-1",
       "git-003-mcq-2/d3",
       "k8s-031-mcq-2/d3"
-    ]
+    ],
+    "tier3_batches_done": 1,
+    "tier3_dropouts": 0,
+    "tier3_suspect_fps_recorded": 3,
+    "tier3_absorption_queue_landed_in_t3_1": 3
   },
   "detector_coverage_gaps": [
     {

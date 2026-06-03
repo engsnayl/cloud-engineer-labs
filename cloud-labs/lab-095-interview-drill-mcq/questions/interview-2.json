@@ -38,14 +38,14 @@
     "subdomain": "architecture",
     "priority": "high",
     "difficulty": "hard",
-    "question": "Match the AWS DR strategy to its typical RTO/RPO profile: which strategy offers the shortest RTO and RPO at the highest cost?",
+    "question": "Your team runs a payments platform that must recover from a full regional outage in seconds with effectively zero data loss, and cost is explicitly not a constraint. Which disaster-recovery strategy fits?",
     "options": {
-      "correct": "Multi-site active/active \u2014 both regions serve traffic continuously, so RTO and RPO are near zero but compute and data-replication cost is paid all the time",
-      "distractor_1": "Pilot light \u2014 core services run in the DR region at all times, so failover is fast and data is fully up to date",
-      "distractor_2": "Warm standby \u2014 a full-scale replica runs in the DR region and serves traffic concurrently, giving near-zero RTO/RPO",
-      "distractor_3": "Backup and restore \u2014 data is replicated continuously to the DR region, so RPO is zero and RTO depends only on AMI launch time"
+      "correct": "Multi-site active/active \u2014 the full stack runs live in two regions at once, so a regional outage is just a traffic shift, giving near-zero RTO and RPO at the highest steady-state cost",
+      "distractor_1": "Pilot light \u2014 core data and minimal services stay warm in the DR region, so failover only needs to scale up the app tier, keeping recovery fast and cheap",
+      "distractor_2": "Warm standby \u2014 a scaled-down copy of the stack runs continuously in the DR region and is scaled up on failover, giving recovery in minutes",
+      "distractor_3": "Backup and restore \u2014 frequent cross-region snapshots make data loss negligible, and recovery is just relaunching from the latest AMIs and backups"
     },
-    "explanation": "Multi-site active/active runs the full stack in two regions live, so failover is just traffic shift \u2014 RTO and RPO measured in seconds. Distractor 1 (pilot light) keeps only data and core services warm; app servers must scale up on failover, so RTO is minutes-to-hours. Distractor 2 (warm standby) does run scaled-down infrastructure but only the active site serves traffic \u2014 failover still needs scale-up. Distractor 3 conflates backup-and-restore (cheapest, slowest) with continuous replication; backups have non-zero RPO and the longest RTO."
+    "explanation": "Only multi-site active/active delivers seconds-level RTO and near-zero RPO, because both regions already serve production \u2014 there's nothing to spin up. It's also the most expensive, which the scenario explicitly allows. Distractor 1 (pilot light) must scale the app tier on failover, so RTO is minutes-to-hours, not seconds. Distractor 2 (warm standby) runs scaled-down and still needs a scale-up step, landing in minutes \u2014 short of 'seconds.' Distractor 3 (backup and restore) is the cheapest and slowest: restoring from snapshots and AMIs takes the longest RTO of all. Cost being a non-constraint points straight at active/active."
   },
   {
     "id": "aws-008-mcq-2",
@@ -70,14 +70,14 @@
     "subdomain": "storage",
     "priority": "high",
     "difficulty": "medium",
-    "question": "A user in Account A has an IAM policy granting s3:GetObject on a bucket in Account B. The bucket policy in Account B does not mention Account A. Can the user read objects in the bucket?",
+    "question": "A user in Account A has an IAM policy granting s3:GetObject on a bucket owned by Account B, but Account B's bucket policy doesn't mention Account A at all. When the user calls GetObject, what happens and why?",
     "options": {
-      "correct": "No \u2014 cross-account S3 access requires both an identity-based allow in the calling account and a bucket policy allow in the bucket-owning account",
-      "distractor_1": "Yes \u2014 the IAM policy in Account A is sufficient, because S3 evaluates the caller's permissions and grants access if any policy allows it",
-      "distractor_2": "Yes \u2014 but only for objects the user themselves uploaded; objects owned by Account B require an explicit bucket policy grant",
-      "distractor_3": "No \u2014 and the user must also have a permissions boundary in Account A that allows cross-account access for the request to succeed"
+      "correct": "The request is denied \u2014 cross-account S3 access needs an allow on both sides: the caller's identity policy in Account A and a bucket-policy allow in Account B. Only one side is present",
+      "distractor_1": "The request succeeds \u2014 the identity policy in Account A is sufficient, because S3 grants access whenever any policy in the caller's account allows it",
+      "distractor_2": "The request succeeds, but only for objects the user previously uploaded; objects owned by Account B would additionally require a bucket-policy grant",
+      "distractor_3": "The request is denied, and the user would also need a permissions boundary in Account A explicitly allowing cross-account calls for it to work"
     },
-    "explanation": "Cross-account access to S3 requires explicit allow on BOTH sides: the caller's identity policy in their account AND a resource policy on the bucket in the owning account (or an ACL, which is being phased out). Distractor 1 describes the single-account model \u2014 within one account, an identity policy is enough. Distractor 2 invents an object-ownership exemption that doesn't match how S3 evaluates GetObject. Distractor 3 invents a permissions-boundary requirement; boundaries are optional and the missing piece here is the bucket policy."
+    "explanation": "Cross-account access requires an explicit allow in both accounts \u2014 the caller's identity policy AND the resource (bucket) policy in the owning account. With the bucket policy silent, the default deny wins. Distractor 1 describes the single-account model, where an identity allow alone suffices; cross-account adds the resource-policy requirement. Distractor 2 invents an object-ownership exemption that doesn't match how S3 authorises GetObject. Distractor 3 lands on the right verdict for the wrong reason \u2014 permissions boundaries are optional, and the actual missing piece is the bucket policy, not a boundary."
   },
   {
     "id": "aws-013-mcq-1",
@@ -182,14 +182,14 @@
     "subdomain": "compute",
     "priority": "critical",
     "difficulty": "medium",
-    "question": "A team is choosing between ECS Fargate, EKS, and Lambda for a video transcoding service. Individual jobs take 20-90 minutes and run constantly throughout the day. Which compute platform is the WORST fit?",
+    "question": "Your team runs a video transcoding service whose individual jobs take 20-90 minutes and run constantly throughout the day. Considering Lambda, ECS Fargate, and EKS, which platform is the BEST fit?",
     "options": {
-      "correct": "Lambda \u2014 the 15-minute maximum execution time means most transcoding jobs would never complete in a single invocation",
-      "distractor_1": "ECS Fargate \u2014 Fargate tasks have a 15-minute hard timeout to match Lambda's, so the longer jobs would time out",
-      "distractor_2": "EKS \u2014 its pod scheduling adds a 20-minute minimum runtime overhead that makes shorter jobs uneconomical",
-      "distractor_3": "All three are viable; the choice depends only on cost, not runtime constraints"
+      "correct": "ECS Fargate \u2014 it runs the containerised jobs with no platform execution-time limit and no nodes or control plane to operate, matching steady 20-90-minute work",
+      "distractor_1": "Lambda \u2014 its event-driven model and per-millisecond billing make it the cheapest choice for jobs of any duration",
+      "distractor_2": "EKS \u2014 only Kubernetes can run a job past Lambda's and Fargate's shared 15-minute execution ceiling, so the job length forces EKS",
+      "distractor_3": "Any of the three works equally; for constantly-running jobs the decision is purely cost, not execution-time limits"
     },
-    "explanation": "Lambda's 15-minute timeout is the dealbreaker \u2014 once a job exceeds it, the function is killed mid-work. ECS Fargate has no such limit, EKS has no platform-level timeout at all. Distractor 1 fabricates a Fargate 15-min timeout; Fargate tasks run as long as the container does. Distractor 2 invents an EKS scheduling overhead that doesn't exist (pod startup is seconds, not minutes). Distractor 3 ignores the constraint entirely. The general rule: Lambda for short, event-driven workloads; ECS/EKS for sustained or long-running."
+    "explanation": "The discriminator is Lambda's hard 15-minute timeout, which kills a 20-90-minute job mid-work; Fargate runs containers with no such cap and the least operational overhead, so it's the best fit. Distractor 1 over-applies Lambda \u2014 cheap billing is irrelevant once the job can't finish in 15 minutes. Distractor 2 invents a 15-minute ceiling on Fargate (Fargate tasks run as long as the container does), so its premise for forcing EKS is false. Distractor 3 ignores the runtime constraint entirely, which is the one thing that rules a platform in or out here."
   },
   {
     "id": "aws-026-mcq-2",
@@ -662,14 +662,14 @@
     "subdomain": "workloads",
     "priority": "critical",
     "difficulty": "easy",
-    "question": "In which situation would you hand-create a ReplicaSet directly instead of using a Deployment?",
+    "question": "An engineer proposes creating a bare ReplicaSet directly, not a Deployment, to run a long-lived stateless service, arguing it's one less layer. What does the service give up by skipping the Deployment?",
     "options": {
-      "correct": "Essentially never \u2014 Deployments are the recommended abstraction, and creating a ReplicaSet directly loses rolling updates, rollback history, and revision tracking",
-      "distractor_1": "When you need a single replica with no rolling updates, since Deployments require at least two replicas to function",
-      "distractor_2": "When the pods need to survive a Deployment rollback \u2014 only standalone ReplicaSets are immune to rollback-triggered termination of older pod versions during a deploy",
-      "distractor_3": "When using a custom container runtime, since Deployments only support containerd and CRI-O while ReplicaSets are runtime-agnostic"
+      "correct": "Rolling updates, rollback to previous revisions, and revision history \u2014 the Deployment controller adds exactly those on top of a ReplicaSet, so a bare RS is strictly less capable for a long-lived service",
+      "distractor_1": "Nothing important \u2014 a ReplicaSet already performs rolling updates by gradually replacing its pods whenever you edit its pod template, so a Deployment is mostly a convenience alias",
+      "distractor_2": "Self-healing \u2014 a bare ReplicaSet won't recreate a pod that crashes, so the service loses the automatic restart guarantee a Deployment provides",
+      "distractor_3": "Horizontal autoscaling \u2014 an HPA can only attach to a Deployment, so a bare ReplicaSet loses the ability to scale on CPU or memory"
     },
-    "explanation": "ReplicaSets are an implementation detail of Deployments \u2014 there's almost no production reason to create one directly. Distractor 1 invents a minimum-replicas constraint that doesn't exist (Deployments work fine at one replica). Distractor 2 fabricates rollback immunity for standalone ReplicaSets. Distractor 3 invents a runtime-compatibility difference; both objects use the same underlying container runtime via the kubelet. The answer is essentially 'don't' \u2014 and naming that bluntly is more useful than inventing a clever edge case."
+    "explanation": "A Deployment manages ReplicaSets to deliver rolling updates, rollback, and revision tracking; a bare RS only holds a pod count steady. Distractor 1 is the core misconception \u2014 editing an RS template does not roll existing pods (only new pods use it), so an RS gives no rolling update. Distractor 2 inverts the RS's whole job: maintaining replica count means it does recreate crashed pods. Distractor 3 invents an HPA-needs-a-Deployment rule \u2014 an HPA can target a ReplicaSet through its scale subresource, so autoscaling doesn't require one. The honest answer: almost always use a Deployment."
   },
   {
     "id": "k8s-002-mcq-2",
@@ -726,14 +726,14 @@
     "subdomain": "networking",
     "priority": "high",
     "difficulty": "medium",
-    "question": "You create an Ingress resource on EKS but external traffic doesn't reach your services. The Ingress shows no Address. What's the most likely cause?",
+    "question": "You deploy an Ingress resource on EKS, but external traffic never reaches your services and the Ingress shows no Address even after several minutes. What's the most likely cause?",
     "options": {
-      "correct": "No Ingress controller is installed \u2014 the Ingress object is just a routing spec; without a controller (AWS Load Balancer Controller, nginx, etc.) nothing materialises it",
-      "distractor_1": "The Ingress is missing a `LoadBalancer` Service in the same namespace, which the Ingress needs to attach itself to",
-      "distractor_2": "The Ingress is in a namespace that lacks the `ingress-enabled=true` label that EKS requires before traffic is permitted",
-      "distractor_3": "EKS's built-in Ingress provider takes 30-60 minutes to provision an ALB on first install, during which the Ingress shows no Address while AWS reconciles the load balancer"
+      "correct": "The cluster has no Ingress controller running \u2014 an Ingress is only a routing spec, and without a controller (AWS Load Balancer Controller, NGINX, etc.) nothing provisions a load balancer or populates the Address",
+      "distractor_1": "The Ingress has no companion LoadBalancer Service in its namespace to attach to; an Ingress forwards to a LoadBalancer Service, which is what actually receives the external address",
+      "distractor_2": "The Ingress controller is running in a different namespace from the Ingress, and a controller only reconciles Ingress objects that live in its own namespace",
+      "distractor_3": "The backend Service has no healthy pod endpoints yet; the ALB and its Address are only created once at least one target is passing health checks"
     },
-    "explanation": "Ingress is a Kubernetes resource that describes routing rules; an Ingress *controller* (a deployment running in the cluster) is what reads those resources and provisions a real load balancer. Without a controller, nothing happens. Distractor 1 invents a LoadBalancer-Service-as-attachment-target requirement; the controller provisions the LB itself. Distractor 2 fabricates a namespace-label requirement. Distractor 3 invents a built-in Ingress provider in EKS; the AWS LB Controller is an add-on you install, and provisioning is ~1-3 minutes, not 30-60."
+    "explanation": "An Ingress object is inert until an Ingress controller reads it and provisions real infrastructure \u2014 no controller, no Address. Distractor 1 invents a LoadBalancer-Service-as-attachment-target; the controller provisions the load balancer itself from the Ingress spec. Distractor 2 fabricates namespace-scoping \u2014 controllers like the AWS LB Controller watch Ingresses cluster-wide, not just their own namespace. Distractor 3 ties Address creation to healthy endpoints, but the controller provisions the ALB and assigns the Address regardless of target health; unhealthy targets just fail to receive traffic. The fix is installing a controller."
   },
   {
     "id": "k8s-013-mcq-1",
@@ -774,14 +774,14 @@
     "subdomain": "scheduling",
     "priority": "high",
     "difficulty": "medium",
-    "question": "A 6-replica Deployment is meant to spread across all 3 AZs evenly for HA. What's the right configuration?",
+    "question": "Your team runs a 6-replica Deployment and needs the replicas spread evenly across all three AZs, so losing any one zone removes at most a third of capacity. Which configuration enforces that even spread?",
     "options": {
-      "correct": "TopologySpreadConstraints with `topologyKey: topology.kubernetes.io/zone` and `maxSkew: 1`, so the scheduler keeps replica counts within 1 across zones",
-      "distractor_1": "Pod anti-affinity with `preferredDuringScheduling` on the zone label \u2014 the scheduler will prefer different zones for each replica",
-      "distractor_2": "Set replicas to a multiple of the AZ count and add the annotation `scheduler.alpha.kubernetes.io/balanced=true`",
-      "distractor_3": "Add a nodeSelector restricting the pods to one specific AZ; the cluster autoscaler will rebalance them across AZs automatically"
+      "correct": "TopologySpreadConstraints keyed on topology.kubernetes.io/zone with maxSkew: 1, so the scheduler holds per-zone replica counts within one of each other",
+      "distractor_1": "Pod anti-affinity with preferredDuringSchedulingIgnoredDuringExecution on the zone label, so the scheduler tries to place each replica in a different zone",
+      "distractor_2": "Just set replicas to 6 and rely on the default scheduler, which already balances same-Deployment pods evenly across zones without extra configuration",
+      "distractor_3": "A nodeSelector pinning the pods to one AZ, after which the cluster autoscaler redistributes them across the other zones to balance load"
     },
-    "explanation": "TopologySpreadConstraints with maxSkew is the modern, explicit way to enforce even distribution across a topology \u2014 the scheduler maintains the skew during initial schedule and during scale-ups. Distractor 1 (preferred anti-affinity) is a soft preference; under pressure the scheduler will pack replicas in one zone. Distractor 2 fabricates an annotation that doesn't exist. Distractor 3 inverts the goal entirely \u2014 it pins to a single AZ rather than spreading. Topology spread is the post-1.18 evolution of older anti-affinity patterns."
+    "explanation": "TopologySpreadConstraints with maxSkew is the explicit, enforced way to hold an even spread across zones. Distractor 1 is the near-miss: a preferred anti-affinity is only a soft hint, so under scheduling pressure the scheduler will still pack replicas into one zone. Distractor 2 over-trusts the default scheduler \u2014 without a spread constraint, even placement is best-effort, not the maxSkew-1 guarantee the requirement needs. Distractor 3 inverts the goal by pinning to a single AZ, and the cluster autoscaler scales node capacity rather than rebalancing pods across zones. Topology spread is the modern successor to anti-affinity spreading."
   },
   {
     "id": "k8s-030-mcq-1",
@@ -854,14 +854,14 @@
     "subdomain": "eks",
     "priority": "critical",
     "difficulty": "medium",
-    "question": "What's the practical difference between IRSA and EKS Pod Identity?",
+    "question": "Your team is wiring up pod-level AWS access on a brand-new EKS cluster with no OIDC provider configured yet, and wants the least setup ceremony, accepting a relatively new feature. Between IRSA and EKS Pod Identity, which fits and what's the tradeoff?",
     "options": {
-      "correct": "Pod Identity uses an agent running on each node (no OIDC provider needed); IRSA uses a projected JWT and the cluster's OIDC issuer \u2014 Pod Identity is simpler to set up but newer and not yet ubiquitous in tooling",
-      "distractor_1": "IRSA is for AWS service access; Pod Identity is for cross-cluster pod-to-pod authentication within EKS Anywhere",
-      "distractor_2": "Pod Identity replaces IRSA entirely as of EKS 1.27; IRSA is deprecated and will be removed in 1.30",
-      "distractor_3": "IRSA requires the EBS CSI driver to be installed; Pod Identity works without it because it stores tokens in memory rather than on disk"
+      "correct": "EKS Pod Identity \u2014 it relies on a per-node agent and needs no OIDC provider or trust-policy wiring, so setup is minimal; the tradeoff is that it's newer, so some IAM and tooling templates still assume IRSA",
+      "distractor_1": "IRSA \u2014 it's the only one of the two that issues short-lived credentials; Pod Identity hands the pod a long-lived IAM access key from the node agent, which the no-long-lived-keys goal rules out",
+      "distractor_2": "IRSA actually needs less setup here \u2014 Pod Identity requires installing and operating a separate controller and CRDs, whereas IRSA is built into the control plane with nothing to add",
+      "distractor_3": "Pod Identity, but only because its credentials are configured per-pod in the manifest rather than per-service-account, so they don't survive a reschedule onto another node"
     },
-    "explanation": "Both solve the same problem (pod-level AWS credentials), differently: IRSA via OIDC + projected token; Pod Identity via an EKS agent (eks-pod-identity-agent) on each node that calls a regional endpoint. Pod Identity is easier (no IRSA setup ceremony) but newer, so some tooling/IAM templates still assume IRSA. Distractor 1 invents an EKS Anywhere scope. Distractor 2 fabricates a deprecation; IRSA remains supported. Distractor 3 invents an EBS CSI dependency for IRSA that doesn't exist. New clusters today increasingly default to Pod Identity."
+    "explanation": "Pod Identity authenticates pods via the eks-pod-identity-agent on each node, skipping the OIDC-provider and trust-policy setup IRSA requires \u2014 so it's the lower-ceremony fit on a fresh cluster. Distractor 1 is false on mechanism: both issue temporary credentials; neither plants a static key. Distractor 2 inverts the setup cost \u2014 IRSA's OIDC ceremony is the heavier one, and Pod Identity installs as a single managed add-on. Distractor 3 misdescribes Pod Identity as per-pod; associations are per-service-account and survive rescheduling, just like IRSA. New clusters increasingly default to Pod Identity."
   },
   {
     "id": "k8s-051-mcq-1",
