@@ -35,18 +35,55 @@ display_wrap_width() {
 # word, so those periods are not mistaken for sentence boundaries. Sentences that
 # legitimately start with a lowercase tool name (e.g. "journalctl's ...") still
 # break correctly, because suppression is by abbreviation, not by next-char case.
-print_paragraphs() {
-  local text="$1" w SP=$'\001'
-  w=$(display_wrap_width)
-  printf '%s\n' "$text" \
+# _sentence_split <text>  -> one sentence per line (abbreviation-protected).
+_sentence_split() {
+  local SP=$'\001'
+  printf '%s\n' "$1" \
     | sed -E "s/(e\.g\.|i\.e\.) /\1${SP}/g; s/(etc\.) ([a-z])/\1${SP}\2/g" \
     | sed -E 's/([.!?]) +/\1\n/g' \
-    | sed "s/${SP}/ /g" \
-    | while IFS= read -r line; do
-        [[ -z "$line" ]] && continue
-        printf '%s\n' "$line" | fold -s -w "$w"
-        echo
-      done
+    | sed "s/${SP}/ /g"
+}
+
+# _wrap_paragraphs  -> reads sentences on stdin; wraps each, blank line between.
+_wrap_paragraphs() {
+  local w line
+  w=$(display_wrap_width)
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && continue
+    printf '%s\n' "$line" | fold -s -w "$w"
+    echo
+  done
+}
+
+print_paragraphs() { _sentence_split "$1" | _wrap_paragraphs; }
+
+# print_explanation <relabeled_text>
+# Like print_paragraphs, but sentences that begin with an "(A|B|C|D)" option
+# reference are reordered into ascending letter order within their own slots, so
+# the explanation walks the options A->D rather than JSON storage order. Non-ref
+# sentences (the preamble) keep their positions.
+print_explanation() {
+  local lines=() line
+  while IFS= read -r line; do [[ -n "$line" ]] && lines+=("$line"); done < <(_sentence_split "$1")
+  local i refslots=() keys=() re='^\(([ABCD])\)'
+  for i in "${!lines[@]}"; do
+    if [[ "${lines[$i]}" =~ $re ]]; then
+      refslots+=("$i")
+      keys+=("${BASH_REMATCH[1]}|$i")
+    fi
+  done
+  if (( ${#refslots[@]} > 1 )); then
+    local sorted=() entry slot k=0 s
+    while IFS= read -r entry; do
+      slot="${entry#*|}"
+      sorted+=("${lines[$slot]}")
+    done < <(printf '%s\n' "${keys[@]}" | sort)
+    for s in "${refslots[@]}"; do
+      lines[$s]="${sorted[$k]}"
+      k=$(( k + 1 ))
+    done
+  fi
+  printf '%s\n' "${lines[@]}" | _wrap_paragraphs
 }
 
 display_welcome() {
@@ -124,5 +161,5 @@ display_feedback() {
     printf '%s%s✗ Incorrect — the answer was %s%s\n\n' "$C_BOLD" "$C_RED" "$2" "$C_RESET"
   fi
   printf '%sExplanation:%s\n' "$C_BOLD" "$C_RESET"
-  print_paragraphs "$(explanation_relabel "$6" "$3" "$4" "$5")"
+  print_explanation "$(explanation_relabel "$6" "$3" "$4" "$5")"
 }
