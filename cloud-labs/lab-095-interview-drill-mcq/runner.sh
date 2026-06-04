@@ -113,7 +113,8 @@ run_session() {
     ok=0
     [[ "$choice" == "$SHUF_CORRECT_LETTER" ]] && ok=1
     scoring_record "$domain" "$ok"
-    display_feedback "$ok" "$SHUF_CORRECT_LETTER" "$expl"
+    display_feedback "$ok" "$SHUF_CORRECT_LETTER" \
+      "${SHUF_LETTER[1]}" "${SHUF_LETTER[2]}" "${SHUF_LETTER[3]}" "$expl"
 
     # h) advance
     echo

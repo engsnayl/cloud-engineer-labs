@@ -102,7 +102,20 @@ display_options() {
   done
 }
 
-# display_feedback <is_correct 1|0> <correct_letter> <explanation>
+# explanation_relabel <explanation> <d1_letter> <d2_letter> <d3_letter>
+# Rewrites the storage-order labels "Distractor 1/2/3" (and the plural form) to
+# the parenthesised A/B/C/D letter each distractor landed at after shuffling, so
+# the explanation matches what the reader saw. The banks keep "Distractor N" as
+# the authoring label; this is a render-time substitution only.
+explanation_relabel() {
+  local t="$1" l1="$2" l2="$3" l3="$4"
+  t="${t//Distractors 1/($l1)}"; t="${t//Distractor 1/($l1)}"
+  t="${t//Distractors 2/($l2)}"; t="${t//Distractor 2/($l2)}"
+  t="${t//Distractors 3/($l3)}"; t="${t//Distractor 3/($l3)}"
+  printf '%s' "$t"
+}
+
+# display_feedback <is_correct 1|0> <correct_letter> <d1_letter> <d2_letter> <d3_letter> <explanation>
 display_feedback() {
   echo
   if [[ "$1" -eq 1 ]]; then
@@ -111,5 +124,5 @@ display_feedback() {
     printf '%s%s✗ Incorrect — the answer was %s%s\n\n' "$C_BOLD" "$C_RED" "$2" "$C_RESET"
   fi
   printf '%sExplanation:%s\n' "$C_BOLD" "$C_RESET"
-  print_paragraphs "$3"
+  print_paragraphs "$(explanation_relabel "$6" "$3" "$4" "$5")"
 }

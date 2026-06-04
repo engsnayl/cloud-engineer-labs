@@ -13,17 +13,22 @@ shuffle_indices() {
 # shuffle_options <correct> <distractor_1> <distractor_2> <distractor_3>
 # Populates globals:
 #   SHUF_OPTS[0..3]        the four option texts in display (A,B,C,D) order
+#   SHUF_LETTER[0..3]      storage-key index -> display letter, where index
+#                          0=correct, 1=distractor_1, 2=distractor_2, 3=distractor_3
 #   SHUF_CORRECT_LETTER    which of A/B/C/D now holds the correct answer
-# The correct answer is always input index 0, so its shuffled slot is the key.
+# Inputs are passed in storage order (correct first), so the input index is the
+# storage key and SHUF_LETTER maps it to the letter that key landed at.
 shuffle_options() {
   local opts=("$1" "$2" "$3" "$4")
   local letters=(A B C D)
   SHUF_OPTS=()
+  SHUF_LETTER=()
   SHUF_CORRECT_LETTER=""
   local pos=0 idx
   while read -r idx; do
     SHUF_OPTS+=("${opts[$idx]}")
-    [[ "$idx" -eq 0 ]] && SHUF_CORRECT_LETTER="${letters[$pos]}"
+    SHUF_LETTER[$idx]="${letters[$pos]}"
     pos=$(( pos + 1 ))
   done < <(printf '%s\n' 0 1 2 3 | shuf)
+  SHUF_CORRECT_LETTER="${SHUF_LETTER[0]}"
 }
