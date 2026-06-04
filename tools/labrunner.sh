@@ -321,6 +321,15 @@ cmd_start() {
         exit 1
     fi
 
+    # Interactive drill labs (e.g. the MCQ runner) launch their own loop instead
+    # of the fix-it dispatch below. Opt-in and self-contained: requires an
+    # executable runner.sh AND a Drill/Interview Category in CHALLENGE.md, so no
+    # existing lab is affected.
+    if [[ -x "$full_path/runner.sh" ]] && grep -qiE '^Category:.*(Drill|Interview)' "$challenge_file"; then
+        record_start "$lab_path"
+        exec bash "$full_path/runner.sh"
+    fi
+
     print_banner
 
     local title=$(get_lab_metadata "$lab_path" "Title")
