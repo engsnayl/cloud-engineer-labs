@@ -265,6 +265,18 @@ def run_scenario(scenario: dict, idx: int, total: int, cwd: Path) -> dict:
         sys.stderr.flush()
         try:
             cmd = input(f"{C.CYAN}$ {C.RESET}").strip()
+        except UnicodeDecodeError as e:
+            # Locale/encoding issue — Python's input() couldn't decode the line
+            # buffer (often happens when the terminal's locale isn't full UTF-8,
+            # or when ANSI escape codes in the prompt interact badly with readline).
+            # Don't crash the drill — flush stdin, warn, and re-prompt.
+            print(f"\n{C.YELLOW}⚠ Input encoding glitch — couldn't decode that line.{C.RESET}")
+            print(f"{C.DIM}  ({e}){C.RESET}")
+            print(f"{C.DIM}  This usually means LANG/LC_ALL isn't UTF-8 on this Pi.{C.RESET}")
+            print(f"{C.DIM}  Try: export LANG=en_GB.UTF-8 (or en_US.UTF-8) before launching drill.{C.RESET}")
+            print(f"{C.DIM}  For now, just retype the command — the drill will continue.{C.RESET}")
+            attempts -= 1  # don't penalise the user for an internal hiccup
+            continue
         except (EOFError, KeyboardInterrupt):
             print(f"\n{C.YELLOW}Drill aborted.{C.RESET}")
             sys.exit(0)
